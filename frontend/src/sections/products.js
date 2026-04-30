@@ -352,8 +352,8 @@ function FormPanel({ config, onUpdate }) {
             </Button>
           </div>
           <p className="text-xs text-slate-500">
-            Paste a Nettailer/Misco product link — name, price &amp; image will
-            auto-fill. All fields stay editable.
+            Paste product page URL — name, price &amp; image will auto-fill. All
+            fields stay editable.
           </p>
         </div>
 
