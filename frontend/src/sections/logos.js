@@ -30,43 +30,14 @@ const defaults = () => ({
   bgColor: "#ffffff",
   fullBleed: true,
   logos: [
-    {
-      id: makeUid(),
-      image:
-        "https://media.misco.co.uk/images/Google_for_Education_logo_400_200.png",
-      alt: "Google for Education",
-    },
-    {
-      id: makeUid(),
-      image: "https://media.misco.co.uk/images/Lenovo_logo_400_200.png",
-      alt: "Lenovo",
-    },
-    {
-      id: makeUid(),
-      image: "https://media.misco.co.uk/images/Microsoft_logo_400_200.png",
-      alt: "Microsoft",
-    },
-    {
-      id: makeUid(),
-      image: "https://media.misco.co.uk/images/Logitech_Ergonomic_Vendor.png",
-      alt: "Logitech",
-    },
-    {
-      id: makeUid(),
-      image: "https://media.misco.co.uk/images/Brother_logo_400_200.png",
-      alt: "Brother",
-    },
-    {
-      id: makeUid(),
-      image:
-        "https://media.misco.co.uk/media/misco/images/Edu-images/Viewsonic.jpg",
-      alt: "ViewSonic",
-    },
-    {
-      id: makeUid(),
-      image: "https://media.misco.co.uk/images/Epson_logo_400_200.png",
-      alt: "Epson",
-    },
+    { id: makeUid(), image: "https://logo.clearbit.com/hp.com", alt: "HP" },
+    { id: makeUid(), image: "https://logo.clearbit.com/lenovo.com", alt: "Lenovo" },
+    { id: makeUid(), image: "https://logo.clearbit.com/microsoft.com", alt: "Microsoft" },
+    { id: makeUid(), image: "https://logo.clearbit.com/apple.com", alt: "Apple" },
+    { id: makeUid(), image: "https://logo.clearbit.com/razer.com", alt: "Razer" },
+    { id: makeUid(), image: "https://logo.clearbit.com/asus.com", alt: "ASUS" },
+    { id: makeUid(), image: "https://logo.clearbit.com/samsung.com", alt: "Samsung" },
+    { id: makeUid(), image: "https://logo.clearbit.com/epson.com", alt: "Epson" },
   ],
 });
 

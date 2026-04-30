@@ -24,8 +24,8 @@ const ID = "content";
 const defaults = () => ({
   uid: makeUid(),
   heading:
-    "From everyday essentials to tailored technology solutions, we help your business find, manage and scale the right IT.",
-  color: "#1067a6",
+    "From everyday essentials to tailored eCommerce technology, Nettailer helps your business find, manage and scale the right IT.",
+  color: "#E01839",
   fontSize: 28,
   fontWeight: "600",
   paddingY: 60,

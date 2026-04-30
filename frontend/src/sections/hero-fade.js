@@ -30,12 +30,12 @@ const ID = "hero-fade";
 const defaults = () => ({
   uid: makeUid(),
   theme: {
-    primaryColor: "#0f172a",
+    primaryColor: "#E01839",
     primaryText: "#ffffff",
     titleColor: "#ffffff",
     subtitleColor: "#e2e8f0",
     overlayColor: "#000000",
-    overlayOpacity: 0.35,
+    overlayOpacity: 0.4,
   },
   layout: {
     height: 520,
@@ -53,23 +53,25 @@ const defaults = () => ({
   slides: [
     {
       id: makeUid(),
-      title: "New Season Drop",
-      subtitle: "Fresh fits, refined essentials.",
+      title: "Your eCommerce, ready in no time",
+      subtitle:
+        "Launch fast, scale faster — Nettailer for IT and telecom retailers.",
       image:
-        "https://images.unsplash.com/photo-1660807541304-9ec2f8ac2811?crop=entropy&cs=srgb&fm=jpg&q=85&w=1600",
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop",
       logo: "",
-      ctaText: "Shop the Edit",
-      ctaLink: "https://example.com",
+      ctaText: "Get started",
+      ctaLink: "#",
     },
     {
       id: makeUid(),
-      title: "Designed for Living",
-      subtitle: "Minimalist furniture crafted for everyday calm.",
+      title: "Tailored to your business",
+      subtitle:
+        "From startups to enterprise — solutions that adapt to your unique needs.",
       image:
-        "https://images.unsplash.com/photo-1617364852223-75f57e78dc96?crop=entropy&cs=srgb&fm=jpg&q=85&w=1600",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600&auto=format&fit=crop",
       logo: "",
-      ctaText: "Browse Collection",
-      ctaLink: "https://example.com",
+      ctaText: "Explore plans",
+      ctaLink: "#",
     },
   ],
 });

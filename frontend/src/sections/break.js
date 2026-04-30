@@ -22,15 +22,15 @@ const ID = "break";
 const defaults = () => ({
   uid: makeUid(),
   heading:
-    "Placeholder copy but this could be a shop categories section",
+    "Take the leap into a brighter future for your business — embrace efficiency, convenience, and profitability.",
   textColor: "#ffffff",
   fontSize: 34,
   height: 280,
   overlayColor: "#000000",
-  overlayOpacity: 0.45,
+  overlayOpacity: 0.55,
   fullBleed: false,
   image:
-    "https://media.misco.co.uk/media/misco/images/misco-career/Misco-Generic-Background-with-Gradient.jpg",
+    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1600&auto=format&fit=crop",
 });
 
 function render(cfg) {

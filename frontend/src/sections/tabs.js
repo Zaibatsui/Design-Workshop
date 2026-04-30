@@ -20,25 +20,40 @@ import { Label } from "@/components/ui/label";
 
 const ID = "tabs";
 
-const sampleTab = (label, heading) => ({
+const sampleTab = (label, heading, body, image) => ({
   id: makeUid(),
   label,
   heading,
-  body: "Deliver clear, consistent communication in high-stakes environments.\n\nDesigned for seamless integration and reliable performance.",
-  image: "https://media.misco.co.uk/images/shure_vocalist_web_banner.png",
+  body,
+  image,
 });
 
 const defaults = () => ({
   uid: makeUid(),
   bgColor: "#f7f7f8",
-  accentColor: "#015f9b",
+  accentColor: "#E01839",
   bodyColor: "#333333",
   paddingY: 60,
   fullBleed: false,
   tabs: [
-    sampleTab("Board room", "Audio video conferencing for unmatched clarity"),
-    sampleTab("Home office", "Professional audio for remote working"),
-    sampleTab("Classroom", "Clear communication for modern learning"),
+    sampleTab(
+      "Essential",
+      "Ideal for startups and small businesses",
+      "All-in-one eCommerce for the IT and telecom industry — web shop, sales tool and purchasing system in one platform.\n\nGet online with your suppliers, manage your customers, and grow at your own pace.",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=900&auto=format&fit=crop"
+    ),
+    sampleTab(
+      "Business",
+      "Powerful features for small to medium businesses",
+      "The perfect solution for IT & telecom retail SMBs. Set up a web shop with seamless integration to your chosen IT distributors.\n\nLower transaction costs and streamlined procurement processes — all customisable to your needs.",
+      "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=900&auto=format&fit=crop"
+    ),
+    sampleTab(
+      "Professional",
+      "Simplifying B2B IT eCommerce at scale",
+      "Advanced add-ons that let you set up a web shop with seamless integration to five or more IT distributors of your choice.\n\nIdeal for medium to large businesses ready to optimise their B2B operations.",
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=900&auto=format&fit=crop"
+    ),
   ],
 });
 
@@ -120,7 +135,12 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({
       tabs: [
         ...config.tabs,
-        sampleTab(`Tab ${config.tabs.length + 1}`, "New tab heading"),
+        sampleTab(
+          `Tab ${config.tabs.length + 1}`,
+          "New tab heading",
+          "Add your description here.",
+          ""
+        ),
       ],
     });
   const removeTab = (id) =>

@@ -26,22 +26,57 @@ import { Label } from "@/components/ui/label";
 
 const ID = "products";
 
-const sampleProduct = (i = 1) => ({
-  id: makeUid(),
-  name: `Product ${i}`,
-  price: "£749.99",
-  priceSuffix: "Excl VAT",
-  image:
-    "https://www.misco.co.uk/imgr/a8f9eaba-7703-40c3-8e41-5369b98f0744/640/480",
-  link: "#",
-});
+const NETTAILER_PRODUCTS = [
+  {
+    name: "HP ZBook Firefly 16 G11",
+    price: "£1,546.80",
+    image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    name: "Razer Huntsman Keyboard",
+    price: "£300.00",
+    image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    name: "Apple iPhone 17 Pro Max",
+    price: "£2,167.90",
+    image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    name: "Samsung Odyssey OLED G9",
+    price: "£1,523.50",
+    image: "https://images.unsplash.com/photo-1527443195645-1133f7f28990?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    name: "Lenovo Yoga 6 13ALC6",
+    price: "£434.00",
+    image: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    name: "Microsoft Surface Pro Copilot+",
+    price: "£1,415.20",
+    image: "https://images.unsplash.com/photo-1561154464-82e9adf32764?q=80&w=600&auto=format&fit=crop",
+  },
+];
+
+const sampleProduct = (i = 1) => {
+  const tmpl = NETTAILER_PRODUCTS[(i - 1) % NETTAILER_PRODUCTS.length];
+  return {
+    id: makeUid(),
+    name: tmpl.name,
+    price: tmpl.price,
+    priceSuffix: "Excl VAT",
+    image: tmpl.image,
+    link: "#",
+  };
+};
 
 const defaults = () => ({
   uid: makeUid(),
-  title: "Popular Products",
-  titleColor: "#1067a6",
-  priceColor: "#015f9b",
-  hoverBorder: "#00a4f7",
+  title: "Top offers this week",
+  titleColor: "#1f2937",
+  priceColor: "#E01839",
+  hoverBorder: "#E01839",
   columns: 5,
   showArrows: true,
   paddingY: 60,

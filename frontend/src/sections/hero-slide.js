@@ -30,7 +30,7 @@ const ID = "hero-slide";
 const defaults = () => ({
   uid: makeUid(),
   theme: {
-    ctaBg: "#015f9b",
+    ctaBg: "#E01839",
     ctaText: "#ffffff",
     titleColor: "#ffffff",
     subtitleColor: "#f1f5f9",
@@ -49,32 +49,32 @@ const defaults = () => ({
   slides: [
     {
       id: makeUid(),
-      logo: "https://media.misco.co.uk/images/authentrend_logo.png",
-      title: "Hero Banner Title",
-      subtitle: "Subtitle here",
+      logo: "",
+      title: "Tailor-made eCommerce solutions",
+      subtitle: "Built for IT and telecom retailers ready to scale online.",
       image:
-        "https://media.misco.co.uk/media/misco/images/misco-career/Misco-Generic-Background-with-Gradient.jpg",
-      ctaText: "Shop Now",
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop",
+      ctaText: "Book a demo",
       ctaLink: "#",
     },
     {
       id: makeUid(),
-      logo: "https://media.misco.co.uk/images/authentrend_logo.png",
-      title: "Second Slide",
-      subtitle: "Message here",
+      logo: "",
+      title: "Ready in no time",
+      subtitle: "Launch your B2B web shop fast — and grow without limits.",
       image:
-        "https://media.misco.co.uk/media/misco/images/misco-career/Misco-Generic-Background-with-Gradient.jpg",
-      ctaText: "Learn More",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600&auto=format&fit=crop",
+      ctaText: "Read more",
       ctaLink: "#",
     },
     {
       id: makeUid(),
-      logo: "https://media.misco.co.uk/images/authentrend_logo.png",
-      title: "Third Slide",
-      subtitle: "Message here",
+      logo: "",
+      title: "Enterprise-grade, customer-first",
+      subtitle: "Advanced features for medium and large IT & telecom resellers.",
       image:
-        "https://media.misco.co.uk/media/misco/images/misco-career/Misco-Generic-Background-with-Gradient.jpg",
-      ctaText: "View Range",
+        "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1600&auto=format&fit=crop",
+      ctaText: "Learn more",
       ctaLink: "#",
     },
   ],
