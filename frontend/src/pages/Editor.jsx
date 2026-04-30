@@ -99,10 +99,15 @@ export default function Editor() {
     }));
 
   const copySnippet = async () => {
+    // Fresh uid per copy — guarantees each pasted snippet has its own scoped
+    // CSS class, even when the user copies the section more than once after
+    // editing it. The IIFE is per-instance safe regardless.
+    const fresh = { ...config, uid: makeUid() };
+    const out = renderHero(fresh);
     try {
-      await navigator.clipboard.writeText(snippet);
+      await navigator.clipboard.writeText(out);
       toast.success("HTML snippet copied", {
-        description: `${snippet.length.toLocaleString()} chars · paste into any CMS.`,
+        description: `${out.length.toLocaleString()} chars · paste into any CMS.`,
       });
     } catch {
       toast.error("Copy failed. Use the manual copy below.");
