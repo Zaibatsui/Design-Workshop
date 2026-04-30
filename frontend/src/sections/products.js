@@ -2,7 +2,9 @@
  * Product Carousel — horizontal scroll with prev/next arrows.
  * Supports 4 or 5 columns. Per-card image, name, price, link.
  */
-import { ShoppingBag } from "lucide-react";
+import { useState } from "react";
+import { ShoppingBag, Loader2, Link2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   baseReset,
   escAttr,
@@ -23,6 +25,10 @@ import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+const API_BASE = process.env.REACT_APP_BACKEND_URL;
 
 const ID = "products";
 
@@ -164,6 +170,9 @@ ${baseReset(cls)}
 }
 
 function FormPanel({ config, onUpdate }) {
+  const [fetchUrl, setFetchUrl] = useState("");
+  const [fetching, setFetching] = useState(false);
+
   const addProduct = () =>
     onUpdate({
       products: [
@@ -188,6 +197,49 @@ function FormPanel({ config, onUpdate }) {
         p.id === id ? { ...p, ...patch } : p
       ),
     });
+
+  const fetchFromUrl = async () => {
+    const url = fetchUrl.trim();
+    if (!url) {
+      toast.error("Paste a product URL first");
+      return;
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      toast.error("URL must start with http:// or https://");
+      return;
+    }
+    setFetching(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/scrape-product`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.detail || "Fetch failed");
+      }
+      if (!data.name && !data.image && !data.price) {
+        toast.error("No product data found on that page");
+        return;
+      }
+      const newProduct = {
+        id: makeUid(),
+        name: data.name || "Untitled product",
+        price: data.price || "",
+        priceSuffix: "Excl VAT",
+        image: data.image || "",
+        link: url,
+      };
+      onUpdate({ products: [...config.products, newProduct] });
+      setFetchUrl("");
+      toast.success(`Added "${newProduct.name}"`);
+    } catch (e) {
+      toast.error(e.message || "Could not fetch product");
+    } finally {
+      setFetching(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -254,6 +306,53 @@ function FormPanel({ config, onUpdate }) {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
           Products ({config.products.length})
         </h3>
+
+        <div className="mb-3 rounded-md border border-slate-200 bg-slate-50 p-3 space-y-2">
+          <Label
+            className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5"
+            data-testid="product-fetch-label"
+          >
+            <Link2 className="w-3.5 h-3.5" />
+            Add from product URL
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              value={fetchUrl}
+              onChange={(e) => setFetchUrl(e.target.value)}
+              placeholder="https://nettailer.com/..."
+              disabled={fetching}
+              data-testid="product-fetch-url-input"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  fetchFromUrl();
+                }
+              }}
+              className="bg-white"
+            />
+            <Button
+              type="button"
+              onClick={fetchFromUrl}
+              disabled={fetching || !fetchUrl.trim()}
+              data-testid="product-fetch-button"
+              className="shrink-0"
+            >
+              {fetching ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  Fetching
+                </>
+              ) : (
+                "Fetch"
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-slate-500">
+            Paste a Nettailer/Misco product link — name, price &amp; image will
+            auto-fill. All fields stay editable.
+          </p>
+        </div>
+
         <ListEditor
           items={config.products}
           onAdd={addProduct}

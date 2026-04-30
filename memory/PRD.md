@@ -25,6 +25,7 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
 - **Backend (FastAPI)** — only:
   - `POST /api/upload` → Emergent object storage
   - `GET /api/files/{path:path}` → public proxy (snippet image URLs work in any CMS)
+  - `POST /api/scrape-product` → BeautifulSoup scraper, returns `{name, price, image, url}` from ecommerce product pages (Nettailer/Misco/generic OpenGraph)
 
 ## Sections implemented (2026-04-30)
 1. **Hero (Sliding)** — translateX track, brand logo per slide, dark left gradient, blue CTA, autoplay, arrows, dots
@@ -40,6 +41,7 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
 - iter 2: testing_agent_v3 → **100% backend, 100% frontend** across all 8 sections including style-isolation against hostile host CSS, multi-instance safety, copy fidelity, live preview, reset.
 
 ## Bug fixes
+- **2026-04-30 (feature — URL scraper in Product Carousel)**: Added "Add from product URL" panel at the top of the Products list in Product Carousel. User pastes a product page URL, clicks Fetch, and a new product card is appended with scraped `name`, `price`, `image`, and the URL as the product link. All fields remain manually editable. Invalid URLs, network errors, and empty-payload responses surface via sonner toasts. Backend endpoint: `POST /api/scrape-product`.
 - **2026-04-30 (post-iter-2 #3)**: "Make wide" refinement.
   - Renamed `"Full bleed (100vw)"` toggle to `"Make wide"` across all 8 sections.
   - For hero variants, content now stays anchored at the **original host-container x-position** when wide is on — only the background stretches. Implementation: each hero IIFE measures `parent.getBoundingClientRect().left + parent.paddingLeft` at init and on resize, sets it on the section as `--ns-fb-offset` CSS variable, and the `.is-full .ns-slide` rule increases padding-left/right by that offset. Verified with side-by-side compare in a 800px host container at 1920px viewport: title and logo `x` delta = 0 px between non-wide and wide variants.
