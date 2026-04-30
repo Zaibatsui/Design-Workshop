@@ -1,0 +1,79 @@
+{
+  "theme_archetype": {
+    "name": "ARCHETYPE 4: Swiss & High-Contrast (Utility/Dashboard Variant)",
+    "description": "Clean, functional SaaS dashboard inspired by Shopify-admin. Prioritizes clarity, data density, and usability over decorative elements. Light theme with stark, high-contrast typography and subtle borders."
+  },
+  "colors": {
+    "background": "bg-slate-50",
+    "surface": "bg-white",
+    "border": "border-slate-200",
+    "primary": "bg-slate-900",
+    "primary_hover": "hover:bg-slate-800",
+    "primary_text": "text-white",
+    "text_main": "text-slate-900",
+    "text_muted": "text-slate-500",
+    "accent": "bg-blue-600",
+    "accent_hover": "hover:bg-blue-700"
+  },
+  "typography": {
+    "heading_font": "Manrope",
+    "body_font": "IBM Plex Sans",
+    "sizing": {
+      "h1": "text-2xl sm:text-3xl font-semibold tracking-tight",
+      "h2": "text-xl font-semibold tracking-tight",
+      "h3": "text-lg font-medium",
+      "body": "text-sm text-slate-600",
+      "label": "text-xs font-semibold uppercase tracking-wider text-slate-500"
+    }
+  },
+  "layout_and_spacing": {
+    "strategy": "Dashboard Control Room",
+    "sidebar_width": "w-80 lg:w-96 flex-shrink-0 border-r border-slate-200 bg-white h-screen overflow-y-auto",
+    "canvas_area": "flex-1 bg-slate-50 h-screen overflow-y-auto p-4 md:p-8 flex flex-col",
+    "panel_padding": "p-4 md:p-6",
+    "element_spacing": "space-y-4 md:space-y-6"
+  },
+  "component_strategy": {
+    "sidebar_controls": "Use Shadcn Accordion or collapsible sections for 'Slides', 'Theme', 'Layout', 'Settings'. Form inputs must have labels. Use Shadcn Slider, Switch, Input, and standard HTML5 color inputs masked beautifully for the Color Picker.",
+    "live_preview": "Render the hero carousel directly in the canvas. Ensure styles are scoped or use a generic wrapper so it mimics the final output.",
+    "copy_button": "Prominent primary button at top right of canvas: 'Copy HTML Snippet'. Must use Sonner toast to confirm copy.",
+    "slide_editor": "List of slides with Add/Remove options. Per-slide settings in a sub-panel: Image URL input (with preview), Title, Subtitle, CTA text, CTA link.",
+    "surface_style": "Cardless or very subtle 1px border cards. No large drop shadows in the builder UI. Max 4px to 6px border radius (rounded-md)."
+  },
+  "motion_interactions": {
+    "hover_states": "Buttons darken on hover. Inputs gain a subtle focus ring (focus:ring-2 focus:ring-slate-900/20).",
+    "transitions": "transition-colors duration-200 ease-in-out for interactive elements.",
+    "list_animations": "Optional Framer Motion for reordering slides or expanding accordion sections (smooth height transitions)."
+  },
+  "image_urls": [
+    {
+      "category": "slide_1_fashion",
+      "url": "https://images.unsplash.com/photo-1660807541304-9ec2f8ac2811?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBlLWNvbW1lcmNlJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3Nzc1NTU3OTl8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Fashion model e-commerce background for default slide 1"
+    },
+    {
+      "category": "slide_2_furniture",
+      "url": "https://images.unsplash.com/photo-1617364852223-75f57e78dc96?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwZnVybml0dXJlJTIwaW50ZXJpb3J8ZW58MHx8fHwxNzc3NTU1Nzk5fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Minimalist furniture for default slide 2"
+    },
+    {
+      "category": "slide_3_tech",
+      "url": "https://images.unsplash.com/photo-1594549181132-9045fed330ce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB0ZWNoJTIwZ2FkZ2V0JTIwcHJvZHVjdCUyMHNob3R8ZW58MHx8fHwxNzc3NTU1Nzk5fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Modern tech gadget for default slide 3"
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Build a robust 2-column layout: Left sidebar for controls (w-80 or w-96), Right main area for the Live Preview.",
+    "Implement the live preview as the exact representation of the code that will be copied.",
+    "CRITICAL OUTPUT REQUIREMENT: The 'Copy Section' logic must generate a clean HTML string that contains its own <style> block with strictly scoped CSS (e.g. prefix classes with .e1-hero-carousel-xyz) and vanilla JS for autoplay/navigation. Do NOT rely on Tailwind classes in the generated copied snippet, as the target site environments are unknown. The generated HTML snippet MUST use vanilla CSS to guarantee it works anywhere.",
+    "Provide a complete form in the sidebar using Shadcn UI components with sections: Slides (add/edit/remove), Theme (color pickers for primary/text/overlay), Layout (opacity, text alignment toggles), and Settings (autoplay toggle, interval slider).",
+    "For color pickers, use an <input type='color'> styled nicely with Tailwind, or a Popover combined with predefined color swatches.",
+    "Ensure all builder controls map directly to the preview state and update in real-time without page reloads.",
+    "Use Lucide-react for all standard icons (arrows, trash, plus, settings).",
+    "Install and use specific fonts: Manrope for headings, IBM Plex Sans for body text in the editor UI."
+  ],
+  "accessibility_and_testing": {
+    "data_testid_rules": "All interactive elements (buttons, inputs, accordions, copy button, slide toggles) MUST have descriptive data-testid attributes (e.g., data-testid='add-slide-button').",
+    "contrast": "Ensure form labels and text meet at least a 4.5:1 contrast ratio against the background."
+  }
+}
