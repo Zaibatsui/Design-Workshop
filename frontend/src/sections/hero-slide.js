@@ -284,6 +284,14 @@ function FormPanel({ config, onUpdate }) {
                   testid={`hs-slide-cta-link-${slide.id}`}
                 />
               </div>
+              <ToggleField
+                label="Open in same tab"
+                checked={slide.openInSameTab}
+                onChange={(v) =>
+                  updateSlide(slide.id, { openInSameTab: v })
+                }
+                testid={`hs-slide-same-tab-${slide.id}`}
+              />
             </>
           )}
         />

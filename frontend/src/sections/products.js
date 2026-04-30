@@ -103,8 +103,10 @@ function render(cfg) {
     .map((p) => {
       const img = safeUrl(p.image);
       const link = safeUrl(p.link || "#");
+      const target = p.openInSameTab ? "_self" : "_blank";
+      const rel = p.openInSameTab ? "" : ' rel="noopener noreferrer"';
       return `<div class="ns-card">
-  <a href="${escAttr(link)}" target="_blank" rel="noopener noreferrer">
+  <a href="${escAttr(link)}" target="${target}"${rel}>
     <img src="${escAttr(img)}" alt="${escAttr(p.name || "")}"/>
     <div class="ns-card-body">
       <h3 class="ns-name">${escHtml(p.name || "")}</h3>
@@ -314,6 +316,14 @@ function FormPanel({ config, onUpdate }) {
                 value={p.link}
                 onChange={(v) => updateProduct(p.id, { link: v })}
                 testid={`product-link-${p.id}`}
+              />
+              <ToggleField
+                label="Open in same tab"
+                checked={p.openInSameTab}
+                onChange={(v) =>
+                  updateProduct(p.id, { openInSameTab: v })
+                }
+                testid={`product-same-tab-${p.id}`}
               />
             </>
           )}

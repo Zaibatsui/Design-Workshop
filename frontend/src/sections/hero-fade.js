@@ -103,6 +103,8 @@ function render(cfg) {
       const logo = safeUrl(slide.logo);
       const cta = slide.ctaText && slide.ctaText.trim();
       const link = safeUrl(slide.ctaLink || "#");
+      const target = slide.openInSameTab ? "_self" : "_blank";
+      const rel = slide.openInSameTab ? "" : ' rel="noopener noreferrer"';
       return `
     <div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="background-image:url('${escAttr(bg)}')">
       <div class="ns-overlay"></div>
@@ -110,7 +112,7 @@ function render(cfg) {
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt=""/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
-        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="_blank" rel="noopener noreferrer">${escHtml(cta)}</a>` : ""}
+        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
       </div>
     </div>`;
     })
@@ -279,6 +281,14 @@ function FormPanel({ config, onUpdate }) {
                   testid={`hf-slide-cta-link-${slide.id}`}
                 />
               </div>
+              <ToggleField
+                label="Open in same tab"
+                checked={slide.openInSameTab}
+                onChange={(v) =>
+                  updateSlide(slide.id, { openInSameTab: v })
+                }
+                testid={`hf-slide-same-tab-${slide.id}`}
+              />
               <div>
                 <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Logo (optional)
