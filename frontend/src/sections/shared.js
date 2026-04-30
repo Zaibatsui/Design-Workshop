@@ -90,5 +90,12 @@ export function wrapSnippet({ html, css, js }) {
 }
 
 export function previewDoc(snippet) {
-  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}</style></head><body>${snippet}</body></html>`;
+  // Editor-only "LIVE" badge: every card with data-ns-src (a fetched product
+  // wired up for live price refresh) gets a small ribbon in the editor preview.
+  // This style only lives in the editor iframe — copied snippets do NOT include it.
+  const editorBadgeCss = `
+.ns-card[data-ns-src]{position:relative}
+.ns-card[data-ns-src]::after{content:"LIVE";position:absolute;top:8px;left:8px;z-index:5;background:#10b981;color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 6px;border-radius:3px;line-height:1;font-family:"Poppins",sans-serif;box-shadow:0 1px 2px rgba(0,0,0,.15);pointer-events:none}
+`;
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}</style></head><body>${snippet}</body></html>`;
 }

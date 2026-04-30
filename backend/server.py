@@ -454,6 +454,27 @@ async def _scrape_image_with_browser(url: str):
                 except Exception:
                     pass
 
+                # First, try to grab a hi-res asset directly. Cnet Cloud / 1WorldSync
+                # gallery slides carry the original (un-thumbnailed) URL on a
+                # data-src attribute on the ccs-fancybox-gallery wrapper. The visible
+                # <img src> is a resized 400x300 thumbnail.
+                hires = await page.evaluate(
+                    """() => {
+                        const slide = document.querySelector(
+                            '.ccs-ds-cloud-main-image .ccs-fancybox-gallery.ccs-slick-active[data-src],'
+                            + ' .ccs-ds-cloud-main-image .ccs-fancybox-gallery[data-src],'
+                            + ' .ccs-fancybox-gallery[data-src]'
+                        );
+                        if (slide) {
+                            const ds = slide.getAttribute('data-src');
+                            if (ds) return ds;
+                        }
+                        return null;
+                    }"""
+                )
+                if hires and not _looks_like_logo(hires):
+                    return hires
+
                 for sel in selectors:
                     try:
                         src = await page.evaluate(
