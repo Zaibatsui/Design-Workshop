@@ -140,8 +140,8 @@ function FormPanel({ config, onUpdate }) {
     <div className="space-y-5">
       <Group title="Settings">
         <ToggleField
-          label="Full bleed (100vw)"
-          description="Strip spans full viewport"
+          label="Make wide"
+          description="Stretch strip to full viewport width"
           checked={config.fullBleed}
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="logos-full-bleed"

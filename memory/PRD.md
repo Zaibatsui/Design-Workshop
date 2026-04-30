@@ -40,6 +40,11 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
 - iter 2: testing_agent_v3 → **100% backend, 100% frontend** across all 8 sections including style-isolation against hostile host CSS, multi-instance safety, copy fidelity, live preview, reset.
 
 ## Bug fixes
+- **2026-04-30 (post-iter-2 #3)**: "Make wide" refinement.
+  - Renamed `"Full bleed (100vw)"` toggle to `"Make wide"` across all 8 sections.
+  - For hero variants, content now stays anchored at the **original host-container x-position** when wide is on — only the background stretches. Implementation: each hero IIFE measures `parent.getBoundingClientRect().left + parent.paddingLeft` at init and on resize, sets it on the section as `--ns-fb-offset` CSS variable, and the `.is-full .ns-slide` rule increases padding-left/right by that offset. Verified with side-by-side compare in a 800px host container at 1920px viewport: title and logo `x` delta = 0 px between non-wide and wide variants.
+  - Other sections (content/products/placeholder/tabs/break/logos) already use `margin: 0 auto` centered inner wrappers, so background stretch alone keeps content anchored to viewport center, matching the original centered-container position.
+
 - **2026-04-30 (post-iter-2 #2)**: Hero title misaligned in nettailer + need full-width option.
   - Added `fullBleed` toggle to all 8 sections. When enabled, root section gets `is-full` class which applies `width: 100vw; margin-left: calc(50% - 50vw)` to break out of the host's content container.
   - Hardened `baseReset` with `!important` on the highest-risk bleed properties: `padding`, `text-indent`, `text-transform`, `text-align`, `font-family`, `list-style`. Hosts that style `h1/h2/p` with `padding-left` or `text-indent` (e.g. nettailer) were offsetting our titles relative to other content.
