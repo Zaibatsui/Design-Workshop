@@ -1,10 +1,14 @@
 from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import Response
+from pydantic import BaseModel
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from bs4 import BeautifulSoup
 import os
 import logging
 import uuid
+import json
+import re
 import requests
 from pathlib import Path
 
@@ -133,6 +137,220 @@ async def download(path: str):
         media_type=content_type,
         headers={"Cache-Control": "public, max-age=31536000, immutable"},
     )
+
+
+# ---------- Product page scraping ----------
+
+class ScrapeRequest(BaseModel):
+    url: str
+
+
+def _format_price(p):
+    """If raw price is a bare number, format as £X.XX. Otherwise return as-is."""
+    if p is None:
+        return None
+    s = str(p).strip()
+    if not s:
+        return None
+    if re.match(r"^\d+(?:[.,]\d+)?$", s):
+        try:
+            return f"£{float(s.replace(',', '.')):.2f}"
+        except Exception:
+            return s
+    return s
+
+
+def _walk_jsonld(data):
+    """Yield all dict nodes from a JSON-LD blob (handles @graph, lists, nesting)."""
+    if isinstance(data, list):
+        for x in data:
+            yield from _walk_jsonld(x)
+    elif isinstance(data, dict):
+        yield data
+        for v in data.values():
+            if isinstance(v, (list, dict)):
+                yield from _walk_jsonld(v)
+
+
+def _extract_product(soup):
+    name = price = image = None
+
+    # 1. JSON-LD Product
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            data = json.loads(script.string or script.get_text() or "{}")
+        except Exception:
+            continue
+        for node in _walk_jsonld(data):
+            t = node.get("@type")
+            is_product = t == "Product" or (isinstance(t, list) and "Product" in t)
+            if not is_product:
+                continue
+            name = name or node.get("name")
+            img = node.get("image")
+            if img and not image:
+                if isinstance(img, str):
+                    image = img
+                elif isinstance(img, list) and img:
+                    image = img[0] if isinstance(img[0], str) else img[0].get("url")
+                elif isinstance(img, dict):
+                    image = img.get("url")
+            offers = node.get("offers")
+            if offers and not price:
+                offer = offers if isinstance(offers, dict) else (offers[0] if offers else {})
+                if isinstance(offer, dict):
+                    price = offer.get("price") or offer.get("lowPrice")
+
+    # 2. OpenGraph fallbacks
+    def og(prop):
+        m = soup.find("meta", attrs={"property": prop})
+        return m.get("content") if m else None
+
+    name = name or og("og:title")
+    image = image or og("og:image:secure_url") or og("og:image")
+    price = price or og("product:price:amount") or og("og:price:amount")
+
+    # 3. Twitter cards
+    def tw(prop):
+        m = soup.find("meta", attrs={"name": prop})
+        return m.get("content") if m else None
+
+    image = image or tw("twitter:image")
+    name = name or tw("twitter:title")
+
+    # link rel=image_src (older standard, still used by misco)
+    if not image:
+        link_img = soup.find("link", attrs={"rel": "image_src"})
+        if link_img:
+            image = link_img.get("href")
+
+    # itemprop=image
+    if not image:
+        ip = soup.find(attrs={"itemprop": "image"})
+        if ip:
+            image = ip.get("content") or ip.get("src") or ip.get("href")
+
+    # Common product image selectors
+    if not image:
+        for sel in [
+            "img#mainImage",
+            "img#main-image",
+            "img.product-image",
+            ".product-image img",
+            ".product-gallery img",
+            ".product-img img",
+            ".productImage img",
+            "[data-zoom-image]",
+            "img[data-src]",
+        ]:
+            el = soup.select_one(sel)
+            if el is not None:
+                cand = (
+                    el.get("data-zoom-image")
+                    or el.get("data-large")
+                    or el.get("src")
+                    or el.get("data-src")
+                )
+                if cand:
+                    image = cand
+                    break
+
+    # Nettailer plain /imgr/UUID/W/H images (no class/id markers)
+    if not image:
+        for img in soup.find_all("img"):
+            src = img.get("src") or img.get("data-src") or ""
+            if "/imgr/" in src and "logo" not in src.lower():
+                image = src
+                break
+
+    # Upscale tiny /imgr/UUID/W/H thumbnails to a reasonable size
+    if image:
+        m = re.match(r"^(.*?/imgr/[A-Fa-f0-9-]+)/(\d+)/(\d+)(.*)$", image)
+        if m:
+            try:
+                w = int(m.group(2))
+                h = int(m.group(3))
+                if max(w, h) < 400:
+                    image = f"{m.group(1)}/640/480{m.group(4)}"
+            except Exception:
+                pass
+
+    # Resolve relative image URLs against the page URL
+    if image and image.startswith("//"):
+        image = "https:" + image
+    elif image and image.startswith("/"):
+        # Will resolve in caller using urljoin since we have the request URL
+        pass
+
+    # 4. HTML fallbacks
+    if not name:
+        h1 = soup.find("h1")
+        if h1:
+            name = h1.get_text(" ", strip=True)
+    if not name:
+        title = soup.find("title")
+        if title:
+            name = title.get_text(strip=True)
+
+    if not price:
+        # common ecommerce price selectors
+        for sel in [
+            "[itemprop='price']",
+            "[data-price]",
+            ".product-price",
+            ".price",
+            ".prod-price",
+        ]:
+            el = soup.select_one(sel)
+            if el:
+                cand = (
+                    el.get("content")
+                    or el.get("data-price")
+                    or el.get_text(" ", strip=True)
+                )
+                if cand:
+                    m = re.search(r"[£$€]?\s*\d[\d,]*(?:\.\d+)?", cand)
+                    if m:
+                        price = m.group(0).strip()
+                        break
+
+    return {
+        "name": (name or "").strip()[:200] or None,
+        "price": _format_price(price),
+        "image": image,
+    }
+
+
+@api_router.post("/scrape-product")
+async def scrape_product(req: ScrapeRequest):
+    url = req.url.strip()
+    if not re.match(r"^https?://", url):
+        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
+    try:
+        resp = requests.get(
+            url,
+            timeout=15,
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; NettailerSectionBuilder/1.0; +https://demo.nettailer.com)",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-GB,en;q=0.9",
+            },
+            allow_redirects=True,
+        )
+        resp.raise_for_status()
+    except requests.HTTPError as e:
+        raise HTTPException(status_code=400, detail=f"Page returned {e.response.status_code}")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Cannot fetch page: {e}")
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    data = _extract_product(soup)
+    # Resolve relative image URL against the page URL
+    if data.get("image"):
+        from urllib.parse import urljoin
+        data["image"] = urljoin(resp.url, data["image"])
+    data["url"] = url
+    return data
 
 
 app.include_router(api_router)
