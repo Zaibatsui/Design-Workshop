@@ -384,8 +384,102 @@ async def scrape_product(req: ScrapeRequest):
     if data.get("image"):
         from urllib.parse import urljoin
         data["image"] = urljoin(resp.url, data["image"])
+
+    # If image couldn't be found in the raw HTML (e.g. Nettailer renders the main
+    # product image via a Cnet Cloud JS widget), render the page in a headless
+    # browser and grab the image after JS has executed.
+    if not data.get("image"):
+        js_image = await _scrape_image_with_browser(url)
+        if js_image:
+            data["image"] = js_image
+            # If we also missed name/price on this page, they'll still be None —
+            # keep whatever _extract_product found.
+
     data["url"] = url
     return data
+
+
+async def _scrape_image_with_browser(url: str):
+    """Fallback: render the page with headless Chromium and pull the main product image."""
+    try:
+        from playwright.async_api import async_playwright
+    except Exception as e:
+        logger.warning("Playwright not available: %s", e)
+        return None
+
+    selectors = [
+        ".ccs-ds-cloud-main-image img",
+        "#cnet-cloud-product-images-large img",
+        ".product-card-image img",
+        "[itemprop='image']",
+        ".product-gallery img",
+        ".product-image img",
+        "img.product-image",
+        "meta[property='og:image']",
+    ]
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                executable_path="/usr/bin/chromium",
+                args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+            )
+            try:
+                context = await browser.new_context(
+                    user_agent=(
+                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/146.0 Safari/537.36"
+                    ),
+                    viewport={"width": 1280, "height": 800},
+                )
+                page = await context.new_page()
+                # Block non-essential resources to keep it fast
+                async def _route(route):
+                    if route.request.resource_type in ("font", "media", "stylesheet"):
+                        await route.abort()
+                    else:
+                        await route.continue_()
+                await page.route("**/*", _route)
+
+                try:
+                    await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+                except Exception:
+                    pass
+                # Allow client-side widgets (Cnet Cloud) to inject images
+                try:
+                    await page.wait_for_selector(
+                        ".ccs-ds-cloud-main-image img, #cnet-cloud-product-images-large img, [itemprop='image'], meta[property='og:image']",
+                        timeout=8000,
+                    )
+                except Exception:
+                    pass
+
+                for sel in selectors:
+                    try:
+                        src = await page.evaluate(
+                            """(s) => {
+                                const el = document.querySelector(s);
+                                if (!el) return null;
+                                if (el.tagName === 'META') return el.getAttribute('content');
+                                return el.currentSrc || el.src || el.getAttribute('data-src') || null;
+                            }""",
+                            sel,
+                        )
+                        if src and not _looks_like_logo(src):
+                            return src
+                    except Exception:
+                        continue
+                return None
+            finally:
+                await browser.close()
+    except Exception as e:
+        logger.warning("Browser fallback failed for %s: %s", url, e)
+        return None
+
+
+def _looks_like_logo(src: str) -> bool:
+    s = (src or "").lower()
+    return any(k in s for k in ("logo", "icon", "header", "footer", "sprite"))
 
 
 app.include_router(api_router)
