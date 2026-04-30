@@ -111,12 +111,16 @@ function render(cfg) {
       const link = safeUrl(p.link || "#");
       const target = p.openInSameTab ? "_self" : "_blank";
       const rel = p.openInSameTab ? "" : ' rel="noopener noreferrer"';
-      return `<div class="ns-card">
+      const liveAttr =
+        p.liveRefresh && /^https?:\/\//i.test(link)
+          ? ` data-ns-src="${escAttr(link)}"`
+          : "";
+      return `<div class="ns-card"${liveAttr}>
   <a href="${escAttr(link)}" target="${target}"${rel}>
     <img src="${escAttr(img)}" alt="${escAttr(p.name || "")}"/>
     <div class="ns-card-body">
       <h3 class="ns-name">${escHtml(p.name || "")}</h3>
-      <p class="ns-price">${escHtml(p.price || "")}${p.priceSuffix ? ` <span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
+      <p class="ns-price"><span class="ns-price-amount">${escHtml(p.price || "")}</span>${p.priceSuffix ? `<span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
     </div>
   </a>
 </div>`;
@@ -161,9 +165,17 @@ ${baseReset(cls)}
   </div>
 </section>`;
 
+  const apiBase = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
+  // Live price refresh: for cards marked with data-ns-src, periodically
+  // call the scrape endpoint and update the price text. Cached 30 min in
+  // localStorage. Failures are silent so the snippet always renders.
+  const liveJs = apiBase
+    ? `var TTL=18e5,API=${JSON.stringify(apiBase + "/api/scrape-product")};var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(card){var u=card.getAttribute("data-ns-src");if(!u)return;var k="ns-px:"+u,now=Date.now(),amt=card.querySelector(".ns-price-amount");function paint(p){if(amt&&p)amt.textContent=p;}try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));}catch(e){}}).catch(function(){});});}`
+    : "";
+
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(!track)return;function step(dir){var c=track.querySelector(".ns-card");if(!c)return;var amt=c.offsetWidth+18;track.scrollBy({left:dir*amt,behavior:"smooth"});}if(prev)prev.addEventListener("click",function(){step(-1);});if(next)next.addEventListener("click",function(){step(1);});`
+    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){function step(dir){var c=track.querySelector(".ns-card");if(!c)return;var amt=c.offsetWidth+18;track.scrollBy({left:dir*amt,behavior:"smooth"});}if(prev)prev.addEventListener("click",function(){step(-1);});if(next)next.addEventListener("click",function(){step(1);});}${liveJs}`
   );
 
   return wrapSnippet({ html, css, js });
@@ -230,6 +242,7 @@ function FormPanel({ config, onUpdate }) {
         priceSuffix: "Excl VAT",
         image: data.image || "",
         link: url,
+        liveRefresh: true,
       };
       onUpdate({ products: [...config.products, newProduct] });
       setFetchUrl("");
