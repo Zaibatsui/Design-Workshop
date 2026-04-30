@@ -1,34 +1,20 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Editor base — Shopify-admin style: minimal, light surfaces, sharp text */
+.App {
+  height: 100vh;
+  width: 100vw;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Custom scrollbar for sidebar */
+aside::-webkit-scrollbar {
+  width: 6px;
 }
-
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+aside::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-.App-link {
-    color: #61dafb;
+aside::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.12);
+  border-radius: 9999px;
 }
-
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+aside::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.24);
 }
