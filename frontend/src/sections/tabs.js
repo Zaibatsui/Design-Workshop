@@ -107,7 +107,7 @@ ${baseReset(cls)}
 
   const js = iife(
     cls,
-    `var btns=root.querySelectorAll(".ns-tab");var panels=root.querySelectorAll(".ns-panel");btns.forEach(function(btn){btn.addEventListener("click",function(){var id=btn.getAttribute("data-ns-tab");btns.forEach(function(b){b.classList.toggle("is-active",b===btn);});panels.forEach(function(p){p.classList.toggle("is-active",p.getAttribute("data-ns-panel")===id);});});});`
+    `var btns=root.querySelectorAll(".ns-tab");var panels=root.querySelectorAll(".ns-panel");btns.forEach(function(b,i){b.classList.toggle("is-active",i===0);});panels.forEach(function(p,i){p.classList.toggle("is-active",i===0);});btns.forEach(function(btn){btn.addEventListener("click",function(){var id=btn.getAttribute("data-ns-tab");btns.forEach(function(b){b.classList.toggle("is-active",b===btn);});panels.forEach(function(p){p.classList.toggle("is-active",p.getAttribute("data-ns-panel")===id);});});});`
   );
 
   return wrapSnippet({ html, css, js });

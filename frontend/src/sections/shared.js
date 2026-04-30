@@ -52,11 +52,19 @@ export function baseReset(cls) {
 
 /**
  * Multi-instance-safe IIFE wrapper.
+ *
+ * IMPORTANT: the "already initialised" marker is a JS property on the root
+ * element (`root.__nsInit`), NOT a DOM attribute. CMSs often serialise
+ * runtime-set attributes when saving — using a `data-ns-init` attribute
+ * caused already-saved sections to skip initialisation on re-edit, killing
+ * arrows/dots/autoplay. JS properties don't survive serialisation, so the
+ * script will always re-run on a fresh page load.
+ *
  * @param scopeClass e.g. "ns-hero-slide-abc123"
  * @param body JS body that uses `root` to refer to the section element.
  */
 export function iife(scopeClass, body) {
-  return `(function(){var SEL=".${scopeClass}";function init(root){if(root.getAttribute("data-ns-init"))return;root.setAttribute("data-ns-init","1");${body}}function boot(){document.querySelectorAll(SEL).forEach(init);}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot);}else{boot();}})();`;
+  return `(function(){var SEL=".${scopeClass}";function init(root){if(root.__nsInit)return;root.__nsInit=true;root.removeAttribute("data-ns-init");${body}}function boot(){document.querySelectorAll(SEL).forEach(init);}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot);}else{boot();}})();`;
 }
 
 export function wrapSnippet({ html, css, js }) {

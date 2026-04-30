@@ -39,6 +39,9 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
 ## Test status
 - iter 2: testing_agent_v3 → **100% backend, 100% frontend** across all 8 sections including style-isolation against hostile host CSS, multi-instance safety, copy fidelity, live preview, reset.
 
+## Bug fixes
+- **2026-04-30 (post-iter-2)**: CMS save/edit re-init bug. Replaced DOM-attribute init guard (`data-ns-init`) with a JS-only property (`root.__nsInit`). Persisted attributes were causing already-initialised sections to skip re-init when CMSs serialise the live DOM and re-render on edit, killing arrows/dots/autoplay. Also added `go(0)` reset on init for both hero variants and tabs (resets visual state if CMS persisted runtime `is-active` classes), and tagged logo-strip originals with `data-ns-original` so the seamless-loop padding can't compound across save/edit cycles. Verified with a save+edit simulation: section re-inits and navigation works after `data-ns-init="1"` is baked in.
+
 ## Backlog
 - P1: Page-builder mode (stack multiple sections in one canvas with reorder + bulk export)
 - P2: Save/load named templates (localStorage)
