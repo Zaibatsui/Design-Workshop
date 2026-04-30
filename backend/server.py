@@ -175,6 +175,41 @@ def _walk_jsonld(data):
 def _extract_product(soup):
     name = price = image = None
 
+    # Strip sections that commonly contain accessory / related / recommended / upsell
+    # product images so fallback image searches never pick them up.
+    _NOISE_SELECTORS = [
+        ".product-card-accessories",
+        ".selected-accessories",
+        ".small-product-list",
+        ".accessories",
+        ".related-products",
+        ".related",
+        ".upsell",
+        ".upsells",
+        ".cross-sell",
+        ".cross-sells",
+        ".recommendations",
+        ".recommended",
+        ".suggested",
+        ".also-bought",
+        ".you-may-like",
+        "[class*='accessor']",
+        "[class*='related']",
+        "[class*='recommend']",
+        "[class*='upsell']",
+        "[class*='cross-sell']",
+        "[id*='accessor']",
+        "[id*='related']",
+        "[id*='recommend']",
+        "aside",
+        "footer",
+        "nav",
+        "header",
+    ]
+    for sel in _NOISE_SELECTORS:
+        for el in soup.select(sel):
+            el.decompose()
+
     # 1. JSON-LD Product
     for script in soup.find_all("script", type="application/ld+json"):
         try:

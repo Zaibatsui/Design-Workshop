@@ -233,7 +233,11 @@ function FormPanel({ config, onUpdate }) {
       };
       onUpdate({ products: [...config.products, newProduct] });
       setFetchUrl("");
-      toast.success(`Added "${newProduct.name}"`);
+      if (!data.image) {
+        toast.success(`Added "${newProduct.name}" — please upload an image`);
+      } else {
+        toast.success(`Added "${newProduct.name}"`);
+      }
     } catch (e) {
       toast.error(e.message || "Could not fetch product");
     } finally {
