@@ -84,7 +84,7 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto}
-.${cls} .ns-tabs{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap}
+.${cls} .ns-tabs-row{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap}
 .${cls} .ns-tab{border:1px solid #e4e4e7;background:#fff;color:var(--ns-accent);padding:12px 18px;border-radius:6px;font-weight:600;font-size:14px;transition:background .15s ease,color .15s ease}
 .${cls} .ns-tab:hover{background:#f9fafb}
 .${cls} .ns-tab.is-active{background:var(--ns-accent);color:#fff;border-color:var(--ns-accent)}
@@ -105,22 +105,12 @@ ${baseReset(cls)}
   </div>
 </section>`;
 
-  // Note: the buttons row uses class .ns-tabs-row in markup but CSS targets
-  // .ns-tabs (button class). Keep wrapper distinct so it doesn't collide.
-  const cssFixed = css.replace(
-    `.${cls} .ns-tabs{display:flex;gap:12px`,
-    `.${cls} .ns-tabs-row{display:flex;gap:12px`
-  ).replace(
-    /\.ns-tabs\{flex-wrap:wrap\}/,
-    `.ns-tabs-row{flex-wrap:wrap}`
-  );
-
   const js = iife(
     cls,
     `var btns=root.querySelectorAll(".ns-tab");var panels=root.querySelectorAll(".ns-panel");btns.forEach(function(btn){btn.addEventListener("click",function(){var id=btn.getAttribute("data-ns-tab");btns.forEach(function(b){b.classList.toggle("is-active",b===btn);});panels.forEach(function(p){p.classList.toggle("is-active",p.getAttribute("data-ns-panel")===id);});});});`
   );
 
-  return wrapSnippet({ html, css: cssFixed, js });
+  return wrapSnippet({ html, css, js });
 }
 
 function FormPanel({ config, onUpdate }) {

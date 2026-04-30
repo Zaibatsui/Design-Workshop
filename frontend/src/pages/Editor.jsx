@@ -13,7 +13,7 @@ export default function Editor() {
   const [sectionConfigs, setSectionConfigs] = useState(() =>
     Object.fromEntries(SECTIONS.map((s) => [s.id, s.defaults()]))
   );
-  const [activeId, setActiveId] = useState(SECTIONS[0].id);
+  const [activeId, setActiveId] = useState("hero-slide");
   const [previewWidth, setPreviewWidth] = useState("desktop");
 
   const def = SECTIONS_BY_ID[activeId];
