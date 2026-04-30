@@ -37,6 +37,7 @@ const blankItem = () => ({
 const defaults = () => ({
   uid: makeUid(),
   columns: 2,
+  rows: 2,
   itemHeight: 180,
   bgColor: "#fafafa",
   borderRadius: 6,
@@ -50,8 +51,13 @@ function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-placeholder-${uid}`;
 
+  const cols = Math.max(1, Number(cfg.columns) || 1);
+  const rows = Math.max(1, Number(cfg.rows) || 1);
+  const total = cols * rows;
+
   const styleVars = [
-    `--ns-cols:${cfg.columns}`,
+    `--ns-cols:${cols}`,
+    `--ns-rows:${rows}`,
     `--ns-h:${cfg.itemHeight}px`,
     `--ns-bg:${cfg.bgColor}`,
     `--ns-r:${cfg.borderRadius}px`,
@@ -59,7 +65,10 @@ function render(cfg) {
     `--ns-gap:${cfg.gap}px`,
   ].join(";");
 
-  const items = cfg.items || [];
+  // Take first `total` items; pad with empty cells if shorter.
+  const items = (cfg.items || []).slice(0, total);
+  while (items.length < total) items.push({});
+
   const itemsHtml = items
     .map((item) => {
       const img = safeUrl(item.image);
@@ -84,7 +93,7 @@ function render(cfg) {
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
-.${cls} .ns-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:var(--ns-gap)}
+.${cls} .ns-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);grid-auto-rows:var(--ns-h);gap:var(--ns-gap)}
 .${cls} .ns-cell{height:var(--ns-h);border-radius:var(--ns-r);overflow:hidden;display:block;background:var(--ns-bg)}
 .${cls} .ns-cell img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls} .ns-cell-link{transition:transform .2s ease,box-shadow .2s ease;cursor:pointer}
@@ -103,6 +112,9 @@ ${baseReset(cls)}
 
 function FormPanel({ config, onUpdate }) {
   const items = config.items || [];
+  const cols = Math.max(1, Number(config.columns) || 1);
+  const rows = Math.max(1, Number(config.rows) || 1);
+  const visible = cols * rows;
 
   const addItem = () => onUpdate({ items: [...items, blankItem()] });
   const removeItem = (id) =>
@@ -131,18 +143,36 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="placeholder-full-bleed"
         />
-        <SelectField
-          label="Columns"
-          value={config.columns}
-          onChange={(v) => onUpdate({ columns: Number(v) })}
-          options={[
-            { value: 1, label: "1" },
-            { value: 2, label: "2" },
-            { value: 3, label: "3" },
-            { value: 4, label: "4" },
-          ]}
-          testid="placeholder-cols"
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <SelectField
+            label="Columns"
+            value={config.columns}
+            onChange={(v) => onUpdate({ columns: Number(v) })}
+            options={[
+              { value: 1, label: "1" },
+              { value: 2, label: "2" },
+              { value: 3, label: "3" },
+              { value: 4, label: "4" },
+              { value: 5, label: "5" },
+              { value: 6, label: "6" },
+            ]}
+            testid="placeholder-cols"
+          />
+          <SelectField
+            label="Rows"
+            value={config.rows}
+            onChange={(v) => onUpdate({ rows: Number(v) })}
+            options={[
+              { value: 1, label: "1" },
+              { value: 2, label: "2" },
+              { value: 3, label: "3" },
+              { value: 4, label: "4" },
+              { value: 5, label: "5" },
+              { value: 6, label: "6" },
+            ]}
+            testid="placeholder-rows"
+          />
+        </div>
         <SliderField
           label="Item height"
           value={config.itemHeight}
@@ -188,9 +218,22 @@ function FormPanel({ config, onUpdate }) {
       </div>
 
       <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-          Cells ({items.length})
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Cells
+          </h3>
+          <span
+            className="text-xs text-slate-500"
+            data-testid="placeholder-cells-hint"
+          >
+            Showing {Math.min(items.length, visible)} of {visible}
+            {items.length > visible
+              ? ` (${items.length - visible} extra)`
+              : items.length < visible
+                ? ` (+${visible - items.length} empty)`
+                : ""}
+          </span>
+        </div>
         <ListEditor
           items={items}
           onAdd={addItem}
@@ -209,8 +252,13 @@ function FormPanel({ config, onUpdate }) {
                   />
                 )}
               </div>
-              <p className="text-sm font-medium text-slate-900 truncate">
+              <p
+                className={`text-sm font-medium truncate ${
+                  i >= visible ? "text-slate-400" : "text-slate-900"
+                }`}
+              >
                 Cell {i + 1}
+                {i >= visible ? " (hidden)" : ""}
               </p>
               {item.link && (
                 <span className="text-xs text-slate-400 ml-auto truncate max-w-[80px]">
