@@ -69,7 +69,7 @@ export default function Editor() {
         <div className="px-5 py-4 border-b border-slate-200 sticky top-0 bg-white z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-md bg-slate-900 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-md bg-[#E01839] flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div className="min-w-0">
@@ -133,7 +133,7 @@ export default function Editor() {
             <Button
               data-testid="copy-snippet-button"
               onClick={copySnippet}
-              className="bg-slate-900 hover:bg-slate-800 text-white font-medium"
+              className="bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
             >
               <Copy className="w-4 h-4 mr-2" />
               Copy HTML Snippet

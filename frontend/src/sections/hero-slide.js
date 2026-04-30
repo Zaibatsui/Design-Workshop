@@ -327,7 +327,7 @@ function FormPanel({ config, onUpdate }) {
         <SliderField
           label="Height"
           value={l.height}
-          min={320}
+          min={200}
           max={800}
           step={10}
           suffix="px"
