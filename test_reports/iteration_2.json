@@ -1,0 +1,32 @@
+{
+  "summary": "Iter 2 full regression. Backend unchanged, all 4 pytest tests pass. Frontend with section-picker + 8 section types fully verified: rail loads with all 8 buttons, hero-slide is default (3 default slides, scoped class ns-hero-slide-<uid> in iframe), every rail-* button switches preview srcdoc + active-section-name, per-section state preserved across switches, Copy snippet contains @import Poppins / scoped class / IIFE querySelectorAll / no global changeSlide(), reset-section restores defaults, hero-slide title edit reflected live + in clipboard, products columns 5->4 yields --ns-cols:4 in both preview and snippet, logos snippet has --ns-distance and pad(), tabs CSS uses .ns-tabs-row (no bare .ns-tabs flex collision) and clicking 2nd/3rd tab in iframe switches active button + active panel, multi-instance paste runs both data-ns-init=1 with dot-clicks scoped per section (track transform of section 2 changes while section 1 unchanged), style isolation holds against host '* {margin:50px !important; color:red}' (section keeps Poppins, layout visible) and against body{font-family:Comic Sans} (section + heading both Poppins).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Editor.copySnippet regenerates uid on every Copy click, but a single copied snippet still has a fixed uid. If a user copies once and pastes the same snippet twice (the very scenario tested), both instances share the SAME .ns-hero-slide-<uid> class. Behavior is still correct because the IIFE's init() uses per-root state and queries within `root`, but CSS rules collide identically and tooling that searches for unique scope strings will treat them as one. Consider re-running render() with a fresh uid at the moment of copy AND embedding a brand-new uid per <section> via init() (e.g. assigning a runtime-only data attribute) to give each pasted instance its own DOM-level identity. This was also flagged in iter 1.",
+    "tabs.js performs a post-hoc string replace on the generated CSS to rename .ns-tabs (button row inside CSS) to .ns-tabs-row. This is fragile: if the original CSS template ever changes its formatting (extra whitespace, different selector grouping), the replace will silently miss and the buttons will inherit the host site's .ns-tabs styles. Better to author the CSS directly with .ns-tabs-row from the start so a textual replace is unnecessary.",
+    "shared.baseReset sets font-family without !important and color #1f2937 without !important. A host site that uses '* {color:red !important}' will recolor the section text (verified in style isolation test). This is acceptable per spec since the test expects only that layout is intact and Poppins is used, but document this trade-off — sites with hyper-aggressive resets will still bleed color.",
+    "Preview iframe uses sandbox='allow-scripts allow-same-origin' — same warning as iter 1. Browser logs an 'iframe can escape sandbox' message. Drop allow-same-origin if not needed.",
+    "Editor.jsx: SECTIONS[0] is referenced for default activeId (currently hero-slide). If registry order ever changes, the documented 'hero-slide is default' contract silently breaks. Pin the default explicitly: useState('hero-slide')."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "Re-uploaded one 1x1 TEST_hero.png via /api/upload during regression backend test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests at /app/backend/tests/backend_test.py (pytest, 4 tests, all pass). Frontend rail testids: rail-<id> for ids hero-slide, hero-fade, content, products, placeholder, logos, break, tabs. Active section header testid=active-section-name; sidebar reset button testid=reset-section; copy testid=copy-snippet-button; preview iframe testid=preview-iframe. ListEditor uses testidPrefix-toggle-<idx> to expand/collapse rows; first row is open by default so do NOT click toggle if input already exists. Hero-slide title input: input[data-testid='hs-slide-title-<slideid>']. Products columns Select: data-testid=products-columns; choose option by name '4 columns' with force=True. For multi-instance test, copy clipboard then page.set_content with two divs both containing the snippet — both will share uid (acceptable). Hero-slide active-state mechanism: '.ns-dot.is-active' on dot, but slide active is via track CSS transform (matrix translate), NOT '.ns-slide.is-active'. To assert scoped switching after dot click, compare track transform per section rather than checking '.is-active' on '.ns-slide'.",
+  "rca of the issue": "No failing issues."
+}
