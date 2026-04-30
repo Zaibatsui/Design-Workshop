@@ -7,6 +7,7 @@ import {
   baseReset,
   escAttr,
   escHtml,
+  fullBleedClass,
   iife,
   makeUid,
   safeUrl,
@@ -48,6 +49,7 @@ const defaults = () => ({
     showArrows: true,
     showDots: true,
   },
+  fullBleed: false,
   slides: [
     {
       id: makeUid(),
@@ -152,7 +154,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}}
 `.trim();
 
-  const html = `<section class="ns-hero-fade ${cls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}">
+  const html = `<section class="ns-hero-fade ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}">
 ${slidesHtml}
 ${arrowsHtml}
 ${dotsHtml}
@@ -332,6 +334,13 @@ function FormPanel({ config, onUpdate }) {
       </SectionGroup>
 
       <SectionGroup title="Layout">
+        <ToggleField
+          label="Full bleed (100vw)"
+          description="Break out of the host's content area"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="hf-full-bleed"
+        />
         <SelectField
           label="Text alignment"
           value={l.textAlign}

@@ -6,12 +6,13 @@ import {
   baseReset,
   escAttr,
   escHtml,
+  fullBleedClass,
   iife,
   makeUid,
   safeUrl,
   wrapSnippet,
 } from "./shared";
-import { TextField, TextAreaField, SliderField } from "@/components/FormFields";
+import { TextField, TextAreaField, SliderField, ToggleField } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
@@ -33,6 +34,7 @@ const defaults = () => ({
   accentColor: "#015f9b",
   bodyColor: "#333333",
   paddingY: 60,
+  fullBleed: false,
   tabs: [
     sampleTab("Board room", "Audio video conferencing for unmatched clarity"),
     sampleTab("Home office", "Professional audio for remote working"),
@@ -98,7 +100,7 @@ ${baseReset(cls)}
 @media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr}.${cls} .ns-heading{font-size:24px}}
 `.trim();
 
-  const html = `<section class="ns-tabs ${cls}" style="${styleVars}">
+  const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-inner">
     <div class="ns-tabs-row">${buttonsHtml}</div>
     <div class="ns-panels">${panelsHtml}</div>
@@ -140,6 +142,13 @@ function FormPanel({ config, onUpdate }) {
   return (
     <div className="space-y-5">
       <Group title="Theme">
+        <ToggleField
+          label="Full bleed (100vw)"
+          description="Background spans full viewport"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="tabs-full-bleed"
+        />
         <ColorField
           label="Background"
           value={config.bgColor}

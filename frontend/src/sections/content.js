@@ -6,6 +6,7 @@ import { AlignCenter } from "lucide-react";
 import {
   baseReset,
   escHtml,
+  fullBleedClass,
   iife,
   makeUid,
   wrapSnippet,
@@ -14,6 +15,7 @@ import {
   TextAreaField,
   SliderField,
   SelectField,
+  ToggleField,
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 
@@ -29,6 +31,7 @@ const defaults = () => ({
   paddingY: 60,
   maxWidth: 1200,
   textAlign: "center",
+  fullBleed: false,
 });
 
 function render(cfg) {
@@ -52,7 +55,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-h{font-size:calc(var(--ns-size) * .8)}}
 `.trim();
 
-  const html = `<section class="ns-content ${cls}" style="${styleVars}">
+  const html = `<section class="ns-content ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-inner"><h2 class="ns-h">${escHtml(cfg.heading)}</h2></div>
 </section>`;
 
@@ -63,6 +66,13 @@ ${baseReset(cls)}
 function FormPanel({ config, onUpdate }) {
   return (
     <div className="space-y-3">
+      <ToggleField
+        label="Full bleed (100vw)"
+        description="Background spans full viewport"
+        checked={config.fullBleed}
+        onChange={(v) => onUpdate({ fullBleed: v })}
+        testid="content-full-bleed"
+      />
       <TextAreaField
         label="Heading"
         value={config.heading}

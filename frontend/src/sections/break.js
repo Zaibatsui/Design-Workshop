@@ -6,12 +6,13 @@ import {
   baseReset,
   escAttr,
   escHtml,
+  fullBleedClass,
   iife,
   makeUid,
   safeUrl,
   wrapSnippet,
 } from "./shared";
-import { TextAreaField, SliderField } from "@/components/FormFields";
+import { TextAreaField, SliderField, ToggleField } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ const defaults = () => ({
   height: 280,
   overlayColor: "#000000",
   overlayOpacity: 0.45,
+  fullBleed: false,
   image:
     "https://media.misco.co.uk/media/misco/images/misco-career/Misco-Generic-Background-with-Gradient.jpg",
 });
@@ -51,7 +53,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-h{font-size:calc(var(--ns-size) * .75)}}
 `.trim();
 
-  const html = `<section class="ns-break ${cls}" style="${styleVars};background-image:url('${escAttr(safeUrl(cfg.image))}')">
+  const html = `<section class="ns-break ${cls}${fullBleedClass(cfg)}" style="${styleVars};background-image:url('${escAttr(safeUrl(cfg.image))}')">
   <div class="ns-overlay"></div>
   <h2 class="ns-h">${escHtml(cfg.heading)}</h2>
 </section>`;
@@ -63,6 +65,13 @@ ${baseReset(cls)}
 function FormPanel({ config, onUpdate }) {
   return (
     <div className="space-y-3">
+      <ToggleField
+        label="Full bleed (100vw)"
+        description="Break out of the host's content area"
+        checked={config.fullBleed}
+        onChange={(v) => onUpdate({ fullBleed: v })}
+        testid="break-full-bleed"
+      />
       <div>
         <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
           Background image

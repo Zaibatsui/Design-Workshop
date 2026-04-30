@@ -7,6 +7,7 @@ import {
   baseReset,
   escAttr,
   escHtml,
+  fullBleedClass,
   iife,
   makeUid,
   safeUrl,
@@ -44,6 +45,7 @@ const defaults = () => ({
   columns: 5,
   showArrows: true,
   paddingY: 60,
+  fullBleed: false,
   products: Array.from({ length: 6 }, (_, i) => sampleProduct(i + 1)),
 });
 
@@ -106,7 +108,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-card{flex-basis:80%}.${cls} .ns-prev{left:0}.${cls} .ns-next{right:0}}
 `.trim();
 
-  const html = `<section class="ns-products ${cls}" style="${styleVars}">
+  const html = `<section class="ns-products ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-wrap">
     <h2 class="ns-h">${escHtml(cfg.title)}</h2>
     ${arrowsHtml}
@@ -153,6 +155,13 @@ function FormPanel({ config, onUpdate }) {
   return (
     <div className="space-y-5">
       <Group title="Section">
+        <ToggleField
+          label="Full bleed (100vw)"
+          description="Background spans full viewport"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="products-full-bleed"
+        />
         <TextField
           label="Title"
           value={config.title}

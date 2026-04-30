@@ -2,8 +2,8 @@
  * Placeholder Grid — N boxes in M columns. Static, no JS interaction.
  */
 import { LayoutGrid } from "lucide-react";
-import { baseReset, iife, makeUid, wrapSnippet } from "./shared";
-import { SliderField, SelectField } from "@/components/FormFields";
+import { baseReset, fullBleedClass, iife, makeUid, wrapSnippet } from "./shared";
+import { SliderField, SelectField, ToggleField } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 
 const ID = "placeholder";
@@ -17,6 +17,7 @@ const defaults = () => ({
   borderRadius: 6,
   paddingY: 60,
   gap: 20,
+  fullBleed: false,
 });
 
 function render(cfg) {
@@ -45,7 +46,7 @@ ${baseReset(cls)}
 @media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}}
 `.trim();
 
-  const html = `<section class="ns-placeholder ${cls}" style="${styleVars}">
+  const html = `<section class="ns-placeholder ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-grid">${itemsHtml}</div>
 </section>`;
 
@@ -56,6 +57,13 @@ ${baseReset(cls)}
 function FormPanel({ config, onUpdate }) {
   return (
     <div className="space-y-3">
+      <ToggleField
+        label="Full bleed (100vw)"
+        description="Background spans full viewport"
+        checked={config.fullBleed}
+        onChange={(v) => onUpdate({ fullBleed: v })}
+        testid="placeholder-full-bleed"
+      />
       <SliderField
         label="Items"
         value={config.count}

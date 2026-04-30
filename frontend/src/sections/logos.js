@@ -7,12 +7,13 @@ import { Building2 } from "lucide-react";
 import {
   baseReset,
   escAttr,
+  fullBleedClass,
   iife,
   makeUid,
   safeUrl,
   wrapSnippet,
 } from "./shared";
-import { TextField, SliderField } from "@/components/FormFields";
+import { TextField, SliderField, ToggleField } from "@/components/FormFields";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ const defaults = () => ({
   itemGap: 24,
   paddingY: 30,
   bgColor: "#ffffff",
+  fullBleed: true,
   logos: [
     {
       id: makeUid(),
@@ -101,7 +103,7 @@ ${baseReset(cls)}
 .${cls}:hover .ns-track{animation-play-state:paused}
 `.trim();
 
-  const html = `<section class="ns-logos ${cls}" style="${styleVars}">
+  const html = `<section class="ns-logos ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-track" data-ns-track>${itemsHtml}</div>
 </section>`;
 
@@ -137,6 +139,13 @@ function FormPanel({ config, onUpdate }) {
   return (
     <div className="space-y-5">
       <Group title="Settings">
+        <ToggleField
+          label="Full bleed (100vw)"
+          description="Strip spans full viewport"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="logos-full-bleed"
+        />
         <SliderField
           label="Scroll speed"
           value={config.speedSeconds}

@@ -36,18 +36,36 @@ export const safeUrl = (u = "") => {
 
 /**
  * Base reset scoped to a section root. Prevents host site bleed
- * (margins, line-height, list-style, default colors).
+ * (margins, padding, text-indent, list-style, default colors, alignment).
+ *
+ * Hosts often style `h1/h2/p` with extra padding or text-indent — these
+ * leak into our titles and offset them visually. We use `!important` on
+ * the highest-risk bleed properties (padding, text-indent, font-family,
+ * list-style) because some host stylesheets use `!important` on their
+ * resets, and without it we lose. Section-specific CSS uses class
+ * selectors of equal/higher specificity (and comes later) so it still
+ * wins over this reset.
  */
 export function baseReset(cls) {
   return `
 .${cls},.${cls} *,.${cls} *::before,.${cls} *::after{box-sizing:border-box}
-.${cls}{font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;color:#1f2937}
-.${cls} h1,.${cls} h2,.${cls} h3,.${cls} h4,.${cls} p{margin:0}
-.${cls} ul,.${cls} ol{margin:0;padding:0;list-style:none}
+.${cls}{font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif!important;line-height:1.5;-webkit-font-smoothing:antialiased;color:#1f2937;text-align:left}
+.${cls} h1,.${cls} h2,.${cls} h3,.${cls} h4,.${cls} h5,.${cls} h6{margin:0;padding:0!important;text-indent:0!important;text-transform:none!important;font-style:normal;letter-spacing:normal;text-align:inherit!important;font-family:inherit}
+.${cls} p,.${cls} a,.${cls} ul,.${cls} ol,.${cls} li,.${cls} span,.${cls} div{margin:0;padding:0;text-indent:0!important;text-transform:none;font-style:normal;letter-spacing:normal}
+.${cls} ul,.${cls} ol{list-style:none!important}
 .${cls} a{color:inherit;text-decoration:none}
-.${cls} button{font-family:inherit;cursor:pointer}
-.${cls} img{max-width:100%;display:block}
+.${cls} button{font-family:inherit;cursor:pointer;background:none;border:0;padding:0;margin:0;color:inherit;text-align:inherit}
+.${cls} img{max-width:100%;display:block;border:0}
+.${cls}.is-full{position:relative;width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
 `.trim();
+}
+
+/**
+ * Returns the className suffix to add to a section root when fullBleed
+ * is enabled. Use as: `class="ns-foo ${cls}${fullBleedClass(cfg)}"`.
+ */
+export function fullBleedClass(cfg) {
+  return cfg && cfg.fullBleed ? " is-full" : "";
 }
 
 /**
