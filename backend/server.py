@@ -89,6 +89,18 @@ def get_object(path: str):
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+
+# Trust X-Forwarded-Proto from the Kubernetes ingress so request.url and
+# request.url_for() produce https:// — required for OAuth redirect_uri to
+# match what Google has registered. Must run BEFORE SessionMiddleware /
+# Authlib so they see the corrected scheme.
+@app.middleware("http")
+async def force_https_from_proxy(request: Request, call_next):
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    if forwarded_proto == "https":
+        request.scope["scheme"] = "https"
+    return await call_next(request)
+
 EXT_TO_MIME = {
     "jpg": "image/jpeg",
     "jpeg": "image/jpeg",

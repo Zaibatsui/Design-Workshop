@@ -1,128 +1,134 @@
 <analysis>**original_problem_statement**: 
-The user requires a modular WYSIWYG editor for reusable e-commerce content sections (like hero banners, product carousels, logo strips, etc.). These sections will be embedded inside external e-commerce sites (Nettailer/Netset). The system must output self-contained, highly isolated pure HTML/CSS/JS snippets (using scoped CSS variables and IIFE JS) that do not conflict with or break host site styles. The editor is entirely client-side currently, using a Shopify-admin style UI.
+The user requires a modular WYSIWYG editor for reusable e-commerce content sections. These sections are embedded inside external e-commerce sites and must output self-contained, highly isolated pure HTML/CSS/JS snippets. The product has now evolved into a persistent platform named Design Workshop (by Zaibatsui Labs), featuring a MongoDB-backed dashboard, direct Google OAuth, and multiple scalable section types that can auto-fetch and live-refresh product metadata from web URLs.
+
+PRODUCT REQUIREMENTS:
+- Self-contained, scoped CSS/JS snippet generation.
+- Real-time product metadata fetching (prices, images, names) using URL inputs.
+- Persistent user dashboard to manage, save, and load sections.
+- Uniform, right-sized preview thumbnails in the dashboard.
+- Direct Google OAuth integration for user authentication.
 
 **User's preferred language**: English
 *(INSTRUCT next agent to respond in English only)*
 
 **what currently exists?** 
-A functional, multi-section WYSIWYG editor built with React, Shadcn UI, and Tailwind. It supports 8 section types (Hero Slide, Hero Fade, Content, Products, Logos, Grid, Break, Tabs). The editor provides a sidebar with extensive form controls, a live iframe preview, and generates highly resilient, isolated HTML/CSS/JS snippets. The backend (FastAPI) handles image uploads to Emergent's object storage and has just been expanded to include a BeautifulSoup-powered web scraper for fetching product metadata from URLs.
+A full-stack React + FastAPI + MongoDB application. The frontend features a 9-section WYSIWYG editor (Hero, Products, Insights, Logos, etc.) and a user dashboard with pagination and uniform 20:9 thumbnail grids. The backend uses Motor for MongoDB storage, Authlib for direct Google OAuth, and a dual-scraper setup (BeautifulSoup4 with a Playwright headless fallback) to bypass JS-heavy e-commerce pages to extract hi-res product images and live prices. Snippets generated for products include an IIFE that auto-refreshes the price on the host site.
 
 **Last working item**:
-- **Last item agent was working**: Implementing the Fetch Product via URL feature in the Product Carousel section. The agent successfully built and tested the backend scraper endpoint () using  to extract the product name, price, and image from Nettailer and Misco URLs. 
-- **Status**: IN PROGRESS
-- **Agent Testing Done**: Y (Backend manual testing verified correct extraction)
-- **Which testing method agent to use?**: Frontend testing agent / manual testing by screenshot tool to verify the UI flow and state updates.
-- **User Testing Done**: N
+    - Last item agent was working: Fixing an  error in the direct Google OAuth flow. The  library was generating an  redirect URI instead of  because of the Kubernetes ingress, leading to a mismatch with Google Cloud Console settings. The agent created and injected an  into  to rewrite the ASGI scope scheme to .
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: Y (Middleware applied and backend restarted successfully)
+    - Which testing method agent to use? manual testing by browser click / screenshot tool to verify the end-to-end Google consent screen flow.
+    - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  Issue 1: Frontend Integration of Product Scraper (P0)
-   - Attempted fixes: Backend scraper logic is completed and verified for Misco and Nettailer endpoints.
-   - Next debug checklist: 
-      - Check  for the exact endpoint signature.
-      - Update  to add a URL input and a Fetch button for each product in the .
-      - Wire the Fetch button to call the backend endpoint, then populate the specific product's , , and  fields in the React state.
-      - Ensure these fields remain manually editable by the user after fetching.
-   - Why fix this issue and what will be achieved with the fix? Completes the user's latest request to automate product population from a store URL while keeping manual overrides.
-   - Status: IN PROGRESS
-   - Is recurring issue? N
-   - Should Test frontend/backend/both after fix? Frontend (via screenshot)
+  Issue 1: Direct Google OAuth Callback  error (P0)
+     - Attempted fixes: Implemented  in  to force the scheme to  so  generates the correct URL.
+     - Next debug checklist: Check if  successfully redirects to Google, and if  successfully exchanges the token. If it fails, verify the  passed to  matches the one in  and Google Cloud Console.
+     - Why fix this issue and what will be achieved with the fix? Core authentication flow needs to work for the dashboard to be accessible.
+     - Status: USER VERIFICATION PENDING
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? Both
 
 **In progress Task List**:
-  Task 1: Complete Product Carousel URL Fetch Feature (P0)
-   - Where to resume: Modify  to add the URL input, fetch logic, and update state.
-   - What will be achieved with this? Users can paste a product link to auto-fill the product card.
-   - Status: IN PROGRESS
-   - Should Test frontend/backend/both after fix? Frontend
-   - Blocked on something: Nothing
+  None
 
-**Upcoming and Future Tasks**:
+**Upcoming and Future Tasks**
   Future Tasks:
-  - Page-builder mode (stack multiple sections vertically in the editor instead of just one at a time). (P2)
-  - LocalStorage-backed section template library. (P2)
-  - One-click theme presets. (P2)
-  *(Note: These are agent-suggested roadmap items from Next Action Items that the user hasn't explicitly demanded yet, but are next logical steps).*
+  - Hybrid Page Builder mode (P1): Let users stack multiple structured sections vertically (and interleave with free-text blocks) to export a full page snippet, instead of just single sections.
+  - Section duplication (P2): Clone an existing section from the dashboard as a starting point.
+  - Dashboard drag-and-drop (P2): Allow reordering of dashboard cards using .
+  - Security Requirement (P0): Advise the user to cycle/regenerate their Google Client Secret since they pasted the active key directly into the chat prompt.
 
-**Completed work in this session**:
-- Created Shopify-admin themed UI with left-sidebar form controls and live iframe preview (DONE)
-- Built 8 distinct snippet modules: Hero Slide, Hero Fade, Content, Products, Logos, Grid, Break, Tabs (DONE)
-- Configured scoped, isolated CSS snippet generation with  tags to resist hostile host CSS (DONE)
-- Fixed CMS-save re-init bugs by moving  flags to JS properties () (DONE)
-- Added Make wide logic: background spans  while JS correctly pads content to stay aligned with the host container (DONE)
-- Migrated all default content, images, and brand colors () from Misco to Nettailer/Netset (DONE)
-- Removed Made with Emergent badge using a  in  (DONE)
-- Refactored Placeholder Grid to support variable rows/columns and image/link uploads per cell (DONE)
-- Added Open in same tab ( vs ) toggles for all links across all sections (DONE)
+**Completed work in this session**
+- Wired frontend URL fetcher to backend scraper (DONE)
+- Handled Cnet Cloud/1WorldSync JS-rendered product images by adding a Playwright headless browser fallback to the backend scraper (DONE)
+- Injected auto-refreshing live price JS logic into the exported snippets using localStorage caching (DONE)
+- Added new sections: Insights, Resources, Account CTA (DONE)
+- Merged Hero Slide and Hero Fade into a single Hero section; Merged CTA into Content (Reduced from 11 to 9 sections) (DONE)
+- Created user persistent Dashboard with MongoDB () and  (DONE)
+- Rebranded UI to Design Workshop / Zaibatsui Labs (DONE)
+- Set up uniform 20:9 thumbnail grids for the Dashboard with exact scaling (DONE)
+- Migrated from Emergent Google Auth to Direct Google OAuth using user's Client ID/Secret and  (DONE)
 
-**Earlier issues found/mentioned but not fixed**:
-- None. Agent methodically addressed all feedback.
+**Earlier issues found/mentioned but not fixed**
+  - None
 
-**Known issue recurrence from previous fork**:
-- None
+**Known issue recurrence from previous fork**
+  - Recurrence count: 0
+  - Status: RESOLVED
 
-**Code Architecture**:
+**Code Architecture**
 
 
-**Key Technical Concepts**:
+**Key Technical Concepts**
 - Frontend: React, Tailwind CSS, Shadcn UI
-- Snippet Generation: Pure Vanilla JS (IIFEs to prevent global pollution) + CSS variables + inline styles.
-- Isolation: Extreme CSS specificity and dynamically calculated padding (for Make wide mode) to ensure snippets look identical in any CMS environment.
-- Backend: FastAPI,  for scraping HTML metadata.
+- Backend: FastAPI, MongoDB (Motor async driver), Authlib (OAuth 2.0)
+- Scraping: BeautifulSoup4 + Playwright (Headless Chromium)
+- Snippets: Pure Vanilla JS IIFEs, isolated CSS variables
 
-**key DB schema**:
-- N/A (Client-side state only, no database currently utilized).
+**key DB schema**
+  - sections:  (ObjectId),  (str),  (str),  (str),  (dict),  (datetime),  (datetime)
 
-**changes in tech stack**:
-- Added  to backend for web scraping.
+**changes in tech stack**
+  - Added MongoDB (via Motor driver) for persistent section storage.
+  - Added Playwright for headless browser scraping of JS-injected DOMs.
+  - Added Authlib for direct Google OAuth.
 
-**All files of reference**:
-- : Contains the newly minted  endpoint.
-- : Needs updating to include the URL fetching UI and logic.
-- : Holds core snippet generation logic; modifying this affects all sections.
+**All files of reference** 
+  -  (Contains custom , OAuth routes, MongoDB routes, and the Playwright scraper).
+  -  (Controls the exact heights for dashboard iframes to ensure uniform cards).
+  -  (Contains user's Google Client Secret).
 
-**Areas that need refactoring**:
-- None immediately identified. The modular  directory is well structured.
+**Areas that need refactoring**: 
+  -  is approaching 800 lines. The Auth, MongoDB routing, and Scraping logic could be abstracted into separate API routers for better maintainability.
 
-**key api endpoints**:
-- : Uploads to Emergent Object Storage.
-- : Proxies file requests.
-- : Fetches , , and  from e-commerce product pages.
+**key api endpoints**
+  - , , , 
+  - , , 
+  - 
 
-**Critical Info for New Agent**:
-- **Snippet Architecture Rule**: The generated snippets *must* work safely when pasted multiple times on the same page. No global JS variables, no element IDs, and heavy use of CSS specificity.
-- **CMS Persistence Issue**: Do not use data-attributes for initialization guards (like ), as CMS editors bake these into the saved DOM, breaking JS on subsequent edits. Continue using JS-only properties () as currently implemented.
-- **Make Wide Functionality**: Sections achieve full-width backgrounds while keeping content aligned by applying  width and negative margins, combined with JS that measures the offset and applies exact padding. Do not break this logic.
+**Critical Info for New Agent** 
+  - **SECURITY LEAK**: The user shared their Google Client Secret in plaintext in the chat (Message 482). The agent used it in the  to make the integration work, but you **MUST** remind the user to revoke and regenerate this Client Secret from their Google Cloud Console once the flow is verified.
+  - **OAuth Redirection Fix**: Kubernetes ingress hides the HTTPS scheme from FastAPI. A custom  is at the very top of the FastAPI middleware stack to mutate the ASGI scope to  so  generates the correct redirect URIs. 
+  - **Playwright Execution**: Playwright is installed globally in the environment. The scraper only invokes Playwright if standard BeautifulSoup cannot find the main product image (e.g., Cnet Cloud widgets).
 
-**documents and test reports created in this job**:
--  (Updated repeatedly by agent to track features)
-- 
-- 
+**documents and test reports created in this job** 
+  -  (Updated to reflect Phase 1 Dashboard and Page Builder spec)
+  -  (Updated)
 
-**Last 10 User Messages and any pending HUMAN messages**:
-- *Message 155*: Requested rebranding defaults from Misco to Netset/Nettailer. (Done)
-- *Message 172*: Asked to remove Emergent SB badge, redesign Placeholder into a configurable Image/Link Grid, and add Open in same tab globally. (Done)
-- *Message 199*: Requested Row and Column configuration in the new Grid section. (Done)
-- *Message 210*: **[PENDING]** Requested Product Carousel to fetch image, name, and price from a provided URL (Nettailer/Misco examples), while allowing manual overrides. 
+**Last 10 User Messages and any pending HUMAN messages** 
+ - Message 434: Wants uniform grid with edge-to-edge content. (Completed)
+ - Message 455: Asked to make preview boxes 80% height. (Completed)
+ - Message 468: Asked to vertically align header lockup (Design Workshop & Zaibatsui Labs). (Completed)
+ - Message 475: Wants to use their own Google Login instead of Emergent's. (Completed)
+ - Message 480: Couldn't see setup steps. (Completed)
+ - Message 482: Shared Client ID & Secret in chat. (Completed)
+ - Message 521: Reported . (Agent applied fix, VERIFICATION PENDING)
 
 **Project Health Check:**
-- Functional and clean. The backend scraper has just been installed and manually tested but is awaiting frontend wire-up.
+Healthy.
 
-**3rd Party Integrations**:
-- Emergent Object Storage — Emergent LLM Key 
-- Clearbit Logos (used in defaults)
+**3rd Party Integrations** 
+  - Google OAuth (Direct) — requires User API Key (Client ID/Secret stored in backend )
+  - Emergent Object Storage — uses Emergent LLM Key
 
-**Testing status**:
-- Testing agent used after significant changes: YES (Iterations 1 & 2 pass 100%)
-- Troubleshoot agent used after agent stuck in loop: NO
-- Test files created: , 
-- Known regressions: None
+**Testing status**
+  - Testing agent used after significant changes: NO (Self-tested via bash scripts and screenshots extensively)
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: N/A
+  - Known regressions: None
 
-**Credentials to test flow**:
-- None required for current flow.
+**Credentials to test flow:**
+Use a valid Google Account registered as a Test User in the Zaibatsui Labs Google Cloud Console OAuth Consent Screen.
 
-**What agent forgot to execute**:
-- The agent was in the middle of executing Message 210. Backend is complete; frontend implementation of the URL fetcher is pending.
+**What agent forgot to execute**
+The agent applied the  fix right at the end of the session, but did not have the chance to run a final screenshot test of the Google Login callback flow to confirm the  error was truly resolved.
 
-**Debugging checklist for current issue**:
-Issue: Integrate Product Fetcher into Product Carousel UI.
-Frontend files to check: 
-- : Inside , add an input for  and a Fetch button per item in the . On click, call . Update that item's , , and  using the response.</analysis>
+**Debugging checklist for current issue**
+    Issue: Direct Google OAuth Callback  error
+    Frontend files to check: 
+      -  (Check the login redirect target URL)
+    Backend files to check:
+      -  (Line 769+ check  logic and  token exchange).
+    Database to check: N/A</analysis>
