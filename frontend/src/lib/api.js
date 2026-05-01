@@ -31,4 +31,12 @@ export const api = {
   updateSection: (id, patch) =>
     req(`/sections/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
   deleteSection: (id) => req(`/sections/${id}`, { method: "DELETE" }),
+
+  listPages: () => req("/pages"),
+  createPage: (data) =>
+    req("/pages", { method: "POST", body: JSON.stringify(data) }),
+  getPage: (id) => req(`/pages/${id}`),
+  updatePage: (id, patch) =>
+    req(`/pages/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
+  deletePage: (id) => req(`/pages/${id}`, { method: "DELETE" }),
 };

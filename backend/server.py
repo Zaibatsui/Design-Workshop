@@ -407,6 +407,129 @@ async def delete_section(
     return {"ok": True}
 
 
+# ============================================================
+# Pages (ordered stack of section + richtext blocks)
+# Each block is either:
+#   { block_id, type: "section", section_type, config }   — snapshot of a
+#     section definition; editable inline within the page, not linked back
+#     to the library section (by design so library edits don't silently
+#     mutate existing pages).
+#   { block_id, type: "richtext", html }                  — sanitized HTML
+#     from the tiptap editor, rendered as a scoped block.
+# ============================================================
+
+
+class BlockIn(BaseModel):
+    block_id: Optional[str] = None
+    type: str  # "section" | "richtext"
+    section_type: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+    html: Optional[str] = None
+
+
+class PageIn(BaseModel):
+    name: str = Field(default="Untitled page")
+    blocks: List[BlockIn] = Field(default_factory=list)
+
+
+class PageUpdate(BaseModel):
+    name: Optional[str] = None
+    blocks: Optional[List[BlockIn]] = None
+
+
+class Page(BaseModel):
+    page_id: str
+    user_id: str
+    name: str
+    blocks: List[Dict[str, Any]]
+    created_at: datetime
+    updated_at: datetime
+
+
+def _normalize_blocks(blocks: List[BlockIn]) -> List[Dict[str, Any]]:
+    out = []
+    for b in blocks:
+        out.append({
+            "block_id": b.block_id or f"blk_{uuid.uuid4().hex[:10]}",
+            "type": b.type,
+            "section_type": b.section_type,
+            "config": b.config,
+            "html": b.html,
+        })
+    return out
+
+
+@api_router.get("/pages", response_model=List[Page])
+async def list_pages(current_user: User = Depends(get_current_user)):
+    cursor = db.pages.find(
+        {"user_id": current_user.user_id}, {"_id": 0}
+    ).sort("updated_at", -1)
+    return [Page(**doc) async for doc in cursor]
+
+
+@api_router.post("/pages", response_model=Page)
+async def create_page(
+    payload: PageIn, current_user: User = Depends(get_current_user)
+):
+    now = datetime.now(timezone.utc)
+    page = {
+        "page_id": f"pg_{uuid.uuid4().hex[:12]}",
+        "user_id": current_user.user_id,
+        "name": payload.name,
+        "blocks": _normalize_blocks(payload.blocks),
+        "created_at": now,
+        "updated_at": now,
+    }
+    await db.pages.insert_one(dict(page))
+    return Page(**page)
+
+
+@api_router.get("/pages/{page_id}", response_model=Page)
+async def get_page(
+    page_id: str, current_user: User = Depends(get_current_user)
+):
+    doc = await db.pages.find_one(
+        {"page_id": page_id, "user_id": current_user.user_id}, {"_id": 0}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return Page(**doc)
+
+
+@api_router.put("/pages/{page_id}", response_model=Page)
+async def update_page(
+    page_id: str,
+    payload: PageUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    update: Dict[str, Any] = {"updated_at": datetime.now(timezone.utc)}
+    if payload.name is not None:
+        update["name"] = payload.name
+    if payload.blocks is not None:
+        update["blocks"] = _normalize_blocks(payload.blocks)
+    result = await db.pages.find_one_and_update(
+        {"page_id": page_id, "user_id": current_user.user_id},
+        {"$set": update},
+        return_document=True,
+        projection={"_id": 0},
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return Page(**result)
+
+
+@api_router.delete("/pages/{page_id}")
+async def delete_page(
+    page_id: str, current_user: User = Depends(get_current_user)
+):
+    result = await db.pages.delete_one(
+        {"page_id": page_id, "user_id": current_user.user_id}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return {"ok": True}
+
+
 @api_router.post("/upload")
 async def upload(file: UploadFile = File(...)):
     if not file.filename:

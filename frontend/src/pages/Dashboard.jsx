@@ -16,6 +16,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
+import { composePage } from "@/sections/pageSnippet";
 import { BRAND } from "@/lib/brand";
 
 const PAGE_SIZE = 9;
@@ -23,28 +24,37 @@ const PAGE_SIZE = 9;
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [tab, setTab] = useState("sections"); // sections | pages
   const [sections, setSections] = useState([]);
+  const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
-  const [page, setPage] = useState(1);
+  const [sectionsPage, setSectionsPage] = useState(1);
+  const [pagesPage, setPagesPage] = useState(1);
 
-  const totalPages = Math.max(1, Math.ceil(sections.length / PAGE_SIZE));
-  const pagedSections = useMemo(
+  const items = tab === "sections" ? sections : pages;
+  const currentPage = tab === "sections" ? sectionsPage : pagesPage;
+  const setCurrentPage = tab === "sections" ? setSectionsPage : setPagesPage;
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const pagedItems = useMemo(
     () =>
-      sections.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE),
-    [sections, page]
+      items.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        (currentPage - 1) * PAGE_SIZE + PAGE_SIZE
+      ),
+    [items, currentPage]
   );
-  // If a delete leaves us past the last page, snap back
   useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages, setCurrentPage]);
 
   const load = async () => {
     try {
-      const data = await api.listSections();
-      setSections(data);
-    } catch (e) {
-      toast.error("Could not load sections");
+      const [s, p] = await Promise.all([api.listSections(), api.listPages()]);
+      setSections(s);
+      setPages(p);
+    } catch {
+      toast.error("Could not load your library");
     } finally {
       setLoading(false);
     }
@@ -70,12 +80,35 @@ export default function Dashboard() {
     }
   };
 
+  const createPage = async () => {
+    try {
+      const created = await api.createPage({
+        name: "Untitled page",
+        blocks: [],
+      });
+      navigate(`/edit/page/${created.page_id}`);
+    } catch {
+      toast.error("Could not create page");
+    }
+  };
+
   const removeSection = async (id) => {
     if (!window.confirm("Delete this section permanently?")) return;
     try {
       await api.deleteSection(id);
       setSections((s) => s.filter((x) => x.section_id !== id));
       toast.success("Section deleted");
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+  const removePage = async (id) => {
+    if (!window.confirm("Delete this page permanently?")) return;
+    try {
+      await api.deletePage(id);
+      setPages((p) => p.filter((x) => x.page_id !== id));
+      toast.success("Page deleted");
     } catch {
       toast.error("Delete failed");
     }
@@ -132,8 +165,10 @@ export default function Dashboard() {
               Your library
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              {sections.length} section{sections.length === 1 ? "" : "s"} ·
-              everything autosaves while you edit
+              {tab === "sections"
+                ? `${sections.length} section${sections.length === 1 ? "" : "s"}`
+                : `${pages.length} page${pages.length === 1 ? "" : "s"}`}{" "}
+              · everything autosaves while you edit
             </p>
           </div>
           <div className="flex gap-2">
@@ -147,27 +182,42 @@ export default function Dashboard() {
             </Button>
             <Button
               variant="outline"
-              disabled
-              title="Page builder coming in the next phase"
+              onClick={createPage}
               data-testid="new-page-button"
               className="font-medium"
             >
               <FileStack className="w-4 h-4 mr-1.5" />
               New page
-              <span className="ml-2 text-[10px] uppercase tracking-wider text-slate-400">
-                soon
-              </span>
             </Button>
           </div>
         </div>
 
+        <Tabs tab={tab} onChange={setTab} sections={sections.length} pages={pages.length} />
+
         {loading ? (
           <div className="text-sm text-slate-500">Loading…</div>
-        ) : sections.length === 0 ? (
-          <EmptyState onCreate={() => setPicker(true)} />
-        ) : (
+        ) : items.length === 0 ? (
+          tab === "sections" ? (
+            <EmptyState
+              title="Nothing here yet"
+              body="Create your first section — pick a type, customise it, and copy the snippet into your CMS. Everything autosaves."
+              ctaLabel="Create your first section"
+              onCreate={() => setPicker(true)}
+              testId="empty-create-button"
+            />
+          ) : (
+            <EmptyState
+              title="No pages yet"
+              body="Build multi-section pages by stacking library sections or fresh blocks, with rich text in between. Export as one self-contained HTML snippet."
+              ctaLabel="Create your first page"
+              onCreate={createPage}
+              testId="empty-create-page-button"
+              icon={FileStack}
+            />
+          )
+        ) : tab === "sections" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {pagedSections.map((s) => (
+            {pagedItems.map((s) => (
               <SectionCard
                 key={s.section_id}
                 section={s}
@@ -175,14 +225,24 @@ export default function Dashboard() {
               />
             ))}
           </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {pagedItems.map((p) => (
+              <PageCard
+                key={p.page_id}
+                page={p}
+                onDelete={() => removePage(p.page_id)}
+              />
+            ))}
+          </div>
         )}
 
-        {sections.length > PAGE_SIZE && (
+        {items.length > PAGE_SIZE && (
           <Pagination
-            page={page}
+            page={currentPage}
             totalPages={totalPages}
-            onChange={setPage}
-            total={sections.length}
+            onChange={setCurrentPage}
+            total={items.length}
           />
         )}
       </main>
@@ -191,6 +251,40 @@ export default function Dashboard() {
         <SectionPicker onPick={createSection} onClose={() => setPicker(false)} />
       )}
       <Toaster richColors position="top-center" />
+    </div>
+  );
+}
+
+function Tabs({ tab, onChange, sections, pages }) {
+  const items = [
+    { id: "sections", label: "Sections", count: sections },
+    { id: "pages", label: "Pages", count: pages },
+  ];
+  return (
+    <div className="border-b border-slate-200 mb-6" data-testid="dashboard-tabs">
+      <div className="flex gap-6">
+        {items.map((it) => (
+          <button
+            key={it.id}
+            type="button"
+            onClick={() => onChange(it.id)}
+            data-testid={`tab-${it.id}`}
+            className={`relative pb-3 text-sm font-medium transition-colors ${
+              tab === it.id
+                ? "text-slate-900"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {it.label}
+            <span className="ml-2 text-xs text-slate-400 font-normal">
+              {it.count}
+            </span>
+            {tab === it.id && (
+              <span className="absolute left-0 right-0 -bottom-px h-[2px] bg-[#E01839] rounded-full" />
+            )}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -207,8 +301,6 @@ function SectionCard({ section, onDelete }) {
   const wrapRef = useRef(null);
   const [scale, setScale] = useState(0.3);
 
-  // Fit the iframe to the card's actual rendered width — keeps content edge-to-edge
-  // regardless of viewport / breakpoint.
   useLayoutEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
@@ -224,7 +316,6 @@ function SectionCard({ section, onDelete }) {
 
   if (!def) return null;
   const Icon = def.icon || Layers;
-  // Stamp a fresh uid for the preview so iframe-internal IIFEs don't conflict
   const previewSnippet = def.render({ ...section.config, uid: makeUid() });
   const doc = previewDoc(previewSnippet);
   const updated = new Date(section.updated_at);
@@ -289,26 +380,107 @@ function SectionCard({ section, onDelete }) {
   );
 }
 
-function EmptyState({ onCreate }) {
+function PageCard({ page, onDelete }) {
+  const wrapRef = useRef(null);
+  const [scale, setScale] = useState(0.3);
+
+  useLayoutEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => {
+      const w = el.clientWidth;
+      if (w > 0) setScale(w / PREVIEW_INTERNAL_WIDTH);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const snippet = useMemo(() => composePage(page.blocks || []), [page.blocks]);
+  const doc = previewDoc(snippet);
+  const updated = new Date(page.updated_at);
+  const blockCount = (page.blocks || []).length;
+
+  return (
+    <div
+      data-testid={`page-card-${page.page_id}`}
+      className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all flex flex-col"
+    >
+      <Link
+        ref={wrapRef}
+        to={`/edit/page/${page.page_id}`}
+        className="block bg-slate-100 overflow-hidden relative w-full"
+        style={{ aspectRatio: "20 / 9" }}
+      >
+        {blockCount > 0 ? (
+          <iframe
+            title={page.name}
+            srcDoc={doc}
+            sandbox="allow-scripts allow-same-origin"
+            className="border-0 pointer-events-none block absolute top-0 left-0"
+            style={{
+              width: `${PREVIEW_INTERNAL_WIDTH}px`,
+              height: `${PREVIEW_INTERNAL_HEIGHT}px`,
+              transform: `scale(${scale})`,
+              transformOrigin: "top left",
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
+            <FileStack className="w-6 h-6" />
+            <span className="text-xs font-medium">Empty page</span>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      </Link>
+      <div className="p-4 flex items-center justify-between gap-3 flex-1">
+        <Link to={`/edit/page/${page.page_id}`} className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+            <FileStack className="w-3 h-3" />
+            Page · {blockCount} block{blockCount === 1 ? "" : "s"}
+          </div>
+          <p
+            className="text-sm font-medium text-slate-900 truncate"
+            data-testid="page-card-name"
+          >
+            {page.name}
+          </p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Edited {timeAgo(updated)}
+          </p>
+        </Link>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
+          data-testid={`delete-page-${page.page_id}`}
+          className="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Delete"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ title, body, ctaLabel, onCreate, testId, icon: Icon = Layers }) {
   return (
     <div className="bg-white rounded-xl border border-dashed border-slate-300 py-20 px-6 text-center">
       <div className="w-12 h-12 rounded-xl bg-slate-100 mx-auto flex items-center justify-center mb-4">
-        <Layers className="w-5 h-5 text-slate-400" />
+        <Icon className="w-5 h-5 text-slate-400" />
       </div>
-      <h2 className="font-heading text-lg font-semibold mb-2">
-        Nothing here yet
-      </h2>
-      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
-        Create your first section — pick a type, customise it, and copy the
-        snippet into your CMS. Everything autosaves.
-      </p>
+      <h2 className="font-heading text-lg font-semibold mb-2">{title}</h2>
+      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">{body}</p>
       <Button
         onClick={onCreate}
         className="bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
-        data-testid="empty-create-button"
+        data-testid={testId}
       >
         <Plus className="w-4 h-4 mr-1.5" />
-        Create your first section
+        {ctaLabel}
       </Button>
     </div>
   );
@@ -356,7 +528,6 @@ function SectionPicker({ onPick, onClose }) {
 }
 
 function Pagination({ page, totalPages, onChange, total }) {
-  // Build a compact page list: always include first & last; show ±1 around current; gap markers as "…"
   const pages = [];
   const add = (n) => pages.push(n);
   if (totalPages <= 7) {

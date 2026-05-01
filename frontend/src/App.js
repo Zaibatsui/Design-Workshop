@@ -5,6 +5,7 @@ import ProtectedRoute from "@/auth/ProtectedRoute";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Editor from "@/pages/Editor";
+import PageEditor from "@/pages/PageEditor";
 
 function App() {
   return (
@@ -26,6 +27,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Editor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/edit/page/:pageId"
+              element={
+                <ProtectedRoute>
+                  <PageEditor />
                 </ProtectedRoute>
               }
             />
