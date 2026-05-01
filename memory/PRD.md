@@ -36,6 +36,9 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
 6. **Logo Strip** — auto-scrolling infinite logo bar with seamless loop padding
 7. **Break Banner** — full-width bg image + overlay + centered heading
 8. **Tabs Section** — toggle buttons + split image+copy panels
+9. **Insights Grid** — 2/3-col icon + text + link cards with left accent border (2026-05-01)
+10. **Resource Carousel** — horizontal scroll of blog / case study cards with image + tag + title (2026-05-01)
+11. **Account CTA** — centered heading + body + primary / secondary buttons (2026-05-01)
 
 ## Test status
 - iter 2: testing_agent_v3 → **100% backend, 100% frontend** across all 8 sections including style-isolation against hostile host CSS, multi-instance safety, copy fidelity, live preview, reset.
