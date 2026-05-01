@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from db import db
 from deps import User, get_current_user
+from routers.pages import BlockIn
 
 router = APIRouter(prefix="/page-templates", tags=["page-templates"])
 
@@ -20,7 +21,11 @@ router = APIRouter(prefix="/page-templates", tags=["page-templates"])
 class TemplateIn(BaseModel):
     name: str = Field(default="Untitled template")
     description: Optional[str] = None
-    blocks: List[Dict[str, Any]] = Field(default_factory=list)
+    # Blocks are validated via the same BlockIn model used by /api/pages so
+    # saving a bad template (type='banana', section without section_type, …)
+    # is rejected with 422 at the edge instead of polluting the template
+    # catalogue with invalid snapshots.
+    blocks: List[BlockIn] = Field(default_factory=list)
 
 
 class PageTemplate(BaseModel):
@@ -32,12 +37,14 @@ class PageTemplate(BaseModel):
     created_at: datetime
 
 
-def _strip_block_ids(blocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _strip_block_ids(blocks) -> List[Dict[str, Any]]:
     """Drop per-instance block_ids from a template snapshot — new pages will
-    mint fresh ones when the template is materialized."""
+    mint fresh ones when the template is materialized. Accepts either raw
+    dicts or BlockIn instances (dumped via model_dump)."""
     out = []
     for b in blocks or []:
-        nb = {k: v for k, v in b.items() if k != "block_id"}
+        src = b.model_dump() if hasattr(b, "model_dump") else dict(b)
+        nb = {k: v for k, v in src.items() if k != "block_id"}
         out.append(nb)
     return out
 

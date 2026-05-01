@@ -21,7 +21,7 @@ export default function PageTemplatePicker({ onPick, onClose }) {
         if (!cancelled) setCustomTemplates(t);
       })
       .catch(() => {})
-      .finally(() => !cancelled && setCustomLoading(false));
+      .finally(() => setCustomLoading(false));
     return () => {
       cancelled = true;
     };

@@ -33,7 +33,7 @@ export default function SectionRail({ activeSectionId }) {
         if (!cancelled) setItems(docs);
       })
       .catch(() => {})
-      .finally(() => !cancelled && setLoading(false));
+      .finally(() => setLoading(false));
     return () => {
       cancelled = true;
     };

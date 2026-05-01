@@ -28,7 +28,10 @@ export default function PageRail({ activePageId }) {
       .listPages()
       .then((docs) => !cancelled && setItems(docs))
       .catch(() => {})
-      .finally(() => !cancelled && setLoading(false));
+      // Always clear the loading flag — setting state on an unmounted
+      // component is a benign warning, but leaving loading=true under
+      // React.StrictMode's double-invoke leaves the rail stuck on "Loading…".
+      .finally(() => setLoading(false));
     return () => {
       cancelled = true;
     };
