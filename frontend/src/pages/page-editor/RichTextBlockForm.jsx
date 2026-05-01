@@ -78,7 +78,7 @@ function LayoutFields({ cfg, setCfg }) {
       </h3>
       <SliderField
         label="Max width"
-        value={cfg.maxWidth ?? 820}
+        value={cfg.maxWidth ?? 1200}
         min={480}
         max={1200}
         step={20}

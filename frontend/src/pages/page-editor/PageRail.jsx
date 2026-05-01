@@ -84,7 +84,7 @@ export default function PageRail({
     try {
       const created = await api.createPage({ name, blocks: newBlocks });
       setTemplatePicker(false);
-      navigate(`/edit/page/${created.page_id}`);
+      navigate(`/edit/page/${created.page_id}?new=1`);
     } catch {
       /* parent toasts handle user-visible errors */
     }

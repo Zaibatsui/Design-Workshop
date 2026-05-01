@@ -59,7 +59,7 @@ export default function SectionRail({ activeSectionId }) {
         config: def.defaults(),
       });
       setPicker(false);
-      navigate(`/edit/section/${created.section_id}`);
+      navigate(`/edit/section/${created.section_id}?new=1`);
     } catch {
       // surfaced via toast from caller; fail silently in the rail
     }

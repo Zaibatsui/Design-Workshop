@@ -47,7 +47,7 @@ export default function Dashboard() {
         config: def.defaults(),
       });
       setPicker(false);
-      navigate(`/edit/section/${created.section_id}`);
+      navigate(`/edit/section/${created.section_id}?new=1`);
     } catch {
       toast.error("Could not create section");
     }
@@ -59,7 +59,7 @@ export default function Dashboard() {
     try {
       const created = await api.createPage({ name, blocks });
       setPagePicker(false);
-      navigate(`/edit/page/${created.page_id}`);
+      navigate(`/edit/page/${created.page_id}?new=1`);
     } catch {
       toast.error("Could not create page");
     }

@@ -11,7 +11,7 @@ const ID = "richtext";
 
 const defaults = () => ({
   html: "<h2>New section</h2><p>Write something compelling.</p>",
-  maxWidth: 820, // px — content column width
+  maxWidth: 1200, // px — content column width
   padY: 48, // px vertical padding
   bg: "#ffffff",
   fg: "#1f2937",
@@ -23,7 +23,7 @@ const defaults = () => ({
 function render(cfg = {}) {
   const {
     html = "",
-    maxWidth = 820,
+    maxWidth = 1200,
     padY = 48,
     bg = "#ffffff",
     fg = "#1f2937",
@@ -37,7 +37,7 @@ function render(cfg = {}) {
   const css = `
 ${baseReset(cls)}
 .${cls}{background:${bg};color:${fg};padding:${Number(padY) || 0}px 24px}
-.${cls}-inner{max-width:${Number(maxWidth) || 820}px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
+.${cls}-inner{max-width:${Number(maxWidth) || 1200}px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
 .${cls} h2{font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.2;margin:24px 0 14px}
 .${cls} h3{font-size:18px;font-weight:600;letter-spacing:0;line-height:1.3;margin:18px 0 10px}

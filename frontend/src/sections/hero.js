@@ -40,7 +40,7 @@ const defaults = () => ({
   },
   layout: {
     height: 520,
-    contentMaxWidth: 600,
+    contentMaxWidth: 1200,
     textAlign: "left",
     borderRadius: 0,
   },

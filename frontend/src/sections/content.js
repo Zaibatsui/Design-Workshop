@@ -1,7 +1,7 @@
 /**
- * Content Block — heading + optional body + optional primary/secondary buttons.
- * Replaces the old content.js (heading only) and cta.js (heading + body + buttons).
- * Leaving body and buttons blank produces a pure heading block.
+ * Content Block — heading + optional body + 0–N buttons (any number).
+ * Each button is { id, label, url, variant: primary|secondary, openInSameTab }.
+ * Legacy primary/secondary flat fields are auto-migrated on read.
  */
 import { AlignCenter } from "lucide-react";
 import {
@@ -22,6 +22,7 @@ import {
   ToggleField,
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
+import ListEditor from "@/components/ListEditor";
 
 const ID = "content";
 
@@ -37,16 +38,36 @@ const defaults = () => ({
   textAlign: "center",
   background: "#ffffff",
   paddingY: 60,
-  maxWidth: 820,
+  maxWidth: 1200,
   primaryColor: "#E01839",
-  primaryText: "",
-  primaryLink: "#",
-  primaryOpenInSameTab: false,
-  secondaryText: "",
-  secondaryLink: "#",
-  secondaryOpenInSameTab: false,
+  buttons: [],
   fullBleed: false,
 });
+
+// Back-compat: older sections used {primaryText,primaryLink,primaryOpenInSameTab,
+// secondaryText,secondaryLink,secondaryOpenInSameTab}. We collapse those into
+// the unified buttons[] at read time so legacy records still render + edit.
+function normalizeButtons(cfg) {
+  if (Array.isArray(cfg.buttons) && cfg.buttons.length) return cfg.buttons;
+  const out = [];
+  if (cfg.primaryText)
+    out.push({
+      id: `btn_${Math.random().toString(36).slice(2, 8)}`,
+      label: cfg.primaryText,
+      url: cfg.primaryLink || "#",
+      variant: "primary",
+      openInSameTab: !!cfg.primaryOpenInSameTab,
+    });
+  if (cfg.secondaryText)
+    out.push({
+      id: `btn_${Math.random().toString(36).slice(2, 8)}`,
+      label: cfg.secondaryText,
+      url: cfg.secondaryLink || "#",
+      variant: "secondary",
+      openInSameTab: !!cfg.secondaryOpenInSameTab,
+    });
+  return out;
+}
 
 function render(cfg) {
   const uid = cfg.uid || makeUid();
@@ -64,19 +85,23 @@ function render(cfg) {
     `--ns-max:${cfg.maxWidth}px`,
   ].join(";");
 
-  const btn = (label, href, isPrimary, sameTab) => {
+  const btn = (label, href, variant, sameTab) => {
     if (!label) return "";
     const target = sameTab ? "_self" : "_blank";
     const rel = sameTab ? "" : ' rel="noopener noreferrer"';
-    const klass = isPrimary ? "ns-btn ns-btn-primary" : "ns-btn ns-btn-secondary";
+    const klass =
+      variant === "secondary"
+        ? "ns-btn ns-btn-secondary"
+        : "ns-btn ns-btn-primary";
     return `<a class="${klass}" href="${escAttr(safeUrl(href || "#"))}" target="${target}"${rel}>${escHtml(label)}</a>`;
   };
 
-  const hasButtons = (cfg.primaryText || cfg.secondaryText || "").trim();
-  const btnsHtml = hasButtons
+  const buttons = normalizeButtons(cfg);
+  const btnsHtml = buttons.length
     ? `<div class="ns-btns">
-        ${btn(cfg.primaryText, cfg.primaryLink, true, cfg.primaryOpenInSameTab)}
-        ${btn(cfg.secondaryText, cfg.secondaryLink, false, cfg.secondaryOpenInSameTab)}
+        ${buttons
+          .map((b) => btn(b.label, b.url, b.variant, b.openInSameTab))
+          .join("\n        ")}
       </div>`
     : "";
   const bodyHtml = (cfg.body || "").trim()
@@ -209,54 +234,104 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title="Primary button (optional)">
-        <TextField
-          label="Label"
-          value={config.primaryText}
-          onChange={(v) => onUpdate({ primaryText: v })}
-          testid="content-primary-text"
-        />
-        <TextField
-          label="URL"
-          value={config.primaryLink}
-          onChange={(v) => onUpdate({ primaryLink: v })}
-          testid="content-primary-link"
-        />
+      <Group title={`Buttons (${(config.buttons || []).length})`}>
         <ColorField
-          label="Button accent"
+          label="Primary button accent"
           value={config.primaryColor}
           onChange={(v) => onUpdate({ primaryColor: v })}
           testid="content-accent"
         />
-        <ToggleField
-          label="Open in same tab"
-          checked={config.primaryOpenInSameTab}
-          onChange={(v) => onUpdate({ primaryOpenInSameTab: v })}
-          testid="content-primary-same-tab"
-        />
-      </Group>
-
-      <Group title="Secondary button (optional)">
-        <TextField
-          label="Label"
-          value={config.secondaryText}
-          onChange={(v) => onUpdate({ secondaryText: v })}
-          testid="content-secondary-text"
-        />
-        <TextField
-          label="URL"
-          value={config.secondaryLink}
-          onChange={(v) => onUpdate({ secondaryLink: v })}
-          testid="content-secondary-link"
-        />
-        <ToggleField
-          label="Open in same tab"
-          checked={config.secondaryOpenInSameTab}
-          onChange={(v) => onUpdate({ secondaryOpenInSameTab: v })}
-          testid="content-secondary-same-tab"
-        />
+        <ButtonsList config={config} onUpdate={onUpdate} />
       </Group>
     </div>
+  );
+}
+
+function ButtonsList({ config, onUpdate }) {
+  const items = normalizeButtons(config);
+  const commit = (next) => onUpdate({ buttons: next });
+
+  const addButton = () =>
+    commit([
+      ...items,
+      {
+        id: `btn_${Math.random().toString(36).slice(2, 8)}`,
+        label: "New button",
+        url: "#",
+        variant: items.length === 0 ? "primary" : "secondary",
+        openInSameTab: false,
+      },
+    ]);
+  const removeButton = (id) => commit(items.filter((b) => b.id !== id));
+  const moveButton = (id, dir) => {
+    const idx = items.findIndex((b) => b.id === id);
+    const ni = idx + dir;
+    if (idx < 0 || ni < 0 || ni >= items.length) return;
+    const arr = [...items];
+    const [m] = arr.splice(idx, 1);
+    arr.splice(ni, 0, m);
+    commit(arr);
+  };
+  const updateButton = (id, patch) =>
+    commit(items.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+
+  return (
+    <ListEditor
+      items={items}
+      onAdd={addButton}
+      onRemove={removeButton}
+      onMove={moveButton}
+      addLabel="Add button"
+      testidPrefix="content-btn"
+      renderRow={(b) => (
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={`text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+              b.variant === "secondary"
+                ? "bg-slate-100 text-slate-600"
+                : "bg-[#E01839] text-white"
+            }`}
+          >
+            {b.variant || "primary"}
+          </span>
+          <p className="text-sm font-medium text-slate-900 truncate">
+            {b.label || "Untitled button"}
+          </p>
+        </div>
+      )}
+      renderForm={(b) => (
+        <>
+          <TextField
+            label="Label"
+            value={b.label}
+            onChange={(v) => updateButton(b.id, { label: v })}
+            testid={`content-btn-label-${b.id}`}
+          />
+          <TextField
+            label="URL"
+            value={b.url}
+            onChange={(v) => updateButton(b.id, { url: v })}
+            testid={`content-btn-url-${b.id}`}
+          />
+          <SelectField
+            label="Style"
+            value={b.variant || "primary"}
+            onChange={(v) => updateButton(b.id, { variant: v })}
+            options={[
+              { value: "primary", label: "Primary (filled)" },
+              { value: "secondary", label: "Secondary (outline)" },
+            ]}
+            testid={`content-btn-variant-${b.id}`}
+          />
+          <ToggleField
+            label="Open in same tab"
+            checked={!!b.openInSameTab}
+            onChange={(v) => updateButton(b.id, { openInSameTab: v })}
+            testid={`content-btn-same-tab-${b.id}`}
+          />
+        </>
+      )}
+    />
   );
 }
 

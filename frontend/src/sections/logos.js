@@ -20,6 +20,10 @@ import { Label } from "@/components/ui/label";
 
 const ID = "logos";
 
+const UPLOAD_BASE =
+  (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "") +
+  "/api/files/modular-pages/uploads";
+
 const defaults = () => ({
   uid: makeUid(),
   speedSeconds: 40,
@@ -30,14 +34,13 @@ const defaults = () => ({
   bgColor: "#ffffff",
   fullBleed: true,
   logos: [
-    { id: makeUid(), image: "https://logo.clearbit.com/hp.com", alt: "HP" },
-    { id: makeUid(), image: "https://logo.clearbit.com/lenovo.com", alt: "Lenovo" },
-    { id: makeUid(), image: "https://logo.clearbit.com/microsoft.com", alt: "Microsoft" },
-    { id: makeUid(), image: "https://logo.clearbit.com/apple.com", alt: "Apple" },
-    { id: makeUid(), image: "https://logo.clearbit.com/razer.com", alt: "Razer" },
-    { id: makeUid(), image: "https://logo.clearbit.com/asus.com", alt: "ASUS" },
-    { id: makeUid(), image: "https://logo.clearbit.com/samsung.com", alt: "Samsung" },
-    { id: makeUid(), image: "https://logo.clearbit.com/epson.com", alt: "Epson" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/5801a4b5-5c7a-4cad-ac80-1a6828d0626d.png`, alt: "Netset" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/427550f6-a7a0-4973-a3b8-449d21217740.webp`, alt: "ATEA" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/97493940-cb68-48ff-a5ab-5fc75c856945.webp`, alt: "B2B" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/ba531904-a99b-43b8-a0d9-7186e6c4ba84.webp`, alt: "Misco" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/adb41b59-7ec3-48a2-9849-22730f7c6b2b.webp`, alt: "Tibco" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/0cdd4af8-4681-4e55-b017-bba14eee7900.webp`, alt: "DCB" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/b8e9111d-e88b-4203-abb2-11a9be8bd2fd.webp`, alt: "Abero" },
   ],
 });
 
@@ -57,7 +60,7 @@ function render(cfg) {
   const itemsHtml = (cfg.logos || [])
     .map((logo) => {
       const img = safeUrl(logo.image);
-      return `<div class="ns-item"><img src="${escAttr(img)}" alt="${escAttr(logo.alt || "")}"/></div>`;
+      return `<div class="ns-item" data-ns-original><img src="${escAttr(img)}" alt="${escAttr(logo.alt || "")}"/></div>`;
     })
     .join("");
 

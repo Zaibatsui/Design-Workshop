@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,15 +21,43 @@ import { BRAND } from "@/lib/brand";
 
 const AUTOSAVE_MS = 1500;
 
+// Module-level map of pending draft-delete timers keyed by section id.
+// We defer the actual DELETE so that React StrictMode's dev-time
+// double-mount can cancel it on re-entry.
+const PENDING_DRAFT_DELETES = new Map();
+const DRAFT_DELETE_DELAY_MS = 250;
+
 export default function Editor() {
   const { sectionId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isNewDraft = searchParams.get("new") === "1";
 
   const [section, setSection] = useState(null); // { section_id, name, type, config, ... }
   const [loadError, setLoadError] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
   const [savedAt, setSavedAt] = useState(null);
   const [previewWidth, setPreviewWidth] = useState("desktop");
+
+  // Tracks whether the user has made ANY change since landing on this section.
+  // Used to auto-delete empty "new=1" drafts on unmount so opening + closing
+  // without edits doesn't leave clutter in the dashboard.
+  // We schedule the delete with a small delay and keep it in a module-level
+  // map so React 18 StrictMode's dev-time double-mount doesn't trigger a
+  // premature delete (the re-mount cancels the pending timer).
+  const hasDirty = useRef(false);
+  const isNewRef = useRef(isNewDraft);
+  const sectionIdRef = useRef(sectionId);
+  useEffect(() => {
+    sectionIdRef.current = sectionId;
+    // If this same id had a pending draft-delete from a previous unmount
+    // (e.g. StrictMode double-mount), cancel it.
+    const pending = PENDING_DRAFT_DELETES.get(sectionId);
+    if (pending) {
+      clearTimeout(pending);
+      PENDING_DRAFT_DELETES.delete(sectionId);
+    }
+  }, [sectionId]);
 
   // Initial fetch
   useEffect(() => {
@@ -82,13 +110,35 @@ export default function Editor() {
   };
 
   const queueSave = (patch) => {
+    hasDirty.current = true;
+    // Once the user touches anything, strip the ?new=1 flag so a subsequent
+    // navigate-away doesn't try to delete a genuinely edited section.
+    if (isNewRef.current) {
+      isNewRef.current = false;
+      setSearchParams({}, { replace: true });
+    }
     dirty.current = { ...(dirty.current || {}), ...patch };
     setSaveStatus("saving");
     clearTimeout(timer.current);
     timer.current = setTimeout(flushSave, AUTOSAVE_MS);
   };
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current);
+      // On unmount: if this was a pristine draft, schedule a delayed delete.
+      // The delay lets a StrictMode re-mount cancel it before it fires.
+      if (isNewRef.current && !hasDirty.current && sectionIdRef.current) {
+        const id = sectionIdRef.current;
+        const t = setTimeout(() => {
+          api.deleteSection(id).catch(() => {});
+          PENDING_DRAFT_DELETES.delete(id);
+        }, DRAFT_DELETE_DELAY_MS);
+        PENDING_DRAFT_DELETES.set(id, t);
+      }
+    },
+    []
+  );
 
   const updateConfig = (patch) => {
     setSection((prev) => {

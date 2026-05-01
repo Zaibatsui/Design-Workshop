@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -21,9 +21,16 @@ import PagePreviewFrame from "./page-editor/PagePreviewFrame";
 
 const AUTOSAVE_MS = 1500;
 
+// Module-level map of pending draft-delete timers keyed by page id.
+// Deferred so StrictMode's dev-time double-mount can cancel them.
+const PENDING_DRAFT_DELETES = new Map();
+const DRAFT_DELETE_DELAY_MS = 250;
+
 export default function PageEditor() {
   const { pageId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isNewDraft = searchParams.get("new") === "1";
 
   const [page, setPage] = useState(null);
   const [loadError, setLoadError] = useState(null);
@@ -32,6 +39,20 @@ export default function PageEditor() {
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [adder, setAdder] = useState(false);
   const [librarySections, setLibrarySections] = useState([]);
+
+  // Tracks whether the user has made ANY change since landing on this page.
+  // Used to auto-delete empty "new=1" drafts on unmount.
+  const hasDirty = useRef(false);
+  const isNewRef = useRef(isNewDraft);
+  const pageIdRef = useRef(pageId);
+  useEffect(() => {
+    pageIdRef.current = pageId;
+    const pending = PENDING_DRAFT_DELETES.get(pageId);
+    if (pending) {
+      clearTimeout(pending);
+      PENDING_DRAFT_DELETES.delete(pageId);
+    }
+  }, [pageId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,13 +105,31 @@ export default function PageEditor() {
   };
 
   const queueSave = (patch) => {
+    hasDirty.current = true;
+    if (isNewRef.current) {
+      isNewRef.current = false;
+      setSearchParams({}, { replace: true });
+    }
     dirty.current = { ...(dirty.current || {}), ...patch };
     setSaveStatus("saving");
     clearTimeout(timer.current);
     timer.current = setTimeout(flushSave, AUTOSAVE_MS);
   };
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current);
+      if (isNewRef.current && !hasDirty.current && pageIdRef.current) {
+        const id = pageIdRef.current;
+        const t = setTimeout(() => {
+          api.deletePage(id).catch(() => {});
+          PENDING_DRAFT_DELETES.delete(id);
+        }, DRAFT_DELETE_DELAY_MS);
+        PENDING_DRAFT_DELETES.set(id, t);
+      }
+    },
+    []
+  );
 
   // ── Block mutation helpers ──────────────────────────────────────────────
   const renamePage = (name) => {
