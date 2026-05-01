@@ -27,18 +27,18 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
   - `GET /api/files/{path:path}` → public proxy (snippet image URLs work in any CMS)
   - `POST /api/scrape-product` → BeautifulSoup scraper, returns `{name, price, image, url}` from ecommerce product pages (Nettailer/Misco/generic OpenGraph)
 
-## Sections implemented (2026-04-30)
-1. **Hero (Sliding)** — translateX track, brand logo per slide, dark left gradient, blue CTA, autoplay, arrows, dots
-2. **Hero (Fade)** — cross-fade slides, overlay opacity, CSS variable theming
-3. **Content Heading** — centered heading block, color/size/weight/alignment
-4. **Product Carousel** — 4 or 5 columns, prev/next arrows, hover border accent
-5. **Placeholder Grid** — N items × M columns of placeholder boxes
-6. **Logo Strip** — auto-scrolling infinite logo bar with seamless loop padding
-7. **Break Banner** — full-width bg image + overlay + centered heading
-8. **Tabs Section** — toggle buttons + split image+copy panels
-9. **Insights Grid** — 2/3-col icon + text + link cards with left accent border (2026-05-01)
-10. **Resource Carousel** — horizontal scroll of blog / case study cards with image + tag + title (2026-05-01)
-11. **Account CTA** — centered heading + body + primary / secondary buttons (2026-05-01)
+## Sections implemented (2026-05-01 consolidation)
+1. **Hero** — unified hero with `transition: slide | fade` switch; replaces the old two hero sections
+2. **Content Block** — heading + optional body + optional primary/secondary buttons; replaces the old Content Heading + Account CTA
+3. **Product Carousel** — 4 or 5 columns, prev/next arrows, hover border accent, live price refresh for scraped products
+4. **Resource Carousel** — horizontal scroll of blog / case study cards with image + tag + title
+5. **Insights Grid** — 2/3-col icon + text + link cards with left accent border
+6. **Grid (Placeholder)** — N items × M columns of placeholder boxes with image + link per cell
+7. **Logo Strip** — auto-scrolling infinite logo bar with seamless loop padding
+8. **Break Banner** — full-width bg image + overlay + centered heading
+9. **Tabs Section** — toggle buttons + split image+copy panels
+
+Total: 9 sections (down from 11).
 
 ## Test status
 - iter 2: testing_agent_v3 → **100% backend, 100% frontend** across all 8 sections including style-isolation against hostile host CSS, multi-instance safety, copy fidelity, live preview, reset.

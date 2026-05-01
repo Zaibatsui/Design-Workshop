@@ -13,7 +13,7 @@ export default function Editor() {
   const [sectionConfigs, setSectionConfigs] = useState(() =>
     Object.fromEntries(SECTIONS.map((s) => [s.id, s.defaults()]))
   );
-  const [activeId, setActiveId] = useState("hero-slide");
+  const [activeId, setActiveId] = useState("hero");
   const [previewWidth, setPreviewWidth] = useState("desktop");
 
   const def = SECTIONS_BY_ID[activeId];
@@ -163,10 +163,11 @@ function PreviewFrame({ doc, sectionId }) {
   // Adjust iframe height so each section type gets sensible default vertical
   // space without scrollbars in the canvas.
   const heightMap = {
-    "hero-fade": 640,
-    "hero-slide": 640,
-    content: 240,
+    hero: 640,
+    content: 300,
     products: 540,
+    resources: 480,
+    insights: 320,
     placeholder: 480,
     logos: 160,
     break: 380,

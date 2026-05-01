@@ -1,5 +1,4 @@
-import { heroFade } from "./hero-fade";
-import { heroSlide } from "./hero-slide";
+import { hero } from "./hero";
 import { content } from "./content";
 import { products } from "./products";
 import { placeholder } from "./placeholder";
@@ -8,11 +7,9 @@ import { breakBanner } from "./break";
 import { tabs } from "./tabs";
 import { insights } from "./insights";
 import { resources } from "./resources";
-import { cta } from "./cta";
 
 export const SECTIONS = [
-  heroSlide,
-  heroFade,
+  hero,
   content,
   products,
   resources,
@@ -21,7 +18,6 @@ export const SECTIONS = [
   logos,
   breakBanner,
   tabs,
-  cta,
 ];
 
 export const SECTIONS_BY_ID = Object.fromEntries(
