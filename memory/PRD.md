@@ -40,10 +40,12 @@ Users need to author reusable content sections that drop into their live e-comme
 
 **P3 / future**
 - Tighter `BlockIn` pydantic validation (reject `richtext` with no html, `section` with no section_type).
-- Batch the N-updateOne reorder loop into a single `bulk_write(UpdateOne...)` for perf + atomicity once users reach 100+ cards.
-- Drop the legacy top-level `BlockIn.html` field once all documents have migrated to `config.html`.
-- Rename `data-testid="section-card-name"` / `page-card-name` → `...-title` to avoid prefix-selector shadowing during Playwright automation.
-- Page templates: one-click "Landing page" / "Product detail" / "Category hub" starters that pre-populate a Page with a common block arrangement.
+- Rename `data-testid="section-card-name"` / `page-card-name` → `...-title` to avoid prefix-selector shadowing during Playwright automation. **(done)**
+- Drop the legacy top-level `BlockIn.html` field once all documents have migrated to `config.html`. **(done)**
+- Batch the N-updateOne reorder loop into `bulk_write(UpdateOne...)` for perf + atomicity. **(done)**
+- Page templates: one-click "Landing page" / "Product detail" / "Category hub" starters. **(done)**
+- More page templates (e.g. "About us", "Pricing", "Blog post") as the catalogue grows.
+- Custom user-authored templates (save current page as a template for future reuse).
 
 **P0 security / operations**
 - User must rotate their Google Client Secret in Google Cloud Console (it was pasted in plaintext in an earlier chat).

@@ -11,6 +11,7 @@ import { BRAND } from "@/lib/brand";
 import SectionsTab from "./dashboard/SectionsTab";
 import PagesTab from "./dashboard/PagesTab";
 import { SectionPicker, Tabs } from "./dashboard/common";
+import PageTemplatePicker from "./dashboard/PageTemplatePicker";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
+  const [pagePicker, setPagePicker] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -51,12 +53,12 @@ export default function Dashboard() {
     }
   };
 
-  const createPage = async () => {
+  const createPage = async (template) => {
+    const name = template && template.id !== "blank" ? template.name : "Untitled page";
+    const blocks = template ? template.blocks : [];
     try {
-      const created = await api.createPage({
-        name: "Untitled page",
-        blocks: [],
-      });
+      const created = await api.createPage({ name, blocks });
+      setPagePicker(false);
       navigate(`/edit/page/${created.page_id}`);
     } catch {
       toast.error("Could not create page");
@@ -131,7 +133,7 @@ export default function Dashboard() {
             </Button>
             <Button
               variant="outline"
-              onClick={createPage}
+              onClick={() => setPagePicker(true)}
               data-testid="new-page-button"
               className="font-medium"
             >
@@ -159,7 +161,7 @@ export default function Dashboard() {
           <PagesTab
             pages={pages}
             setPages={setPages}
-            onCreateClick={createPage}
+            onCreateClick={() => setPagePicker(true)}
             loading={loading}
           />
         )}
@@ -170,6 +172,12 @@ export default function Dashboard() {
           sections={SECTIONS}
           onPick={createSection}
           onClose={() => setPicker(false)}
+        />
+      )}
+      {pagePicker && (
+        <PageTemplatePicker
+          onPick={createPage}
+          onClose={() => setPagePicker(false)}
         />
       )}
       <Toaster richColors position="top-center" />

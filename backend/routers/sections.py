@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from pymongo import UpdateOne
 
 from db import db
 from deps import User, get_current_user
@@ -170,15 +171,20 @@ async def reorder_sections(
     """Apply an explicit order to the user's sections.
 
     The client sends the full desired top-to-bottom order; we renumber
-    positions 0..N-1. IDs not in the list keep their existing positions
-    relative to each other and sort after the reordered set.
+    positions 0..N-1 in a single bulk_write so the whole reorder is one
+    round-trip regardless of list size. IDs not in the list keep their
+    existing positions relative to each other and sort after the reordered
+    set.
     """
-    # Stamp new positions for the explicit list
-    for idx, sid in enumerate(payload.section_ids):
-        await db.sections.update_one(
+    ops = [
+        UpdateOne(
             {"section_id": sid, "user_id": current_user.user_id},
             {"$set": {"position": idx}},
         )
+        for idx, sid in enumerate(payload.section_ids)
+    ]
+    if ops:
+        await db.sections.bulk_write(ops, ordered=False)
     return await list_sections(current_user)  # type: ignore[arg-type]
 
 

@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional
 import bleach
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from pymongo import UpdateOne
 
 from db import db
 from deps import User, get_current_user
@@ -227,9 +228,14 @@ async def duplicate_page(
 async def reorder_pages(
     payload: ReorderRequest, current_user: User = Depends(get_current_user)
 ):
-    for idx, pid in enumerate(payload.page_ids):
-        await db.pages.update_one(
+    """Renumber page positions 0..N-1 in one bulk_write round-trip."""
+    ops = [
+        UpdateOne(
             {"page_id": pid, "user_id": current_user.user_id},
             {"$set": {"position": idx}},
         )
+        for idx, pid in enumerate(payload.page_ids)
+    ]
+    if ops:
+        await db.pages.bulk_write(ops, ordered=False)
     return await list_pages(current_user)  # type: ignore[arg-type]
