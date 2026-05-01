@@ -238,7 +238,7 @@ function SectionCard({ section, onDelete }) {
         ref={wrapRef}
         to={`/edit/section/${section.section_id}`}
         className="block bg-slate-100 overflow-hidden relative w-full"
-        style={{ aspectRatio: "16 / 9" }}
+        style={{ aspectRatio: "20 / 9" }}
       >
         <iframe
           title={section.name}
