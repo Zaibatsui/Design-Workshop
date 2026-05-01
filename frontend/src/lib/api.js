@@ -31,6 +31,13 @@ export const api = {
   updateSection: (id, patch) =>
     req(`/sections/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
   deleteSection: (id) => req(`/sections/${id}`, { method: "DELETE" }),
+  duplicateSection: (id) =>
+    req(`/sections/${id}/duplicate`, { method: "POST" }),
+  reorderSections: (ids) =>
+    req("/sections/reorder/bulk", {
+      method: "PUT",
+      body: JSON.stringify({ section_ids: ids }),
+    }),
 
   listPages: () => req("/pages"),
   createPage: (data) =>
@@ -39,4 +46,10 @@ export const api = {
   updatePage: (id, patch) =>
     req(`/pages/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
   deletePage: (id) => req(`/pages/${id}`, { method: "DELETE" }),
+  duplicatePage: (id) => req(`/pages/${id}/duplicate`, { method: "POST" }),
+  reorderPages: (ids) =>
+    req("/pages/reorder/bulk", {
+      method: "PUT",
+      body: JSON.stringify({ page_ids: ids }),
+    }),
 };
