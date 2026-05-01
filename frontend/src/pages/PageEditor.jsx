@@ -5,13 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Copy,
-  ArrowLeft,
-  FileStack,
-  Plus,
-  Save,
-} from "lucide-react";
+import { Copy, FileStack, Plus, Save, Layers } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { richtext } from "@/sections/richtext";
 import { composePage } from "@/sections/pageSnippet";
@@ -20,7 +14,6 @@ import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 
 import PageRail from "./page-editor/PageRail";
-import BlockList from "./page-editor/BlockList";
 import BlockAdder from "./page-editor/BlockAdder";
 import BlockEditorDrawer from "./page-editor/BlockEditorDrawer";
 import SaveIndicator from "./page-editor/SaveIndicator";
@@ -255,69 +248,50 @@ export default function PageEditor() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-body text-slate-900">
-      <PageRail activePageId={page.page_id} />
+      <PageRail
+        activePageId={page.page_id}
+        blocks={page.blocks || []}
+        selectedBlockId={selectedBlockId}
+        onSelectBlock={setSelectedBlockId}
+        onRemoveBlock={removeBlock}
+        onReorderBlocks={reorderBlocks}
+        onAddBlock={() => setAdder(true)}
+      />
 
-      <aside
-        data-testid="page-blocks-sidebar"
-        className="w-72 flex-shrink-0 border-r border-slate-200 bg-white h-screen flex flex-col"
-      >
-        <div className="px-5 py-4 border-b border-slate-200">
-          <button
-            onClick={() => navigate("/")}
-            data-testid="back-to-dashboard"
-            className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors mb-3"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            All pages
-          </button>
-          <Input
-            value={page.name}
-            onChange={(e) => renamePage(e.target.value)}
-            data-testid="page-name-input"
-            className="font-heading text-base font-semibold tracking-tight border-0 px-0 h-auto py-0 shadow-none focus-visible:ring-0 truncate"
-          />
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mt-1">
-            <FileStack className="w-3 h-3" />
-            Page · {(page.blocks || []).length} block
-            {(page.blocks || []).length === 1 ? "" : "s"}
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-3">
-          <BlockList
-            blocks={page.blocks || []}
-            selectedBlockId={selectedBlockId}
-            onSelect={setSelectedBlockId}
-            onRemove={removeBlock}
-            onReorder={reorderBlocks}
-          />
-        </div>
-
-        <div className="p-3 border-t border-slate-200">
-          <Button
-            onClick={() => setAdder(true)}
-            data-testid="add-block-button"
-            className="w-full bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            Add block
-          </Button>
-        </div>
-      </aside>
+      {/* Left sidebar: block editor drawer when a block is selected, else
+          a helpful empty state. Mirrors the Section editor's form-on-left
+          layout for consistency. */}
+      {selectedBlock ? (
+        <BlockEditorDrawer
+          block={selectedBlock}
+          onUpdate={(patch) => updateBlock(selectedBlock.block_id, patch)}
+          onClose={() => setSelectedBlockId(null)}
+        />
+      ) : (
+        <EmptyBlockEditor onAdd={() => setAdder(true)} />
+      )}
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <div className="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6">
-          <div className="flex items-center gap-2">
+        <div className="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 gap-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
-              className={`w-6 h-6 rounded-md flex items-center justify-center ${BRAND.iconBoxClass}`}
+              className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${BRAND.iconBoxClass}`}
             >
               <BRAND.Icon className="w-3 h-3" />
             </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Page preview
+            <Input
+              value={page.name}
+              onChange={(e) => renamePage(e.target.value)}
+              data-testid="page-name-input"
+              className="font-heading text-sm font-semibold tracking-tight border-0 px-0 h-auto py-0 shadow-none focus-visible:ring-0 truncate max-w-xs"
+            />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1 flex-shrink-0">
+              <FileStack className="w-3 h-3" />
+              {(page.blocks || []).length} block
+              {(page.blocks || []).length === 1 ? "" : "s"}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
             <Button
               variant="outline"
@@ -359,14 +333,6 @@ export default function PageEditor() {
         </div>
       </main>
 
-      {selectedBlock && (
-        <BlockEditorDrawer
-          block={selectedBlock}
-          onUpdate={(patch) => updateBlock(selectedBlock.block_id, patch)}
-          onClose={() => setSelectedBlockId(null)}
-        />
-      )}
-
       {adder && (
         <BlockAdder
           librarySections={librarySections}
@@ -379,6 +345,34 @@ export default function PageEditor() {
 
       <Toaster richColors position="top-center" />
     </div>
+  );
+}
+
+function EmptyBlockEditor({ onAdd }) {
+  return (
+    <aside
+      data-testid="empty-block-editor"
+      className="w-96 flex-shrink-0 border-r border-slate-200 bg-white h-screen flex flex-col items-center justify-center p-8 text-center"
+    >
+      <div className="w-12 h-12 rounded-xl bg-slate-100 mx-auto flex items-center justify-center mb-4">
+        <Layers className="w-5 h-5 text-slate-400" />
+      </div>
+      <h2 className="font-heading text-base font-semibold mb-2">
+        No block selected
+      </h2>
+      <p className="text-sm text-slate-500 max-w-xs mb-6">
+        Pick a block from the rail to edit its settings, or add a new one to
+        start composing this page.
+      </p>
+      <Button
+        onClick={onAdd}
+        size="sm"
+        className="bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
+      >
+        <Plus className="w-4 h-4 mr-1.5" />
+        Add block
+      </Button>
+    </aside>
   );
 }
 
