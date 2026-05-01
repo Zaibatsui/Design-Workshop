@@ -1,20 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Sparkles,
   Plus,
   Trash2,
   LogOut,
   FileStack,
   Layers,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
+import { BRAND } from "@/lib/brand";
+
+const PAGE_SIZE = 9;
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -22,6 +26,18 @@ export default function Dashboard() {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(sections.length / PAGE_SIZE));
+  const pagedSections = useMemo(
+    () =>
+      sections.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE),
+    [sections, page]
+  );
+  // If a delete leaves us past the last page, snap back
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const load = async () => {
     try {
@@ -70,11 +86,16 @@ export default function Dashboard() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-[#E01839] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div
+              className={`w-8 h-8 rounded-md flex items-center justify-center ${BRAND.iconBoxClass}`}
+            >
+              <BRAND.Icon className="w-4 h-4" />
             </div>
             <span className="font-heading text-base font-semibold tracking-tight">
-              Section Builder
+              {BRAND.name}
+            </span>
+            <span className="hidden md:inline ml-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Zaibatsu Labs
             </span>
           </Link>
           <div className="flex items-center gap-3">
@@ -146,7 +167,7 @@ export default function Dashboard() {
           <EmptyState onCreate={() => setPicker(true)} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {sections.map((s) => (
+            {pagedSections.map((s) => (
               <SectionCard
                 key={s.section_id}
                 section={s}
@@ -154,6 +175,15 @@ export default function Dashboard() {
               />
             ))}
           </div>
+        )}
+
+        {sections.length > PAGE_SIZE && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onChange={setPage}
+            total={sections.length}
+          />
         )}
       </main>
 
@@ -287,6 +317,86 @@ function SectionPicker({ onPick, onClose }) {
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function Pagination({ page, totalPages, onChange, total }) {
+  // Build a compact page list: always include first & last; show ±1 around current; gap markers as "…"
+  const pages = [];
+  const add = (n) => pages.push(n);
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) add(i);
+  } else {
+    add(1);
+    if (page > 3) add("…l");
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+      add(i);
+    }
+    if (page < totalPages - 2) add("…r");
+    add(totalPages);
+  }
+
+  const startIdx = (page - 1) * 9 + 1;
+  const endIdx = Math.min(total, page * 9);
+
+  return (
+    <div
+      className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+      data-testid="pagination"
+    >
+      <p className="text-xs text-slate-500">
+        Showing <span className="font-medium text-slate-700">{startIdx}</span>–
+        <span className="font-medium text-slate-700">{endIdx}</span> of{" "}
+        <span className="font-medium text-slate-700">{total}</span>
+      </p>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          data-testid="pagination-prev"
+          onClick={() => onChange(Math.max(1, page - 1))}
+          disabled={page === 1}
+          className="w-9 h-9 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+          aria-label="Previous page"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        {pages.map((p, i) =>
+          typeof p === "number" ? (
+            <button
+              key={`p-${p}`}
+              type="button"
+              data-testid={`pagination-page-${p}`}
+              onClick={() => onChange(p)}
+              className={`min-w-9 h-9 px-3 rounded-md text-sm font-medium transition-colors ${
+                p === page
+                  ? "bg-[#E01839] text-white"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {p}
+            </button>
+          ) : (
+            <span
+              key={`gap-${i}`}
+              className="px-2 text-slate-400 select-none"
+              aria-hidden="true"
+            >
+              …
+            </span>
+          )
+        )}
+        <button
+          type="button"
+          data-testid="pagination-next"
+          onClick={() => onChange(Math.min(totalPages, page + 1))}
+          disabled={page === totalPages}
+          className="w-9 h-9 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+          aria-label="Next page"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

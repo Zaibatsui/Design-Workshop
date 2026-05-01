@@ -1,7 +1,7 @@
-import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startLogin, useAuth } from "@/auth/AuthContext";
 import { Navigate } from "react-router-dom";
+import { BRAND } from "@/lib/brand";
 
 export default function Login() {
   const { user, loading } = useAuth();
@@ -9,34 +9,56 @@ export default function Login() {
   if (user) return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Subtle background grid + soft red glow — matches dashboard light theme */}
       <div
-        className="absolute inset-0 opacity-30 pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-[0.4]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 20% 30%, rgba(224,24,57,0.4) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(99,102,241,0.25) 0%, transparent 45%)",
+            "linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
         }}
       />
-      <div className="relative max-w-md w-full bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-10 shadow-2xl">
+      <div
+        className="absolute -top-32 -right-24 w-[480px] h-[480px] rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(224,24,57,0.12), transparent)",
+        }}
+      />
+      <div
+        className="absolute -bottom-32 -left-24 w-[420px] h-[420px] rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(15,23,42,0.08), transparent)",
+        }}
+      />
+
+      <div className="relative max-w-md w-full bg-white border border-slate-200 rounded-2xl p-10 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.18)]">
         <div className="flex items-center gap-2 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-[#E01839] flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div
+            className={`w-9 h-9 rounded-lg flex items-center justify-center ${BRAND.iconBoxClass}`}
+          >
+            <BRAND.Icon className="w-4 h-4" />
           </div>
-          <span className="font-heading text-lg font-semibold tracking-tight">
-            Section Builder
+          <span className="font-heading text-lg font-semibold tracking-tight text-slate-900">
+            {BRAND.name}
+          </span>
+          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+            Zaibatsu Labs
           </span>
         </div>
-        <h1 className="text-3xl font-heading font-semibold tracking-tight leading-tight mb-3">
+        <h1 className="text-3xl font-heading font-semibold tracking-tight leading-tight mb-3 text-slate-900">
           Build, save and reuse your snippets.
         </h1>
-        <p className="text-sm text-slate-400 leading-relaxed mb-8">
+        <p className="text-sm text-slate-500 leading-relaxed mb-8">
           Sign in with Google to access your private library of sections and
           pages — autosaved, always available, never lost.
         </p>
         <Button
           data-testid="login-google"
           onClick={startLogin}
-          className="w-full h-11 bg-white text-slate-900 hover:bg-slate-100 font-medium gap-3"
+          className="w-full h-11 bg-slate-900 text-white hover:bg-black font-medium gap-3"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
             <path

@@ -28,6 +28,15 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
   - `POST /api/scrape-product` → BeautifulSoup scraper, returns `{name, price, image, url}` from ecommerce product pages (Nettailer/Misco/generic OpenGraph)
 
 ## Bug fixes / Features
+- **2026-05-01 (Branding + UX polish — Design Workshop)**:
+  - Renamed app from "Section Builder" to **Design Workshop** with the Zaibatsu Labs caption. Centralized in `frontend/src/lib/brand.js` (single source of truth — name, short name, icon, container class).
+  - Brand mark switched from `Sparkles` icon to Lucide's **`PencilRuler`** — semantic match for "design workshop" (crossed pencil + ruler is the classic design-tool glyph).
+  - Browser tab title set to "Design Workshop · Zaibatsu Labs".
+  - **Login page restyled** to match the dashboard: white background, subtle dot grid, soft red+slate radial glows, white card with shadow, dark "Sign in with Google" button (was a dark-themed glassmorphism login that didn't match the rest of the app).
+  - **Dashboard pagination**: page size 9, classic numbered pagination at the bottom (`< 1 2 ... 5 6 >` with first/last always shown and ±1 around current). "Showing X–Y of N" counter on the left. Auto-snaps back if a delete leaves you past the last page. Uses brand red for the active page chip.
+  - Header now shows the brand box + "Design Workshop" + "ZAIBATSU LABS" caption (hidden on mobile).
+  - Verified end-to-end: 12 seeded sections → page 1 shows 9, page 2 shows 3, prev/next + numbered chips all work, header + login both rebranded.
+
 - **2026-05-01 (Phase 1 — Auth + Persistence + Dashboard)**:
   - Added Emergent-managed Google OAuth via the official playbook. `/api/auth/session` exchanges `session_id` for a 7-day httpOnly cookie + DB session; `/api/auth/me` returns current user; `/api/auth/logout` clears both. Cookie is `secure=true; samesite=none; httponly=true; path=/`. CORS_ORIGINS pinned to the frontend URL (was `*`) so credentialed requests work.
   - **MongoDB collections**: `users` (custom `user_id` UUID), `user_sessions` (token + 7-day expiry), `sections` (per-user persistent snippet configs).

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Copy,
-  Sparkles,
   ExternalLink,
   RotateCcw,
   ArrowLeft,
@@ -17,6 +16,7 @@ import { SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
 import SectionRail from "@/components/SectionRail";
 import { api } from "@/lib/api";
+import { BRAND } from "@/lib/brand";
 
 const AUTOSAVE_MS = 1500;
 
@@ -184,7 +184,7 @@ export default function Editor() {
                 className="font-heading text-base font-semibold tracking-tight border-0 px-0 h-auto py-0 shadow-none focus-visible:ring-0 truncate"
               />
               <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mt-1">
-                <Sparkles className="w-3 h-3" />
+                <BRAND.Icon className="w-3 h-3" />
                 {def.name}
               </div>
             </div>
