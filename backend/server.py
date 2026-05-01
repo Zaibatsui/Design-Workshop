@@ -90,16 +90,54 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 
-# Trust X-Forwarded-Proto from the Kubernetes ingress so request.url and
-# request.url_for() produce https:// — required for OAuth redirect_uri to
-# match what Google has registered. Must run BEFORE SessionMiddleware /
-# Authlib so they see the corrected scheme.
-@app.middleware("http")
-async def force_https_from_proxy(request: Request, call_next):
-    forwarded_proto = request.headers.get("x-forwarded-proto")
-    if forwarded_proto == "https":
-        request.scope["scheme"] = "https"
-    return await call_next(request)
+class ForwardedHostMiddleware:
+    """Pure-ASGI middleware that rewrites the ASGI scope's host/scheme from
+    X-Forwarded-Host / X-Forwarded-Proto set by the Kubernetes ingress +
+    Cloudflare. Without this, request.url_for() returns the internal cluster
+    hostname (e.g. *.emergentcf.cloud), which gets encoded into Authlib's
+    session-stored redirect_uri. Cloudflare rewrites the Location header to
+    the external hostname before forwarding to the user, so Google stores the
+    EXTERNAL redirect_uri. At token-exchange time Authlib replays the
+    INTERNAL one from the session → redirect_uri_mismatch.
+
+    Must run OUTERMOST so every other middleware (Session, Authlib, CORS) and
+    route handler sees the corrected scope.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] in ("http", "websocket"):
+            headers = dict(scope.get("headers") or [])
+            fwd_host = headers.get(b"x-forwarded-host")
+            fwd_proto = headers.get(b"x-forwarded-proto")
+            if fwd_host:
+                # Overwrite both the scope.server (host, port) and the Host
+                # header so Starlette's request.url / request.url_for use the
+                # external hostname.
+                host_str = fwd_host.decode("latin-1").split(",")[0].strip()
+                if ":" in host_str:
+                    host, port_str = host_str.rsplit(":", 1)
+                    try:
+                        port = int(port_str)
+                    except ValueError:
+                        host, port = host_str, None
+                else:
+                    host = host_str
+                    port = 443 if (fwd_proto == b"https") else 80
+                scope["server"] = (host, port)
+                new_headers = []
+                for k, v in scope["headers"]:
+                    if k == b"host":
+                        new_headers.append((b"host", host_str.encode("latin-1")))
+                    else:
+                        new_headers.append((k, v))
+                scope["headers"] = new_headers
+            if fwd_proto:
+                scope["scheme"] = fwd_proto.decode("latin-1").split(",")[0].strip()
+        await self.app(scope, receive, send)
+
 
 EXT_TO_MIME = {
     "jpg": "image/jpeg",
@@ -187,15 +225,11 @@ async def get_current_user(
 # REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 @api_router.get("/auth/google/login")
 async def google_login(request: Request):
-    # Build the redirect URI dynamically from the incoming request so it works
-    # in any environment (preview, deployed, custom domain). Must exactly match
-    # one of the URIs registered in Google Cloud Console.
-    # Behind the Kubernetes ingress the request appears as HTTP; honor the
-    # X-Forwarded-Proto header so we hand Google an https:// callback URL.
+    # ProxyHeadersMiddleware (registered below) honors X-Forwarded-Proto from
+    # the Kubernetes ingress, so request.url_for() produces an https:// URL
+    # that matches the Authorized redirect URI registered in Google Cloud
+    # Console. Passing it explicitly keeps Authlib and Google in sync.
     redirect_uri = str(request.url_for("google_callback"))
-    forwarded_proto = request.headers.get("x-forwarded-proto")
-    if forwarded_proto and redirect_uri.startswith(f"{forwarded_proto}://") is False:
-        redirect_uri = forwarded_proto + redirect_uri[redirect_uri.index("://"):]
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
@@ -802,3 +836,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# OUTERMOST middleware. The Kubernetes ingress + Cloudflare terminate TLS and
+# rewrite the Host header to the internal cluster hostname; they pass the
+# real external values in X-Forwarded-Host / X-Forwarded-Proto. Without this,
+# request.url_for() returns the wrong hostname and OAuth breaks with
+# redirect_uri_mismatch (Google stores the external URI from the rewritten
+# 302 Location header, but Authlib replays the internal one from the session).
+app.add_middleware(ForwardedHostMiddleware)
