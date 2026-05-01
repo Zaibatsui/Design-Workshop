@@ -93,13 +93,13 @@ ${baseReset(cls)}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:20px}
 .${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;border-left:6px solid var(--ns-accent);border-radius:6px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
 .${cls} .ns-card:hover{border-color:var(--ns-accent);transform:translateY(-2px)}
-.${cls} .ns-icon{flex:0 0 130px;background:#fafafa;display:flex;align-items:center;justify-content:center;padding:24px}
-.${cls} .ns-icon img{width:76px;height:76px;object-fit:contain;display:block}
+.${cls} .ns-icon{flex:0 0 160px;align-self:stretch;background:#fafafa;overflow:hidden}
+.${cls} .ns-icon img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls} .ns-body{padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center}
 .${cls} .ns-ch{margin:0 0 8px;font-size:18px;font-weight:600;color:#1f1f1f}
 .${cls} .ns-cp{margin:0 0 12px;font-size:15px;line-height:1.5;color:#555}
 .${cls} .ns-link{font-size:14px;font-weight:600;color:var(--ns-accent);letter-spacing:.01em}
-@media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-icon{flex-basis:100px}.${cls} .ns-icon img{width:56px;height:56px}}
+@media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-icon{flex-basis:120px}}
 `.trim();
 
   const html = `<section class="ns-insights ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
