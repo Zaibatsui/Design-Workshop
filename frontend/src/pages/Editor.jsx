@@ -136,12 +136,6 @@ export default function Editor() {
 
   const previewWidths = { desktop: "100%", tablet: "820px", mobile: "390px" };
 
-  // The rail's "switch type" semantics changes meaning here: it should NAVIGATE
-  // to a different section of the user's library or a new section. Disable for now.
-  const onSelectFromRail = () => {
-    // No-op in single-section editor mode. The rail still shows visual context.
-  };
-
   if (loadError === "not_found") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-3">
@@ -160,7 +154,7 @@ export default function Editor() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-body text-slate-900">
-      <SectionRail activeId={section.type} onSelect={onSelectFromRail} />
+      <SectionRail activeSectionId={section.section_id} />
 
       {/* Form sidebar */}
       <aside
