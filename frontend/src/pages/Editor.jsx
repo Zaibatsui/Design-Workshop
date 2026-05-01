@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   Copy,
   ExternalLink,
+  Palette,
   RotateCcw,
   ArrowLeft,
   Check,
@@ -18,6 +19,8 @@ import { previewHeightFor } from "@/sections/previewHeights";
 import SectionRail from "@/components/SectionRail";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
+import { useBrandKit } from "@/lib/BrandKitContext";
+import { applyBrandKit, applyFontToSnippet } from "@/lib/brandKit";
 
 const AUTOSAVE_MS = 1500;
 
@@ -155,6 +158,8 @@ export default function Editor() {
     queueSave({ name });
   };
 
+  const { brandKit } = useBrandKit();
+
   const resetSection = () => {
     if (!def) return;
     if (!window.confirm(`Reset ${def.name} to defaults? This will overwrite the current settings.`)) return;
@@ -164,16 +169,37 @@ export default function Editor() {
     toast.success(`Reset ${def.name}`);
   };
 
+  const resetToBrandKit = () => {
+    if (!def) return;
+    if (
+      !window.confirm(
+        `Apply your brand kit to ${def.name}? Colors and fonts will be replaced with your saved brand values; content stays intact.`
+      )
+    ) {
+      return;
+    }
+    const fresh = applyBrandKit(section.type, def.defaults(), brandKit);
+    // Preserve the user's content (text, images, products, links) — only
+    // overlay the brand-mapped fields onto the existing config.
+    const merged = { ...section.config, ...fresh, uid: section.config.uid };
+    setSection((prev) => (prev ? { ...prev, config: merged } : prev));
+    queueSave({ config: merged });
+    toast.success("Brand kit applied");
+  };
+
   const snippet = useMemo(
-    () => (def && section ? def.render(section.config) : ""),
-    [def, section]
+    () =>
+      def && section
+        ? applyFontToSnippet(def.render(section.config), brandKit?.heading_font)
+        : "",
+    [def, section, brandKit]
   );
   const previewHtml = useMemo(() => previewDoc(snippet), [snippet]);
 
   const copySnippet = async () => {
     if (!def || !section) return;
     const fresh = { ...section.config, uid: makeUid() };
-    const out = def.render(fresh);
+    const out = applyFontToSnippet(def.render(fresh), brandKit?.heading_font);
     try {
       await navigator.clipboard.writeText(out);
       toast.success("HTML snippet copied", {
@@ -233,15 +259,26 @@ export default function Editor() {
                 {def.name}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={resetSection}
-              data-testid="reset-section"
-              className="p-2 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0"
-              title="Reset to defaults"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                type="button"
+                onClick={resetToBrandKit}
+                data-testid="apply-brand-kit"
+                className="p-2 rounded-md text-slate-500 hover:bg-slate-100 hover:text-[#E01839] transition-colors"
+                title="Apply brand kit colors and fonts"
+              >
+                <Palette className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={resetSection}
+                data-testid="reset-section"
+                className="p-2 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                title="Reset to defaults"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 

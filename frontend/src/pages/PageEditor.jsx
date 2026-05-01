@@ -12,6 +12,12 @@ import { composePage } from "@/sections/pageSnippet";
 import { previewDoc } from "@/sections/shared";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
+import { useBrandKit } from "@/lib/BrandKitContext";
+import {
+  applyBrandKit,
+  applyBrandKitToRichText,
+  applyFontToSnippet,
+} from "@/lib/brandKit";
 
 import PageRail from "./page-editor/PageRail";
 import BlockAdder from "./page-editor/BlockAdder";
@@ -41,6 +47,7 @@ export default function PageEditor() {
   const [adder, setAdder] = useState(false);
   const [librarySections, setLibrarySections] = useState([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const { brandKit } = useBrandKit();
 
   // Tracks whether the user has made ANY change since landing on this page.
   // Used to auto-delete empty "new=1" drafts on unmount.
@@ -153,7 +160,7 @@ export default function PageEditor() {
       block_id: makeBlockId(),
       type: "section",
       section_type: typeId,
-      config: def.defaults(),
+      config: applyBrandKit(typeId, def.defaults(), brandKit),
     };
     setBlocks([...(page.blocks || []), newBlock]);
     setSelectedBlockId(newBlock.block_id);
@@ -178,7 +185,7 @@ export default function PageEditor() {
     const newBlock = {
       block_id: makeBlockId(),
       type: "richtext",
-      config: richtext.defaults(),
+      config: applyBrandKitToRichText(richtext.defaults(), brandKit),
     };
     setBlocks([...(page.blocks || []), newBlock]);
     setSelectedBlockId(newBlock.block_id);
@@ -218,8 +225,14 @@ export default function PageEditor() {
 
   // ── Composed snippet + actions ──────────────────────────────────────────
   const snippet = useMemo(
-    () => (page ? composePage(page.blocks || []) : ""),
-    [page]
+    () =>
+      page
+        ? applyFontToSnippet(
+            composePage(page.blocks || []),
+            brandKit?.heading_font
+          )
+        : "",
+    [page, brandKit]
   );
   const previewHtml = useMemo(() => previewDoc(snippet), [snippet]);
 

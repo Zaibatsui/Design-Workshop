@@ -3,11 +3,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { toast } from "sonner";
 import "@/App.css";
 import { AuthProvider } from "@/auth/AuthContext";
+import { BrandKitProvider } from "@/lib/BrandKitContext";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Editor from "@/pages/Editor";
 import PageEditor from "@/pages/PageEditor";
+import BrandKitPage from "@/pages/BrandKit";
 
 /**
  * Surfaces unhandled promise rejections (chunk-load failures) as a sticky
@@ -42,33 +44,43 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/edit/section/:sectionId"
-              element={
-                <ProtectedRoute>
-                  <Editor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/edit/page/:pageId"
-              element={
-                <ProtectedRoute>
-                  <PageEditor />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          <BrandKitProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/brand"
+                element={
+                  <ProtectedRoute>
+                    <BrandKitPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/edit/section/:sectionId"
+                element={
+                  <ProtectedRoute>
+                    <Editor />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/edit/page/:pageId"
+                element={
+                  <ProtectedRoute>
+                    <PageEditor />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </BrandKitProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>

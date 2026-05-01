@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, FileStack } from "lucide-react";
+import { Plus, LogOut, FileStack, Palette } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { BRAND } from "@/lib/brand";
+import { useBrandKit } from "@/lib/BrandKitContext";
+import { applyBrandKit } from "@/lib/brandKit";
 import SectionsTab from "./dashboard/SectionsTab";
 import PagesTab from "./dashboard/PagesTab";
 import { SectionPicker, Tabs } from "./dashboard/common";
@@ -37,6 +39,8 @@ export default function Dashboard() {
     })();
   }, []);
 
+  const { brandKit } = useBrandKit();
+
   const createSection = async (typeId) => {
     const def = SECTIONS_BY_ID[typeId];
     if (!def) return;
@@ -44,7 +48,7 @@ export default function Dashboard() {
       const created = await api.createSection({
         name: `New ${def.name}`,
         type: typeId,
-        config: def.defaults(),
+        config: applyBrandKit(typeId, def.defaults(), brandKit),
       });
       setPicker(false);
       navigate(`/edit/section/${created.section_id}?new=1`);
@@ -123,6 +127,15 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              data-testid="brand-kit-link"
+              onClick={() => navigate("/brand")}
+              className="font-medium"
+            >
+              <Palette className="w-4 h-4 mr-1.5" />
+              Brand kit
+            </Button>
             <Button
               data-testid="new-section-button"
               onClick={() => setPicker(true)}

@@ -78,4 +78,8 @@ export const api = {
     req("/page-templates", { method: "POST", body: JSON.stringify(data) }),
   deletePageTemplate: (id) =>
     req(`/page-templates/${id}`, { method: "DELETE" }),
+
+  getBrandKit: () => req("/brand-kit"),
+  updateBrandKit: (kit) =>
+    req("/brand-kit", { method: "PUT", body: JSON.stringify(kit) }),
 };
