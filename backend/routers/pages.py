@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pymongo import UpdateOne
 
 from db import db
@@ -23,13 +23,33 @@ from deps import User, get_current_user
 
 router = APIRouter(prefix="/pages", tags=["pages"])
 
+_VALID_BLOCK_TYPES = {"section", "richtext"}
+
 
 class BlockIn(BaseModel):
     block_id: Optional[str] = None
     name: Optional[str] = None
-    type: str  # "section" | "richtext"
+    type: str
     section_type: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
+
+    @field_validator("type")
+    @classmethod
+    def _type_known(cls, v: str) -> str:
+        if v not in _VALID_BLOCK_TYPES:
+            raise ValueError(
+                f"Invalid block type {v!r}. Allowed: "
+                + ", ".join(sorted(_VALID_BLOCK_TYPES))
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _cross_field(self):
+        if self.type == "section" and not self.section_type:
+            raise ValueError("section blocks require a section_type")
+        if self.type == "richtext" and self.section_type is not None:
+            raise ValueError("richtext blocks must not set section_type")
+        return self
 
 
 class PageIn(BaseModel):
