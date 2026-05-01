@@ -55,7 +55,6 @@ class BlockIn(BaseModel):
     type: str  # "section" | "richtext"
     section_type: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
-    html: Optional[str] = None  # legacy field from earlier shape
 
 
 class PageIn(BaseModel):
@@ -95,7 +94,6 @@ def _normalize_blocks(blocks: List[BlockIn]) -> List[Dict[str, Any]]:
             "type": b.type,
             "section_type": b.section_type,
             "config": cfg,
-            "html": b.html,
         })
     return out
 

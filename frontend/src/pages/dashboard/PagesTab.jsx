@@ -216,7 +216,7 @@ function PageCard({ page, onDelete, onDuplicate }) {
           </div>
           <p
             className="text-sm font-medium text-slate-900 truncate"
-            data-testid="page-card-name"
+            data-testid="page-card-title"
           >
             {page.name}
           </p>

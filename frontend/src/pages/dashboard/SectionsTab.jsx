@@ -222,7 +222,7 @@ function SectionCard({ section, onDelete, onDuplicate }) {
           </div>
           <p
             className="text-sm font-medium text-slate-900 truncate"
-            data-testid="section-card-name"
+            data-testid="section-card-title"
           >
             {section.name}
           </p>
