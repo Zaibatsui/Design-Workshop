@@ -20,6 +20,15 @@ pre {
     "Courier New", monospace;
 }
 
+.ns-rail-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ns-rail-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+
 @layer base {
   :root {
     --background: 0 0% 100%;

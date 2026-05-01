@@ -7,21 +7,18 @@ export default function SectionRail({ activeId, onSelect }) {
   return (
     <div
       data-testid="section-rail"
-      className={`flex-shrink-0 bg-slate-900 h-screen flex flex-col py-3 overflow-y-auto transition-[width] duration-200 ease-out ${
+      className={`flex-shrink-0 bg-slate-900 h-screen flex flex-col py-3 overflow-hidden transition-[width] duration-200 ease-out ${
         expanded ? "w-56" : "w-16"
       }`}
     >
       <div
-        className={`flex items-center mb-2 ${expanded ? "px-3 justify-between" : "px-0 justify-center"}`}
+        className={`flex items-center mb-2 ${expanded ? "px-3 justify-end" : "px-0 justify-center"}`}
       >
-        <div className="w-9 h-9 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0">
-          <span className="font-heading text-white font-bold text-sm">SB</span>
-        </div>
         <button
           type="button"
           data-testid="rail-toggle"
           onClick={() => setExpanded((v) => !v)}
-          className="w-8 h-8 rounded-md flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+          className="w-9 h-9 rounded-md flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           title={expanded ? "Collapse" : "Expand"}
           aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
         >
@@ -34,7 +31,7 @@ export default function SectionRail({ activeId, onSelect }) {
       </div>
 
       <div
-        className={`flex flex-col ${expanded ? "px-2 gap-0.5" : "items-center gap-1"}`}
+        className={`flex-1 flex flex-col min-h-0 overflow-y-auto ns-rail-scroll ${expanded ? "px-2 gap-0.5" : "items-center gap-1"}`}
       >
         {SECTIONS.map((s) => {
           const Icon = s.icon;
