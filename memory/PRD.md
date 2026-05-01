@@ -31,6 +31,7 @@ Users need to author reusable content sections that drop into their live e-comme
 - 2026-05-01: **Page templates** — 7 built-in templates (Blank, Landing, Product detail, Category hub, About us, Pricing, Blog post). Template picker modal opens on "New page" click. **Save as template** via `POST /api/page-templates` stores a user-scoped snapshot (block_ids stripped); DELETE + LIST endpoints round out the CRUD; custom templates surface alongside built-ins in the picker.
 - 2026-05-01: **Richtext passthrough** — server-side bleach sanitization REMOVED at user request. `<script>`, `<iframe>`, inline handlers, `javascript:` URLs are now persisted and rendered verbatim. Block editor gets a **Visual / HTML Source** mode toggle with a raw-HTML textarea in source mode.
 - 2026-05-01: **Block names** — every block has an optional `name` field editable at the top of the block drawer; sidebar shows the custom name when set, falling back to the type label.
+- 2026-05-01: **PageEditor layout v2** — PageRail now hosts togglable "Blocks" / "Pages" tabs (with count badges); BlockEditorDrawer relocated from right sidebar to LEFT side of the canvas (mirrors Section Editor UX). EmptyBlockEditor placeholder when no block selected. Footer rail action mirrors active tab (Add block ↔ New page). Validated 14/14 in iteration_8.json.
 
 ## Roadmap / Backlog
 **P1**
@@ -47,10 +48,16 @@ Users need to author reusable content sections that drop into their live e-comme
 - Tighter `BlockIn` pydantic validation **(done)**
 - Apply library-rail pattern to `PageEditor.jsx` **(done)**
 - Split `PageEditor.jsx` (~907 → 405 lines + 7 focused sub-components) **(done)**
+- PageEditor layout v2 (Blocks/Pages tabs in rail + drawer-on-left) **(done 2026-05-01)**
 - Extract `BlockIn` to `/app/backend/models/blocks.py` and remove the cross-router import smell.
 - Custom templates preview thumbnails in the picker.
 - Auth-gate `POST /api/scrape-product` (currently public — pre-existing).
 - Inline rename of library-rail rows (double-click).
+- Esc-to-close on BlockAdder + PageTemplatePicker modals.
+- Migrate Save-as-template `window.prompt` to a shadcn Dialog.
+- Extract EmptyBlockEditor into `/pages/page-editor/EmptyBlockEditor.jsx` for symmetry with BlockEditorDrawer.
+- Split PageRail.jsx (563 lines, approaching 700-line cap) — move BlocksList/BlockRow/CollapsedBlockIcon/PagesList into `/pages/page-editor/rail/`.
+- Global error boundary + reload-toast for HMR/timeout failures.
 
 **P0 security / operations**
 - User must rotate their Google Client Secret in Google Cloud Console (it was pasted in plaintext in an earlier chat).
