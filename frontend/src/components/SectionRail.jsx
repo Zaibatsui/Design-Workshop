@@ -10,6 +10,7 @@ import {
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { api } from "@/lib/api";
 import { SectionPicker } from "@/pages/dashboard/common";
+import InlineEditableLabel from "@/components/InlineEditableLabel";
 
 /**
  * Library rail — persistent sidebar that acts as a mini file browser of the
@@ -48,6 +49,18 @@ export default function SectionRail({ activeSectionId }) {
       .then(setItems)
       .catch(() => {});
   }, [activeSectionId]);
+
+  const renameSection = async (sectionId, name) => {
+    setItems((prev) =>
+      prev.map((it) => (it.section_id === sectionId ? { ...it, name } : it))
+    );
+    try {
+      await api.updateSection(sectionId, { name });
+    } catch {
+      // Roll back on failure — re-fetch list to get authoritative names.
+      api.listSections().then(setItems).catch(() => {});
+    }
+  };
 
   const createNew = async (typeId) => {
     const def = SECTIONS_BY_ID[typeId];
@@ -160,9 +173,12 @@ export default function SectionRail({ activeSectionId }) {
                   <Icon className="w-[18px] h-[18px] flex-shrink-0" />
                   {expanded ? (
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium truncate leading-tight">
-                        {s.name}
-                      </p>
+                      <InlineEditableLabel
+                        value={s.name}
+                        onCommit={(next) => renameSection(s.section_id, next)}
+                        testid={`rail-item-${s.section_id}-name`}
+                        className="block text-xs font-medium truncate leading-tight"
+                      />
                       <p
                         className={`text-[10px] uppercase tracking-wider truncate leading-tight ${
                           isActive ? "text-slate-500" : "text-slate-500 group-hover:text-slate-300"

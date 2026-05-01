@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { Layers, Type } from "lucide-react";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 
 export default function BlockAdder({
   librarySections,
@@ -15,6 +16,7 @@ export default function BlockAdder({
   onClose,
 }) {
   const [mode, setMode] = useState("new"); // new | library | richtext
+  useEscapeKey(onClose);
 
   return (
     <div

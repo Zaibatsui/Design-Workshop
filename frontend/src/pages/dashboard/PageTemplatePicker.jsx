@@ -8,10 +8,12 @@ import { toast } from "sonner";
 import { FileText, Trash2, User } from "lucide-react";
 import { PAGE_TEMPLATES } from "@/sections/pageTemplates";
 import { api } from "@/lib/api";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 
 export default function PageTemplatePicker({ onPick, onClose }) {
   const [customTemplates, setCustomTemplates] = useState([]);
   const [customLoading, setCustomLoading] = useState(true);
+  useEscapeKey(onClose);
 
   useEffect(() => {
     let cancelled = false;

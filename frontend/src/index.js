@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Strip the Emergent platform "Made with Emergent" badge whenever it's
 // injected — emergent-main.js re-adds the element with inline `!important`
@@ -18,6 +19,8 @@ new MutationObserver(removeEmergentBadge).observe(document.documentElement, {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 );

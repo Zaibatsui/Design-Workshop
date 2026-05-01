@@ -28,6 +28,7 @@ import { api } from "@/lib/api";
 import PageTemplatePicker from "@/pages/dashboard/PageTemplatePicker";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { blockTypeLabel } from "@/sections/pageSnippet";
+import InlineEditableLabel from "@/components/InlineEditableLabel";
 
 /**
  * PageRail (prototype v2) — tabbed library + block sidebar.
@@ -50,6 +51,7 @@ export default function PageRail({
   onRemoveBlock,
   onReorderBlocks,
   onAddBlock,
+  onRenameBlock,
 }) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(true);
@@ -87,6 +89,17 @@ export default function PageRail({
       navigate(`/edit/page/${created.page_id}?new=1`);
     } catch {
       /* parent toasts handle user-visible errors */
+    }
+  };
+
+  const renamePage = async (pageId, name) => {
+    setPages((prev) =>
+      prev.map((p) => (p.page_id === pageId ? { ...p, name } : p))
+    );
+    try {
+      await api.updatePage(pageId, { name });
+    } catch {
+      api.listPages().then(setPages).catch(() => {});
     }
   };
 
@@ -193,6 +206,7 @@ export default function PageRail({
               onSelect={onSelectBlock}
               onRemove={onRemoveBlock}
               onReorder={onReorderBlocks}
+              onRename={onRenameBlock}
               expanded={expanded}
             />
           ) : (
@@ -201,6 +215,7 @@ export default function PageRail({
               loading={pagesLoading}
               activePageId={activePageId}
               expanded={expanded}
+              onRename={renamePage}
             />
           )}
         </div>
@@ -316,6 +331,7 @@ function BlocksList({
   onSelect,
   onRemove,
   onReorder,
+  onRename,
   expanded,
 }) {
   const sensors = useSensors(
@@ -373,6 +389,7 @@ function BlocksList({
               selected={selectedBlockId === b.block_id}
               onSelect={() => onSelect(b.block_id)}
               onRemove={() => onRemove(b.block_id)}
+              onRename={(name) => onRename && onRename(b.block_id, name)}
             />
           ))}
         </div>
@@ -381,7 +398,7 @@ function BlocksList({
   );
 }
 
-function BlockRow({ block, index, selected, onSelect, onRemove }) {
+function BlockRow({ block, index, selected, onSelect, onRemove, onRename }) {
   const {
     attributes,
     listeners,
@@ -431,9 +448,12 @@ function BlockRow({ block, index, selected, onSelect, onRemove }) {
       </button>
       <Icon className="w-3.5 h-3.5 flex-shrink-0" />
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium truncate leading-tight">
-          {displayLabel}
-        </p>
+        <InlineEditableLabel
+          value={displayLabel}
+          onCommit={(next) => onRename && onRename(next)}
+          testid={`block-name-${block.block_id}`}
+          className="block text-xs font-medium truncate leading-tight"
+        />
         <p
           className={`text-[10px] uppercase tracking-wider truncate leading-tight ${
             selected ? "text-slate-500" : "text-slate-500"
@@ -489,7 +509,7 @@ function CollapsedBlockIcon({ block, selected, onSelect }) {
 
 // ── Pages list ───────────────────────────────────────────────────────────
 
-function PagesList({ pages, loading, activePageId, expanded }) {
+function PagesList({ pages, loading, activePageId, expanded, onRename }) {
   if (loading) {
     return (
       <div
@@ -536,9 +556,12 @@ function PagesList({ pages, loading, activePageId, expanded }) {
             <FileStack className="w-[18px] h-[18px] flex-shrink-0" />
             {expanded ? (
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium truncate leading-tight">
-                  {p.name}
-                </p>
+                <InlineEditableLabel
+                  value={p.name}
+                  onCommit={(next) => onRename && onRename(p.page_id, next)}
+                  testid={`page-rail-item-${p.page_id}-name`}
+                  className="block text-xs font-medium truncate leading-tight"
+                />
                 <p
                   className={`text-[10px] uppercase tracking-wider truncate leading-tight ${
                     isActive

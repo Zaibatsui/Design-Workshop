@@ -18,6 +18,7 @@ import BlockAdder from "./page-editor/BlockAdder";
 import BlockEditorDrawer from "./page-editor/BlockEditorDrawer";
 import SaveIndicator from "./page-editor/SaveIndicator";
 import PagePreviewFrame from "./page-editor/PagePreviewFrame";
+import SaveAsTemplateDialog from "./page-editor/SaveAsTemplateDialog";
 
 const AUTOSAVE_MS = 1500;
 
@@ -39,6 +40,7 @@ export default function PageEditor() {
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [adder, setAdder] = useState(false);
   const [librarySections, setLibrarySections] = useState([]);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
   // Tracks whether the user has made ANY change since landing on this page.
   // Used to auto-delete empty "new=1" drafts on unmount.
@@ -233,15 +235,8 @@ export default function PageEditor() {
     }
   };
 
-  const saveAsTemplate = async () => {
+  const saveAsTemplate = async ({ name, description }) => {
     if (!page || (page.blocks || []).length === 0) return;
-    const name = window.prompt(
-      "Template name",
-      page.name && page.name !== "Untitled page" ? page.name : ""
-    );
-    if (!name) return;
-    const description =
-      window.prompt("Optional short description (leave blank to skip)") || null;
     try {
       await api.createPageTemplate({
         name,
@@ -253,6 +248,7 @@ export default function PageEditor() {
       });
     } catch {
       toast.error("Could not save template");
+      throw new Error("save-failed"); // keeps dialog open for retry
     }
   };
 
@@ -295,6 +291,7 @@ export default function PageEditor() {
         onRemoveBlock={removeBlock}
         onReorderBlocks={reorderBlocks}
         onAddBlock={() => setAdder(true)}
+        onRenameBlock={(blockId, name) => updateBlock(blockId, { name })}
       />
 
       {/* Left sidebar: block editor drawer when a block is selected, else
@@ -334,7 +331,7 @@ export default function PageEditor() {
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
             <Button
               variant="outline"
-              onClick={saveAsTemplate}
+              onClick={() => setTemplateDialogOpen(true)}
               disabled={(page.blocks || []).length === 0}
               data-testid="save-as-template-button"
               className="font-medium"
@@ -381,6 +378,16 @@ export default function PageEditor() {
           onClose={() => setAdder(false)}
         />
       )}
+
+      <SaveAsTemplateDialog
+        open={templateDialogOpen}
+        onOpenChange={setTemplateDialogOpen}
+        defaultName={
+          page.name && page.name !== "Untitled page" ? page.name : ""
+        }
+        blockCount={(page.blocks || []).length}
+        onSubmit={saveAsTemplate}
+      />
 
       <Toaster richColors position="top-center" />
     </div>
