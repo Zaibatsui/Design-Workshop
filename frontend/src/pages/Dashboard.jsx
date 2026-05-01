@@ -91,10 +91,10 @@ export default function Dashboard() {
             >
               <BRAND.Icon className="w-4 h-4" />
             </div>
-            <span className="font-heading text-base font-semibold tracking-tight">
+            <span className="font-heading text-base font-semibold tracking-tight leading-none">
               {BRAND.name}
             </span>
-            <span className="hidden md:inline ml-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+            <span className="hidden md:inline ml-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 leading-none">
               Zaibatsui Labs
             </span>
           </Link>

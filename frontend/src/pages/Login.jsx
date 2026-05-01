@@ -41,10 +41,10 @@ export default function Login() {
           >
             <BRAND.Icon className="w-4 h-4" />
           </div>
-          <span className="font-heading text-lg font-semibold tracking-tight text-slate-900">
+          <span className="font-heading text-lg font-semibold tracking-tight text-slate-900 leading-none">
             {BRAND.name}
           </span>
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 leading-none">
             Zaibatsui Labs
           </span>
         </div>
