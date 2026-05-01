@@ -25,19 +25,25 @@ Users need to author reusable content sections that drop into their live e-comme
 - 2026-**: Merged Hero Slide/Fade into one Hero type; merged CTA into Content; Cnet Cloud Playwright fallback; rebrand to "Design Workshop" / "Zaibatsui Labs"; 20:9 thumbnail grid; migrated from Emergent Google Auth to Direct Google OAuth via Authlib.
 - 2026-05-01: **OAuth redirect_uri_mismatch fixed** via `ForwardedHostMiddleware` (rewrites scope.server + Host header from X-Forwarded-Host).
 - 2026-05-01: **Hybrid Page Builder** shipped — Pages entity, `/api/pages` CRUD, dashboard tabs, `PageEditor` with drag-and-drop via @dnd-kit, tiptap rich-text blocks, library-section snapshot insertion, single-snippet export.
+- 2026-05-01: **P2 batch** — section & page duplication endpoints (`POST /api/{sections,pages}/{id}/duplicate`), dashboard card drag-and-drop reordering with `position` field + `PUT /api/{sections,pages}/reorder/bulk`, server-side richtext HTML sanitization via `bleach` (strips `<script>`, event handlers, `javascript:` URLs, limits protocols to http/https/mailto), backend refactored from ~900-line `server.py` into `db.py` / `deps.py` / `storage.py` + `routers/{auth,sections,pages,uploads,scraper}.py` (slim `server.py` ~130 lines), frontend `Dashboard.jsx` split into `SectionsTab` / `PagesTab` / `dashboard/common.jsx`.
 
 ## Roadmap / Backlog
 **P1**
 - (done) Hybrid Page Builder.
 
 **P2**
-- Section duplication: clone an existing section from the dashboard as a starting point.
-- Page duplication: clone an existing page as a starting point.
-- Dashboard drag-and-drop reordering (for sections and pages).
-- Server-side richtext HTML sanitization (bleach/nh3) before persistence — currently we trust the tiptap output schema; defense-in-depth since the same HTML round-trips into a snippet.
+- (done) Section duplication.
+- (done) Page duplication.
+- (done) Dashboard drag-and-drop reordering (sections + pages).
+- (done) Server-side richtext HTML sanitization (bleach).
+- (done) Refactor `server.py` into routers; split `Dashboard.jsx` into SectionsTab/PagesTab.
+
+**P3 / future**
 - Tighter `BlockIn` pydantic validation (reject `richtext` with no html, `section` with no section_type).
-- Refactor `server.py` (~900 lines) into routers: `auth`, `sections`, `pages`, `scraper`.
-- Split `Dashboard.jsx` (617 lines) into `SectionsTab` / `PagesTab` sub-components as it grows.
+- Batch the N-updateOne reorder loop into a single `bulk_write(UpdateOne...)` for perf + atomicity once users reach 100+ cards.
+- Drop the legacy top-level `BlockIn.html` field once all documents have migrated to `config.html`.
+- Rename `data-testid="section-card-name"` / `page-card-name` → `...-title` to avoid prefix-selector shadowing during Playwright automation.
+- Page templates: one-click "Landing page" / "Product detail" / "Category hub" starters that pre-populate a Page with a common block arrangement.
 
 **P0 security / operations**
 - User must rotate their Google Client Secret in Google Cloud Console (it was pasted in plaintext in an earlier chat).
