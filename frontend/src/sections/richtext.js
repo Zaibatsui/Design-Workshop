@@ -54,11 +54,11 @@ ${baseReset(cls)}
 .${cls} > :last-child,.${cls}-inner > :last-child{margin-bottom:0}
 `.trim();
 
-  // Note: html here comes from tiptap's getHTML() which produces well-formed,
-  // safe markup restricted to our allowed schema (h1-h3, p, ul/ol/li,
-  // strong/em, a[href]). We don't need to re-sanitize at render time because
-  // the editor enforces schema. For safety we still strip <script> tags.
-  const safe = String(html || "").replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+  // Richtext html is stored verbatim — users can embed <script>, <iframe>,
+  // inline handlers, etc. The snippet is their CMS content; they own the
+  // blast radius. The only transformation here is: if config.html is missing
+  // entirely we fall back to an empty string.
+  const safe = String(html || "");
 
   const htmlOut = `<section class="${cls}${fullBleedClass(cfg)}"><div class="${cls}-inner">${safe}</div></section>`;
   return wrapSnippet({ html: htmlOut, css, js: "" });

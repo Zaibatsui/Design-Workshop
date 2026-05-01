@@ -24,6 +24,7 @@ import {
   Check,
   Loader2,
   Plus,
+  Save,
   Trash2,
   GripVertical,
   FileStack,
@@ -178,6 +179,7 @@ export default function PageEditor() {
       b.block_id === blockId
         ? {
             ...b,
+            ...(patch.name !== undefined ? { name: patch.name } : {}),
             ...(patch.config !== undefined
               ? { config: { ...(b.config || {}), ...patch.config } }
               : {}),
@@ -218,6 +220,28 @@ export default function PageEditor() {
       });
     } catch {
       toast.error("Copy failed.");
+    }
+  };
+
+  const saveAsTemplate = async () => {
+    if (!page || (page.blocks || []).length === 0) return;
+    const name = window.prompt(
+      "Template name",
+      page.name && page.name !== "Untitled page" ? page.name : ""
+    );
+    if (!name) return;
+    const description = window.prompt("Optional short description (leave blank to skip)") || null;
+    try {
+      await api.createPageTemplate({
+        name,
+        description,
+        blocks: page.blocks,
+      });
+      toast.success("Template saved", {
+        description: "It'll show up in the New page picker.",
+      });
+    } catch {
+      toast.error("Could not save template");
     }
   };
 
@@ -338,6 +362,16 @@ export default function PageEditor() {
           <div className="flex items-center gap-3">
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
             <Button
+              variant="outline"
+              onClick={saveAsTemplate}
+              disabled={(page.blocks || []).length === 0}
+              data-testid="save-as-template-button"
+              className="font-medium"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save as template
+            </Button>
+            <Button
               data-testid="copy-page-snippet-button"
               onClick={copySnippet}
               disabled={(page.blocks || []).length === 0}
@@ -447,10 +481,10 @@ function BlockListItem({ block, index, selected, onSelect, onRemove }) {
       <Icon className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
       <div className="min-w-0 flex-1">
         <p className="text-xs font-medium text-slate-900 truncate">
-          {blockTypeLabel(block)}
+          {block.name || blockTypeLabel(block)}
         </p>
         <p className="text-[10px] uppercase tracking-wider text-slate-400">
-          Block {index + 1}
+          {block.name ? `${blockTypeLabel(block)} · ` : ""}Block {index + 1}
         </p>
       </div>
       <button
@@ -472,6 +506,7 @@ function BlockListItem({ block, index, selected, onSelect, onRemove }) {
 function BlockEditorDrawer({ block, onUpdate, onClose }) {
   const isRichText = block.type === "richtext";
   const def = !isRichText ? SECTIONS_BY_ID[block.section_type] : null;
+  const typeLabel = blockTypeLabel(block);
 
   return (
     <aside
@@ -479,19 +514,23 @@ function BlockEditorDrawer({ block, onUpdate, onClose }) {
       className="w-96 flex-shrink-0 border-l border-slate-200 bg-white h-screen overflow-y-auto"
     >
       <div className="px-5 py-4 border-b border-slate-200 sticky top-0 bg-white z-10 flex items-start justify-between">
-        <div>
+        <div className="min-w-0 flex-1 pr-3">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">
-            Editing block
+            Editing · {typeLabel}
           </div>
-          <div className="font-heading text-base font-semibold tracking-tight">
-            {blockTypeLabel(block)}
-          </div>
+          <Input
+            value={block.name || ""}
+            onChange={(e) => onUpdate({ name: e.target.value })}
+            placeholder={typeLabel}
+            data-testid="block-name-input"
+            className="font-heading text-base font-semibold tracking-tight border-0 px-0 h-auto py-0 shadow-none focus-visible:ring-0 truncate placeholder:text-slate-300"
+          />
         </div>
         <button
           type="button"
           onClick={onClose}
           data-testid="block-editor-close"
-          className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0"
           title="Close"
         >
           <X className="w-4 h-4" />
@@ -525,12 +564,49 @@ function BlockEditorDrawer({ block, onUpdate, onClose }) {
 function RichTextBlockForm({ block, onUpdate }) {
   const cfg = block.config || {};
   const setCfg = (patch) => onUpdate({ config: patch });
+  const mode = cfg.mode || "visual";
   return (
     <div className="space-y-4">
-      <RichTextEditor
-        html={cfg.html || ""}
-        onChange={(html) => setCfg({ html })}
-      />
+      <div
+        className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg w-fit"
+        data-testid="rt-mode-toggle"
+      >
+        <ModeTab
+          active={mode === "visual"}
+          onClick={() => setCfg({ mode: "visual" })}
+          testid="rt-mode-visual"
+        >
+          Visual
+        </ModeTab>
+        <ModeTab
+          active={mode === "source"}
+          onClick={() => setCfg({ mode: "source" })}
+          testid="rt-mode-source"
+        >
+          HTML source
+        </ModeTab>
+      </div>
+      {mode === "source" ? (
+        <div>
+          <textarea
+            data-testid="rt-source-textarea"
+            value={cfg.html || ""}
+            onChange={(e) => setCfg({ html: e.target.value })}
+            spellCheck={false}
+            className="w-full h-64 p-3 font-mono text-xs text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:border-[#E01839] resize-y bg-slate-50"
+            placeholder="<section>Paste any HTML — script, iframe, inline handlers all allowed.</section>"
+          />
+          <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
+            Raw HTML renders verbatim. Scripts and iframes will execute in the
+            preview and in the exported snippet.
+          </p>
+        </div>
+      ) : (
+        <RichTextEditor
+          html={cfg.html || ""}
+          onChange={(html) => setCfg({ html })}
+        />
+      )}
       <div className="space-y-3 pt-2 border-t border-slate-100">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
           Layout
@@ -748,6 +824,23 @@ function AdderTab({ active, onClick, testid, children }) {
       {active && (
         <span className="absolute left-0 right-0 bottom-0 h-[2px] bg-[#E01839] rounded-full" />
       )}
+    </button>
+  );
+}
+
+function ModeTab({ active, onClick, testid, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-testid={testid}
+      className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+        active
+          ? "bg-white text-slate-900 shadow-sm"
+          : "text-slate-500 hover:text-slate-700"
+      }`}
+    >
+      {children}
     </button>
   );
 }

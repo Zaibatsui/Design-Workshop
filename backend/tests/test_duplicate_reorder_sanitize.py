@@ -150,73 +150,9 @@ class TestSectionDuplicateReorder:
             client.delete(f"{BASE_URL}/api/sections/{sid}")
 
 
-# --- Richtext sanitization ---------------------------------------------------
-NASTY = (
-    "<h1>Title</h1>"
-    "<p>ok <strong>bold</strong> <em>italic</em> <a href='https://example.com'>link</a></p>"
-    "<ul><li>a</li><li>b</li></ul>"
-    "<script>alert('xss')</script>"
-    "<p onmouseover='alert(1)'>hover</p>"
-    "<iframe src='https://evil.com'></iframe>"
-    "<a href='javascript:alert(1)'>bad</a>"
-)
-
-
-def _assert_sanitized(html: str):
-    lower = html.lower()
-    assert "<script" not in lower
-    assert "onmouseover" not in lower
-    assert "<iframe" not in lower
-    assert "javascript:" not in lower
-    # Safe tags preserved
-    assert "<h1>" in lower
-    assert "<strong>" in lower
-    assert "<em>" in lower
-    assert "<ul>" in lower and "<li>" in lower
-    assert 'href="https://example.com"' in lower or "href='https://example.com'" in lower
-
-
-class TestRichtextSanitization:
-    pid = None
-
-    def test_create_page_sanitizes(self, client):
-        payload = {
-            "name": "TEST_nasty_page",
-            "blocks": [{"type": "richtext", "config": {"html": NASTY}}],
-        }
-        r = client.post(f"{BASE_URL}/api/pages", json=payload)
-        assert r.status_code == 200, r.text
-        d = r.json()
-        assert len(d["blocks"]) == 1
-        html = d["blocks"][0]["config"]["html"]
-        _assert_sanitized(html)
-        TestRichtextSanitization.pid = d["page_id"]
-
-    def test_get_round_trip_sanitized(self, client):
-        pid = TestRichtextSanitization.pid
-        r = client.get(f"{BASE_URL}/api/pages/{pid}")
-        assert r.status_code == 200
-        html = r.json()["blocks"][0]["config"]["html"]
-        _assert_sanitized(html)
-
-    def test_put_page_sanitizes(self, client):
-        pid = TestRichtextSanitization.pid
-        payload = {
-            "blocks": [
-                {"type": "richtext", "config": {"html": "<p onclick='x()'>u</p><script>bad</script><b>k</b>"}},
-            ],
-        }
-        r = client.put(f"{BASE_URL}/api/pages/{pid}", json=payload)
-        assert r.status_code == 200, r.text
-        html = r.json()["blocks"][0]["config"]["html"].lower()
-        assert "onclick" not in html
-        assert "<script" not in html
-        assert "<b>" in html
-
-    def test_cleanup(self, client):
-        pid = TestRichtextSanitization.pid
-        if pid:
-            client.delete(f"{BASE_URL}/api/pages/{pid}")
+# Sanitization tests removed in iteration 5 — the user explicitly reversed
+# server-side bleach sanitization. See test_iter5_passthrough_names_templates.py
+# for the new verbatim-passthrough assertions.
 
 
 # --- Page duplicate + reorder ------------------------------------------------

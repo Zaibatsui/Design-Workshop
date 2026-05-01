@@ -1,17 +1,19 @@
 """Pages router — CRUD + duplicate + reorder.
 
 A 'page' is an ordered list of blocks. Each block is either:
-  - { type: "section", section_type, config }
-  - { type: "richtext", config: { html, ... } }
+  - { block_id, name?, type: "section", section_type, config }
+  - { block_id, name?, type: "richtext", config: { html, mode, ... } }
 
-Richtext HTML is server-sanitized via bleach so the editor can never persist
-event handlers, <script> tags, javascript: URLs etc. — defense in depth.
+Richtext HTML is persisted verbatim — users can embed arbitrary tags
+(including <script>, <iframe>, inline event handlers). The snippet is
+rendered inside a sandboxed iframe in the editor preview, and the user
+is fully responsible for whatever lands in the exported HTML that gets
+pasted into their own CMS.
 """
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import bleach
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from pymongo import UpdateOne
@@ -22,37 +24,9 @@ from deps import User, get_current_user
 router = APIRouter(prefix="/pages", tags=["pages"])
 
 
-# Matches what the tiptap editor in /app/frontend/src/components/RichTextEditor.jsx
-# can produce. Anything not in these sets gets stripped by bleach.
-_ALLOWED_TAGS = {
-    "h1", "h2", "h3", "p", "br",
-    "strong", "em", "b", "i", "u",
-    "ul", "ol", "li",
-    "a", "span",
-}
-_ALLOWED_ATTRS = {
-    "a": ["href", "title", "target", "rel"],
-    "span": [],
-}
-_ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
-
-
-def _sanitize_richtext(html: str) -> str:
-    if not isinstance(html, str):
-        return ""
-    # strip=True removes disallowed tags entirely (not just escape them).
-    return bleach.clean(
-        html,
-        tags=list(_ALLOWED_TAGS),
-        attributes=_ALLOWED_ATTRS,
-        protocols=_ALLOWED_PROTOCOLS,
-        strip=True,
-        strip_comments=True,
-    )
-
-
 class BlockIn(BaseModel):
     block_id: Optional[str] = None
+    name: Optional[str] = None
     type: str  # "section" | "richtext"
     section_type: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
@@ -86,12 +60,9 @@ def _normalize_blocks(blocks: List[BlockIn]) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     for b in blocks:
         cfg = dict(b.config or {})
-        # Sanitize richtext HTML at persistence time — cheap and prevents
-        # bad input from round-tripping into the exported snippet.
-        if b.type == "richtext" and "html" in cfg:
-            cfg["html"] = _sanitize_richtext(cfg["html"] or "")
         out.append({
             "block_id": b.block_id or f"blk_{uuid.uuid4().hex[:10]}",
+            "name": b.name,
             "type": b.type,
             "section_type": b.section_type,
             "config": cfg,
@@ -204,12 +175,6 @@ async def duplicate_page(
     for b in (src.get("blocks") or []):
         nb = dict(b)
         nb["block_id"] = f"blk_{uuid.uuid4().hex[:10]}"
-        # blocks are already sanitized in the source, but re-sanitize to be
-        # safe in case future migrations change the allowed tag set.
-        cfg = dict(nb.get("config") or {})
-        if nb.get("type") == "richtext" and "html" in cfg:
-            cfg["html"] = _sanitize_richtext(cfg["html"] or "")
-        nb["config"] = cfg
         cloned_blocks.append(nb)
     new = {
         "page_id": f"pg_{uuid.uuid4().hex[:12]}",

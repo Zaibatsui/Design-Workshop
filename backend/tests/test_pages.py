@@ -100,7 +100,8 @@ class TestPagesCRUD:
             "name": "TEST_page_one_renamed",
             "blocks": [
                 {"type": "section", "section_type": "hero", "config": {"title": "Hi"}},
-                {"block_id": "blk_keepme0000", "type": "richtext", "html": "<p>Hello</p>"},
+                {"block_id": "blk_keepme0000", "type": "richtext",
+                 "config": {"html": "<p>Hello</p>"}},
             ],
         }
         r = client.put(f"{BASE_URL}/api/pages/{pid}", json=payload)
@@ -116,7 +117,7 @@ class TestPagesCRUD:
         assert b0["config"] == {"title": "Hi"}
         assert b1["block_id"] == "blk_keepme0000"
         assert b1["type"] == "richtext"
-        assert b1["html"] == "<p>Hello</p>"
+        assert b1["config"]["html"] == "<p>Hello</p>"
         assert "_id" not in d
 
     def test_updated_at_changes(self, client):

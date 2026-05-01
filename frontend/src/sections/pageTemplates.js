@@ -15,6 +15,9 @@ import {
   Package,
   LayoutGrid,
   FileText,
+  Users,
+  BadgeDollarSign,
+  ScrollText,
 } from "lucide-react";
 import { SECTIONS_BY_ID } from "./registry";
 import { richtext } from "./richtext";
@@ -89,6 +92,68 @@ export const PAGE_TEMPLATES = [
       section("tabs"),
       section("logos"),
       section("insights"),
+    ],
+  },
+  {
+    id: "about-us",
+    name: "About us",
+    description: "Story-led: hero → manifesto → team logos → values → resources.",
+    icon: Users,
+    blocks: [
+      section("hero"),
+      rt(
+        "<h1>A bit about us</h1><p>We build tooling for IT and telecom retailers because we've been them. Every decision optimises for the person behind the till — not the one signing the SaaS contract.</p><p>The team is small, the backlog isn't. If you'd like to work with us, get in touch.</p>",
+        { padY: 80, align: "left", maxWidth: 720 }
+      ),
+      section("logos"),
+      section("insights"),
+      section("resources"),
+    ],
+  },
+  {
+    id: "pricing",
+    name: "Pricing",
+    description: "Banner → plan comparison tabs → FAQs as insights → CTA.",
+    icon: BadgeDollarSign,
+    blocks: [
+      section("break"),
+      rt(
+        "<h1>Honest pricing</h1><p>Pick the tier that fits today. Move between them any time — prorated, no sales call.</p>",
+        { padY: 64, align: "center", maxWidth: 720 }
+      ),
+      section("tabs"),
+      rt(
+        "<h2>Frequently asked</h2><p>A handful of answers to the questions we get most often.</p>",
+        { padY: 48, align: "left", maxWidth: 960 }
+      ),
+      section("insights"),
+      rt(
+        "<h2>Still on the fence?</h2><p>Book a 20-minute call — we'll tailor a demo to your actual stack.</p>",
+        { padY: 56, align: "center", maxWidth: 560 }
+      ),
+    ],
+  },
+  {
+    id: "blog-post",
+    name: "Blog post",
+    description: "Long-form: hero → intro → body → resources → related products.",
+    icon: ScrollText,
+    blocks: [
+      section("hero"),
+      rt(
+        "<h1>A headline that earns the click</h1><p><em>Written by the team · 4 minute read</em></p><p>Open with the idea that would make a reader nod. Then back it up with one concrete example of the problem — something specific enough that it's obvious we've actually run into it ourselves.</p>",
+        { padY: 64, align: "left", maxWidth: 720 }
+      ),
+      rt(
+        "<h2>The argument</h2><p>Here is where you make the case. Keep paragraphs tight — three or four sentences each. Use <strong>bold</strong> to pull the eye to the numbers that matter and link out <a href=\"#\">only when it's genuinely useful</a>.</p><ul><li>A punchy list when you need to slow the reader down</li><li>One item per thought — no smuggled sub-clauses</li><li>Three to five items max, otherwise it's a spreadsheet</li></ul><h2>What it looks like in practice</h2><p>Ground the idea in a scenario your reader would recognise. This is usually the section people screenshot and share.</p>",
+        { padY: 0, align: "left", maxWidth: 720 }
+      ),
+      section("resources"),
+      rt(
+        "<h2>You might also like</h2><p>Related products from the catalogue.</p>",
+        { padY: 56, align: "left", maxWidth: 1100 }
+      ),
+      section("products"),
     ],
   },
 ];

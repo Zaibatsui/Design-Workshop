@@ -52,4 +52,10 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ page_ids: ids }),
     }),
+
+  listPageTemplates: () => req("/page-templates"),
+  createPageTemplate: (data) =>
+    req("/page-templates", { method: "POST", body: JSON.stringify(data) }),
+  deletePageTemplate: (id) =>
+    req(`/page-templates/${id}`, { method: "DELETE" }),
 };
