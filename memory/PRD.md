@@ -67,9 +67,17 @@ Total: 9 sections (down from 11).
 - **2026-04-30 (post-iter-2 #1)**: CMS save/edit re-init bug. Replaced DOM-attribute init guard (`data-ns-init`) with a JS-only property (`root.__nsInit`). Persisted attributes were causing already-initialised sections to skip re-init when CMSs serialise the live DOM and re-render on edit, killing arrows/dots/autoplay. Also added `go(0)` reset on init for both hero variants and tabs (resets visual state if CMS persisted runtime `is-active` classes), and tagged logo-strip originals with `data-ns-original` so the seamless-loop padding can't compound across save/edit cycles.
 
 ## Backlog
-- P1: Page-builder mode (stack multiple sections in one canvas with reorder + bulk export)
+- **P1: Hybrid Page Builder** — *captured 2026-05-01*
+  - Keep the existing per-section snippet workflow (users will still copy individual section HTML to drop into Nettailer/CMS pages)
+  - Add a separate "Page" mode where users assemble a full landing page from:
+    1. Structured sections from the registry (Hero, Products, Insights, etc.) — with their existing config UIs
+    2. **Free content blocks** between/within structured sections — for arbitrary copy, images, dividers, embeds, raw HTML escape hatch
+  - Drag-to-reorder; per-page export to one consolidated snippet (single CSS bundle, IIFEs preserved per section, single `<style>` + multiple `<div>` outputs)
+  - Open question: rich-text editor (Tiptap?) vs markdown vs raw HTML for free content blocks. Will revisit when building.
+  - This is intentionally **additive** — the existing single-section editor stays exactly as-is.
 - P2: Save/load named templates (localStorage)
 - P2: Theme presets (light/dark/vivid)
 - P2: Section duplication (clone an existing section as a starting point)
+- P2: Section picker overlay with live mini-previews (nice-to-have alongside Page Builder)
 - P3: `/api/health` exposing storage init status
 - P3: Refresh storage_key automatically on 401
