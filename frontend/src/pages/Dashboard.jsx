@@ -167,13 +167,14 @@ export default function Dashboard() {
         ) : sections.length === 0 ? (
           <EmptyState onCreate={() => setPicker(true)} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 [column-fill:_balance]">
             {pagedSections.map((s) => (
-              <SectionCard
-                key={s.section_id}
-                section={s}
-                onDelete={() => removeSection(s.section_id)}
-              />
+              <div key={s.section_id} className="break-inside-avoid mb-5">
+                <SectionCard
+                  section={s}
+                  onDelete={() => removeSection(s.section_id)}
+                />
+              </div>
             ))}
           </div>
         )}
