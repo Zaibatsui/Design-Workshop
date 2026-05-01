@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useLayoutEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -16,7 +16,6 @@ import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
-import { previewHeightFor } from "@/sections/previewHeights";
 import { BRAND } from "@/lib/brand";
 
 const PAGE_SIZE = 9;
@@ -167,14 +166,13 @@ export default function Dashboard() {
         ) : sections.length === 0 ? (
           <EmptyState onCreate={() => setPicker(true)} />
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 [column-fill:_balance]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {pagedSections.map((s) => (
-              <div key={s.section_id} className="break-inside-avoid mb-5">
-                <SectionCard
-                  section={s}
-                  onDelete={() => removeSection(s.section_id)}
-                />
-              </div>
+              <SectionCard
+                key={s.section_id}
+                section={s}
+                onDelete={() => removeSection(s.section_id)}
+              />
             ))}
           </div>
         )}
@@ -197,8 +195,33 @@ export default function Dashboard() {
   );
 }
 
+// Internal iframe canvas size — every preview renders at this fixed virtual width
+// so content layout matches what users see in the editor. The scale wrapper below
+// shrinks the iframe to fit each card's responsive width while keeping the card
+// height uniform across the grid.
+const PREVIEW_INTERNAL_WIDTH = 1280;
+const PREVIEW_INTERNAL_HEIGHT = 720; // 16:9 — uniform for all section types
+
 function SectionCard({ section, onDelete }) {
   const def = SECTIONS_BY_ID[section.type];
+  const wrapRef = useRef(null);
+  const [scale, setScale] = useState(0.3);
+
+  // Fit the iframe to the card's actual rendered width — keeps content edge-to-edge
+  // regardless of viewport / breakpoint.
+  useLayoutEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => {
+      const w = el.clientWidth;
+      if (w > 0) setScale(w / PREVIEW_INTERNAL_WIDTH);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   if (!def) return null;
   const Icon = def.icon || Layers;
   // Stamp a fresh uid for the preview so iframe-internal IIFEs don't conflict
@@ -206,37 +229,32 @@ function SectionCard({ section, onDelete }) {
   const doc = previewDoc(previewSnippet);
   const updated = new Date(section.updated_at);
 
-  // Size the thumbnail to match the section's actual rendered height — avoids
-  // a tall card with empty white space below short sections (logos, content).
-  const iframeWidth = 1280;
-  const iframeHeight = previewHeightFor(section.type);
-  const scale = 0.3;
-  const cardThumbHeight = iframeHeight * scale; // px the iframe occupies after scaling
-
   return (
     <div
       data-testid={`section-card-${section.section_id}`}
-      className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all"
+      className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all flex flex-col"
     >
       <Link
+        ref={wrapRef}
         to={`/edit/section/${section.section_id}`}
-        className="block bg-slate-100 overflow-hidden relative"
-        style={{ height: `${cardThumbHeight}px` }}
+        className="block bg-slate-100 overflow-hidden relative w-full"
+        style={{ aspectRatio: "16 / 9" }}
       >
         <iframe
           title={section.name}
           srcDoc={doc}
           sandbox="allow-scripts allow-same-origin"
-          className="origin-top-left border-0 pointer-events-none block"
+          className="border-0 pointer-events-none block absolute top-0 left-0"
           style={{
-            width: `${iframeWidth}px`,
-            height: `${iframeHeight}px`,
+            width: `${PREVIEW_INTERNAL_WIDTH}px`,
+            height: `${PREVIEW_INTERNAL_HEIGHT}px`,
             transform: `scale(${scale})`,
+            transformOrigin: "top left",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>
-      <div className="p-4 flex items-center justify-between gap-3">
+      <div className="p-4 flex items-center justify-between gap-3 flex-1">
         <Link
           to={`/edit/section/${section.section_id}`}
           className="min-w-0 flex-1"
