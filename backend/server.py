@@ -1,9 +1,12 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import Response
-from pydantic import BaseModel
+from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Request, Response, Cookie, Depends
+from fastapi.responses import Response as FastAPIResponse
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 from bs4 import BeautifulSoup
+from datetime import datetime, timezone, timedelta
+from typing import Optional, List, Any, Dict
 import os
 import logging
 import uuid
@@ -15,10 +18,18 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
+# MongoDB
+mongo_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
+db = mongo_client[os.environ["DB_NAME"]]
+
 # Storage config
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
 APP_NAME = os.environ.get("APP_NAME", "modular-pages")
+
+SESSION_COOKIE = "session_token"
+SESSION_TTL_DAYS = 7
+EMERGENT_AUTH_SESSION_DATA = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
 
 storage_key = None  # session-scoped
 
@@ -93,6 +104,239 @@ async def _startup():
 @api_router.get("/")
 async def root():
     return {"message": "Modular Pages API"}
+
+
+# ============================================================
+# Auth (Emergent Google OAuth)
+# REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+# ============================================================
+
+class User(BaseModel):
+    user_id: str
+    email: str
+    name: str
+    picture: Optional[str] = None
+    created_at: datetime
+
+
+class SessionExchangeRequest(BaseModel):
+    session_id: str
+
+
+async def get_current_user(
+    request: Request,
+    session_token: Optional[str] = Cookie(default=None),
+) -> User:
+    # Cookie first, Authorization Bearer fallback
+    token = session_token
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    session_doc = await db.user_sessions.find_one(
+        {"session_token": token}, {"_id": 0}
+    )
+    if not session_doc:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    expires_at = session_doc["expires_at"]
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Session expired")
+
+    user_doc = await db.users.find_one(
+        {"user_id": session_doc["user_id"]}, {"_id": 0}
+    )
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user_doc)
+
+
+@api_router.post("/auth/session")
+async def auth_session(payload: SessionExchangeRequest, response: Response):
+    # Exchange session_id with Emergent Auth for full session data
+    try:
+        resp = requests.get(
+            EMERGENT_AUTH_SESSION_DATA,
+            headers={"X-Session-ID": payload.session_id},
+            timeout=15,
+        )
+    except Exception as e:
+        logger.error("Emergent auth call failed: %s", e)
+        raise HTTPException(status_code=502, detail="Auth provider unreachable")
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid session_id")
+
+    data = resp.json()
+    email = data.get("email")
+    name = data.get("name")
+    picture = data.get("picture")
+    session_token = data.get("session_token")
+    if not (email and session_token):
+        raise HTTPException(status_code=502, detail="Auth provider returned incomplete data")
+
+    # Upsert user (by email)
+    existing = await db.users.find_one({"email": email}, {"_id": 0})
+    if existing:
+        user_id = existing["user_id"]
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {"name": name, "picture": picture}},
+        )
+    else:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        await db.users.insert_one({
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "created_at": datetime.now(timezone.utc),
+        })
+
+    # Persist session
+    expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_TTL_DAYS)
+    await db.user_sessions.update_one(
+        {"session_token": session_token},
+        {"$set": {
+            "session_token": session_token,
+            "user_id": user_id,
+            "expires_at": expires_at,
+            "created_at": datetime.now(timezone.utc),
+        }},
+        upsert=True,
+    )
+
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=session_token,
+        max_age=SESSION_TTL_DAYS * 24 * 60 * 60,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+    )
+    user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    return User(**user_doc)
+
+
+@api_router.get("/auth/me", response_model=User)
+async def auth_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@api_router.post("/auth/logout")
+async def auth_logout(
+    response: Response,
+    session_token: Optional[str] = Cookie(default=None),
+):
+    if session_token:
+        await db.user_sessions.delete_one({"session_token": session_token})
+    response.delete_cookie(SESSION_COOKIE, path="/", samesite="none", secure=True)
+    return {"ok": True}
+
+
+# ============================================================
+# Sections (per-user persistent snippet configurations)
+# ============================================================
+
+class SectionIn(BaseModel):
+    name: str = Field(default="Untitled section")
+    type: str
+    config: Dict[str, Any]
+
+
+class SectionUpdate(BaseModel):
+    name: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+
+
+class Section(BaseModel):
+    section_id: str
+    user_id: str
+    name: str
+    type: str
+    config: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
+
+
+@api_router.get("/sections", response_model=List[Section])
+async def list_sections(current_user: User = Depends(get_current_user)):
+    cursor = db.sections.find(
+        {"user_id": current_user.user_id}, {"_id": 0}
+    ).sort("updated_at", -1)
+    return [Section(**doc) async for doc in cursor]
+
+
+@api_router.post("/sections", response_model=Section)
+async def create_section(
+    payload: SectionIn, current_user: User = Depends(get_current_user)
+):
+    now = datetime.now(timezone.utc)
+    section = {
+        "section_id": f"sec_{uuid.uuid4().hex[:12]}",
+        "user_id": current_user.user_id,
+        "name": payload.name,
+        "type": payload.type,
+        "config": payload.config,
+        "created_at": now,
+        "updated_at": now,
+    }
+    await db.sections.insert_one(dict(section))
+    return Section(**section)
+
+
+@api_router.get("/sections/{section_id}", response_model=Section)
+async def get_section(
+    section_id: str, current_user: User = Depends(get_current_user)
+):
+    doc = await db.sections.find_one(
+        {"section_id": section_id, "user_id": current_user.user_id}, {"_id": 0}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Section not found")
+    return Section(**doc)
+
+
+@api_router.put("/sections/{section_id}", response_model=Section)
+async def update_section(
+    section_id: str,
+    payload: SectionUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    update = {"updated_at": datetime.now(timezone.utc)}
+    if payload.name is not None:
+        update["name"] = payload.name
+    if payload.config is not None:
+        update["config"] = payload.config
+    result = await db.sections.find_one_and_update(
+        {"section_id": section_id, "user_id": current_user.user_id},
+        {"$set": update},
+        return_document=True,
+        projection={"_id": 0},
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Section not found")
+    return Section(**result)
+
+
+@api_router.delete("/sections/{section_id}")
+async def delete_section(
+    section_id: str, current_user: User = Depends(get_current_user)
+):
+    result = await db.sections.delete_one(
+        {"section_id": section_id, "user_id": current_user.user_id}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Section not found")
+    return {"ok": True}
 
 
 @api_router.post("/upload")

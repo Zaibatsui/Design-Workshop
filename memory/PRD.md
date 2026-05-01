@@ -27,6 +27,16 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
   - `GET /api/files/{path:path}` → public proxy (snippet image URLs work in any CMS)
   - `POST /api/scrape-product` → BeautifulSoup scraper, returns `{name, price, image, url}` from ecommerce product pages (Nettailer/Misco/generic OpenGraph)
 
+## Bug fixes / Features
+- **2026-05-01 (Phase 1 — Auth + Persistence + Dashboard)**:
+  - Added Emergent-managed Google OAuth via the official playbook. `/api/auth/session` exchanges `session_id` for a 7-day httpOnly cookie + DB session; `/api/auth/me` returns current user; `/api/auth/logout` clears both. Cookie is `secure=true; samesite=none; httponly=true; path=/`. CORS_ORIGINS pinned to the frontend URL (was `*`) so credentialed requests work.
+  - **MongoDB collections**: `users` (custom `user_id` UUID), `user_sessions` (token + 7-day expiry), `sections` (per-user persistent snippet configs).
+  - **Sections CRUD** at `/api/sections` (list/create/get/update/delete) — all scoped by `user_id` from the authenticated session.
+  - **Frontend rebuild**: react-router-dom v7 with three routes — `/login` (Google sign-in screen), `/` (Dashboard, protected), `/edit/section/:sectionId` (Editor, protected). `AuthProvider` + `ProtectedRoute` + `AuthCallback` per playbook (synchronous `session_id` detection in render to prevent race conditions; `useRef` flag in callback for StrictMode safety; AuthProvider skips `/auth/me` when `#session_id=` is present).
+  - **Dashboard** — header w/ avatar + sign-out, "+ New section" button (Page button greyed-out for now), grid of saved sections each rendered as a live mini-iframe thumbnail (16:9 letterbox, `transform: scale(0.30)`) with name + type icon + "Edited X ago", hover-only delete button, empty state with primary CTA. Modal section picker shows all 9 section types as tiles.
+  - **Editor** — loads section by ID, renders with the section's persisted config, **debounced 1.5s autosave** on every config or name change, "Saving…/Saved just now" indicator in the header. Inline-editable section name (`<Input>` styled flat). Back-to-dashboard link in the form sidebar header. Reset confirmation. The old localStorage-only multi-section state was removed — the editor is now strictly single-section per route.
+  - **Verified end-to-end** with a seeded test session (see `/app/memory/test_credentials.md`): unauthed lands on /login, cookie injection yields dashboard with avatar, "+ New section" → picker → "Hero" creates a record and routes to its editor, renaming triggers autosave (visible "Saved just now"), back navigates to dashboard with the new card showing a live rendered hero preview thumbnail.
+
 ## Sections implemented (2026-05-01 consolidation)
 1. **Hero** — unified hero with `transition: slide | fade` switch; replaces the old two hero sections
 2. **Content Block** — heading + optional body + optional primary/secondary buttons; replaces the old Content Heading + Account CTA

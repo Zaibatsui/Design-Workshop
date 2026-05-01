@@ -1,45 +1,127 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Copy, Sparkles, ExternalLink, RotateCcw } from "lucide-react";
-import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
+import { Input } from "@/components/ui/input";
+import {
+  Copy,
+  Sparkles,
+  ExternalLink,
+  RotateCcw,
+  ArrowLeft,
+  Check,
+  Loader2,
+} from "lucide-react";
+import { SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
 import SectionRail from "@/components/SectionRail";
+import { api } from "@/lib/api";
+
+const AUTOSAVE_MS = 1500;
 
 export default function Editor() {
-  // Per-section config. Each section type keeps its own config when user
-  // switches away and back.
-  const [sectionConfigs, setSectionConfigs] = useState(() =>
-    Object.fromEntries(SECTIONS.map((s) => [s.id, s.defaults()]))
-  );
-  const [activeId, setActiveId] = useState("hero");
+  const { sectionId } = useParams();
+  const navigate = useNavigate();
+
+  const [section, setSection] = useState(null); // { section_id, name, type, config, ... }
+  const [loadError, setLoadError] = useState(null);
+  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+  const [savedAt, setSavedAt] = useState(null);
   const [previewWidth, setPreviewWidth] = useState("desktop");
 
-  const def = SECTIONS_BY_ID[activeId];
-  const config = sectionConfigs[activeId];
+  // Initial fetch
+  useEffect(() => {
+    let cancelled = false;
+    setSection(null);
+    setLoadError(null);
+    api
+      .getSection(sectionId)
+      .then((doc) => {
+        if (!cancelled) setSection(doc);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        if (e.status === 404) setLoadError("not_found");
+        else setLoadError("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sectionId]);
+
+  const def = section ? SECTIONS_BY_ID[section.type] : null;
+
+  // Debounced autosave
+  const dirty = useRef(null); // pending patch
+  const timer = useRef(null);
+  const inflight = useRef(false);
+
+  const flushSave = async () => {
+    if (!dirty.current || inflight.current) return;
+    const patch = dirty.current;
+    dirty.current = null;
+    inflight.current = true;
+    setSaveStatus("saving");
+    try {
+      const updated = await api.updateSection(sectionId, patch);
+      setSection(updated);
+      setSavedAt(Date.now());
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("error");
+    } finally {
+      inflight.current = false;
+      // If changes piled up while saving, schedule another flush
+      if (dirty.current) {
+        clearTimeout(timer.current);
+        timer.current = setTimeout(flushSave, AUTOSAVE_MS);
+      }
+    }
+  };
+
+  const queueSave = (patch) => {
+    dirty.current = { ...(dirty.current || {}), ...patch };
+    setSaveStatus("saving");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(flushSave, AUTOSAVE_MS);
+  };
+
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   const updateConfig = (patch) => {
-    setSectionConfigs((prev) => ({
-      ...prev,
-      [activeId]:
-        typeof patch === "function"
-          ? patch(prev[activeId])
-          : { ...prev[activeId], ...patch },
-    }));
+    setSection((prev) => {
+      if (!prev) return prev;
+      const nextConfig =
+        typeof patch === "function" ? patch(prev.config) : { ...prev.config, ...patch };
+      queueSave({ config: nextConfig });
+      return { ...prev, config: nextConfig };
+    });
+  };
+
+  const renameSection = (name) => {
+    setSection((prev) => (prev ? { ...prev, name } : prev));
+    queueSave({ name });
   };
 
   const resetSection = () => {
-    setSectionConfigs((prev) => ({ ...prev, [activeId]: def.defaults() }));
+    if (!def) return;
+    if (!window.confirm(`Reset ${def.name} to defaults? This will overwrite the current settings.`)) return;
+    const fresh = def.defaults();
+    setSection((prev) => (prev ? { ...prev, config: fresh } : prev));
+    queueSave({ config: fresh });
     toast.success(`Reset ${def.name}`);
   };
 
-  const snippet = useMemo(() => def.render(config), [def, config]);
+  const snippet = useMemo(
+    () => (def && section ? def.render(section.config) : ""),
+    [def, section]
+  );
   const previewHtml = useMemo(() => previewDoc(snippet), [snippet]);
 
   const copySnippet = async () => {
-    // Fresh uid on every copy so each pasted snippet has its own scope.
-    const fresh = { ...config, uid: makeUid() };
+    if (!def || !section) return;
+    const fresh = { ...section.config, uid: makeUid() };
     const out = def.render(fresh);
     try {
       await navigator.clipboard.writeText(out);
@@ -51,15 +133,33 @@ export default function Editor() {
     }
   };
 
-  const previewWidths = {
-    desktop: "100%",
-    tablet: "820px",
-    mobile: "390px",
+  const previewWidths = { desktop: "100%", tablet: "820px", mobile: "390px" };
+
+  // The rail's "switch type" semantics changes meaning here: it should NAVIGATE
+  // to a different section of the user's library or a new section. Disable for now.
+  const onSelectFromRail = () => {
+    // No-op in single-section editor mode. The rail still shows visual context.
   };
+
+  if (loadError === "not_found") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-3">
+        <p className="text-slate-700">This section no longer exists.</p>
+        <Button onClick={() => navigate("/")}>Back to dashboard</Button>
+      </div>
+    );
+  }
+  if (!section || !def) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-sm text-slate-500">Loading…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-body text-slate-900">
-      <SectionRail activeId={activeId} onSelect={setActiveId} />
+      <SectionRail activeId={section.type} onSelect={onSelectFromRail} />
 
       {/* Form sidebar */}
       <aside
@@ -67,28 +167,32 @@ export default function Editor() {
         className="w-80 lg:w-96 flex-shrink-0 border-r border-slate-200 bg-white h-screen overflow-y-auto"
       >
         <div className="px-5 py-4 border-b border-slate-200 sticky top-0 bg-white z-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-md bg-[#E01839] flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <div className="min-w-0">
-                <h1
-                  className="font-heading text-base font-semibold tracking-tight leading-none truncate"
-                  data-testid="active-section-name"
-                >
-                  {def.name}
-                </h1>
-                <p className="text-xs text-slate-500 mt-0.5 truncate">
-                  {def.description}
-                </p>
+          <button
+            onClick={() => navigate("/")}
+            data-testid="back-to-dashboard"
+            className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors mb-3"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            All sections
+          </button>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <Input
+                value={section.name}
+                onChange={(e) => renameSection(e.target.value)}
+                data-testid="section-name-input"
+                className="font-heading text-base font-semibold tracking-tight border-0 px-0 h-auto py-0 shadow-none focus-visible:ring-0 truncate"
+              />
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mt-1">
+                <Sparkles className="w-3 h-3" />
+                {def.name}
               </div>
             </div>
             <button
               type="button"
               onClick={resetSection}
               data-testid="reset-section"
-              className="p-2 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+              className="p-2 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0"
               title="Reset to defaults"
             >
               <RotateCcw className="w-4 h-4" />
@@ -97,7 +201,7 @@ export default function Editor() {
         </div>
 
         <div className="px-4 py-5">
-          <def.FormPanel config={config} onUpdate={updateConfig} />
+          <def.FormPanel config={section.config} onUpdate={updateConfig} />
         </div>
       </aside>
 
@@ -126,10 +230,7 @@ export default function Editor() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-400 hidden md:inline">
-              instance:{" "}
-              <code className="font-mono text-slate-600">{config.uid}</code>
-            </span>
+            <SaveIndicator status={saveStatus} savedAt={savedAt} />
             <Button
               data-testid="copy-snippet-button"
               onClick={copySnippet}
@@ -147,7 +248,7 @@ export default function Editor() {
             style={{ maxWidth: previewWidths[previewWidth], width: "100%" }}
             data-testid="preview-container"
           >
-            <PreviewFrame doc={previewHtml} sectionId={activeId} />
+            <PreviewFrame doc={previewHtml} sectionId={section.type} />
           </div>
 
           <SnippetDrawer snippet={snippet} onCopy={copySnippet} />
@@ -159,9 +260,51 @@ export default function Editor() {
   );
 }
 
+function SaveIndicator({ status, savedAt }) {
+  const [, force] = useState(0);
+  useEffect(() => {
+    if (status !== "saved") return;
+    const i = setInterval(() => force((n) => n + 1), 15000);
+    return () => clearInterval(i);
+  }, [status]);
+
+  if (status === "saving") {
+    return (
+      <span
+        data-testid="save-indicator"
+        className="text-xs text-slate-500 flex items-center gap-1.5"
+      >
+        <Loader2 className="w-3 h-3 animate-spin" />
+        Saving…
+      </span>
+    );
+  }
+  if (status === "error") {
+    return (
+      <span
+        data-testid="save-indicator"
+        className="text-xs text-red-600 flex items-center gap-1.5"
+      >
+        Save failed
+      </span>
+    );
+  }
+  if (status === "saved" && savedAt) {
+    const sec = Math.floor((Date.now() - savedAt) / 1000);
+    return (
+      <span
+        data-testid="save-indicator"
+        className="text-xs text-slate-500 flex items-center gap-1.5"
+      >
+        <Check className="w-3 h-3 text-emerald-500" />
+        Saved {sec < 5 ? "just now" : `${sec}s ago`}
+      </span>
+    );
+  }
+  return null;
+}
+
 function PreviewFrame({ doc, sectionId }) {
-  // Adjust iframe height so each section type gets sensible default vertical
-  // space without scrollbars in the canvas.
   const heightMap = {
     hero: 640,
     content: 300,
@@ -212,7 +355,8 @@ function SnippetDrawer({ snippet, onCopy }) {
           <div className="border-t border-slate-200">
             <div className="flex items-center justify-between px-5 py-2 bg-slate-50 border-b border-slate-200">
               <span className="text-xs text-slate-500">
-                Self-contained · scoped CSS · multi-instance safe · Poppins import included
+                Self-contained · scoped CSS · multi-instance safe · Poppins
+                import included
               </span>
               <Button
                 size="sm"

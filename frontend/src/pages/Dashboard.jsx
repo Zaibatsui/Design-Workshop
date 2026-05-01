@@ -1,0 +1,302 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  Plus,
+  Trash2,
+  LogOut,
+  FileStack,
+  Layers,
+} from "lucide-react";
+import { useAuth } from "@/auth/AuthContext";
+import { api } from "@/lib/api";
+import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
+import { previewDoc, makeUid } from "@/sections/shared";
+
+export default function Dashboard() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [picker, setPicker] = useState(false);
+
+  const load = async () => {
+    try {
+      const data = await api.listSections();
+      setSections(data);
+    } catch (e) {
+      toast.error("Could not load sections");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const createSection = async (typeId) => {
+    const def = SECTIONS_BY_ID[typeId];
+    if (!def) return;
+    try {
+      const created = await api.createSection({
+        name: `New ${def.name}`,
+        type: typeId,
+        config: def.defaults(),
+      });
+      setPicker(false);
+      navigate(`/edit/section/${created.section_id}`);
+    } catch {
+      toast.error("Could not create section");
+    }
+  };
+
+  const removeSection = async (id) => {
+    if (!window.confirm("Delete this section permanently?")) return;
+    try {
+      await api.deleteSection(id);
+      setSections((s) => s.filter((x) => x.section_id !== id));
+      toast.success("Section deleted");
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-[#E01839] flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-heading text-base font-semibold tracking-tight">
+              Section Builder
+            </span>
+          </Link>
+          <div className="flex items-center gap-3">
+            {user?.picture ? (
+              <img
+                src={user.picture}
+                alt=""
+                className="w-8 h-8 rounded-full border border-slate-200"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-slate-200" />
+            )}
+            <span className="text-sm text-slate-700 hidden md:inline">
+              {user?.name}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              data-testid="logout-button"
+              className="text-slate-500 hover:text-slate-900"
+            >
+              <LogOut className="w-4 h-4 mr-1.5" />
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="font-heading text-3xl font-semibold tracking-tight">
+              Your library
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {sections.length} section{sections.length === 1 ? "" : "s"} ·
+              everything autosaves while you edit
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              data-testid="new-section-button"
+              onClick={() => setPicker(true)}
+              className="bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              New section
+            </Button>
+            <Button
+              variant="outline"
+              disabled
+              title="Page builder coming in the next phase"
+              data-testid="new-page-button"
+              className="font-medium"
+            >
+              <FileStack className="w-4 h-4 mr-1.5" />
+              New page
+              <span className="ml-2 text-[10px] uppercase tracking-wider text-slate-400">
+                soon
+              </span>
+            </Button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-sm text-slate-500">Loading…</div>
+        ) : sections.length === 0 ? (
+          <EmptyState onCreate={() => setPicker(true)} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {sections.map((s) => (
+              <SectionCard
+                key={s.section_id}
+                section={s}
+                onDelete={() => removeSection(s.section_id)}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+
+      {picker && (
+        <SectionPicker onPick={createSection} onClose={() => setPicker(false)} />
+      )}
+      <Toaster richColors position="top-center" />
+    </div>
+  );
+}
+
+function SectionCard({ section, onDelete }) {
+  const def = SECTIONS_BY_ID[section.type];
+  if (!def) return null;
+  const Icon = def.icon || Layers;
+  // Stamp a fresh uid for the preview so iframe-internal IIFEs don't conflict
+  const previewSnippet = def.render({ ...section.config, uid: makeUid() });
+  const doc = previewDoc(previewSnippet);
+  const updated = new Date(section.updated_at);
+  return (
+    <div
+      data-testid={`section-card-${section.section_id}`}
+      className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all"
+    >
+      <Link
+        to={`/edit/section/${section.section_id}`}
+        className="block aspect-[16/9] bg-slate-100 overflow-hidden relative"
+      >
+        <iframe
+          title={section.name}
+          srcDoc={doc}
+          sandbox="allow-scripts allow-same-origin"
+          className="w-[1280px] h-[720px] origin-top-left scale-[0.30] border-0 pointer-events-none block"
+          style={{ transform: "scale(0.30)" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      </Link>
+      <div className="p-4 flex items-center justify-between gap-3">
+        <Link
+          to={`/edit/section/${section.section_id}`}
+          className="min-w-0 flex-1"
+        >
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+            <Icon className="w-3 h-3" />
+            {def.name}
+          </div>
+          <p
+            className="text-sm font-medium text-slate-900 truncate"
+            data-testid="section-card-name"
+          >
+            {section.name}
+          </p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Edited {timeAgo(updated)}
+          </p>
+        </Link>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
+          data-testid={`delete-${section.section_id}`}
+          className="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Delete"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ onCreate }) {
+  return (
+    <div className="bg-white rounded-xl border border-dashed border-slate-300 py-20 px-6 text-center">
+      <div className="w-12 h-12 rounded-xl bg-slate-100 mx-auto flex items-center justify-center mb-4">
+        <Layers className="w-5 h-5 text-slate-400" />
+      </div>
+      <h2 className="font-heading text-lg font-semibold mb-2">
+        Nothing here yet
+      </h2>
+      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
+        Create your first section — pick a type, customise it, and copy the
+        snippet into your CMS. Everything autosaves.
+      </p>
+      <Button
+        onClick={onCreate}
+        className="bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
+        data-testid="empty-create-button"
+      >
+        <Plus className="w-4 h-4 mr-1.5" />
+        Create your first section
+      </Button>
+    </div>
+  );
+}
+
+function SectionPicker({ onPick, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 flex items-center justify-center p-6"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto p-8 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        data-testid="section-picker"
+      >
+        <h2 className="font-heading text-xl font-semibold tracking-tight mb-1">
+          Choose a section type
+        </h2>
+        <p className="text-sm text-slate-500 mb-6">
+          You can always change settings inside the editor.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {SECTIONS.map((s) => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.id}
+                data-testid={`picker-${s.id}`}
+                onClick={() => onPick(s.id)}
+                className="text-left p-4 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+              >
+                <Icon className="w-5 h-5 text-[#E01839] mb-2" />
+                <p className="text-sm font-medium text-slate-900">{s.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                  {s.description}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function timeAgo(date) {
+  const sec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (sec < 60) return "just now";
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
+  if (sec < 86400 * 30) return `${Math.floor(sec / 86400)}d ago`;
+  return date.toLocaleDateString();
+}
