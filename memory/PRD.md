@@ -26,6 +26,11 @@ Users need to author reusable content sections that drop into their live e-comme
 - 2026-05-01: **OAuth redirect_uri_mismatch fixed** via `ForwardedHostMiddleware` (rewrites scope.server + Host header from X-Forwarded-Host).
 - 2026-05-01: **Hybrid Page Builder** shipped — Pages entity, `/api/pages` CRUD, dashboard tabs, `PageEditor` with drag-and-drop via @dnd-kit, tiptap rich-text blocks, library-section snapshot insertion, single-snippet export.
 - 2026-05-01: **P2 batch** — section & page duplication endpoints (`POST /api/{sections,pages}/{id}/duplicate`), dashboard card drag-and-drop reordering with `position` field + `PUT /api/{sections,pages}/reorder/bulk`, server-side richtext HTML sanitization via `bleach` (strips `<script>`, event handlers, `javascript:` URLs, limits protocols to http/https/mailto), backend refactored from ~900-line `server.py` into `db.py` / `deps.py` / `storage.py` + `routers/{auth,sections,pages,uploads,scraper}.py` (slim `server.py` ~130 lines), frontend `Dashboard.jsx` split into `SectionsTab` / `PagesTab` / `dashboard/common.jsx`.
+- 2026-05-01: Dropped legacy top-level `BlockIn.html` field (migrated 1 page's 3 null-value blocks; removed from schema + normalizer). Renamed `data-testid=section-card-name`/`page-card-name` → `...-title`.
+- 2026-05-01: Bulk-write reorder — `PUT /api/{sections,pages}/reorder/bulk` now issues a single `bulk_write(UpdateOne..., ordered=False)` instead of N sequential `update_one` calls.
+- 2026-05-01: **Page templates** — 7 built-in templates (Blank, Landing, Product detail, Category hub, About us, Pricing, Blog post). Template picker modal opens on "New page" click. **Save as template** via `POST /api/page-templates` stores a user-scoped snapshot (block_ids stripped); DELETE + LIST endpoints round out the CRUD; custom templates surface alongside built-ins in the picker.
+- 2026-05-01: **Richtext passthrough** — server-side bleach sanitization REMOVED at user request. `<script>`, `<iframe>`, inline handlers, `javascript:` URLs are now persisted and rendered verbatim. Block editor gets a **Visual / HTML Source** mode toggle with a raw-HTML textarea in source mode.
+- 2026-05-01: **Block names** — every block has an optional `name` field editable at the top of the block drawer; sidebar shows the custom name when set, falling back to the type label.
 
 ## Roadmap / Backlog
 **P1**
@@ -40,12 +45,16 @@ Users need to author reusable content sections that drop into their live e-comme
 
 **P3 / future**
 - Tighter `BlockIn` pydantic validation (reject `richtext` with no html, `section` with no section_type).
-- Rename `data-testid="section-card-name"` / `page-card-name` → `...-title` to avoid prefix-selector shadowing during Playwright automation. **(done)**
-- Drop the legacy top-level `BlockIn.html` field once all documents have migrated to `config.html`. **(done)**
-- Batch the N-updateOne reorder loop into `bulk_write(UpdateOne...)` for perf + atomicity. **(done)**
-- Page templates: one-click "Landing page" / "Product detail" / "Category hub" starters. **(done)**
-- More page templates (e.g. "About us", "Pricing", "Blog post") as the catalogue grows.
-- Custom user-authored templates (save current page as a template for future reuse).
+- Rename `data-testid="section-card-name"` / `page-card-name` → `...-title` **(done)**
+- Drop the legacy top-level `BlockIn.html` field **(done)**
+- Batch the N-updateOne reorder loop into `bulk_write(UpdateOne...)` **(done)**
+- Page templates: one-click "Landing page" / "Product detail" / "Category hub" starters **(done)**
+- More page templates — About us, Pricing, Blog post **(done)**
+- "Save as template" (custom user-authored templates) **(done)**
+- Richtext raw-HTML passthrough + Visual/Source mode toggle **(done)**
+- Editable block names **(done)**
+- Split `PageEditor.jsx` (~907 lines) — block drawer + block adder into their own files.
+- Custom templates preview thumbnails in the picker (currently just a description).
 
 **P0 security / operations**
 - User must rotate their Google Client Secret in Google Cloud Console (it was pasted in plaintext in an earlier chat).
