@@ -16,6 +16,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
+import { previewHeightFor } from "@/sections/previewHeights";
 import { BRAND } from "@/lib/brand";
 
 const PAGE_SIZE = 9;
@@ -95,7 +96,7 @@ export default function Dashboard() {
               {BRAND.name}
             </span>
             <span className="hidden md:inline ml-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Zaibatsu Labs
+              Zaibatsui Labs
             </span>
           </Link>
           <div className="flex items-center gap-3">
@@ -203,6 +204,14 @@ function SectionCard({ section, onDelete }) {
   const previewSnippet = def.render({ ...section.config, uid: makeUid() });
   const doc = previewDoc(previewSnippet);
   const updated = new Date(section.updated_at);
+
+  // Size the thumbnail to match the section's actual rendered height — avoids
+  // a tall card with empty white space below short sections (logos, content).
+  const iframeWidth = 1280;
+  const iframeHeight = previewHeightFor(section.type);
+  const scale = 0.3;
+  const cardThumbHeight = iframeHeight * scale; // px the iframe occupies after scaling
+
   return (
     <div
       data-testid={`section-card-${section.section_id}`}
@@ -210,14 +219,19 @@ function SectionCard({ section, onDelete }) {
     >
       <Link
         to={`/edit/section/${section.section_id}`}
-        className="block aspect-[16/9] bg-slate-100 overflow-hidden relative"
+        className="block bg-slate-100 overflow-hidden relative"
+        style={{ height: `${cardThumbHeight}px` }}
       >
         <iframe
           title={section.name}
           srcDoc={doc}
           sandbox="allow-scripts allow-same-origin"
-          className="w-[1280px] h-[720px] origin-top-left scale-[0.30] border-0 pointer-events-none block"
-          style={{ transform: "scale(0.30)" }}
+          className="origin-top-left border-0 pointer-events-none block"
+          style={{
+            width: `${iframeWidth}px`,
+            height: `${iframeHeight}px`,
+            transform: `scale(${scale})`,
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>

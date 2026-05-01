@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
+import { previewHeightFor } from "@/sections/previewHeights";
 import SectionRail from "@/components/SectionRail";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
@@ -305,18 +306,7 @@ function SaveIndicator({ status, savedAt }) {
 }
 
 function PreviewFrame({ doc, sectionId }) {
-  const heightMap = {
-    hero: 640,
-    content: 300,
-    products: 540,
-    resources: 480,
-    insights: 320,
-    placeholder: 480,
-    logos: 160,
-    break: 380,
-    tabs: 560,
-  };
-  const h = heightMap[sectionId] || 600;
+  const h = previewHeightFor(sectionId);
   return (
     <iframe
       key={sectionId}

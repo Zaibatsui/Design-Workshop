@@ -45,7 +45,7 @@ export default function Login() {
             {BRAND.name}
           </span>
           <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-            Zaibatsu Labs
+            Zaibatsui Labs
           </span>
         </div>
         <h1 className="text-3xl font-heading font-semibold tracking-tight leading-tight mb-3 text-slate-900">
