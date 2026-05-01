@@ -44,17 +44,13 @@ Users need to author reusable content sections that drop into their live e-comme
 - (done) Refactor `server.py` into routers; split `Dashboard.jsx` into SectionsTab/PagesTab.
 
 **P3 / future**
-- Tighter `BlockIn` pydantic validation (reject `richtext` with no html, `section` with no section_type).
-- Rename `data-testid="section-card-name"` / `page-card-name` → `...-title` **(done)**
-- Drop the legacy top-level `BlockIn.html` field **(done)**
-- Batch the N-updateOne reorder loop into `bulk_write(UpdateOne...)` **(done)**
-- Page templates: one-click "Landing page" / "Product detail" / "Category hub" starters **(done)**
-- More page templates — About us, Pricing, Blog post **(done)**
-- "Save as template" (custom user-authored templates) **(done)**
-- Richtext raw-HTML passthrough + Visual/Source mode toggle **(done)**
-- Editable block names **(done)**
-- Split `PageEditor.jsx` (~907 lines) — block drawer + block adder into their own files.
-- Custom templates preview thumbnails in the picker (currently just a description).
+- Tighter `BlockIn` pydantic validation **(done)**
+- Apply library-rail pattern to `PageEditor.jsx` **(done)**
+- Split `PageEditor.jsx` (~907 → 405 lines + 7 focused sub-components) **(done)**
+- Extract `BlockIn` to `/app/backend/models/blocks.py` and remove the cross-router import smell.
+- Custom templates preview thumbnails in the picker.
+- Auth-gate `POST /api/scrape-product` (currently public — pre-existing).
+- Inline rename of library-rail rows (double-click).
 
 **P0 security / operations**
 - User must rotate their Google Client Secret in Google Cloud Console (it was pasted in plaintext in an earlier chat).
