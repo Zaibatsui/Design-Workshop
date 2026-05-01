@@ -31,8 +31,8 @@ const sampleCard = (i) => ({
   id: makeUid(),
   icon:
     i === 1
-      ? "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=200&auto=format&fit=crop"
-      : "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=200&auto=format&fit=crop",
+      ? "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop"
+      : "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=800&auto=format&fit=crop",
   heading: i === 1 ? "Explore our latest articles" : "See how we support our customers",
   body:
     i === 1
