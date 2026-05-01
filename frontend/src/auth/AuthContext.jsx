@@ -20,12 +20,6 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // CRITICAL: If returning from OAuth callback, skip the /me check.
-    // AuthCallback will exchange the session_id and establish the session first.
-    if (window.location.hash?.includes("session_id=")) {
-      setLoading(false);
-      return;
-    }
     checkAuth();
   }, [checkAuth]);
 
@@ -52,8 +46,9 @@ export function useAuth() {
   return useContext(AuthCtx);
 }
 
-// REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+// Direct Google OAuth — user lands on Google's consent screen straight away.
+// No intermediate provider screen. Backend handles the redirect dance and
+// drops a session_token cookie before sending the user back to "/".
 export function startLogin() {
-  const redirectUrl = window.location.origin + "/";
-  window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  window.location.href = `${API}/api/auth/google/login`;
 }

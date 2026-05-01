@@ -28,6 +28,15 @@ Modular WYSIWYG editor for reusable ecommerce content sections. Each section is 
   - `POST /api/scrape-product` → BeautifulSoup scraper, returns `{name, price, image, url}` from ecommerce product pages (Nettailer/Misco/generic OpenGraph)
 
 ## Bug fixes / Features
+- **2026-05-01 (Auth swap — Emergent → direct Google OAuth)**:
+  - Replaced Emergent-managed Google login with the user's own Google Cloud OAuth client. Users now go straight from "Sign in with Google" to Google's consent screen — no Emergent intermediary.
+  - Backend: `Authlib` for the OAuth dance, `SessionMiddleware` (signed cookie, 10-min TTL, `https_only`) only for OAuth state during the redirect. Two new endpoints: `GET /api/auth/google/login` (302 → Google), `GET /api/auth/google/callback` (exchange code → upsert user → mint `session_token` → drop cookie → redirect to `/`). Old `POST /api/auth/session` removed.
+  - Reads `X-Forwarded-Proto` so the redirect URI handed to Google is `https://...` (was `http://...` because Kubernetes ingress hides the original scheme — would have triggered Google's `redirect_uri_mismatch` error otherwise).
+  - Cookie samesite changed `none` → `lax` (Google redirects back via top-level navigation; lax is sufficient and slightly more secure).
+  - Frontend: `startLogin()` now points at `${API}/api/auth/google/login`. `AuthCallback.jsx` deleted (backend handles the whole dance). `App.js` no longer needs the `#session_id=` synchronous detection.
+  - Existing users keyed by email auto-reattach when the same Google account signs in.
+  - New env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OAUTH_STATE_SECRET`. Dependencies added: `Authlib==1.7.0`, `itsdangerous==2.2.0`.
+
 - **2026-05-01 (Branding + UX polish — Design Workshop)**:
   - Renamed app from "Section Builder" to **Design Workshop** with the Zaibatsu Labs caption. Centralized in `frontend/src/lib/brand.js` (single source of truth — name, short name, icon, container class).
   - Brand mark switched from `Sparkles` icon to Lucide's **`PencilRuler`** — semantic match for "design workshop" (crossed pencil + ruler is the classic design-tool glyph).

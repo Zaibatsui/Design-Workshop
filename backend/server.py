@@ -1,5 +1,7 @@
 from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Request, Response, Cookie, Depends
-from fastapi.responses import Response as FastAPIResponse
+from fastapi.responses import Response as FastAPIResponse, RedirectResponse
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -13,6 +15,7 @@ import uuid
 import json
 import re
 import requests
+import secrets
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).parent
@@ -29,7 +32,11 @@ APP_NAME = os.environ.get("APP_NAME", "modular-pages")
 
 SESSION_COOKIE = "session_token"
 SESSION_TTL_DAYS = 7
-EMERGENT_AUTH_SESSION_DATA = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+
+# Google OAuth (REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH)
+GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
+GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
+OAUTH_STATE_SECRET = os.environ["OAUTH_STATE_SECRET"]
 
 storage_key = None  # session-scoped
 
@@ -119,8 +126,15 @@ class User(BaseModel):
     created_at: datetime
 
 
-class SessionExchangeRequest(BaseModel):
-    session_id: str
+# Authlib OAuth client (registered once at module load)
+oauth = OAuth()
+oauth.register(
+    name="google",
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"},
+)
 
 
 async def get_current_user(
@@ -158,31 +172,41 @@ async def get_current_user(
     return User(**user_doc)
 
 
-@api_router.post("/auth/session")
-async def auth_session(payload: SessionExchangeRequest, response: Response):
-    # Exchange session_id with Emergent Auth for full session data
+# REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+@api_router.get("/auth/google/login")
+async def google_login(request: Request):
+    # Build the redirect URI dynamically from the incoming request so it works
+    # in any environment (preview, deployed, custom domain). Must exactly match
+    # one of the URIs registered in Google Cloud Console.
+    # Behind the Kubernetes ingress the request appears as HTTP; honor the
+    # X-Forwarded-Proto header so we hand Google an https:// callback URL.
+    redirect_uri = str(request.url_for("google_callback"))
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    if forwarded_proto and redirect_uri.startswith(f"{forwarded_proto}://") is False:
+        redirect_uri = forwarded_proto + redirect_uri[redirect_uri.index("://"):]
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@api_router.get("/auth/google/callback", name="google_callback")
+async def google_callback(request: Request):
     try:
-        resp = requests.get(
-            EMERGENT_AUTH_SESSION_DATA,
-            headers={"X-Session-ID": payload.session_id},
-            timeout=15,
-        )
-    except Exception as e:
-        logger.error("Emergent auth call failed: %s", e)
-        raise HTTPException(status_code=502, detail="Auth provider unreachable")
+        token = await oauth.google.authorize_access_token(request)
+    except OAuthError as e:
+        logger.warning("Google OAuth failed: %s", e)
+        return RedirectResponse(url="/login?error=oauth_failed", status_code=302)
 
-    if resp.status_code != 200:
-        raise HTTPException(status_code=401, detail="Invalid session_id")
+    userinfo = token.get("userinfo")
+    if not userinfo:
+        # Fallback: parse the id_token if userinfo isn't in the token bundle
+        userinfo = token.get("id_token_claims") or {}
 
-    data = resp.json()
-    email = data.get("email")
-    name = data.get("name")
-    picture = data.get("picture")
-    session_token = data.get("session_token")
-    if not (email and session_token):
-        raise HTTPException(status_code=502, detail="Auth provider returned incomplete data")
+    email = userinfo.get("email")
+    name = userinfo.get("name") or email
+    picture = userinfo.get("picture")
+    if not email:
+        return RedirectResponse(url="/login?error=no_email", status_code=302)
 
-    # Upsert user (by email)
+    # Upsert user keyed by email so existing accounts re-attach automatically.
     existing = await db.users.find_one({"email": email}, {"_id": 0})
     if existing:
         user_id = existing["user_id"]
@@ -200,30 +224,28 @@ async def auth_session(payload: SessionExchangeRequest, response: Response):
             "created_at": datetime.now(timezone.utc),
         })
 
-    # Persist session
+    # Mint our app session token + cookie. Authlib's OAuth state cookie is
+    # separate (managed by SessionMiddleware) and only used during the dance.
+    session_token = secrets.token_urlsafe(48)
     expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_TTL_DAYS)
-    await db.user_sessions.update_one(
-        {"session_token": session_token},
-        {"$set": {
-            "session_token": session_token,
-            "user_id": user_id,
-            "expires_at": expires_at,
-            "created_at": datetime.now(timezone.utc),
-        }},
-        upsert=True,
-    )
+    await db.user_sessions.insert_one({
+        "session_token": session_token,
+        "user_id": user_id,
+        "expires_at": expires_at,
+        "created_at": datetime.now(timezone.utc),
+    })
 
+    response = RedirectResponse(url="/", status_code=302)
     response.set_cookie(
         key=SESSION_COOKIE,
         value=session_token,
         max_age=SESSION_TTL_DAYS * 24 * 60 * 60,
         httponly=True,
         secure=True,
-        samesite="none",
+        samesite="lax",
         path="/",
     )
-    user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0})
-    return User(**user_doc)
+    return response
 
 
 @api_router.get("/auth/me", response_model=User)
@@ -238,7 +260,7 @@ async def auth_logout(
 ):
     if session_token:
         await db.user_sessions.delete_one({"session_token": session_token})
-    response.delete_cookie(SESSION_COOKIE, path="/", samesite="none", secure=True)
+    response.delete_cookie(SESSION_COOKIE, path="/", samesite="lax", secure=True)
     return {"ok": True}
 
 
@@ -748,6 +770,18 @@ def _looks_like_logo(src: str) -> bool:
 
 
 app.include_router(api_router)
+
+# SessionMiddleware is required by Authlib to track OAuth state across the
+# Google redirect dance. Uses a separate signed cookie ("session") that's only
+# read during /api/auth/google/* — our app session is a separate "session_token"
+# cookie tied to user_sessions in MongoDB.
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=OAUTH_STATE_SECRET,
+    same_site="lax",
+    https_only=True,
+    max_age=600,  # 10 min — only needs to survive the OAuth redirect
+)
 
 app.add_middleware(
     CORSMiddleware,
