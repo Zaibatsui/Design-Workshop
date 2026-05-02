@@ -22,6 +22,7 @@ import {
 import PageRail from "./page-editor/PageRail";
 import BlockAdder from "./page-editor/BlockAdder";
 import BlockEditorDrawer from "./page-editor/BlockEditorDrawer";
+import EmptyBlockEditor from "./page-editor/EmptyBlockEditor";
 import SaveIndicator from "./page-editor/SaveIndicator";
 import PagePreviewFrame from "./page-editor/PagePreviewFrame";
 import SaveAsTemplateDialog from "./page-editor/SaveAsTemplateDialog";
@@ -60,7 +61,13 @@ export default function PageEditor() {
       const template = location.state?.template || null;
       const name =
         template && template.id !== "blank" ? template.name : "Untitled page";
-      const blocks = template ? template.blocks : [];
+      // Template blocks live in memory until first save — stamp a block_id
+      // on each one now so they can be selected, dragged, deleted, and
+      // edited in the rail before the DB-side normalization runs.
+      const blocks = (template?.blocks || []).map((b) => ({
+        ...b,
+        block_id: b.block_id || `blk_${Math.random().toString(36).slice(2, 10)}`,
+      }));
       setPage({ page_id: null, name, blocks });
       setLoadError(null);
       return undefined;
@@ -428,34 +435,6 @@ export default function PageEditor() {
 
       <Toaster richColors position="top-center" />
     </div>
-  );
-}
-
-function EmptyBlockEditor({ onAdd }) {
-  return (
-    <aside
-      data-testid="empty-block-editor"
-      className="w-96 flex-shrink-0 border-r border-slate-200 bg-white h-screen flex flex-col items-center justify-center p-8 text-center"
-    >
-      <div className="w-12 h-12 rounded-xl bg-slate-100 mx-auto flex items-center justify-center mb-4">
-        <Layers className="w-5 h-5 text-slate-400" />
-      </div>
-      <h2 className="font-heading text-base font-semibold mb-2">
-        No block selected
-      </h2>
-      <p className="text-sm text-slate-500 max-w-xs mb-6">
-        Pick a block from the rail to edit its settings, or add a new one to
-        start composing this page.
-      </p>
-      <Button
-        onClick={onAdd}
-        size="sm"
-        className="bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
-      >
-        <Plus className="w-4 h-4 mr-1.5" />
-        Add block
-      </Button>
-    </aside>
   );
 }
 

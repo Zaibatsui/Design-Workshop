@@ -12,29 +12,69 @@ import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
 
 /**
- * Surfaces unhandled promise rejections (chunk-load failures) as a sticky
- * toast with a "Reload" action. Render-time errors are caught by the
- * top-level ErrorBoundary in index.js. Toasts are picked up by whichever
- * page-scoped <Toaster /> is mounted.
+ * Surfaces runtime errors that bypass the render-time ErrorBoundary as
+ * sticky toasts:
+ *   - `unhandledrejection` covers async/Promise failures (chunk loads,
+ *     awaited fetches, etc.).
+ *   - `error` covers synchronous handler exceptions (DataCloneError on a
+ *     bad navigate() payload, manual throws, etc.) — those bubble to the
+ *     window without ever reaching React's render tree.
+ *
+ * Chunk-load failures get a "Reload" CTA (a reload picks up the new bundle).
+ * Anything else gets a generic developer-visible toast so silent breakage
+ * stops being silent.
  */
 function useGlobalErrorToast() {
   useEffect(() => {
+    const isChunk = (msg) =>
+      /chunk|loading css|loading script|failed to fetch dynamically imported/i.test(
+        msg
+      );
+
     const onRejection = (e) => {
       const msg = e?.reason?.message || String(e?.reason || "");
       if (!msg) return;
-      const isChunk = /chunk|loading css|loading script|failed to fetch dynamically imported/i.test(
-        msg
-      );
-      if (!isChunk) return;
-      toast.error("A new build is available", {
-        id: "chunk-reload",
-        description: "Reload to pick up the latest editor.",
-        duration: Infinity,
-        action: { label: "Reload", onClick: () => window.location.reload() },
-      });
+      if (isChunk(msg)) {
+        toast.error("A new build is available", {
+          id: "chunk-reload",
+          description: "Reload to pick up the latest editor.",
+          duration: Infinity,
+          action: { label: "Reload", onClick: () => window.location.reload() },
+        });
+      } else {
+        toast.error("Something went wrong in the background", {
+          id: `runtime-${msg.slice(0, 32)}`,
+          description: msg.slice(0, 200),
+          duration: 8000,
+        });
+      }
     };
+
+    const onError = (e) => {
+      const msg = e?.error?.message || e?.message || "";
+      if (!msg) return;
+      if (isChunk(msg)) {
+        toast.error("A new build is available", {
+          id: "chunk-reload",
+          description: "Reload to pick up the latest editor.",
+          duration: Infinity,
+          action: { label: "Reload", onClick: () => window.location.reload() },
+        });
+      } else {
+        toast.error("Something broke", {
+          id: `runtime-${msg.slice(0, 32)}`,
+          description: msg.slice(0, 200),
+          duration: 8000,
+        });
+      }
+    };
+
     window.addEventListener("unhandledrejection", onRejection);
-    return () => window.removeEventListener("unhandledrejection", onRejection);
+    window.addEventListener("error", onError);
+    return () => {
+      window.removeEventListener("unhandledrejection", onRejection);
+      window.removeEventListener("error", onError);
+    };
   }, []);
 }
 

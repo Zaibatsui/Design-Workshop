@@ -1,0 +1,42 @@
+{
+  "summary": "Frontend-only review of iteration 13: PageRail.jsx file split, EmptyBlockEditor extraction, template-block-selection bug fix, and global error toast. All 5 built-in templates (Blank=0, Landing=6, Product detail=5, Pricing=6, About us=5) load correctly and clicking any block opens BlockEditorDrawer with form fields. Sync-error toast captured ('Something broke / TestSyncErrorXYZ'). PageRail file split verified: PageRail.jsx=240 lines, EmptyBlockEditor.jsx=35, rail/RailControls.jsx=74, rail/BlocksList.jsx=206, rail/PagesList.jsx=89. Tab switching (Blocks/Pages), collapse/expand, BlockAdder Esc-close, footer Add-block all work. Brand kit page loads. Block_id is stamped client-side at template ingestion (verified via block-item-blk_* testids visible immediately on /edit/page/new before any save), and the same block_id testid remains present and 'selected' (bg-white class) after the autosave/replace round-trip.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Autosave-triggered URL replace from /edit/page/new to /edit/page/<id>",
+        "issue": "After typing into page-name-input on a Pricing template draft and waiting 6.4s, URL stayed at /edit/page/new even though the POST /api/pages returned 200 (the request fired noticeably later, after subsequent UI interactions). The block_id testid and selection survived correctly, so the bug-fix claim (block_id preserved across create) holds; however the autosave debounce/flush appears delayed for new drafts. Not a regression vs prior iterations and may be a test-timing artefact rather than a real bug — main agent to verify.",
+        "affected_selectors": ["[data-testid=\"page-name-input\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Verify /edit/page/new → /pg_* URL replacement timing on real user typing (debounce may be reset by re-renders). Quick smoke: type one char, wait 2s, observe URL — confirm it auto-replaces under normal use."
+  ],
+  "critical_code_review_comments": [
+    "PageEditor.jsx:67-70 — block_id stamping at template ingest is correctly done with Math.random; consider crypto.randomUUID() for collision-safety, but Math.random with 8 hex chars is fine at this scale.",
+    "PageRail.jsx:69-78 createFromTemplate strips Lucide icon to keep template structured-cloneable for History API — good defensive fix; matches root cause of original DataCloneError.",
+    "App.js:53-70 onError listener — reads e.error?.message OR e.message, with chunk-vs-generic branching mirroring onRejection. Clean DRY-able pair (could extract a shared toastForMessage() helper) but acceptable as-is.",
+    "BlocksList.jsx is 206 lines and bundles BlocksList + BlockRow + CollapsedBlockIcon. Reasonable; further split only if it grows.",
+    "PageEditor.jsx is still 462 lines — main orchestrator, OK for now but autosave logic (flushSave/queueSave, ~60 lines) is a candidate for a usePageAutosave() hook in a future iteration."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "95%"},
+  "test_credentials": "Token from review request (BhDNRIZaNl...) — works. /app/memory/test_credentials.md present.",
+  "seed_data_creation": "Several Pricing/Landing/About/ProductDetail draft pages were materialised under the test user during the test runs (pages list grew to 4+). Main agent may want to clean those up.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All core flows verified. The only soft observation is the autosave debounce timing on a brand-new draft — POST 200 fired but appeared delayed in automated tests. Re-test by typing manually and observing the URL bar.",
+  "verified_features": [
+    "All 5 built-in templates render the right block count and clicking any block opens BlockEditorDrawer (testid block-editor-drawer) with form fields populated.",
+    "Esc closes PageTemplatePicker and BlockAdder.",
+    "EmptyBlockEditor (testid empty-block-editor) shows 'No block selected' + 'Add block' on Blank-template draft.",
+    "Global window 'error' toast — 'Something broke' with the error message captured.",
+    "Tab switching (Blocks↔Pages), collapse/expand rail (w-16↔w-64), footer Add-block button all functional after the file split.",
+    "Brand kit page (/brand) still loads.",
+    "Section cards on dashboard shrink-wrap to actual content with no extra whitespace."
+  ]
+}
