@@ -10,6 +10,7 @@ import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { BRAND } from "@/lib/brand";
 import SectionsTab from "./dashboard/SectionsTab";
 import PagesTab from "./dashboard/PagesTab";
+import RecentStrip from "./dashboard/RecentStrip";
 import { SectionPicker, Tabs } from "./dashboard/common";
 import PageTemplatePicker from "./dashboard/PageTemplatePicker";
 
@@ -142,6 +143,8 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {!loading && <RecentStrip sections={sections} pages={pages} />}
 
         <Tabs
           tab={tab}

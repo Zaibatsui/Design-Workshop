@@ -25,11 +25,15 @@ import { composePage } from "@/sections/pageSnippet";
 import { api } from "@/lib/api";
 import {
   EmptyState,
+  mergeRefs,
+  MASONRY_ROW_GAP,
+  MASONRY_ROW_UNIT,
   PAGE_SIZE,
   Pagination,
   PREVIEW_INTERNAL_HEIGHT,
   PREVIEW_INTERNAL_WIDTH,
   timeAgo,
+  useGridRowSpan,
   useIframeScale,
 } from "./common";
 
@@ -124,7 +128,14 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
           items={pagedPages.map((p) => p.page_id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            style={{
+              gridAutoRows: `${MASONRY_ROW_UNIT}px`,
+              columnGap: `${MASONRY_ROW_GAP}px`,
+              rowGap: `${MASONRY_ROW_GAP}px`,
+            }}
+          >
             {pagedPages.map((p) => (
               <PageCard
                 key={p.page_id}
@@ -150,6 +161,7 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
 
 const PageCard = memo(function PageCard({ page, onDelete, onDuplicate }) {
   const { wrapRef, iframeRef, scale, contentHeight, visible } = useIframeScale();
+  const { measureRef, span } = useGridRowSpan();
   const {
     attributes,
     listeners,
@@ -164,6 +176,8 @@ const PageCard = memo(function PageCard({ page, onDelete, onDuplicate }) {
     transition,
     opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 20 : undefined,
+    gridRowEnd: `span ${span}`,
+    alignSelf: "start",
   };
 
   const snippet = useMemo(() => composePage(page.blocks || []), [page.blocks]);
@@ -183,7 +197,7 @@ const PageCard = memo(function PageCard({ page, onDelete, onDuplicate }) {
 
   return (
     <div
-      ref={setNodeRef}
+      ref={mergeRefs(setNodeRef, measureRef)}
       style={style}
       data-testid={`page-card-${page.page_id}`}
       className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all flex flex-col relative"

@@ -25,11 +25,15 @@ import { previewDoc, makeUid } from "@/sections/shared";
 import { api } from "@/lib/api";
 import {
   EmptyState,
+  mergeRefs,
+  MASONRY_ROW_GAP,
+  MASONRY_ROW_UNIT,
   PAGE_SIZE,
   Pagination,
   PREVIEW_INTERNAL_HEIGHT,
   PREVIEW_INTERNAL_WIDTH,
   timeAgo,
+  useGridRowSpan,
   useIframeScale,
 } from "./common";
 
@@ -132,7 +136,14 @@ export default function SectionsTab({
           items={pagedSections.map((s) => s.section_id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            style={{
+              gridAutoRows: `${MASONRY_ROW_UNIT}px`,
+              columnGap: `${MASONRY_ROW_GAP}px`,
+              rowGap: `${MASONRY_ROW_GAP}px`,
+            }}
+          >
             {pagedSections.map((s) => (
               <SectionCard
                 key={s.section_id}
@@ -159,6 +170,7 @@ export default function SectionsTab({
 const SectionCard = memo(function SectionCard({ section, onDelete, onDuplicate }) {
   const def = SECTIONS_BY_ID[section.type];
   const { wrapRef, iframeRef, scale, contentHeight, visible } = useIframeScale();
+  const { measureRef, span } = useGridRowSpan();
   const {
     attributes,
     listeners,
@@ -173,6 +185,8 @@ const SectionCard = memo(function SectionCard({ section, onDelete, onDuplicate }
     transition,
     opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 20 : undefined,
+    gridRowEnd: `span ${span}`,
+    alignSelf: "start",
   };
 
   // Memoize the heavy work — section.config is reference-stable across
@@ -202,7 +216,7 @@ const SectionCard = memo(function SectionCard({ section, onDelete, onDuplicate }
 
   return (
     <div
-      ref={setNodeRef}
+      ref={mergeRefs(setNodeRef, measureRef)}
       style={style}
       data-testid={`section-card-${section.section_id}`}
       className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all flex flex-col relative"

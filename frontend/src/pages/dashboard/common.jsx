@@ -136,6 +136,53 @@ export function useIframeScale() {
   return { wrapRef, iframeRef, scale, contentHeight, visible };
 }
 
+/**
+ * Merges multiple refs (function or object) into a single callback ref.
+ * Needed when a DOM element already has a ref from dnd-kit's
+ * `setNodeRef` and we want to attach another ref on top for measurement.
+ */
+export function mergeRefs(...refs) {
+  return (node) => {
+    refs.forEach((r) => {
+      if (!r) return;
+      if (typeof r === "function") r(node);
+      else r.current = node;
+    });
+  };
+}
+
+/**
+ * Masonry helper — measures a card's total rendered height and returns
+ * the `grid-row-end: span N` count required so the card fills exactly
+ * that many auto-rows (no white gap below short cards, no clipping of
+ * tall ones). Pair with a parent grid that sets:
+ *   grid-auto-rows: {ROW_UNIT}px; row-gap: {ROW_GAP}px;
+ */
+export const MASONRY_ROW_UNIT = 8;
+export const MASONRY_ROW_GAP = 20;
+
+export function useGridRowSpan(
+  rowUnit = MASONRY_ROW_UNIT,
+  rowGap = MASONRY_ROW_GAP
+) {
+  const measureRef = useRef(null);
+  const [span, setSpan] = useState(30);
+  useLayoutEffect(() => {
+    const el = measureRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const h = el.getBoundingClientRect().height;
+      if (h <= 0) return;
+      setSpan(Math.max(1, Math.ceil((h + rowGap) / (rowUnit + rowGap))));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [rowUnit, rowGap]);
+  return { measureRef, span };
+}
+
 export function timeAgo(date) {
   const sec = Math.floor((Date.now() - date.getTime()) / 1000);
   if (sec < 60) return "just now";
