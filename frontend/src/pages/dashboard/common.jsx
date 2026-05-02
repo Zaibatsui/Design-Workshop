@@ -340,21 +340,21 @@ export function SectionPicker({ sections, onPick, onClose }) {
   useEscapeKey(onClose);
   return (
     <div
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 flex items-center justify-center p-6"
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto p-8 shadow-2xl"
+        className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         data-testid="section-picker"
       >
         <h2 className="font-heading text-xl font-semibold tracking-tight mb-1">
           Choose a section type
         </h2>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-slate-500 mb-5">
           You can always change settings inside the editor.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
           {sections.map((s) => {
             const Icon = s.icon;
             return (
@@ -362,11 +362,11 @@ export function SectionPicker({ sections, onPick, onClose }) {
                 key={s.id}
                 data-testid={`picker-${s.id}`}
                 onClick={() => onPick(s.id)}
-                className="text-left p-4 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+                className="text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
               >
-                <Icon className="w-5 h-5 text-[#E01839] mb-2" />
-                <p className="text-sm font-medium text-slate-900">{s.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
+                <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
+                <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
                   {s.description}
                 </p>
               </button>

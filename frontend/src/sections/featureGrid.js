@@ -290,6 +290,7 @@ export const featureGrid = {
   id: ID,
   name: "Feature Grid",
   icon: LayoutGrid,
+  description: "2-4 column value-prop cards with icon + title + body",
   defaults,
   render,
   FormPanel,

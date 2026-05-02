@@ -282,6 +282,7 @@ export const faq = {
   id: ID,
   name: "FAQ",
   icon: HelpCircle,
+  description: "Collapsible Q+A accordion — zero-JS native details",
   defaults,
   render,
   FormPanel,

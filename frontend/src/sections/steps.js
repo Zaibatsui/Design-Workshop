@@ -292,6 +292,7 @@ export const steps = {
   id: ID,
   name: "Steps",
   icon: ListOrdered,
+  description: "Numbered process strip — horizontal or vertical",
   defaults,
   render,
   FormPanel,

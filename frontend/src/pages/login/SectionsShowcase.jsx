@@ -9,6 +9,10 @@ import {
   Folders,
   Type,
   Grid2x2,
+  ListOrdered,
+  HelpCircle,
+  Megaphone,
+  Sparkles,
 } from "lucide-react";
 
 const SECTIONS = [
@@ -17,6 +21,10 @@ const SECTIONS = [
   { Icon: ShoppingBag, name: "Products", desc: "Card carousel with image, name, price, hover border." },
   { Icon: LayoutGrid, name: "Insights Grid", desc: "Editorial 2-3 column card grid for articles & case studies." },
   { Icon: BookOpen, name: "Resources", desc: "Tag-tinted card carousel for blog posts, guides, downloads." },
+  { Icon: Sparkles, name: "Feature Grid", desc: "2-4 column value-prop cards with icon, title and body." },
+  { Icon: ListOrdered, name: "Steps", desc: "Numbered process strip — horizontal or vertical stack." },
+  { Icon: HelpCircle, name: "FAQ", desc: "Collapsible Q+A accordion. Native zero-JS accessibility." },
+  { Icon: Megaphone, name: "CTA Banner", desc: "Final-call conversion block with one or two buttons." },
   { Icon: ImageIcon, name: "Logo Strip", desc: "Auto-scrolling marquee. Optional links + greyscale-on-hover." },
   { Icon: Minus, name: "Break banner", desc: "Full-bleed parallax break with overlaid heading." },
   { Icon: Folders, name: "Tabs", desc: "Tabbed content with a side image. Great for product details." },
@@ -40,7 +48,7 @@ export default function SectionsShowcase() {
             Section types in the box
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Ten composable building blocks. Every page is one snippet.
+            Fourteen composable building blocks. Every page is one snippet.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them

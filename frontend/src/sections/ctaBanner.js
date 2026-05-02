@@ -273,6 +273,7 @@ export const ctaBanner = {
   id: ID,
   name: "CTA Banner",
   icon: Megaphone,
+  description: "Final-call conversion block with 1 or 2 buttons",
   defaults,
   render,
   FormPanel,

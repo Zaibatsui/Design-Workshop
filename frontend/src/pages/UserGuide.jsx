@@ -13,6 +13,9 @@ import {
   Layers,
   Layout,
   LayoutGrid,
+  ListOrdered,
+  HelpCircle,
+  Megaphone,
   Palette,
   PenLine,
   Rocket,
@@ -205,7 +208,7 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships ten section types. All are
+              Design Workshop ships fourteen section types. All are
               colour-themable, font-themable and contain at least one
               image-bearing field where applicable.
             </P>
@@ -215,6 +218,10 @@ export default function UserGuide() {
               <SectionCard Icon={Boxes} name="Products" desc="Card carousel with image, name, price and a hover-tinted border. Optional links." />
               <SectionCard Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media." />
               <SectionCard Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
+              <SectionCard Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined, tinted or solid card styles." />
+              <SectionCard Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
+              <SectionCard Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." />
+              <SectionCard Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Centred or left-aligned." />
               <SectionCard Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." />
               <SectionCard Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." />
               <SectionCard Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
