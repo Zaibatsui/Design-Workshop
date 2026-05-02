@@ -149,7 +149,7 @@ export default function SectionsTab({
 
 function SectionCard({ section, onDelete, onDuplicate }) {
   const def = SECTIONS_BY_ID[section.type];
-  const { wrapRef, scale } = useIframeScale();
+  const { wrapRef, iframeRef, scale, contentHeight } = useIframeScale();
   const {
     attributes,
     listeners,
@@ -171,6 +171,18 @@ function SectionCard({ section, onDelete, onDuplicate }) {
   const previewSnippet = def.render({ ...section.config, uid: makeUid() });
   const doc = previewDoc(previewSnippet);
   const updated = new Date(section.updated_at);
+
+  // Card preview area shrink-wraps to the actual scaled section height.
+  // Bounds derive from `scale` (state) so updates are reactive.
+  // Min: 90px keeps a usable click target for tiny sections (Logo Strip
+  // is ~110px content × 0.23 scale ≈ 25px otherwise).
+  // Max: 4:3 of card width ceiling for unusually tall sections.
+  const cardWidthVirtual = PREVIEW_INTERNAL_WIDTH * scale;
+  const maxPreviewHeight = cardWidthVirtual * (4 / 3);
+  const previewHeight = Math.min(
+    maxPreviewHeight,
+    Math.max(90, contentHeight * scale)
+  );
 
   return (
     <div
@@ -195,16 +207,17 @@ function SectionCard({ section, onDelete, onDuplicate }) {
         ref={wrapRef}
         to={`/edit/section/${section.section_id}`}
         className="block bg-slate-100 overflow-hidden relative w-full"
-        style={{ aspectRatio: "20 / 9" }}
+        style={{ height: previewHeight ? `${previewHeight}px` : undefined }}
       >
         <iframe
+          ref={iframeRef}
           title={section.name}
           srcDoc={doc}
           sandbox="allow-scripts allow-same-origin"
           className="border-0 pointer-events-none block absolute top-0 left-0"
           style={{
             width: `${PREVIEW_INTERNAL_WIDTH}px`,
-            height: `${PREVIEW_INTERNAL_HEIGHT}px`,
+            height: `${contentHeight}px`,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}

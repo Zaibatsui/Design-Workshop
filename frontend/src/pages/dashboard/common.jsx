@@ -7,21 +7,36 @@ import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 
-// Internal iframe canvas size — every preview renders at this fixed virtual
-// width so content layout matches what users see in the editor. The scale
-// wrapper shrinks the iframe to fit each card's responsive width while
-// keeping the card height uniform across the grid.
+// Internal iframe canvas width — every preview renders at this fixed virtual
+// width so content layout matches what users see in the editor. Content
+// height is measured at runtime (sections vary wildly: Logo Strip ~120px,
+// Hero ~500px, etc.) so the card preview area can shrink-wrap to fit
+// without leaving empty whitespace below the rendered section.
 export const PREVIEW_INTERNAL_WIDTH = 1280;
+// Used as the initial guess + the cap for unusually tall sections.
 export const PREVIEW_INTERNAL_HEIGHT = 720;
 
 export const PAGE_SIZE = 12;
 
-/** Hook: keeps an iframe-in-a-card scale factor synced to the card's width. */
+/**
+ * Hook: scales an iframe-in-a-card to fit the card width and reports the
+ * iframe's actual rendered content height so the parent can shrink-wrap
+ * the preview area. Returns:
+ *   - wrapRef: ref for the card's preview wrapper (the link).
+ *   - iframeRef: ref for the iframe itself (we read its body height).
+ *   - scale: card_width / PREVIEW_INTERNAL_WIDTH.
+ *   - contentHeight: measured body scrollHeight (px, in iframe coords);
+ *     starts at PREVIEW_INTERNAL_HEIGHT and updates after the iframe
+ *     loads + on content mutations.
+ */
 export function useIframeScale() {
   const wrapRef = useRef(null);
+  const iframeRef = useRef(null);
   const [scale, setScale] = useState(0.3);
+  const [contentHeight, setContentHeight] = useState(PREVIEW_INTERNAL_HEIGHT);
+
   useLayoutEffect(() => {
-    if (!wrapRef.current) return;
+    if (!wrapRef.current) return undefined;
     const el = wrapRef.current;
     const update = () => {
       const w = el.clientWidth;
@@ -32,7 +47,67 @@ export function useIframeScale() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  return { wrapRef, scale };
+
+  useLayoutEffect(() => {
+    const ifr = iframeRef.current;
+    if (!ifr) return undefined;
+    let mo;
+    let pollT;
+    let tries = 0;
+    const measure = () => {
+      try {
+        const body = ifr.contentDocument?.body;
+        if (!body) return false;
+        // Standards-mode body shrinks to its content, so body.scrollHeight
+        // gives the section's natural rendered height. We deliberately do
+        // NOT max with documentElement.scrollHeight — the latter always
+        // equals the iframe viewport height (720) regardless of content,
+        // which would defeat the shrink-wrap.
+        const h = body.scrollHeight;
+        if (h > 0) {
+          setContentHeight(h);
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    };
+    const attachMutationObserver = () => {
+      try {
+        const body = ifr.contentDocument?.body;
+        if (!body) return;
+        mo = new MutationObserver(measure);
+        mo.observe(body, { childList: true, subtree: true, attributes: true });
+      } catch {
+        /* cross-origin */
+      }
+    };
+    const onLoad = () => {
+      measure();
+      attachMutationObserver();
+    };
+    ifr.addEventListener("load", onLoad);
+    // The iframe's `srcDoc` load can fire synchronously during the same
+    // render cycle, before our `addEventListener` runs. Poll for up to
+    // 1.5s as a fallback so we don't miss the initial measurement.
+    const poll = () => {
+      if (measure()) {
+        attachMutationObserver();
+        return;
+      }
+      tries += 1;
+      if (tries < 30) pollT = setTimeout(poll, 50);
+    };
+    pollT = setTimeout(poll, 0);
+    return () => {
+      ifr.removeEventListener("load", onLoad);
+      if (mo) mo.disconnect();
+      if (pollT) clearTimeout(pollT);
+    };
+  }, []);
+
+  return { wrapRef, iframeRef, scale, contentHeight };
 }
 
 export function timeAgo(date) {

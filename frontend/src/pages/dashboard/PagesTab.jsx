@@ -140,7 +140,7 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
 }
 
 function PageCard({ page, onDelete, onDuplicate }) {
-  const { wrapRef, scale } = useIframeScale();
+  const { wrapRef, iframeRef, scale, contentHeight } = useIframeScale();
   const {
     attributes,
     listeners,
@@ -161,6 +161,16 @@ function PageCard({ page, onDelete, onDuplicate }) {
   const doc = previewDoc(snippet);
   const updated = new Date(page.updated_at);
   const blockCount = (page.blocks || []).length;
+
+  // Shrink-wrap the preview area to the actual rendered height. Empty
+  // pages keep a 16:9 click target, otherwise we hug content (with a 4:3
+  // ceiling so a 5000px landing page doesn't dominate the grid).
+  const cardWidthVirtual = PREVIEW_INTERNAL_WIDTH * scale;
+  const maxPreviewHeight = cardWidthVirtual * (4 / 3);
+  const previewHeight =
+    blockCount === 0
+      ? cardWidthVirtual * (9 / 16)
+      : Math.min(maxPreviewHeight, Math.max(90, contentHeight * scale));
 
   return (
     <div
@@ -185,17 +195,18 @@ function PageCard({ page, onDelete, onDuplicate }) {
         ref={wrapRef}
         to={`/edit/page/${page.page_id}`}
         className="block bg-slate-100 overflow-hidden relative w-full"
-        style={{ aspectRatio: "20 / 9" }}
+        style={{ height: previewHeight ? `${previewHeight}px` : undefined }}
       >
         {blockCount > 0 ? (
           <iframe
+            ref={iframeRef}
             title={page.name}
             srcDoc={doc}
             sandbox="allow-scripts allow-same-origin"
             className="border-0 pointer-events-none block absolute top-0 left-0"
             style={{
               width: `${PREVIEW_INTERNAL_WIDTH}px`,
-              height: `${PREVIEW_INTERNAL_HEIGHT}px`,
+              height: `${contentHeight}px`,
               transform: `scale(${scale})`,
               transformOrigin: "top left",
             }}
