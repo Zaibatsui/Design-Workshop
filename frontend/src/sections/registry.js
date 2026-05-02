@@ -7,6 +7,10 @@ import { breakBanner } from "./break";
 import { tabs } from "./tabs";
 import { insights } from "./insights";
 import { resources } from "./resources";
+import { featureGrid } from "./featureGrid";
+import { steps } from "./steps";
+import { faq } from "./faq";
+import { ctaBanner } from "./ctaBanner";
 
 export const SECTIONS = [
   hero,
@@ -14,6 +18,10 @@ export const SECTIONS = [
   products,
   resources,
   insights,
+  featureGrid,
+  steps,
+  faq,
+  ctaBanner,
   placeholder,
   logos,
   breakBanner,
