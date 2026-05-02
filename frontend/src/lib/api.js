@@ -82,4 +82,13 @@ export const api = {
   getBrandKit: () => req("/brand-kit"),
   updateBrandKit: (kit) =>
     req("/brand-kit", { method: "PUT", body: JSON.stringify(kit) }),
+
+  // Landing-demo picker (admin-only writes; the public read is hit
+  // unauthenticated from the marketing landing page).
+  getLandingDemo: () => req("/admin/landing-demo"),
+  setLandingDemo: (pageId) =>
+    req("/admin/landing-demo", {
+      method: "PUT",
+      body: JSON.stringify({ page_id: pageId }),
+    }),
 };

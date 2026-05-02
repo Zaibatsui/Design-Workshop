@@ -1,30 +1,53 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Code2, MousePointer2 } from "lucide-react";
-import { logos } from "@/sections/logos";
-import { insights } from "@/sections/insights";
 import { composePage } from "@/sections/pageSnippet";
 import { previewDoc } from "@/sections/shared";
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "";
+const PUBLIC_DEMO_URL = `${BACKEND_URL}/api/public/landing-demo`;
+
 /**
- * LiveDemo — replaces the static testimonial. When this section scrolls
- * into view we mount an iframe whose `srcDoc` is the EXACT HTML / CSS /
- * scoped IIFE bundle that ships from Design Workshop — a real Logo Strip
- * stacked above a real Insights Grid, no React, no CDN calls.
+ * LiveDemo — admin-curated. Fetches the page that the admin flagged as
+ * featured in their Brand Kit "Landing demo" picker, then renders its
+ * actual composed HTML / scoped CSS / IIFE inside a sandboxed iframe.
  *
- * Visitors can hover the logos (greyscale → colour, scroll pauses) and
- * the cards (border tint shifts) — the demo is the proof.
+ * If no page is featured (or the featured page was deleted), we render
+ * `null` so the section is hidden entirely on the marketing landing
+ * page — per user request.
  *
- * Sandboxed `allow-scripts allow-same-origin` is intentional: we want
- * the section IIFEs (carousel cloning, scroll-distance recompute) to
- * run, but we never load remote scripts so this stays safe.
+ * The fetch happens unauthenticated against `/api/public/landing-demo`
+ * which intentionally omits MongoDB internals and only returns
+ * `{page_id, name, blocks}`.
  */
 export default function LiveDemo() {
   const wrapRef = useRef(null);
   const [visible, setVisible] = useState(false);
+  const [demo, setDemo] = useState(null); // {page_id, name, blocks} | null
+  const [loaded, setLoaded] = useState(false);
 
+  // Fetch immediately so we can render-or-hide on first paint. Failure
+  // of any sort = hide the section, never crash the landing page.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(PUBLIC_DEMO_URL)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((d) => {
+        if (cancelled) return;
+        if (d && d.blocks && d.blocks.length) setDemo(d);
+        setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Only mount the iframe once the section is in view (saves the
+  // composePage cost + an iframe render on visitors who never scroll
+  // that far).
   useEffect(() => {
     const el = wrapRef.current;
-    if (!el || visible) return undefined;
+    if (!el || visible || !demo) return undefined;
     if (typeof IntersectionObserver === "undefined") {
       setVisible(true);
       return undefined;
@@ -40,32 +63,15 @@ export default function LiveDemo() {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [visible]);
+  }, [visible, demo]);
 
-  // Compose two real registry sections — same code path the dashboard
-  // uses — so what visitors see is byte-identical to a real export.
   const doc = useMemo(() => {
-    const blocks = [
-      {
-        block_id: "demo-logos",
-        type: "section",
-        section_type: "logos",
-        config: {
-          ...logos.defaults(),
-          greyscale: true,
-          paddingY: 30,
-          bgColor: "#ffffff",
-        },
-      },
-      {
-        block_id: "demo-insights",
-        type: "section",
-        section_type: "insights",
-        config: { ...insights.defaults(), paddingY: 60 },
-      },
-    ];
-    return previewDoc(composePage(blocks));
-  }, []);
+    if (!demo || !demo.blocks?.length) return "";
+    return previewDoc(composePage(demo.blocks));
+  }, [demo]);
+
+  // Hide the entire section when no featured page is set.
+  if (loaded && !demo) return null;
 
   return (
     <section
@@ -90,9 +96,9 @@ export default function LiveDemo() {
           </h2>
           <p className="text-base leading-relaxed text-slate-300 mt-5">
             The frame below isn't a screenshot — it's the actual HTML +
-            scoped CSS + ~600 bytes of IIFE that come out of Design Workshop.
-            Hover the logos, watch them un-grey. Hover a card, watch the border
-            tint. No React, no jQuery, no CDN — just the markup your CMS pastes.
+            scoped CSS + IIFE produced by Design Workshop, rendered inside a
+            sandboxed iframe. Hover, click, scroll. No React, no jQuery, no
+            CDN — just markup your CMS pastes.
           </p>
           <div className="flex flex-wrap items-center gap-5 mt-6 text-xs text-slate-400">
             <span className="flex items-center gap-2">
@@ -110,37 +116,32 @@ export default function LiveDemo() {
           ref={wrapRef}
           data-testid="login-live-demo-frame"
           className="relative rounded-md overflow-hidden border border-white/10 bg-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.4)]"
-          style={{ minHeight: "560px" }}
+          style={{ minHeight: "600px" }}
         >
-          {visible ? (
-            <iframe
-              title="Design Workshop live demo"
-              srcDoc={doc}
-              loading="lazy"
-              sandbox="allow-scripts allow-same-origin"
-              className="block w-full border-0"
-              style={{ height: "560px" }}
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-slate-300 text-sm">
-              Loading live demo…
-            </div>
-          )}
-          {/* Browser-chrome top strip for editorial framing */}
-          <div className="absolute top-0 inset-x-0 h-6 bg-slate-100 border-b border-slate-200 flex items-center gap-1.5 pl-3 pointer-events-none">
+          {/* Browser-chrome top strip */}
+          <div className="absolute top-0 inset-x-0 h-7 bg-slate-100 border-b border-slate-200 flex items-center gap-1.5 pl-3 z-10 pointer-events-none">
             <span className="w-2 h-2 rounded-full bg-slate-300" />
             <span className="w-2 h-2 rounded-full bg-slate-300" />
             <span className="w-2 h-2 rounded-full bg-slate-300" />
-            <span className="ml-3 text-[10px] font-mono text-slate-400 tracking-wider">
+            <span className="ml-3 text-[10px] font-mono text-slate-400 tracking-wider truncate">
               your-site.com / homepage.html
             </span>
           </div>
+          {visible && doc ? (
+            <iframe
+              title={`Design Workshop demo — ${demo?.name || "featured page"}`}
+              srcDoc={doc}
+              loading="lazy"
+              sandbox="allow-scripts allow-same-origin"
+              className="block w-full border-0 pt-7"
+              style={{ height: "640px" }}
+            />
+          ) : (
+            <div className="h-[640px] flex items-center justify-center text-slate-300 text-sm pt-7">
+              Loading live demo…
+            </div>
+          )}
         </div>
-        <p className="text-xs text-slate-500 mt-4 italic">
-          The same IIFE pattern handles auto-scroll, hover-pause and
-          shrink-wrap — every section ships independently, every page is one
-          paste.
-        </p>
       </div>
     </section>
   );

@@ -16,6 +16,7 @@ import { BRAND } from "@/lib/brand";
 import { DEFAULT_BRAND_KIT, FONTS, INHERIT_FONT, fontImportUrl } from "@/lib/brandKit";
 import { useBrandKit } from "@/lib/BrandKitContext";
 import ColorField from "@/components/ColorField";
+import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
 
 export default function BrandKitPage() {
   const { brandKit, setBrandKit } = useBrandKit();
@@ -255,6 +256,8 @@ export default function BrandKitPage() {
           </div>
           </div>
         </section>
+
+        <LandingDemoPicker />
       </main>
 
       <Toaster richColors position="top-center" />
