@@ -30,7 +30,8 @@ ENV COREPACK_ENABLE_STRICT=0
 # Copying just the manifest (no lockfile required) means a missing
 # package-lock.json is fine — npm will resolve the tree from package.json.
 COPY frontend/package.json ./
-RUN npm install --no-audit --no-fund --legacy-peer-deps
+RUN npm install --no-audit --no-fund --legacy-peer-deps \
+ && npm install --no-audit --no-fund --legacy-peer-deps --save-dev ajv@^8 ajv-keywords@^5
 
 COPY frontend/ ./
 RUN npm run build
