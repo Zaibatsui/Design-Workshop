@@ -199,15 +199,12 @@ export default function Editor() {
     ) {
       return;
     }
-    const fresh = applyBrandKit(section.type, def.defaults(), brandKit);
-    // Preserve the user's content (text, images, products, links) — only
-    // overlay the brand-mapped fields onto the existing config. Defensive
-    // uid fallback covers legacy/corrupt records that lost their uid.
-    const merged = {
-      ...section.config,
-      ...fresh,
-      uid: section.config?.uid ?? makeUid(),
-    };
+    // Overlay brand fields onto the USER'S CURRENT config (not def.defaults()
+    // — that would wipe content arrays like products/slides/buttons since
+    // the FIELD_MAP mappers spread `...cfg` as their starting point).
+    // Defensive uid fallback covers legacy/corrupt records that lost theirs.
+    const merged = applyBrandKit(section.type, section.config, brandKit);
+    if (!merged.uid) merged.uid = section.config?.uid ?? makeUid();
     setSection((prev) => (prev ? { ...prev, config: merged } : prev));
     queueSave({ config: merged });
     toast.success("Brand kit applied");
