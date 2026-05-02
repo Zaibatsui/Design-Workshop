@@ -42,7 +42,6 @@ export default function PageEditor() {
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [adder, setAdder] = useState(false);
   const [librarySections, setLibrarySections] = useState([]);
-  const [librarySectionsLoading, setLibrarySectionsLoading] = useState(true);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const { brandKit } = useBrandKit();
 
@@ -94,8 +93,7 @@ export default function PageEditor() {
     api
       .listSections()
       .then(setLibrarySections)
-      .catch(() => {})
-      .finally(() => setLibrarySectionsLoading(false));
+      .catch(() => {});
   }, []);
 
   // ── Autosave ─────────────────────────────────────────────────────────────
@@ -206,33 +204,6 @@ export default function PageEditor() {
     setBlocks([...(page.blocks || []), newBlock]);
     setSelectedBlockId(newBlock.block_id);
     setAdder(false);
-  };
-
-  // Drop-from-rail variant: the user dragged a library section tile onto
-  // the Blocks list at a specific position. `index` is the slot to
-  // insert at (0 = before first block, blocks.length = append).
-  const insertLibrarySectionAt = (sectionId, index) => {
-    const section = librarySections.find((s) => s.section_id === sectionId);
-    if (!section) {
-      toast.error("That library section isn't available anymore");
-      return;
-    }
-    const newBlock = {
-      block_id: makeBlockId(),
-      type: "section",
-      section_type: section.type,
-      config: JSON.parse(JSON.stringify(section.config)),
-    };
-    const current = page.blocks || [];
-    const safeIndex = Math.max(0, Math.min(index, current.length));
-    const next = [
-      ...current.slice(0, safeIndex),
-      newBlock,
-      ...current.slice(safeIndex),
-    ];
-    setBlocks(next);
-    setSelectedBlockId(newBlock.block_id);
-    toast.success(`Inserted "${section.name}"`);
   };
 
   const addRichTextBlock = () => {
@@ -365,9 +336,6 @@ export default function PageEditor() {
         onReorderBlocks={reorderBlocks}
         onAddBlock={() => setAdder(true)}
         onRenameBlock={(blockId, name) => updateBlock(blockId, { name })}
-        onInsertLibrarySection={insertLibrarySectionAt}
-        librarySections={librarySections}
-        librarySectionsLoading={librarySectionsLoading}
       />
 
       {/* Left sidebar: block editor drawer when a block is selected, else

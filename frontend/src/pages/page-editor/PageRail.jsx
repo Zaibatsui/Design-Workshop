@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
-  BookMarked,
   FileStack,
   Layers,
   PanelLeftClose,
@@ -17,20 +16,17 @@ import {
 } from "./rail/RailControls";
 import BlocksList from "./rail/BlocksList";
 import PagesList from "./rail/PagesList";
-import LibraryList from "./rail/LibraryList";
 
 /**
  * PageRail (prototype v2) — tabbed library + block sidebar.
  *
  * Tabs:
- *   - Blocks   → this page's blocks (drag-reorderable, selectable)
- *   - Library  → user's saved sections, HTML5-draggable onto Blocks
- *   - Pages    → library of user's pages
+ *   - Blocks  → this page's blocks (drag-reorderable, selectable)
+ *   - Pages   → library of user's pages
  *
  * Footer action mirrors the active tab:
- *   - Blocks tab  → "+ Add block"
- *   - Library tab → "+ New section" (shortcut to dashboard's New section)
- *   - Pages tab   → "+ New page"
+ *   - Blocks tab → "+ Add block"
+ *   - Pages tab  → "+ New page"
  *
  * Collapsed state shows tab icons only; list is hidden.
  */
@@ -43,13 +39,10 @@ export default function PageRail({
   onReorderBlocks,
   onAddBlock,
   onRenameBlock,
-  onInsertLibrarySection,
-  librarySections,
-  librarySectionsLoading,
 }) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(true);
-  const [tab, setTab] = useState("blocks"); // "blocks" | "library" | "pages"
+  const [tab, setTab] = useState("blocks"); // "blocks" | "pages"
   const [pages, setPages] = useState([]);
   const [pagesLoading, setPagesLoading] = useState(true);
   const [templatePicker, setTemplatePicker] = useState(false);
@@ -155,15 +148,6 @@ export default function PageRail({
                 Blocks
               </RailTab>
               <RailTab
-                active={tab === "library"}
-                onClick={() => setTab("library")}
-                testid="page-rail-tab-library"
-                count={(librarySections || []).length}
-                Icon={BookMarked}
-              >
-                Library
-              </RailTab>
-              <RailTab
                 active={tab === "pages"}
                 onClick={() => setTab("pages")}
                 testid="page-rail-tab-pages"
@@ -181,13 +165,6 @@ export default function PageRail({
                 testid="page-rail-tab-blocks"
                 Icon={Layers}
                 label="Blocks"
-              />
-              <CollapsedTabButton
-                active={tab === "library"}
-                onClick={() => setTab("library")}
-                testid="page-rail-tab-library"
-                Icon={BookMarked}
-                label="Library"
               />
               <CollapsedTabButton
                 active={tab === "pages"}
@@ -215,13 +192,6 @@ export default function PageRail({
               onRemove={onRemoveBlock}
               onReorder={onReorderBlocks}
               onRename={onRenameBlock}
-              onInsertLibrarySection={onInsertLibrarySection}
-              expanded={expanded}
-            />
-          ) : tab === "library" ? (
-            <LibraryList
-              librarySections={librarySections || []}
-              loading={librarySectionsLoading}
               expanded={expanded}
             />
           ) : (
@@ -246,13 +216,6 @@ export default function PageRail({
               onClick={onAddBlock}
               testid="page-rail-add-block"
               label="Add block"
-              expanded={expanded}
-            />
-          ) : tab === "library" ? (
-            <RailFooterButton
-              onClick={() => navigate("/")}
-              testid="page-rail-go-library"
-              label="Manage library"
               expanded={expanded}
             />
           ) : (

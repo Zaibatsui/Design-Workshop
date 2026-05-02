@@ -33,14 +33,15 @@ const defaults = () => ({
   paddingY: 30,
   bgColor: "#ffffff",
   fullBleed: true,
+  greyscale: false,
   logos: [
-    { id: makeUid(), image: `${UPLOAD_BASE}/5801a4b5-5c7a-4cad-ac80-1a6828d0626d.png`, alt: "Netset" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/427550f6-a7a0-4973-a3b8-449d21217740.webp`, alt: "ATEA" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/97493940-cb68-48ff-a5ab-5fc75c856945.webp`, alt: "B2B" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/ba531904-a99b-43b8-a0d9-7186e6c4ba84.webp`, alt: "Misco" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/adb41b59-7ec3-48a2-9849-22730f7c6b2b.webp`, alt: "Tibco" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/0cdd4af8-4681-4e55-b017-bba14eee7900.webp`, alt: "DCB" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/b8e9111d-e88b-4203-abb2-11a9be8bd2fd.webp`, alt: "Abero" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/5801a4b5-5c7a-4cad-ac80-1a6828d0626d.png`, alt: "Netset", link: "" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/427550f6-a7a0-4973-a3b8-449d21217740.webp`, alt: "ATEA", link: "" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/97493940-cb68-48ff-a5ab-5fc75c856945.webp`, alt: "B2B", link: "" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/ba531904-a99b-43b8-a0d9-7186e6c4ba84.webp`, alt: "Misco", link: "" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/adb41b59-7ec3-48a2-9849-22730f7c6b2b.webp`, alt: "Tibco", link: "" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/0cdd4af8-4681-4e55-b017-bba14eee7900.webp`, alt: "DCB", link: "" },
+    { id: makeUid(), image: `${UPLOAD_BASE}/b8e9111d-e88b-4203-abb2-11a9be8bd2fd.webp`, alt: "Abero", link: "" },
   ],
 });
 
@@ -60,12 +61,29 @@ function render(cfg) {
   const itemsHtml = (cfg.logos || [])
     .map((logo) => {
       const img = safeUrl(logo.image);
-      return `<div class="ns-item" data-ns-original><img src="${escAttr(img)}" alt="${escAttr(logo.alt || "")}"/></div>`;
+      const imgTag = `<img src="${escAttr(img)}" alt="${escAttr(logo.alt || "")}"/>`;
+      // Wrap in an <a> only when a link is set. safeUrl rejects javascript:
+      // and other unsafe schemes; alt text doubles as accessible label.
+      const linkHref = (logo.link || "").trim();
+      const inner = linkHref
+        ? `<a href="${escAttr(safeUrl(linkHref))}" target="_blank" rel="noopener noreferrer" aria-label="${escAttr(logo.alt || "Visit link")}">${imgTag}</a>`
+        : imgTag;
+      return `<div class="ns-item" data-ns-original>${inner}</div>`;
     })
     .join("");
 
   // Animation name is suffixed with uid so multiple instances don't collide
   const animName = `nsLogoScroll_${uid.replace(/[^a-z0-9]/gi, "")}`;
+
+  // Optional greyscale-until-hover. Applies to both bare <img> and the
+  // <img> inside an <a>. Hover state covers both pointer hover (mouse)
+  // and keyboard focus on the link wrapper for a11y.
+  const greyCss = cfg.greyscale
+    ? `
+.${cls} .ns-item img{filter:grayscale(100%);opacity:0.85;transition:filter 0.35s ease, opacity 0.35s ease}
+.${cls} .ns-item:hover img,.${cls} .ns-item a:focus-visible img{filter:none;opacity:1}
+`.trim()
+    : "";
 
   const css = `
 ${baseReset(cls)}
@@ -73,8 +91,10 @@ ${baseReset(cls)}
 .${cls} .ns-track{display:flex;width:max-content;animation:${animName} var(--ns-speed) linear infinite;will-change:transform;--ns-distance:0px}
 .${cls} .ns-item{flex:0 0 auto;width:var(--ns-w);display:flex;justify-content:center;align-items:center;margin:0 calc(var(--ns-gap) / 2)}
 .${cls} .ns-item img{height:var(--ns-h);width:auto;object-fit:contain}
+.${cls} .ns-item a{display:flex;align-items:center;justify-content:center;width:100%;height:100%;text-decoration:none;outline-offset:4px}
 @keyframes ${animName}{0%{transform:translateX(0)}100%{transform:translateX(calc(-1 * var(--ns-distance)))}}
 .${cls}:hover .ns-track{animation-play-state:paused}
+${greyCss}
 `.trim();
 
   const html = `<section class="ns-logos ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
@@ -92,7 +112,10 @@ ${baseReset(cls)}
 function FormPanel({ config, onUpdate }) {
   const addLogo = () =>
     onUpdate({
-      logos: [...config.logos, { id: makeUid(), image: "", alt: "Logo" }],
+      logos: [
+        ...config.logos,
+        { id: makeUid(), image: "", alt: "Logo", link: "" },
+      ],
     });
   const removeLogo = (id) =>
     onUpdate({ logos: config.logos.filter((l) => l.id !== id) });
@@ -119,6 +142,13 @@ function FormPanel({ config, onUpdate }) {
           checked={config.fullBleed}
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="logos-full-bleed"
+        />
+        <ToggleField
+          label="Greyscale until hover"
+          description="Render every logo in greyscale; reveal full colour when the cursor lands on it."
+          checked={!!config.greyscale}
+          onChange={(v) => onUpdate({ greyscale: v })}
+          testid="logos-greyscale"
         />
         <SliderField
           label="Scroll speed"
@@ -212,6 +242,13 @@ function FormPanel({ config, onUpdate }) {
                 value={l.alt}
                 onChange={(v) => updateLogo(l.id, { alt: v })}
                 testid={`logo-alt-${l.id}`}
+              />
+              <TextField
+                label="Link (optional)"
+                placeholder="https://example.com"
+                value={l.link || ""}
+                onChange={(v) => updateLogo(l.id, { link: v })}
+                testid={`logo-link-${l.id}`}
               />
             </>
           )}

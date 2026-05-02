@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -16,17 +15,10 @@ import { GripVertical, Layers, Trash2, Type } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { blockTypeLabel } from "@/sections/pageSnippet";
 import InlineEditableLabel from "@/components/InlineEditableLabel";
-import { LIBRARY_DRAG_MIME } from "./LibraryList";
 
 /**
  * BlocksList — the page-content side of the PageRail. Drag-reorderable
  * sortable rows when expanded, stacked icon buttons when collapsed.
- *
- * Also accepts HTML5-native drops from the Library tab (see LibraryList).
- * When a library tile is dragged over the list, thin drop indicators
- * appear above each row and below the last row — dropping calls
- * `onInsertLibrarySection(sectionId, index)` so the parent PageEditor
- * can clone the section into the page at that position.
  *
  * Selecting a row tells the parent PageEditor to open the matching
  * BlockEditorDrawer; renaming updates the block's `name` field via the
@@ -39,69 +31,20 @@ export default function BlocksList({
   onRemove,
   onReorder,
   onRename,
-  onInsertLibrarySection,
   expanded,
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
-  // -1 = no drop indicator visible. 0..blocks.length = insert position.
-  // Mirror the state into a ref so the drop handler always reads the
-  // latest value even when dragenter/over/drop fire synchronously in a
-  // single tick (e.g. programmatic dispatch, very fast user drags).
-  const [dropIndex, setDropIndex] = useState(-1);
-  const dropIndexRef = useRef(-1);
-  const updateDropIndex = (next) => {
-    dropIndexRef.current = next;
-    setDropIndex(next);
-  };
-
-  const libraryDragPresent = (e) => {
-    // Custom MIME can't be inspected during dragover in all browsers
-    // (only types list is readable), so we sniff the types array.
-    return Array.from(e.dataTransfer?.types || []).includes(LIBRARY_DRAG_MIME);
-  };
-
-  const onContainerDragOver = (e) => {
-    if (!libraryDragPresent(e)) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-  };
-
-  const onContainerDragLeave = (e) => {
-    // Only clear when leaving the outer container entirely.
-    if (e.currentTarget.contains(e.relatedTarget)) return;
-    updateDropIndex(-1);
-  };
-
-  const onContainerDrop = (e) => {
-    if (!libraryDragPresent(e)) return;
-    e.preventDefault();
-    const sectionId = e.dataTransfer.getData(LIBRARY_DRAG_MIME);
-    const current = dropIndexRef.current;
-    const target = current < 0 ? blocks.length : current;
-    updateDropIndex(-1);
-    if (sectionId && onInsertLibrarySection) {
-      onInsertLibrarySection(sectionId, target);
-    }
-  };
 
   if (!blocks.length) {
     return (
       <div
-        onDragOver={onContainerDragOver}
-        onDragLeave={onContainerDragLeave}
-        onDrop={onContainerDrop}
-        className={`text-slate-500 transition-colors rounded-md ${
+        className={`text-slate-500 ${
           expanded ? "px-3 py-3 text-xs leading-relaxed" : "py-2 text-[10px]"
-        } ${libraryDropActive(dropIndex) ? "bg-[#E01839]/10 outline outline-2 outline-[#E01839]/50 outline-offset-[-2px]" : ""}`}
-        onDragEnter={(e) => {
-          if (libraryDragPresent(e)) updateDropIndex(0);
-        }}
+        }`}
       >
-        {expanded
-          ? "No blocks yet. Add one below, or drag a library section in."
-          : ""}
+        {expanded ? "No blocks yet. Add one below." : ""}
       </div>
     );
   }
@@ -135,15 +78,9 @@ export default function BlocksList({
         items={blocks.map((b) => b.block_id)}
         strategy={verticalListSortingStrategy}
       >
-        <div
-          data-testid="blocks-list-drop-host"
-          onDragOver={onContainerDragOver}
-          onDragLeave={onContainerDragLeave}
-          onDrop={onContainerDrop}
-          className="space-y-1"
-        >
+        <div className="space-y-1">
           {blocks.map((b, i) => (
-            <BlockSlot
+            <BlockRow
               key={b.block_id}
               block={b}
               index={i}
@@ -151,75 +88,11 @@ export default function BlocksList({
               onSelect={() => onSelect(b.block_id)}
               onRemove={() => onRemove(b.block_id)}
               onRename={(name) => onRename && onRename(b.block_id, name)}
-              dropIndex={dropIndex}
-              setDropIndex={updateDropIndex}
-              libraryDragPresent={libraryDragPresent}
             />
           ))}
-          <DropZone
-            index={blocks.length}
-            active={dropIndex === blocks.length}
-            onEnter={() => updateDropIndex(blocks.length)}
-          />
         </div>
       </SortableContext>
     </DndContext>
-  );
-}
-
-function libraryDropActive(dropIndex) {
-  return dropIndex >= 0;
-}
-
-function DropZone({ index, active, onEnter }) {
-  return (
-    <div
-      data-testid={`blocks-drop-zone-${index}`}
-      onDragEnter={onEnter}
-      onDragOver={(e) => {
-        e.preventDefault();
-        onEnter();
-      }}
-      className={`h-2 rounded-full transition-all ${
-        active ? "bg-[#E01839] opacity-100" : "opacity-0"
-      }`}
-    />
-  );
-}
-
-function BlockSlot({
-  block,
-  index,
-  selected,
-  onSelect,
-  onRemove,
-  onRename,
-  dropIndex,
-  setDropIndex,
-  libraryDragPresent,
-}) {
-  return (
-    <>
-      <DropZone
-        index={index}
-        active={dropIndex === index}
-        onEnter={() => setDropIndex(index)}
-      />
-      <div
-        onDragEnter={(e) => {
-          if (libraryDragPresent(e)) setDropIndex(index);
-        }}
-      >
-        <BlockRow
-          block={block}
-          index={index}
-          selected={selected}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onRename={onRename}
-        />
-      </div>
-    </>
   );
 }
 
