@@ -14,7 +14,7 @@ import { useEscapeKey } from "@/lib/useEscapeKey";
 export const PREVIEW_INTERNAL_WIDTH = 1280;
 export const PREVIEW_INTERNAL_HEIGHT = 720;
 
-export const PAGE_SIZE = 9;
+export const PAGE_SIZE = 12;
 
 /** Hook: keeps an iframe-in-a-card scale factor synced to the card's width. */
 export function useIframeScale() {
