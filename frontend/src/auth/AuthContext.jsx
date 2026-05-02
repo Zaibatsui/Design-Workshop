@@ -12,7 +12,10 @@ export function AuthProvider({ children }) {
       const r = await fetch(`${API}/api/auth/me`, { credentials: "include" });
       if (!r.ok) throw new Error("not authed");
       setUser(await r.json());
-    } catch {
+    } catch (e) {
+      // /api/auth/me 401s when no session cookie is present; that's the
+      // logged-out path and shouldn't spam the console. Log at debug only.
+      if (process.env.NODE_ENV !== "production") console.debug("auth check failed:", e);
       setUser(null);
     } finally {
       setLoading(false);
@@ -29,8 +32,8 @@ export function AuthProvider({ children }) {
         method: "POST",
         credentials: "include",
       });
-    } catch {
-      // ignore
+    } catch (e) {
+      if (process.env.NODE_ENV !== "production") console.debug("logout request failed:", e);
     }
     setUser(null);
   };

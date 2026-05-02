@@ -32,8 +32,10 @@ export function BrandKitProvider({ children }) {
     try {
       const k = await api.getBrandKit();
       setBrandKit({ ...DEFAULT_BRAND_KIT, ...k });
-    } catch {
-      // Auth-protected endpoint — silently fall back to defaults.
+    } catch (e) {
+      // Auth-protected endpoint — unauth on /login is expected; log at
+      // debug level so true failures (network, 5xx) remain visible to devs.
+      if (process.env.NODE_ENV !== "production") console.debug("BrandKit fetch fell back to defaults:", e);
     } finally {
       setLoaded(true);
     }

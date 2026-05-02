@@ -15,7 +15,12 @@ BASE_URL = os.environ.get(
     "REACT_APP_BACKEND_URL",
     "https://section-forge-1.preview.emergentagent.com",
 ).rstrip("/")
-TOKEN = "BhDNRIZaNl8EgFgndl8MywKImOdn8PUpyj0deIry1ZYl9fxJ1L0SKFMKYdS1BN_7"
+TOKEN = os.environ.get("TEST_SESSION_TOKEN")
+if not TOKEN:
+    raise RuntimeError(
+        "TEST_SESSION_TOKEN is required. Mint one with the snippet in "
+        "/app/memory/test_credentials.md and export it before running pytest."
+    )
 
 DEFAULT_KIT = {
     "primary_color": "#E01839",

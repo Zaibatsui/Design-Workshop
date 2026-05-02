@@ -14,7 +14,12 @@ import pytest
 import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
-TOKEN = "jqzWBjeEXiyy_fLwnz_cYnCHeiT9hjNEIx2yazaqZ9abuSXIhiMaKxbub-WrKGzw"
+TOKEN = os.environ.get("TEST_SESSION_TOKEN")
+if not TOKEN:
+    raise RuntimeError(
+        "TEST_SESSION_TOKEN is required. Mint one with the snippet in "
+        "/app/memory/test_credentials.md and export it before running pytest."
+    )
 H = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
 
 

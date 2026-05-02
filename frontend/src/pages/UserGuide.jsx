@@ -469,11 +469,22 @@ function Ol({ children }) {
 function Bullets({ items }) {
   return (
     <ul className="list-disc pl-5 space-y-2 marker:text-[#E01839]">
-      {items.map((it, i) => (
-        <li key={i} className="leading-relaxed">
-          {it}
-        </li>
-      ))}
+      {items.map((it, i) => {
+        // Bullet items are static React nodes; derive a stable-ish key from
+        // their string contents when possible, falling back to the index
+        // (the lists never reorder, so the index fallback is safe).
+        const key =
+          typeof it === "string"
+            ? it.slice(0, 40)
+            : typeof it?.key === "string"
+              ? it.key
+              : `b-${i}`;
+        return (
+          <li key={key} className="leading-relaxed">
+            {it}
+          </li>
+        );
+      })}
     </ul>
   );
 }

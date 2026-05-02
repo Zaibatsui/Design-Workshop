@@ -105,9 +105,12 @@ export function useIframeScale() {
         if (!body) return;
         mo = new MutationObserver(measure);
         mo.observe(body, { childList: true, subtree: true, attributes: true });
-      } catch {
-        /* cross-origin */
-      }
+    } catch (e) {
+      // Cross-origin iframe access — expected for some sandboxed previews.
+      // Log at debug level so noisy console isn't a regression for users
+      // but the failure is still discoverable in dev tools.
+      if (process.env.NODE_ENV !== "production") console.debug("MutationObserver attach skipped:", e);
+    }
     };
     const onLoad = () => {
       measure();
