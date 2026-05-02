@@ -48,7 +48,12 @@ export default function Dashboard() {
 
   const createPage = (template) => {
     setPagePicker(false);
-    navigate("/edit/page/new", { state: { template } });
+    // Strip non-serializable fields (Lucide icon on built-in templates is
+    // a forwardRef and not structured-cloneable for the History API).
+    const safe = template
+      ? { id: template.id, name: template.name, blocks: template.blocks || [] }
+      : null;
+    navigate("/edit/page/new", { state: { template: safe } });
   };
 
   return (

@@ -81,10 +81,13 @@ export default function PageRail({
 
   const createFromTemplate = (template) => {
     setTemplatePicker(false);
-    // Deferred creation: the new page exists only in memory until the
-    // user makes their first edit. PageEditor reads the template payload
-    // from React Router state and seeds the in-memory blocks list.
-    navigate("/edit/page/new", { state: { template } });
+    // Strip non-serializable fields — the Lucide icon on built-in
+    // templates is a forwardRef and not structured-cloneable for the
+    // History API.
+    const safe = template
+      ? { id: template.id, name: template.name, blocks: template.blocks || [] }
+      : null;
+    navigate("/edit/page/new", { state: { template: safe } });
   };
 
   const renamePage = async (pageId, name) => {
