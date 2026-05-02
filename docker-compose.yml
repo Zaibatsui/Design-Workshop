@@ -1,0 +1,61 @@
+# Compose stack for self-hosted Design Workshop deployments.
+#
+# Topology:
+#   browser ──► (your reverse proxy: nginx/caddy/traefik, terminates TLS)
+#               │
+#               └──► host:${PUBLIC_PORT}  ──►  frontend (nginx)
+#                                                ├── /          → static SPA bundle
+#                                                └── /api/*     → backend (uvicorn)
+#                                                                  └── mongo (4.4)
+#                                                                  └── /var/uploads (volume)
+#
+# All inter-service traffic stays on the internal docker network. Only the
+# frontend container exposes a port to the host.
+
+services:
+  mongo:
+    # 4.4.x is the last MongoDB version that runs on CPUs without AVX
+    # support (e.g. older Xeons / Atoms in homelab Proxmox boxes). Stay
+    # on this until the host hardware can run 5.0+.
+    image: mongo:4.4
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    # Mongo intentionally has no published port — only the backend needs
+    # to reach it, and that happens over the internal docker network.
+
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/backend.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URL: mongodb://mongo:27017
+      DB_NAME: ${DB_NAME:-design_workshop}
+      CORS_ORIGINS: "*"
+      APP_NAME: ${APP_NAME:-modular-pages}
+      UPLOADS_DIR: /var/uploads
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      OAUTH_STATE_SECRET: ${OAUTH_STATE_SECRET}
+    volumes:
+      - uploads-data:/var/uploads
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/frontend.Dockerfile
+      args:
+        # Baked in at build time — CRA can't read env vars at runtime.
+        REACT_APP_BACKEND_URL: ${PUBLIC_URL}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${PUBLIC_PORT:-8080}:80"
+
+volumes:
+  mongo-data:
+  uploads-data:

@@ -1,0 +1,23 @@
+# Things that have no business in a docker build context.
+.git
+.github
+.emergent
+.idea
+.vscode
+node_modules
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+frontend/build
+backend/.venv
+.env
+**/.env.local
+**/.env.development
+test_reports
+memory
+deploy/.env
+*.log
+.DS_Store

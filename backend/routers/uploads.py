@@ -1,12 +1,10 @@
-"""File upload + public file proxy via Emergent object storage."""
+"""File upload + public file proxy via local filesystem storage."""
 import logging
 import uuid
 
 from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 
-import requests
-
-from storage import APP_NAME, get_object, put_object
+from storage import APP_NAME, StorageNotFoundError, get_object, put_object
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["uploads"])
@@ -52,11 +50,11 @@ async def download(path: str):
     snippets pasted into external CMSs and must work for any visitor."""
     try:
         data, content_type = get_object(path)
-    except requests.HTTPError as e:
-        status = e.response.status_code if e.response is not None else 500
-        if status == 404:
-            raise HTTPException(status_code=404, detail="file not found")
-        raise HTTPException(status_code=status, detail="storage error")
+    except StorageNotFoundError:
+        raise HTTPException(status_code=404, detail="file not found")
+    except Exception:
+        logger.exception("get_object failed for %s", path)
+        raise HTTPException(status_code=500, detail="storage error")
     return Response(
         content=data,
         media_type=content_type,
