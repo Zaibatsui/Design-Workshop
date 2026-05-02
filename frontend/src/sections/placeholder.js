@@ -26,13 +26,33 @@ import { Label } from "@/components/ui/label";
 
 const ID = "placeholder";
 
-const blankItem = () => ({
+// Same upload base as Logo Strip — points to whichever backend the
+// frontend was built against. Lets the user's previously uploaded
+// images survive a backend domain swap (preview URL changes between
+// environments) so long as the storage backend itself is the same.
+const UPLOAD_BASE =
+  (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "") +
+  "/api/files/modular-pages/uploads";
+
+// User's seeded library — these match the four images in the grid the
+// user assembled in their "More testing" page so any new Grid section
+// drops in pre-populated with their visual identity.
+const SEED_IMAGES = [
+  `${UPLOAD_BASE}/0d2f7d0f-39c0-45e0-91ad-f67cada106f4.jpg`,
+  `${UPLOAD_BASE}/1dd479ac-73d6-432b-a589-e237424254f3.jpg`,
+  `${UPLOAD_BASE}/69e8c91c-39ae-4d27-af66-558a7f06524a.jpg`,
+  `${UPLOAD_BASE}/1b2dff0e-cba4-41cb-bde4-03f4958d7c23.jpg`,
+];
+
+const seedItem = (image) => ({
   id: makeUid(),
-  image: "",
+  image,
   link: "",
   alt: "",
   openInSameTab: false,
 });
+
+const blankItem = () => seedItem("");
 
 const defaults = () => ({
   uid: makeUid(),
@@ -44,7 +64,7 @@ const defaults = () => ({
   paddingY: 60,
   gap: 20,
   fullBleed: false,
-  items: [blankItem(), blankItem(), blankItem(), blankItem()],
+  items: SEED_IMAGES.map(seedItem),
 });
 
 function render(cfg) {
