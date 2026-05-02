@@ -5,7 +5,7 @@ import Hero from "./login/Hero";
 import ValueProps from "./login/ValueProps";
 import SectionsShowcase from "./login/SectionsShowcase";
 import HowItWorks from "./login/HowItWorks";
-import Testimonial from "./login/Testimonial";
+import LiveDemo from "./login/LiveDemo";
 import FAQ from "./login/FAQ";
 import FooterCTA from "./login/FooterCTA";
 
@@ -32,7 +32,7 @@ export default function Login() {
         <ValueProps />
         <SectionsShowcase />
         <HowItWorks />
-        <Testimonial />
+        <LiveDemo />
         <FAQ />
       </main>
       <FooterCTA />

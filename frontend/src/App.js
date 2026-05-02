@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Editor from "@/pages/Editor";
 import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
+import UserGuide from "@/pages/UserGuide";
 
 /**
  * Surfaces runtime errors that bypass the render-time ErrorBoundary as
@@ -100,6 +101,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <BrandKitPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/guide"
+                element={
+                  <ProtectedRoute>
+                    <UserGuide />
                   </ProtectedRoute>
                 }
               />

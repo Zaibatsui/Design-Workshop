@@ -19,7 +19,7 @@ const PROPS = [
   {
     Icon: Code,
     title: "No-dependency snippets",
-    body: "What you copy is HTML + scoped CSS + a tiny IIFE. No React, no jQuery, no CDN calls. Drops into Nettailer, Magento, plain CMSes alike.",
+    body: "What you copy is HTML + scoped CSS + a tiny IIFE. No React, no jQuery, no CDN calls. Drops into Nettailer or any B2B e-commerce stack alike.",
   },
 ];
 
