@@ -34,9 +34,6 @@ dist
 
 *token.json*
 *credentials.json*
-# Allow committing the deploy template — it has placeholders only,
-# not real secrets.
-!deploy/.env.example
 
 # Logs and debug files
 npm-debug.log*
@@ -109,21 +106,7 @@ credentials.json
 *.pem
 *.key
 .credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
+
+# Whitelist deploy template (placeholders only, not real secrets).
+# Must come AFTER the .env.* rules above so it actually takes effect.
+!deploy/.env.example
