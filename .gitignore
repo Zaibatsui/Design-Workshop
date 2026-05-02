@@ -109,4 +109,12 @@ credentials.json
 
 # Whitelist deploy template (placeholders only, not real secrets).
 # Must come AFTER the .env.* rules above so it actually takes effect.
-!deploy/.env.example
+!deploy/.env.example-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
