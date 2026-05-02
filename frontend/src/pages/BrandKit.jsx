@@ -17,8 +17,10 @@ import { DEFAULT_BRAND_KIT, FONTS, INHERIT_FONT, fontImportUrl } from "@/lib/bra
 import { useBrandKit } from "@/lib/BrandKitContext";
 import ColorField from "@/components/ColorField";
 import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
+import { useAuth } from "@/auth/AuthContext";
 
 export default function BrandKitPage() {
+  const { user } = useAuth();
   const { brandKit, setBrandKit } = useBrandKit();
   const [draft, setDraft] = useState(brandKit);
   const [saving, setSaving] = useState(false);
@@ -257,7 +259,7 @@ export default function BrandKitPage() {
           </div>
         </section>
 
-        <LandingDemoPicker />
+        {user?.is_admin && <LandingDemoPicker />}
       </main>
 
       <Toaster richColors position="top-center" />

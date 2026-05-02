@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from db import db
-from deps import User, get_current_user
+from deps import User, require_admin
 
 admin_router = APIRouter(prefix="/admin/landing-demo", tags=["landing-demo"])
 public_router = APIRouter(prefix="/public/landing-demo", tags=["landing-demo"])
@@ -46,7 +46,7 @@ class PublicLandingDemo(BaseModel):
 
 
 @admin_router.get("", response_model=LandingDemoSetting)
-async def get_landing_demo(_: User = Depends(get_current_user)):
+async def get_landing_demo(_: User = Depends(require_admin)):
     doc = await db.app_settings.find_one(
         {"_id": SETTINGS_KEY}, {"_id": 0}
     )
@@ -56,7 +56,7 @@ async def get_landing_demo(_: User = Depends(get_current_user)):
 @admin_router.put("", response_model=LandingDemoSetting)
 async def set_landing_demo(
     payload: LandingDemoUpdate,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_admin),
 ):
     # Validate the page exists and belongs to the caller. We only accept
     # pages the caller owns so an attacker can't expose someone else's
