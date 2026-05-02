@@ -12,7 +12,7 @@ import {
   safeUrl,
   wrapSnippet,
 } from "./shared";
-import { TextField, TextAreaField, SliderField, ToggleField } from "@/components/FormFields";
+import { TextField, TextAreaField, SelectField, SliderField, ToggleField } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
@@ -35,6 +35,10 @@ const defaults = () => ({
   bodyColor: "#333333",
   paddingY: 60,
   fullBleed: false,
+  // Tab-row horizontal alignment: "left" | "center" | "right".
+  tabsAlign: "left",
+  // Side-of-text the image lives on inside each panel: "left" | "right".
+  imagePosition: "right",
   tabs: [
     sampleTab(
       "Essential",
@@ -97,22 +101,35 @@ function render(cfg) {
     })
     .join("");
 
+  // Tab-row alignment maps directly to flex justify-content.
+  const tabsAlign = cfg.tabsAlign === "center"
+    ? "center"
+    : cfg.tabsAlign === "right"
+      ? "flex-end"
+      : "flex-start";
+
+  // When image lives on the left we flip the two grid columns. We keep
+  // the source order copy → image (same as before) so the snippet's DOM
+  // remains stable for analytics/SEO; CSS does the visual swap.
+  const imageOnLeft = cfg.imagePosition === "left";
+
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto}
-.${cls} .ns-tabs-row{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap}
+.${cls} .ns-tabs-row{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap;justify-content:${tabsAlign}}
 .${cls} .ns-tab{border:1px solid #e4e4e7;background:#fff;color:var(--ns-accent);padding:12px 18px;border-radius:6px;font-weight:600;font-size:14px;transition:background .15s ease,color .15s ease}
 .${cls} .ns-tab:hover{background:#f9fafb}
 .${cls} .ns-tab.is-active{background:var(--ns-accent);color:#fff;border-color:var(--ns-accent)}
 .${cls} .ns-panel{display:none}
 .${cls} .ns-panel.is-active{display:block}
-.${cls} .ns-split{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.${cls} .ns-split{display:grid;grid-template-columns:${imageOnLeft ? ".9fr 1.1fr" : "1.1fr .9fr"};gap:40px;align-items:center}
+${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 .${cls} .ns-heading{font-size:30px;font-weight:600;color:var(--ns-accent);margin:0 0 16px;line-height:1.2}
 .${cls} .ns-copy p{font-size:16px;color:var(--ns-body);line-height:1.6;margin:0}
 .${cls} .ns-copy p + p{margin-top:16px}
 .${cls} .ns-image img{width:100%;border-radius:6px;display:block}
-@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr}.${cls} .ns-heading{font-size:24px}}
+@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr}.${cls} .ns-copy{order:1}.${cls} .ns-image{order:2}.${cls} .ns-heading{font-size:24px}}
 `.trim();
 
   const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
@@ -195,6 +212,30 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="tabs-pad"
+        />
+      </Group>
+
+      <Group title="Layout">
+        <SelectField
+          label="Tab alignment"
+          value={config.tabsAlign || "left"}
+          onChange={(v) => onUpdate({ tabsAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="tabs-align"
+        />
+        <SelectField
+          label="Image position"
+          value={config.imagePosition || "right"}
+          onChange={(v) => onUpdate({ imagePosition: v })}
+          options={[
+            { value: "right", label: "Right of text" },
+            { value: "left", label: "Left of text" },
+          ]}
+          testid="tabs-image-position"
         />
       </Group>
 
