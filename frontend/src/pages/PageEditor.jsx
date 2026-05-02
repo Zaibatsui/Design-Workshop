@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -28,16 +28,11 @@ import SaveAsTemplateDialog from "./page-editor/SaveAsTemplateDialog";
 
 const AUTOSAVE_MS = 1500;
 
-// Module-level map of pending draft-delete timers keyed by page id.
-// Deferred so StrictMode's dev-time double-mount can cancel them.
-const PENDING_DRAFT_DELETES = new Map();
-const DRAFT_DELETE_DELAY_MS = 250;
-
 export default function PageEditor() {
   const { pageId } = useParams();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const isNewDraft = searchParams.get("new") === "1";
+  const location = useLocation();
+  const isNewDraft = pageId === "new";
 
   const [page, setPage] = useState(null);
   const [loadError, setLoadError] = useState(null);
@@ -49,21 +44,27 @@ export default function PageEditor() {
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const { brandKit } = useBrandKit();
 
-  // Tracks whether the user has made ANY change since landing on this page.
-  // Used to auto-delete empty "new=1" drafts on unmount.
-  const hasDirty = useRef(false);
-  const isNewRef = useRef(isNewDraft);
-  const pageIdRef = useRef(pageId);
-  useEffect(() => {
-    pageIdRef.current = pageId;
-    const pending = PENDING_DRAFT_DELETES.get(pageId);
-    if (pending) {
-      clearTimeout(pending);
-      PENDING_DRAFT_DELETES.delete(pageId);
-    }
-  }, [pageId]);
+  // After first save POSTs the new page, we navigate-replace from
+  // /edit/page/new → /edit/page/<realId>. Skip the load effect's fetch on
+  // that one round so it doesn't clobber state we just set locally.
+  const skipNextLoadRef = useRef(false);
 
   useEffect(() => {
+    if (skipNextLoadRef.current) {
+      skipNextLoadRef.current = false;
+      return undefined;
+    }
+    if (isNewDraft) {
+      // Pristine in-memory draft. Template payload comes via React Router
+      // state (set by Dashboard / PageRail when invoking 'New page').
+      const template = location.state?.template || null;
+      const name =
+        template && template.id !== "blank" ? template.name : "Untitled page";
+      const blocks = template ? template.blocks : [];
+      setPage({ page_id: null, name, blocks });
+      setLoadError(null);
+      return undefined;
+    }
     let cancelled = false;
     setPage(null);
     setLoadError(null);
@@ -77,7 +78,9 @@ export default function PageEditor() {
     return () => {
       cancelled = true;
     };
-  }, [pageId]);
+    // location.state intentionally excluded — only relevant at first init.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageId, isNewDraft]);
 
   useEffect(() => {
     api
@@ -90,15 +93,48 @@ export default function PageEditor() {
   const dirty = useRef(null);
   const timer = useRef(null);
   const inflight = useRef(false);
+  const creatingRef = useRef(false);
 
   const flushSave = async () => {
-    if (!dirty.current || inflight.current) return;
+    if (!page || inflight.current || creatingRef.current) return;
+
+    // First save on a brand-new draft — POST instead of PATCH.
+    if (!page.page_id) {
+      if (!dirty.current) return;
+      creatingRef.current = true;
+      setSaveStatus("saving");
+      const snapshot = {
+        name: page.name,
+        blocks: page.blocks || [],
+        ...dirty.current,
+      };
+      dirty.current = null;
+      try {
+        const created = await api.createPage(snapshot);
+        skipNextLoadRef.current = true;
+        setPage(created);
+        setSavedAt(Date.now());
+        setSaveStatus("saved");
+        navigate(`/edit/page/${created.page_id}`, { replace: true });
+      } catch {
+        setSaveStatus("error");
+      } finally {
+        creatingRef.current = false;
+        if (dirty.current) {
+          clearTimeout(timer.current);
+          timer.current = setTimeout(flushSave, AUTOSAVE_MS);
+        }
+      }
+      return;
+    }
+
+    if (!dirty.current) return;
     const patch = dirty.current;
     dirty.current = null;
     inflight.current = true;
     setSaveStatus("saving");
     try {
-      const updated = await api.updatePage(pageId, patch);
+      const updated = await api.updatePage(page.page_id, patch);
       setPage(updated);
       setSavedAt(Date.now());
       setSaveStatus("saved");
@@ -114,31 +150,13 @@ export default function PageEditor() {
   };
 
   const queueSave = (patch) => {
-    hasDirty.current = true;
-    if (isNewRef.current) {
-      isNewRef.current = false;
-      setSearchParams({}, { replace: true });
-    }
     dirty.current = { ...(dirty.current || {}), ...patch };
     setSaveStatus("saving");
     clearTimeout(timer.current);
     timer.current = setTimeout(flushSave, AUTOSAVE_MS);
   };
 
-  useEffect(
-    () => () => {
-      clearTimeout(timer.current);
-      if (isNewRef.current && !hasDirty.current && pageIdRef.current) {
-        const id = pageIdRef.current;
-        const t = setTimeout(() => {
-          api.deletePage(id).catch(() => {});
-          PENDING_DRAFT_DELETES.delete(id);
-        }, DRAFT_DELETE_DELAY_MS);
-        PENDING_DRAFT_DELETES.set(id, t);
-      }
-    },
-    []
-  );
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   // ── Block mutation helpers ──────────────────────────────────────────────
   const renamePage = (name) => {
@@ -234,7 +252,13 @@ export default function PageEditor() {
         : "",
     [page, brandKit]
   );
-  const previewHtml = useMemo(() => previewDoc(snippet), [snippet]);
+  // Deferred snippet keeps form interactions (drag, slider, color pickers)
+  // smooth while the iframe re-render is non-urgent.
+  const deferredSnippet = useDeferredValue(snippet);
+  const previewHtml = useMemo(
+    () => previewDoc(deferredSnippet),
+    [deferredSnippet]
+  );
 
   const copySnippet = async () => {
     if (!page) return;

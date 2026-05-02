@@ -79,17 +79,12 @@ export default function PageRail({
     api.listPages().then(setPages).catch(() => {});
   }, [activePageId]);
 
-  const createFromTemplate = async (template) => {
-    const name =
-      template && template.id !== "blank" ? template.name : "Untitled page";
-    const newBlocks = template ? template.blocks : [];
-    try {
-      const created = await api.createPage({ name, blocks: newBlocks });
-      setTemplatePicker(false);
-      navigate(`/edit/page/${created.page_id}?new=1`);
-    } catch {
-      /* parent toasts handle user-visible errors */
-    }
+  const createFromTemplate = (template) => {
+    setTemplatePicker(false);
+    // Deferred creation: the new page exists only in memory until the
+    // user makes their first edit. PageEditor reads the template payload
+    // from React Router state and seeds the in-memory blocks list.
+    navigate("/edit/page/new", { state: { template } });
   };
 
   const renamePage = async (pageId, name) => {

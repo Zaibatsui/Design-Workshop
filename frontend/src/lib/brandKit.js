@@ -10,22 +10,31 @@
  */
 
 /**
- * Curated Google Fonts. Keep tight — every entry costs a font-weight
- * permutation in the @import, which inflates the user's page weight.
+ * Sentinel value for "inherit from the host site". When a font is set to
+ * this, the snippet's @import line and font-family declarations get
+ * stripped so the snippet picks up whatever CSS the embedding site
+ * provides.
+ */
+export const INHERIT_FONT = "inherit";
+
+/**
+ * Curated Google Fonts. Ordered alphabetically. Keep tight — every entry
+ * costs a font-weight permutation in the @import, which inflates the
+ * user's page weight.
  */
 export const FONTS = [
-  { name: "Poppins", category: "sans" },
   { name: "Inter", category: "sans" },
-  { name: "Roboto", category: "sans" },
-  { name: "Open Sans", category: "sans" },
   { name: "Lato", category: "sans" },
-  { name: "Montserrat", category: "sans" },
-  { name: "Source Sans 3", category: "sans" },
-  { name: "Nunito", category: "sans" },
-  { name: "Raleway", category: "sans" },
-  { name: "Work Sans", category: "sans" },
-  { name: "Playfair Display", category: "serif" },
   { name: "Merriweather", category: "serif" },
+  { name: "Montserrat", category: "sans" },
+  { name: "Nunito", category: "sans" },
+  { name: "Open Sans", category: "sans" },
+  { name: "Playfair Display", category: "serif" },
+  { name: "Poppins", category: "sans" },
+  { name: "Raleway", category: "sans" },
+  { name: "Roboto", category: "sans" },
+  { name: "Source Sans 3", category: "sans" },
+  { name: "Work Sans", category: "sans" },
 ];
 
 export const FONT_NAMES = FONTS.map((f) => f.name);
@@ -154,17 +163,38 @@ export function applyBrandKitToRichText(config, brandKit) {
 
 /**
  * Replace the default Poppins font references in a rendered snippet with
- * the user's chosen brand font. Called by Editor / composePage after
- * each section snippet is built. Idempotent — running twice with the same
- * font is safe (no-op).
+ * the user's chosen brand font. When `fontName` is the INHERIT_FONT
+ * sentinel, the @import and every `font-family:"Poppins"` declaration is
+ * stripped instead — the embedding site's CSS then takes over.
+ *
+ * Idempotent: running twice with the same font is a no-op.
  */
 export function applyFontToSnippet(snippet, fontName) {
+  if (!snippet) return snippet;
+
+  // "Inherit" → strip all font directives so the host site's CSS wins.
+  if (fontName === INHERIT_FONT) {
+    return snippet
+      .replace(
+        /@import\s+url\(["']?https:\/\/fonts\.googleapis\.com\/css2\?family=Poppins[^)]*\);?/g,
+        ""
+      )
+      // Replace font-family declarations whose stack starts with "Poppins"
+      // — including system-font fallback chains (`,-apple-system,...`) and
+      // optional `!important`. Stop at `;` or `}` so we don't gobble the
+      // rest of the rule.
+      .replace(
+        /font-family:\s*"Poppins"[^;}]*/g,
+        "font-family:inherit"
+      );
+  }
+
   const target = (fontName || "Poppins").trim();
   if (!target || target === "Poppins") return snippet;
   const family = target.replace(/\s+/g, "+");
-  // Escape the user-chosen family name for safe insertion into a RegExp
-  // replacement target. Today's curated list has no regex-special chars,
-  // but future additions could (e.g. "Source Sans 3+", "DM Sans / Mono").
+  // Escape '$' in replacement strings so RegExp.replace doesn't treat them
+  // as backreferences. None of today's curated fonts contain $, but better
+  // safe than sorry for future additions.
   const safeReplacement = (s) => s.replace(/\$/g, "$$$$");
   return snippet
     .replace(

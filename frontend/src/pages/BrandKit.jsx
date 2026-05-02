@@ -13,7 +13,7 @@ import {
 import { ArrowLeft, Palette, Type as TypeIcon, RotateCcw, Save } from "lucide-react";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
-import { DEFAULT_BRAND_KIT, FONTS, fontImportUrl } from "@/lib/brandKit";
+import { DEFAULT_BRAND_KIT, FONTS, INHERIT_FONT, fontImportUrl } from "@/lib/brandKit";
 import { useBrandKit } from "@/lib/BrandKitContext";
 import ColorField from "@/components/ColorField";
 
@@ -27,9 +27,17 @@ export default function BrandKitPage() {
     setDraft(brandKit);
   }, [brandKit]);
 
-  // Inject the live preview's font @import once per font choice.
+  // Inject the live preview's font @import once per font choice. Skip the
+  // inherit sentinel — there's nothing to load for it.
   const previewFonts = useMemo(
-    () => Array.from(new Set([draft.heading_font, draft.body_font])),
+    () =>
+      Array.from(
+        new Set(
+          [draft.heading_font, draft.body_font].filter(
+            (f) => f && f !== INHERIT_FONT
+          )
+        )
+      ),
     [draft.heading_font, draft.body_font]
   );
   useEffect(() => {
@@ -188,51 +196,63 @@ export default function BrandKitPage() {
             className="rounded-xl border border-slate-200 overflow-hidden"
             style={{ backgroundColor: draft.background_color }}
           >
-            <div className="p-10">
-              <h2
-                className="text-3xl mb-3"
+          <div className="p-10">
+            <h2
+              className="text-3xl mb-3"
+              style={{
+                color: draft.primary_color,
+                fontFamily:
+                  draft.heading_font === INHERIT_FONT
+                    ? "inherit"
+                    : `"${draft.heading_font}", sans-serif`,
+                fontWeight: 600,
+              }}
+            >
+              Tailor-made for your brand
+            </h2>
+            <p
+              className="text-base max-w-xl mb-6"
+              style={{
+                color: draft.text_color,
+                fontFamily:
+                  draft.body_font === INHERIT_FONT
+                    ? "inherit"
+                    : `"${draft.body_font}", sans-serif`,
+              }}
+            >
+              Every new section starts from these colors and fonts. Tweak the
+              kit and watch the rest of your library stay on-brand without
+              touching a single block.
+            </p>
+            <div className="flex gap-3 flex-wrap">
+              <span
+                className="inline-flex items-center px-5 py-2.5 rounded-md text-sm font-semibold"
                 style={{
-                  color: draft.primary_color,
-                  fontFamily: `"${draft.heading_font}", sans-serif`,
-                  fontWeight: 600,
+                  backgroundColor: draft.primary_color,
+                  color: draft.background_color,
+                  fontFamily:
+                    draft.heading_font === INHERIT_FONT
+                      ? "inherit"
+                      : `"${draft.heading_font}", sans-serif`,
                 }}
               >
-                Tailor-made for your brand
-              </h2>
-              <p
-                className="text-base max-w-xl mb-6"
+                Primary CTA
+              </span>
+              <span
+                className="inline-flex items-center px-5 py-2.5 rounded-md text-sm font-semibold border"
                 style={{
-                  color: draft.text_color,
-                  fontFamily: `"${draft.body_font}", sans-serif`,
+                  borderColor: draft.secondary_color,
+                  color: draft.secondary_color,
+                  fontFamily:
+                    draft.heading_font === INHERIT_FONT
+                      ? "inherit"
+                      : `"${draft.heading_font}", sans-serif`,
                 }}
               >
-                Every new section starts from these colors and fonts. Tweak the
-                kit and watch the rest of your library stay on-brand without
-                touching a single block.
-              </p>
-              <div className="flex gap-3 flex-wrap">
-                <span
-                  className="inline-flex items-center px-5 py-2.5 rounded-md text-sm font-semibold"
-                  style={{
-                    backgroundColor: draft.primary_color,
-                    color: draft.background_color,
-                    fontFamily: `"${draft.heading_font}", sans-serif`,
-                  }}
-                >
-                  Primary CTA
-                </span>
-                <span
-                  className="inline-flex items-center px-5 py-2.5 rounded-md text-sm font-semibold border"
-                  style={{
-                    borderColor: draft.secondary_color,
-                    color: draft.secondary_color,
-                    fontFamily: `"${draft.heading_font}", sans-serif`,
-                  }}
-                >
-                  Secondary
-                </span>
-              </div>
+                Secondary
+              </span>
             </div>
+          </div>
           </div>
         </section>
       </main>
@@ -254,6 +274,10 @@ function SectionHeader({ Icon, title }) {
 }
 
 function FontField({ label, value, onChange, testid, sample, size }) {
+  const isInherit = value === INHERIT_FONT;
+  const previewStyle = isInherit
+    ? { fontFamily: "inherit" }
+    : { fontFamily: `"${value}", sans-serif` };
   return (
     <div className="space-y-2">
       <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -264,6 +288,15 @@ function FontField({ label, value, onChange, testid, sample, size }) {
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="max-h-72">
+          <SelectItem
+            value={INHERIT_FONT}
+            data-testid={`${testid}-option-inherit`}
+          >
+            <span className="italic text-slate-500">
+              Inherit from site
+            </span>
+          </SelectItem>
+          <div className="my-1 border-t border-slate-200" />
           {FONTS.map((f) => (
             <SelectItem
               key={f.name}
@@ -282,9 +315,15 @@ function FontField({ label, value, onChange, testid, sample, size }) {
         className={`mt-2 px-3 py-2.5 rounded-md bg-slate-50 border border-slate-200 ${
           size === "2xl" ? "text-2xl font-semibold" : "text-base"
         }`}
-        style={{ fontFamily: `"${value}", sans-serif` }}
+        style={previewStyle}
       >
-        {sample}
+        {isInherit ? (
+          <span className="text-slate-400 italic text-sm font-normal">
+            Will use the embedding site's font
+          </span>
+        ) : (
+          sample
+        )}
       </div>
     </div>
   );

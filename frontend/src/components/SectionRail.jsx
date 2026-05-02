@@ -11,8 +11,6 @@ import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { api } from "@/lib/api";
 import { SectionPicker } from "@/pages/dashboard/common";
 import InlineEditableLabel from "@/components/InlineEditableLabel";
-import { useBrandKit } from "@/lib/BrandKitContext";
-import { applyBrandKit } from "@/lib/brandKit";
 
 /**
  * Library rail — persistent sidebar that acts as a mini file browser of the
@@ -27,7 +25,6 @@ export default function SectionRail({ activeSectionId }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
-  const { brandKit } = useBrandKit();
 
   useEffect(() => {
     let cancelled = false;
@@ -65,20 +62,11 @@ export default function SectionRail({ activeSectionId }) {
     }
   };
 
-  const createNew = async (typeId) => {
+  const createNew = (typeId) => {
     const def = SECTIONS_BY_ID[typeId];
     if (!def) return;
-    try {
-      const created = await api.createSection({
-        name: `New ${def.name}`,
-        type: typeId,
-        config: applyBrandKit(typeId, def.defaults(), brandKit),
-      });
-      setPicker(false);
-      navigate(`/edit/section/${created.section_id}?new=1`);
-    } catch {
-      // surfaced via toast from caller; fail silently in the rail
-    }
+    setPicker(false);
+    navigate(`/edit/section/new?type=${encodeURIComponent(typeId)}`);
   };
 
   return (

@@ -8,8 +8,6 @@ import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { BRAND } from "@/lib/brand";
-import { useBrandKit } from "@/lib/BrandKitContext";
-import { applyBrandKit } from "@/lib/brandKit";
 import SectionsTab from "./dashboard/SectionsTab";
 import PagesTab from "./dashboard/PagesTab";
 import { SectionPicker, Tabs } from "./dashboard/common";
@@ -39,34 +37,18 @@ export default function Dashboard() {
     })();
   }, []);
 
-  const { brandKit } = useBrandKit();
-
-  const createSection = async (typeId) => {
+  const createSection = (typeId) => {
     const def = SECTIONS_BY_ID[typeId];
     if (!def) return;
-    try {
-      const created = await api.createSection({
-        name: `New ${def.name}`,
-        type: typeId,
-        config: applyBrandKit(typeId, def.defaults(), brandKit),
-      });
-      setPicker(false);
-      navigate(`/edit/section/${created.section_id}?new=1`);
-    } catch {
-      toast.error("Could not create section");
-    }
+    setPicker(false);
+    // Deferred creation: open a pristine in-memory draft. The DB record is
+    // only POSTed when the user makes their first edit.
+    navigate(`/edit/section/new?type=${encodeURIComponent(typeId)}`);
   };
 
-  const createPage = async (template) => {
-    const name = template && template.id !== "blank" ? template.name : "Untitled page";
-    const blocks = template ? template.blocks : [];
-    try {
-      const created = await api.createPage({ name, blocks });
-      setPagePicker(false);
-      navigate(`/edit/page/${created.page_id}?new=1`);
-    } catch {
-      toast.error("Could not create page");
-    }
+  const createPage = (template) => {
+    setPagePicker(false);
+    navigate("/edit/page/new", { state: { template } });
   };
 
   return (
