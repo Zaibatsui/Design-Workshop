@@ -2,7 +2,7 @@
  * SectionsTab — sections grid with drag-and-drop reordering, duplicate,
  * delete, and pagination.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -53,50 +53,59 @@ export default function SectionsTab({
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  const removeSection = async (id) => {
-    if (!window.confirm("Delete this section permanently?")) return;
-    try {
-      await api.deleteSection(id);
-      setSections((s) => s.filter((x) => x.section_id !== id));
-      toast.success("Section deleted");
-    } catch {
-      toast.error("Delete failed");
-    }
-  };
+  const removeSection = useCallback(
+    async (id) => {
+      if (!window.confirm("Delete this section permanently?")) return;
+      try {
+        await api.deleteSection(id);
+        setSections((s) => s.filter((x) => x.section_id !== id));
+        toast.success("Section deleted");
+      } catch {
+        toast.error("Delete failed");
+      }
+    },
+    [setSections]
+  );
 
-  const duplicateSection = async (id) => {
-    try {
-      const dup = await api.duplicateSection(id);
-      // Duplicate is created with a head position; prepend optimistically
-      setSections((s) => [dup, ...s]);
-      toast.success("Section duplicated");
-      navigate(`/edit/section/${dup.section_id}`);
-    } catch {
-      toast.error("Could not duplicate");
-    }
-  };
+  const duplicateSection = useCallback(
+    async (id) => {
+      try {
+        const dup = await api.duplicateSection(id);
+        // Duplicate is created with a head position; prepend optimistically
+        setSections((s) => [dup, ...s]);
+        toast.success("Section duplicated");
+        navigate(`/edit/section/${dup.section_id}`);
+      } catch {
+        toast.error("Could not duplicate");
+      }
+    },
+    [navigate, setSections]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   );
 
-  const onDragEnd = async (e) => {
-    if (!e.over || e.active.id === e.over.id) return;
-    // Reorder WITHIN the full list so positions survive pagination.
-    const ids = sections.map((s) => s.section_id);
-    const oldIndex = ids.indexOf(e.active.id);
-    const newIndex = ids.indexOf(e.over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-    const nextIds = arrayMove(ids, oldIndex, newIndex);
-    const byId = Object.fromEntries(sections.map((s) => [s.section_id, s]));
-    // Optimistic UI + persist
-    setSections(nextIds.map((id, i) => ({ ...byId[id], position: i })));
-    try {
-      await api.reorderSections(nextIds);
-    } catch {
-      toast.error("Could not save new order");
-    }
-  };
+  const onDragEnd = useCallback(
+    async (e) => {
+      if (!e.over || e.active.id === e.over.id) return;
+      // Reorder WITHIN the full list so positions survive pagination.
+      const ids = sections.map((s) => s.section_id);
+      const oldIndex = ids.indexOf(e.active.id);
+      const newIndex = ids.indexOf(e.over.id);
+      if (oldIndex < 0 || newIndex < 0) return;
+      const nextIds = arrayMove(ids, oldIndex, newIndex);
+      const byId = Object.fromEntries(sections.map((s) => [s.section_id, s]));
+      // Optimistic UI + persist
+      setSections(nextIds.map((id, i) => ({ ...byId[id], position: i })));
+      try {
+        await api.reorderSections(nextIds);
+      } catch {
+        toast.error("Could not save new order");
+      }
+    },
+    [sections, setSections]
+  );
 
   if (loading) return <div className="text-sm text-slate-500">Loading…</div>;
   if (sections.length === 0) {
@@ -128,8 +137,8 @@ export default function SectionsTab({
               <SectionCard
                 key={s.section_id}
                 section={s}
-                onDelete={() => removeSection(s.section_id)}
-                onDuplicate={() => duplicateSection(s.section_id)}
+                onDelete={removeSection}
+                onDuplicate={duplicateSection}
               />
             ))}
           </div>
@@ -147,9 +156,9 @@ export default function SectionsTab({
   );
 }
 
-function SectionCard({ section, onDelete, onDuplicate }) {
+const SectionCard = memo(function SectionCard({ section, onDelete, onDuplicate }) {
   const def = SECTIONS_BY_ID[section.type];
-  const { wrapRef, iframeRef, scale, contentHeight } = useIframeScale();
+  const { wrapRef, iframeRef, scale, contentHeight, visible } = useIframeScale();
   const {
     attributes,
     listeners,
@@ -166,23 +175,30 @@ function SectionCard({ section, onDelete, onDuplicate }) {
     zIndex: isDragging ? 20 : undefined,
   };
 
+  // Memoize the heavy work — section.config is reference-stable across
+  // parent re-renders (dnd/hover/pagination), so we only rebuild the
+  // snippet + doc string when the section actually changes.
+  const doc = useMemo(() => {
+    if (!def) return "";
+    const snippet = def.render({ ...section.config, uid: makeUid() });
+    return previewDoc(snippet);
+  }, [def, section.config]);
+
   if (!def) return null;
   const Icon = def.icon || Layers;
-  const previewSnippet = def.render({ ...section.config, uid: makeUid() });
-  const doc = previewDoc(previewSnippet);
   const updated = new Date(section.updated_at);
 
   // Card preview area shrink-wraps to the actual scaled section height.
-  // Bounds derive from `scale` (state) so updates are reactive.
-  // Min: 90px keeps a usable click target for tiny sections (Logo Strip
-  // is ~110px content × 0.23 scale ≈ 25px otherwise).
+  // Before the iframe mounts/measures (contentHeight === 0), fall back
+  // to a 16:9 placeholder so cards don't pop from 720px → real height.
+  // Min: 90px keeps a usable click target for tiny sections.
   // Max: 4:3 of card width ceiling for unusually tall sections.
   const cardWidthVirtual = PREVIEW_INTERNAL_WIDTH * scale;
   const maxPreviewHeight = cardWidthVirtual * (4 / 3);
-  const previewHeight = Math.min(
-    maxPreviewHeight,
-    Math.max(90, contentHeight * scale)
-  );
+  const previewHeight =
+    contentHeight > 0
+      ? Math.min(maxPreviewHeight, Math.max(90, contentHeight * scale))
+      : cardWidthVirtual * (9 / 16);
 
   return (
     <div
@@ -209,19 +225,22 @@ function SectionCard({ section, onDelete, onDuplicate }) {
         className="block bg-slate-100 overflow-hidden relative w-full"
         style={{ height: previewHeight ? `${previewHeight}px` : undefined }}
       >
-        <iframe
-          ref={iframeRef}
-          title={section.name}
-          srcDoc={doc}
-          sandbox="allow-scripts allow-same-origin"
-          className="border-0 pointer-events-none block absolute top-0 left-0"
-          style={{
-            width: `${PREVIEW_INTERNAL_WIDTH}px`,
-            height: `${contentHeight}px`,
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-          }}
-        />
+        {visible && (
+          <iframe
+            ref={iframeRef}
+            title={section.name}
+            srcDoc={doc}
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin"
+            className="border-0 pointer-events-none block absolute top-0 left-0"
+            style={{
+              width: `${PREVIEW_INTERNAL_WIDTH}px`,
+              height: `${contentHeight || PREVIEW_INTERNAL_HEIGHT}px`,
+              transform: `scale(${scale})`,
+              transformOrigin: "top left",
+            }}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>
       <div className="p-4 flex items-center justify-between gap-3 flex-1">
@@ -248,7 +267,7 @@ function SectionCard({ section, onDelete, onDuplicate }) {
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              onDuplicate();
+              onDuplicate(section.section_id);
             }}
             data-testid={`duplicate-section-${section.section_id}`}
             className="p-2 rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100"
@@ -260,7 +279,7 @@ function SectionCard({ section, onDelete, onDuplicate }) {
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              onDelete();
+              onDelete(section.section_id);
             }}
             data-testid={`delete-${section.section_id}`}
             className="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50"
@@ -272,4 +291,4 @@ function SectionCard({ section, onDelete, onDuplicate }) {
       </div>
     </div>
   );
-}
+});

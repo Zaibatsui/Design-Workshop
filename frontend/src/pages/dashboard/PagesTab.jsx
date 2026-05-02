@@ -2,7 +2,7 @@
  * PagesTab — pages grid with drag-and-drop reordering, duplicate, delete,
  * and pagination. Mirrors SectionsTab but for Pages entity.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -48,47 +48,56 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  const removePage = async (id) => {
-    if (!window.confirm("Delete this page permanently?")) return;
-    try {
-      await api.deletePage(id);
-      setPages((p) => p.filter((x) => x.page_id !== id));
-      toast.success("Page deleted");
-    } catch {
-      toast.error("Delete failed");
-    }
-  };
+  const removePage = useCallback(
+    async (id) => {
+      if (!window.confirm("Delete this page permanently?")) return;
+      try {
+        await api.deletePage(id);
+        setPages((p) => p.filter((x) => x.page_id !== id));
+        toast.success("Page deleted");
+      } catch {
+        toast.error("Delete failed");
+      }
+    },
+    [setPages]
+  );
 
-  const duplicatePage = async (id) => {
-    try {
-      const dup = await api.duplicatePage(id);
-      setPages((p) => [dup, ...p]);
-      toast.success("Page duplicated");
-      navigate(`/edit/page/${dup.page_id}`);
-    } catch {
-      toast.error("Could not duplicate");
-    }
-  };
+  const duplicatePage = useCallback(
+    async (id) => {
+      try {
+        const dup = await api.duplicatePage(id);
+        setPages((p) => [dup, ...p]);
+        toast.success("Page duplicated");
+        navigate(`/edit/page/${dup.page_id}`);
+      } catch {
+        toast.error("Could not duplicate");
+      }
+    },
+    [navigate, setPages]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   );
 
-  const onDragEnd = async (e) => {
-    if (!e.over || e.active.id === e.over.id) return;
-    const ids = pages.map((p) => p.page_id);
-    const oldIndex = ids.indexOf(e.active.id);
-    const newIndex = ids.indexOf(e.over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-    const nextIds = arrayMove(ids, oldIndex, newIndex);
-    const byId = Object.fromEntries(pages.map((p) => [p.page_id, p]));
-    setPages(nextIds.map((id, i) => ({ ...byId[id], position: i })));
-    try {
-      await api.reorderPages(nextIds);
-    } catch {
-      toast.error("Could not save new order");
-    }
-  };
+  const onDragEnd = useCallback(
+    async (e) => {
+      if (!e.over || e.active.id === e.over.id) return;
+      const ids = pages.map((p) => p.page_id);
+      const oldIndex = ids.indexOf(e.active.id);
+      const newIndex = ids.indexOf(e.over.id);
+      if (oldIndex < 0 || newIndex < 0) return;
+      const nextIds = arrayMove(ids, oldIndex, newIndex);
+      const byId = Object.fromEntries(pages.map((p) => [p.page_id, p]));
+      setPages(nextIds.map((id, i) => ({ ...byId[id], position: i })));
+      try {
+        await api.reorderPages(nextIds);
+      } catch {
+        toast.error("Could not save new order");
+      }
+    },
+    [pages, setPages]
+  );
 
   if (loading) return <div className="text-sm text-slate-500">Loading…</div>;
   if (pages.length === 0) {
@@ -120,8 +129,8 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
               <PageCard
                 key={p.page_id}
                 page={p}
-                onDelete={() => removePage(p.page_id)}
-                onDuplicate={() => duplicatePage(p.page_id)}
+                onDelete={removePage}
+                onDuplicate={duplicatePage}
               />
             ))}
           </div>
@@ -139,8 +148,8 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
   );
 }
 
-function PageCard({ page, onDelete, onDuplicate }) {
-  const { wrapRef, iframeRef, scale, contentHeight } = useIframeScale();
+const PageCard = memo(function PageCard({ page, onDelete, onDuplicate }) {
+  const { wrapRef, iframeRef, scale, contentHeight, visible } = useIframeScale();
   const {
     attributes,
     listeners,
@@ -158,17 +167,17 @@ function PageCard({ page, onDelete, onDuplicate }) {
   };
 
   const snippet = useMemo(() => composePage(page.blocks || []), [page.blocks]);
-  const doc = previewDoc(snippet);
+  const doc = useMemo(() => previewDoc(snippet), [snippet]);
   const updated = new Date(page.updated_at);
   const blockCount = (page.blocks || []).length;
 
   // Shrink-wrap the preview area to the actual rendered height. Empty
-  // pages keep a 16:9 click target, otherwise we hug content (with a 4:3
-  // ceiling so a 5000px landing page doesn't dominate the grid).
+  // pages keep a 16:9 click target; before the iframe mounts (lazy),
+  // we also fall back to 16:9 so cards don't pop from 720px → real size.
   const cardWidthVirtual = PREVIEW_INTERNAL_WIDTH * scale;
   const maxPreviewHeight = cardWidthVirtual * (4 / 3);
   const previewHeight =
-    blockCount === 0
+    blockCount === 0 || contentHeight === 0
       ? cardWidthVirtual * (9 / 16)
       : Math.min(maxPreviewHeight, Math.max(90, contentHeight * scale));
 
@@ -197,26 +206,27 @@ function PageCard({ page, onDelete, onDuplicate }) {
         className="block bg-slate-100 overflow-hidden relative w-full"
         style={{ height: previewHeight ? `${previewHeight}px` : undefined }}
       >
-        {blockCount > 0 ? (
+        {blockCount > 0 && visible ? (
           <iframe
             ref={iframeRef}
             title={page.name}
             srcDoc={doc}
+            loading="lazy"
             sandbox="allow-scripts allow-same-origin"
             className="border-0 pointer-events-none block absolute top-0 left-0"
             style={{
               width: `${PREVIEW_INTERNAL_WIDTH}px`,
-              height: `${contentHeight}px`,
+              height: `${contentHeight || PREVIEW_INTERNAL_HEIGHT}px`,
               transform: `scale(${scale})`,
               transformOrigin: "top left",
             }}
           />
-        ) : (
+        ) : blockCount === 0 ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
             <FileStack className="w-6 h-6" />
             <span className="text-xs font-medium">Empty page</span>
           </div>
-        )}
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>
       <div className="p-4 flex items-center justify-between gap-3 flex-1">
@@ -240,7 +250,7 @@ function PageCard({ page, onDelete, onDuplicate }) {
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              onDuplicate();
+              onDuplicate(page.page_id);
             }}
             data-testid={`duplicate-page-${page.page_id}`}
             className="p-2 rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100"
@@ -252,7 +262,7 @@ function PageCard({ page, onDelete, onDuplicate }) {
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              onDelete();
+              onDelete(page.page_id);
             }}
             data-testid={`delete-page-${page.page_id}`}
             className="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50"
@@ -264,4 +274,4 @@ function PageCard({ page, onDelete, onDuplicate }) {
       </div>
     </div>
   );
-}
+});

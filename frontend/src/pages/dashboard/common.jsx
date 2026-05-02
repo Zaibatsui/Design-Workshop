@@ -26,18 +26,21 @@ export const PAGE_SIZE = 12;
  *   - iframeRef: ref for the iframe itself (we read its body height).
  *   - scale: card_width / PREVIEW_INTERNAL_WIDTH.
  *   - contentHeight: measured body scrollHeight (px, in iframe coords);
- *     starts at PREVIEW_INTERNAL_HEIGHT and updates after the iframe
- *     loads + on content mutations.
+ *     0 until the iframe loads, then real measured height.
+ *   - visible: true once the wrapper enters the viewport (sticky). Consumers
+ *     should only mount the iframe when `visible` is true so off-screen
+ *     cards don't pay the parse/render/layout cost up-front.
  */
 export function useIframeScale() {
   const wrapRef = useRef(null);
   const iframeRef = useRef(null);
   const [scale, setScale] = useState(0.3);
-  const [contentHeight, setContentHeight] = useState(PREVIEW_INTERNAL_HEIGHT);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [visible, setVisible] = useState(false);
 
   useLayoutEffect(() => {
-    if (!wrapRef.current) return undefined;
     const el = wrapRef.current;
+    if (!el) return undefined;
     const update = () => {
       const w = el.clientWidth;
       if (w > 0) setScale(w / PREVIEW_INTERNAL_WIDTH);
@@ -45,10 +48,33 @@ export function useIframeScale() {
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    return () => ro.disconnect();
+
+    // Only mount the iframe once the card is near the viewport. 400px
+    // rootMargin keeps the experience "instant" while scrolling but
+    // avoids mounting 12 iframes on first paint.
+    let io;
+    if (typeof IntersectionObserver !== "undefined") {
+      io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            setVisible(true);
+            io.disconnect();
+          }
+        },
+        { rootMargin: "400px 0px" }
+      );
+      io.observe(el);
+    } else {
+      setVisible(true);
+    }
+    return () => {
+      ro.disconnect();
+      if (io) io.disconnect();
+    };
   }, []);
 
   useLayoutEffect(() => {
+    if (!visible) return undefined;
     const ifr = iframeRef.current;
     if (!ifr) return undefined;
     let mo;
@@ -105,9 +131,9 @@ export function useIframeScale() {
       if (mo) mo.disconnect();
       if (pollT) clearTimeout(pollT);
     };
-  }, []);
+  }, [visible]);
 
-  return { wrapRef, iframeRef, scale, contentHeight };
+  return { wrapRef, iframeRef, scale, contentHeight, visible };
 }
 
 export function timeAgo(date) {
