@@ -13,7 +13,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "REACT_APP_BACKEND_URL",
-    "https://page-builder-hub-6.preview.emergentagent.com",
+    "https://editor-hub-67.preview.emergentagent.com",
 ).rstrip("/")
 TOKEN = "BhDNRIZaNl8EgFgndl8MywKImOdn8PUpyj0deIry1ZYl9fxJ1L0SKFMKYdS1BN_7"
 
