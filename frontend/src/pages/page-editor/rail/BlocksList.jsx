@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -46,7 +46,15 @@ export default function BlocksList({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
   // -1 = no drop indicator visible. 0..blocks.length = insert position.
+  // Mirror the state into a ref so the drop handler always reads the
+  // latest value even when dragenter/over/drop fire synchronously in a
+  // single tick (e.g. programmatic dispatch, very fast user drags).
   const [dropIndex, setDropIndex] = useState(-1);
+  const dropIndexRef = useRef(-1);
+  const updateDropIndex = (next) => {
+    dropIndexRef.current = next;
+    setDropIndex(next);
+  };
 
   const libraryDragPresent = (e) => {
     // Custom MIME can't be inspected during dragover in all browsers
@@ -63,15 +71,16 @@ export default function BlocksList({
   const onContainerDragLeave = (e) => {
     // Only clear when leaving the outer container entirely.
     if (e.currentTarget.contains(e.relatedTarget)) return;
-    setDropIndex(-1);
+    updateDropIndex(-1);
   };
 
   const onContainerDrop = (e) => {
     if (!libraryDragPresent(e)) return;
     e.preventDefault();
     const sectionId = e.dataTransfer.getData(LIBRARY_DRAG_MIME);
-    const target = dropIndex < 0 ? blocks.length : dropIndex;
-    setDropIndex(-1);
+    const current = dropIndexRef.current;
+    const target = current < 0 ? blocks.length : current;
+    updateDropIndex(-1);
     if (sectionId && onInsertLibrarySection) {
       onInsertLibrarySection(sectionId, target);
     }
@@ -87,7 +96,7 @@ export default function BlocksList({
           expanded ? "px-3 py-3 text-xs leading-relaxed" : "py-2 text-[10px]"
         } ${libraryDropActive(dropIndex) ? "bg-[#E01839]/10 outline outline-2 outline-[#E01839]/50 outline-offset-[-2px]" : ""}`}
         onDragEnter={(e) => {
-          if (libraryDragPresent(e)) setDropIndex(0);
+          if (libraryDragPresent(e)) updateDropIndex(0);
         }}
       >
         {expanded
@@ -143,14 +152,14 @@ export default function BlocksList({
               onRemove={() => onRemove(b.block_id)}
               onRename={(name) => onRename && onRename(b.block_id, name)}
               dropIndex={dropIndex}
-              setDropIndex={setDropIndex}
+              setDropIndex={updateDropIndex}
               libraryDragPresent={libraryDragPresent}
             />
           ))}
           <DropZone
             index={blocks.length}
             active={dropIndex === blocks.length}
-            onEnter={() => setDropIndex(blocks.length)}
+            onEnter={() => updateDropIndex(blocks.length)}
           />
         </div>
       </SortableContext>
