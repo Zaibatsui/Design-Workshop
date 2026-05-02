@@ -34,6 +34,9 @@ dist
 
 *token.json*
 *credentials.json*
+# Allow committing the deploy template — it has placeholders only,
+# not real secrets.
+!deploy/.env.example
 
 # Logs and debug files
 npm-debug.log*

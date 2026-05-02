@@ -2,6 +2,11 @@
 # REACT_APP_BACKEND_URL baked in (CRA injects env vars at build time, not
 # runtime). Stage 2 serves the static bundle through nginx and reverse-
 # proxies /api/* to the backend service over the docker network.
+#
+# Uses npm instead of yarn so the build works on hosts that don't have
+# yarn / Corepack enabled. `npm install` is non-deterministic relative
+# to `npm ci` but that's a fine trade-off for a self-host deploy where
+# you control the host and the repo.
 
 # ---------- Stage 1: build ----------
 FROM node:20-alpine AS build
@@ -13,15 +18,22 @@ WORKDIR /app
 # means /api/* on the same host as the SPA — see deploy/nginx.conf.
 ARG REACT_APP_BACKEND_URL
 ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
-# CRA dev-server hot-reload env vars; harmless at build time but explicitly
-# unset so they don't leak into the production bundle.
+# CRA dev-server hot-reload var; harmless at build time but explicitly
+# unset so it doesn't leak into the production bundle.
 ENV WDS_SOCKET_PORT=0
 
-COPY frontend/package.json frontend/yarn.lock ./
-RUN yarn install --frozen-lockfile --network-timeout 600000
+# Disable Corepack — package.json declares `packageManager: yarn@1.22`
+# which Corepack will otherwise force; we want npm regardless.
+ENV COREPACK_ENABLE_STRICT=0
+
+# Install dependencies first so the layer caches across code changes.
+# Copying just the manifest (no lockfile required) means a missing
+# package-lock.json is fine — npm will resolve the tree from package.json.
+COPY frontend/package.json ./
+RUN npm install --no-audit --no-fund --legacy-peer-deps
 
 COPY frontend/ ./
-RUN yarn build
+RUN npm run build
 
 # ---------- Stage 2: serve ----------
 FROM nginx:1.27-alpine
