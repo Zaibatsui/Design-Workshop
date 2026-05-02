@@ -180,8 +180,13 @@ export default function Editor() {
     }
     const fresh = applyBrandKit(section.type, def.defaults(), brandKit);
     // Preserve the user's content (text, images, products, links) — only
-    // overlay the brand-mapped fields onto the existing config.
-    const merged = { ...section.config, ...fresh, uid: section.config.uid };
+    // overlay the brand-mapped fields onto the existing config. Defensive
+    // uid fallback covers legacy/corrupt records that lost their uid.
+    const merged = {
+      ...section.config,
+      ...fresh,
+      uid: section.config?.uid ?? makeUid(),
+    };
     setSection((prev) => (prev ? { ...prev, config: merged } : prev));
     queueSave({ config: merged });
     toast.success("Brand kit applied");

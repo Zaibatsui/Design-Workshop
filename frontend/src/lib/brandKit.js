@@ -162,10 +162,17 @@ export function applyFontToSnippet(snippet, fontName) {
   const target = (fontName || "Poppins").trim();
   if (!target || target === "Poppins") return snippet;
   const family = target.replace(/\s+/g, "+");
+  // Escape the user-chosen family name for safe insertion into a RegExp
+  // replacement target. Today's curated list has no regex-special chars,
+  // but future additions could (e.g. "Source Sans 3+", "DM Sans / Mono").
+  const safeReplacement = (s) => s.replace(/\$/g, "$$$$");
   return snippet
     .replace(
       /https:\/\/fonts\.googleapis\.com\/css2\?family=Poppins/g,
-      `https://fonts.googleapis.com/css2?family=${family}`
+      safeReplacement(`https://fonts.googleapis.com/css2?family=${family}`)
     )
-    .replace(/font-family:"Poppins"/g, `font-family:"${target}"`);
+    .replace(
+      /font-family:"Poppins"/g,
+      safeReplacement(`font-family:"${target}"`)
+    );
 }

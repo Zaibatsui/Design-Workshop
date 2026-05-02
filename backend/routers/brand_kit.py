@@ -32,7 +32,12 @@ async def get_brand_kit(user: User = Depends(get_current_user)):
         {"user_id": user.user_id}, {"_id": 0, "brand_kit": 1}
     )
     kit = (doc or {}).get("brand_kit") or {}
-    return BrandKit(**{**DEFAULT_KIT, **kit})
+    try:
+        return BrandKit(**{**DEFAULT_KIT, **kit})
+    except Exception:
+        # Stored doc is malformed (legacy/null fields) — fall back to defaults
+        # rather than 500ing the whole settings page.
+        return BrandKit(**DEFAULT_KIT)
 
 
 @router.put("", response_model=BrandKit)
