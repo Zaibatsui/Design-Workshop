@@ -6,7 +6,7 @@
 
 Build reusable Hero blocks, Product carousels, Logo strips, Tabs, FAQs and more — colour-themed via a Brand Kit, drag-stacked into Pages, then dropped into Nettailer / Shopify / WooCommerce / your custom CMS as one inert HTML blob. No React, no jQuery, no CDN calls at runtime. Just markup.
 
-[Features](#features) · [Architecture](#architecture) · [Quick start (local)](#local-development) · [Deploy on Proxmox](deploy/PROXMOX-INSTALL.md) · [User guide](#user-guide)
+[Features](#features) · [Architecture](#architecture) · [Project structure](#project-structure) · [Local development](#local-development) · [Self-host on Proxmox](deploy/PROXMOX-INSTALL.md)
 
 </div>
 
@@ -14,7 +14,7 @@ Build reusable Hero blocks, Product carousels, Logo strips, Tabs, FAQs and more 
 
 ## What it is
 
-A persistent per-user library + page builder for **content people who ship to real e-commerce sites** but don't want their CMS's locked-down section editor. You compose sections with a live preview, theme them with a Brand Kit, then click "Copy snippet" and paste the resulting standalone HTML into any rich-text-source field that allows raw markup.
+A persistent per-user library and page builder for **content people who ship to real e-commerce sites** but don't want their CMS's locked-down section editor. Compose sections with a live preview, theme them with a Brand Kit, then click **Copy snippet** and paste the resulting standalone HTML into any rich-text source field that allows raw markup.
 
 The output is **strictly inert** — scoped CSS classes (one unique class per instance, never collides with the host site's styles), an optional tiny IIFE per section for things like carousels and accordions, no global JavaScript dependencies. Drops into Nettailer's raw-HTML widget the same way it drops into a Shopify rich-text block or a Squarespace code block.
 
@@ -26,7 +26,7 @@ The output is **strictly inert** — scoped CSS classes (one unique class per in
 |---|---|
 | **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Per-slide colour overrides. |
 | **Content** | Heading + body + buttons. The all-purpose marquee block. |
-| **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Optional product URL scraping with auto-refreshing prices on the host site. |
+| **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image. |
 | **Insights Grid** | Editorial 2–3 column card grid for articles & case studies. |
 | **Resource Carousel** | Tag-tinted card carousel — blog posts, guides, downloads. |
 | **Feature Grid** | 2–4 column value-prop cards with icon, title, body. Outlined / tinted / solid card styles. |
@@ -35,13 +35,13 @@ The output is **strictly inert** — scoped CSS classes (one unique class per in
 | **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. |
 | **Logo Strip** | Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle. |
 | **Break Banner** | Full-bleed parallax break with overlaid heading. Use it to chapter long pages. |
-| **Tabs** | Tabbed content panel with a side image. Configurable tab alignment + image position. |
+| **Tabs** | Tabbed content panel with a side image. Configurable tab alignment and image position. |
 | **Grid** | 2×2 / 2×3 image grid with optional links per cell. |
 | **Rich text** | Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections. |
 
 ### Hybrid Page Builder
 
-Stack reusable sections + ad-hoc rich-text blocks into a single page. Drag to reorder. Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order.
+Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder. Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Seven page templates ship out of the box (Blank, Landing, Product detail, Category hub, About us, Pricing, Blog post).
 
 ### Brand Kit
 
@@ -73,8 +73,8 @@ Long-form documentation at `/guide` with a scroll-spy table of contents, organis
 
 - **Frontend** — React + React Router + Tailwind + Shadcn UI + Tiptap. Deferred-rendered sandboxed-iframe previews. Production build served as static files via nginx.
 - **Backend** — FastAPI + Motor (async MongoDB). Direct Google OAuth via Authlib + a custom `ForwardedHostMiddleware` that rewrites the ASGI scope from `X-Forwarded-Host` / `X-Forwarded-Proto` so OAuth `redirect_uri` resolves to the public hostname even behind a Cloudflare / k8s-ingress / nginx-proxy split-host setup.
-- **Storage** — pluggable. Defaults to a local filesystem volume (`/var/uploads`) for self-hosted deployments; auto-switches to Emergent hosted object storage when `EMERGENT_LLM_KEY` is set (used by the preview environment).
-- **Database** — MongoDB. The compose stack pins **mongo:4.4** so it runs on CPUs without AVX support (older Xeons / Atoms / homelab Proxmox hosts).
+- **Storage** — pluggable. Local filesystem volume (`/var/uploads`) by default; a hosted-S3 backend can be slotted in by replacing one file (`backend/storage.py`).
+- **Database** — MongoDB. Pinned to **mongo:4.4** so it runs on CPUs without AVX support (older Xeons / Atoms / homelab Proxmox hosts).
 
 ### Self-contained snippet generation
 
@@ -91,10 +91,10 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 
 | Layer | Stack |
 |---|---|
-| Frontend | React 19, React Router, Tailwind CSS, Shadcn UI, Tiptap, Motion (one) |
-| Backend | FastAPI, Motor (MongoDB), Authlib (OAuth 2.0), bleach (richtext sanitisation), BeautifulSoup4 + Playwright (product scraper fallback) |
+| Frontend | React 19, React Router, Tailwind CSS, Shadcn UI, Tiptap |
+| Backend | FastAPI, Motor (MongoDB), Authlib (OAuth 2.0), BeautifulSoup4 + Playwright (product scraper fallback) |
 | Database | MongoDB 4.4 (AVX-free) |
-| Storage | Local filesystem volume **or** Emergent hosted object store |
+| Storage | Local filesystem volume |
 | Auth | Direct Google OAuth (not via an intermediate identity provider) |
 | Deploy | Docker Compose · nginx · Microsoft Playwright Python image |
 
@@ -102,11 +102,11 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 
 ```
 .
-├── backend/                     # FastAPI app
+├── backend/
 │   ├── server.py                # ~140 lines: middleware wiring, router includes
 │   ├── db.py                    # Motor client + `db` singleton
 │   ├── deps.py                  # get_current_user / require_admin
-│   ├── storage.py               # dual-mode: local fs OR Emergent
+│   ├── storage.py               # local-fs object storage (pluggable)
 │   ├── routers/
 │   │   ├── auth.py              # /api/auth/google/{login,callback,logout,me}
 │   │   ├── sections.py          # /api/sections CRUD + duplicate + reorder
@@ -116,7 +116,6 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 │   │   ├── brand_kit.py         # /api/brand-kit
 │   │   ├── landing_demo.py      # /api/{public/,}landing-demo
 │   │   └── scraper.py           # /api/scrape-product
-│   ├── tests/                   # pytest + requests integration suite
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
@@ -135,51 +134,49 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 │   ├── frontend.Dockerfile
 │   ├── nginx.conf
 │   ├── .env.example
-│   ├── README.md
-│   ├── PROXMOX-INSTALL.md       # ←  step-by-step SSH walkthrough
+│   ├── README.md                # Generic Docker self-host docs
+│   ├── PROXMOX-INSTALL.md       # Step-by-step SSH walkthrough
 │   └── scripts/                 # mongodump/restore + uploads migration
 ├── docker-compose.yml
-└── README.md                    # this file
+└── README.md
 ```
 
 ## Local development
 
-The repository ships with a Kubernetes-style preview environment in mind, but the same code runs on any Linux box.
-
 ```bash
+# Mongo locally
+docker run -d --name dw-mongo -p 27017:27017 mongo:4.4
+
 # Backend
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-playwright install chromium                # one-off, for the scraper fallback
+playwright install chromium                    # one-off, for the scraper fallback
 
-cp .env.example .env                        # set MONGO_URL, DB_NAME, GOOGLE_*
+cat > .env << 'EOF'
+MONGO_URL=mongodb://localhost:27017
+DB_NAME=design_workshop
+APP_NAME=modular-pages
+UPLOADS_DIR=./uploads
+GOOGLE_CLIENT_ID=<your-client-id>
+GOOGLE_CLIENT_SECRET=<your-client-secret>
+OAUTH_STATE_SECRET=<openssl rand -hex 32>
+EOF
+
 uvicorn server:app --host 0.0.0.0 --port 8001 --reload
 
 # Frontend (in a second shell)
 cd frontend
-yarn install
+npm install --legacy-peer-deps
 echo "REACT_APP_BACKEND_URL=http://localhost:8001" > .env
-yarn start                                  # http://localhost:3000
+npm start                                       # http://localhost:3000
 ```
-
-**Mongo locally**: `docker run -d --name dw-mongo -p 27017:27017 mongo:4.4`
 
 **OAuth locally**: register `http://localhost:8001/api/auth/google/callback` as an authorised redirect URI on your Google OAuth client, then sign in via `http://localhost:3000/login`.
 
-### Running the test suite
-
-```bash
-cd backend
-# Mint a session token from your local mongo, then:
-export TEST_SESSION_TOKEN=<paste session_token from user_sessions collection>
-export REACT_APP_BACKEND_URL=http://localhost:8001
-pytest tests/ -v
-```
-
 ## Production deployment
 
-**TL;DR — Proxmox / Docker / single host**: see [`deploy/PROXMOX-INSTALL.md`](deploy/PROXMOX-INSTALL.md) for the full SSH walkthrough.
+**One host, Docker, behind your own reverse proxy** — see [`deploy/PROXMOX-INSTALL.md`](deploy/PROXMOX-INSTALL.md) for the full SSH walkthrough (LXC create, Docker install, env config, reverse-proxy snippets for Caddy / nginx / NPM / Traefik, troubleshooting).
 
 The short version:
 
@@ -188,28 +185,20 @@ git clone https://github.com/<you>/<repo>.git design-workshop
 cd design-workshop
 cp deploy/.env.example deploy/.env
 ${EDITOR} deploy/.env
-docker compose --env-file deploy/.env up -d --build
+ln -s deploy/.env .env                          # so `docker compose` picks it up
+docker compose up -d --build
 ```
 
 - One published port (`${PUBLIC_PORT}` → frontend nginx, default 8080).
 - Mongo runs on the internal docker network only, never reachable from the host.
-- Uploads persist in a named docker volume; back it up with `docker run --rm -v <stack>_uploads-data:/src ...`.
-- TLS terminates on your existing reverse proxy (Caddy / NPM / Traefik / nginx). The internal nginx honours `X-Forwarded-Proto` / `X-Forwarded-Host` so OAuth callbacks resolve to the public hostname.
+- Uploads persist in a named docker volume.
+- TLS terminates on your existing reverse proxy. The internal nginx honours `X-Forwarded-Proto` / `X-Forwarded-Host` so OAuth callbacks resolve correctly.
 
-See [`deploy/README.md`](deploy/README.md) for reverse-proxy snippets, day-2 ops, and migration scripts (mongodump → mongorestore + URL-rewriting upload sync from a previous environment).
-
-## User guide
-
-The in-app guide at `/guide` is the canonical reference once you're signed in. Highlights:
-
-- **Everything autosaves** — there is no Save button. Edits persist the moment focus leaves the field.
-- **One section is one snippet** — sections are reusable. Pages are stacks of (section snapshot OR rich text) blocks; one page export is one combined snippet.
-- **Brand Kit overlays brand fonts + colours onto an existing section** without touching its content (your products, slides, copy stay intact).
-- **Custom templates** — save any page as a template; future pages can spawn from it.
+See [`deploy/README.md`](deploy/README.md) for reverse-proxy snippets, day-2 ops, and migration scripts.
 
 ## Status
 
-Single-tenant. Authentication is Direct Google OAuth — every user gets their own private library. The `/brand` page (Live Demo picker) and admin-only routes are gated to a single admin email configured in `backend/deps.py::ADMIN_EMAILS`.
+Single-tenant. Authentication is Direct Google OAuth — every user gets their own private library. Admin-only routes (e.g. the Live Demo picker on `/brand`) are gated by an email allowlist in `backend/deps.py::ADMIN_EMAILS`.
 
 ## Licence
 
