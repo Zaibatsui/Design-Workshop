@@ -225,7 +225,7 @@ export default function UserGuide() {
               <SectionCard Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." />
               <SectionCard Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." />
               <SectionCard Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
-              <SectionCard Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Comes pre-seeded with your brand imagery." />
+              <SectionCard Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
               <SectionCard Icon={PenLine} name="Rich text" desc="Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections." />
             </Grid>
           </Section>
@@ -342,7 +342,7 @@ export default function UserGuide() {
                 <>The "Recently edited" strip at the top jumps you straight back to your last 5 active items.</>,
                 <>The Logo Strip <strong>greyscale-until-hover</strong> toggle pairs with the existing scroll-pause-on-hover for a polished marquee.</>,
                 <>Each Logo Strip image accepts an optional <strong>link</strong> — the rendered <Code>{"<a>"}</Code> opens in a new tab.</>,
-                <>The Grid section's defaults are seeded with your brand imagery — new Grids start visually correct.</>,
+                <>The Grid section starts with neutral sample photos — swap each cell's image for your own via the editor's image picker.</>,
               ]}
             />
           </Section>

@@ -44,7 +44,7 @@ export const PAGE_TEMPLATES = [
   {
     id: "landing",
     name: "Landing page",
-    description: "Hero → value prop → logos → features → CTA. Marketing-ready.",
+    description: "Hero → value prop → features → CTA. Marketing-ready.",
     icon: Sparkles,
     blocks: [
       section("hero"),
@@ -52,7 +52,6 @@ export const PAGE_TEMPLATES = [
         "<h2>Built for IT and telecom retailers</h2><p>Ship faster, convert better, scale without re-platforming. A pragmatic toolkit designed by operators who've actually run the store.</p>",
         { padY: 64, align: "center", maxWidth: 720 }
       ),
-      section("logos"),
       section("insights"),
       rt(
         "<h2>Ready when you are</h2><p>Book a 20-minute walkthrough and see how Nettailer fits your stack.</p>",
@@ -80,7 +79,7 @@ export const PAGE_TEMPLATES = [
   {
     id: "category-hub",
     name: "Category hub",
-    description: "Banner → top products → subcategory tabs → brands → insights.",
+    description: "Banner → top products → subcategory tabs → insights.",
     icon: LayoutGrid,
     blocks: [
       section("break"),
@@ -90,14 +89,13 @@ export const PAGE_TEMPLATES = [
       ),
       section("products"),
       section("tabs"),
-      section("logos"),
       section("insights"),
     ],
   },
   {
     id: "about-us",
     name: "About us",
-    description: "Story-led: hero → manifesto → team logos → values → resources.",
+    description: "Story-led: hero → manifesto → values → resources.",
     icon: Users,
     blocks: [
       section("hero"),
@@ -105,7 +103,6 @@ export const PAGE_TEMPLATES = [
         "<h1>A bit about us</h1><p>We build tooling for IT and telecom retailers because we've been them. Every decision optimises for the person behind the till — not the one signing the SaaS contract.</p><p>The team is small, the backlog isn't. If you'd like to work with us, get in touch.</p>",
         { padY: 80, align: "left", maxWidth: 720 }
       ),
-      section("logos"),
       section("insights"),
       section("resources"),
     ],

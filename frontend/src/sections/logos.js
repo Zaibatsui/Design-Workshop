@@ -34,15 +34,10 @@ const defaults = () => ({
   bgColor: "#ffffff",
   fullBleed: true,
   greyscale: false,
-  logos: [
-    { id: makeUid(), image: `${UPLOAD_BASE}/5801a4b5-5c7a-4cad-ac80-1a6828d0626d.png`, alt: "Netset", link: "" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/427550f6-a7a0-4973-a3b8-449d21217740.webp`, alt: "ATEA", link: "" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/97493940-cb68-48ff-a5ab-5fc75c856945.webp`, alt: "B2B", link: "" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/ba531904-a99b-43b8-a0d9-7186e6c4ba84.webp`, alt: "Misco", link: "" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/adb41b59-7ec3-48a2-9849-22730f7c6b2b.webp`, alt: "Tibco", link: "" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/0cdd4af8-4681-4e55-b017-bba14eee7900.webp`, alt: "DCB", link: "" },
-    { id: makeUid(), image: `${UPLOAD_BASE}/b8e9111d-e88b-4203-abb2-11a9be8bd2fd.webp`, alt: "Abero", link: "" },
-  ],
+  // Empty by default — users add their own logos via the editor's
+  // "Add logo" button. The strip renders a "no logos yet" hint when
+  // the array is empty (see render() below).
+  logos: [],
 });
 
 function render(cfg) {
