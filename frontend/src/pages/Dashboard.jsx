@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, FileStack, Palette, BookOpen } from "lucide-react";
+import { Plus, LogOut, FileStack, Palette, BookOpen, Users as UsersIcon } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
@@ -85,6 +85,18 @@ export default function Dashboard() {
               <BookOpen className="w-4 h-4 mr-1.5" />
               Guide
             </Button>
+            {user?.is_admin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/users")}
+                data-testid="open-admin-users"
+                className="text-slate-500 hover:text-slate-900"
+              >
+                <UsersIcon className="w-4 h-4 mr-1.5" />
+                Users
+              </Button>
+            )}
             {user?.picture ? (
               <img
                 src={user.picture}

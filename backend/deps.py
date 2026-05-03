@@ -38,6 +38,8 @@ class User(BaseModel):
     name: str
     picture: Optional[str] = None
     created_at: datetime
+    last_login_at: Optional[datetime] = None
+    is_active: bool = True
     is_admin: bool = False
 
 
@@ -72,6 +74,15 @@ async def get_current_user(
     )
     if not user_doc:
         raise HTTPException(status_code=401, detail="User not found")
+
+    # is_active defaults to True for users created before this field
+    # existed (back-compat) — admin must explicitly revoke to lock out.
+    if not user_doc.get("is_active", True):
+        # Belt-and-braces: also drop the session so the next request
+        # short-circuits at the session lookup instead of re-checking.
+        await db.user_sessions.delete_one({"session_token": token})
+        raise HTTPException(status_code=403, detail="Account has been deactivated")
+
     user_doc["is_admin"] = is_admin_email(user_doc.get("email"))
     return User(**user_doc)
 

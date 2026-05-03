@@ -101,4 +101,12 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ page_id: pageId }),
     }),
+
+  // Admin user management.
+  listUsers: () => req("/admin/users"),
+  setUserStatus: (userId, isActive) =>
+    req(`/admin/users/${userId}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ is_active: isActive }),
+    }),
 };

@@ -61,11 +61,18 @@ async def google_callback(request: Request):
         return RedirectResponse(url="/login?error=no_email", status_code=302)
 
     existing = await db.users.find_one({"email": email}, {"_id": 0})
+    now = datetime.now(timezone.utc)
     if existing:
+        # Reject deactivated accounts at the OAuth step itself — clearer
+        # than letting the session create and then 403-ing the next API
+        # call. The error code surfaces in the /login URL so the SPA can
+        # show a tailored message.
+        if not existing.get("is_active", True):
+            return RedirectResponse(url="/login?error=account_deactivated", status_code=302)
         user_id = existing["user_id"]
         await db.users.update_one(
             {"user_id": user_id},
-            {"$set": {"name": name, "picture": picture}},
+            {"$set": {"name": name, "picture": picture, "last_login_at": now}},
         )
     else:
         user_id = f"user_{uuid.uuid4().hex[:12]}"
@@ -74,7 +81,9 @@ async def google_callback(request: Request):
             "email": email,
             "name": name,
             "picture": picture,
-            "created_at": datetime.now(timezone.utc),
+            "created_at": now,
+            "last_login_at": now,
+            "is_active": True,
         })
 
     session_token = secrets.token_urlsafe(48)
