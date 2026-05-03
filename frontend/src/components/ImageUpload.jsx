@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, X, Loader2, Link as LinkIcon } from "lucide-react";
+import { Upload, X, Loader2, Link as LinkIcon, Info } from "lucide-react";
 import { toast } from "sonner";
 
 // Backend URL is normally baked at build time from REACT_APP_BACKEND_URL.
@@ -110,8 +110,13 @@ export default function ImageUpload({ value, onChange, testid, compact }) {
           data-testid={`${testid}-url-toggle`}
         >
           <LinkIcon className="w-3 h-3" />
-          {showUrl ? "Hide URL" : "Use URL instead"}
+          {showUrl ? "Hide URL" : "Use a hosted URL instead"}
         </button>
+        {!showUrl && !value && (
+          <span className="text-[10px] text-slate-400 leading-snug">
+            (recommended for durability)
+          </span>
+        )}
       </div>
       {showUrl && (
         <Input
@@ -122,6 +127,19 @@ export default function ImageUpload({ value, onChange, testid, compact }) {
           className="text-xs"
         />
       )}
+
+      {/* Persistent advisory — uploaded images depend on this service
+          staying online. URL-hosted images live wherever the user already
+          stores them and outlive any disruption to Design Workshop. */}
+      <p className="text-[10.5px] text-slate-400 leading-snug flex items-start gap-1.5">
+        <Info className="w-3 h-3 flex-shrink-0 mt-0.5" />
+        <span>
+          Tip: where you can, paste a hosted image URL (your CDN, image
+          library, product DAM…) instead of uploading. Uploaded images
+          are served from this service and may be affected by any
+          disruption to it.
+        </span>
+      </p>
 
       <input
         ref={fileRef}

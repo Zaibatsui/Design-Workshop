@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   AlignLeft,
+  AlertTriangle,
   BookMarked,
   BookOpen,
   Boxes,
@@ -10,6 +11,7 @@ import {
   Copy,
   FileStack,
   GripVertical,
+  Image as ImageIcon,
   Layers,
   Layout,
   LayoutGrid,
@@ -39,6 +41,7 @@ const SECTIONS = [
   { id: "section-types", label: "Section types", Icon: Layers },
   { id: "page-builder", label: "Hybrid page builder", Icon: FileStack },
   { id: "brand-kit", label: "Brand Kit", Icon: Palette },
+  { id: "image-hosting", label: "Image hosting", Icon: ImageIcon },
   { id: "snippet", label: "Copy & embed snippet", Icon: Code2 },
   { id: "templates", label: "Page templates", Icon: BookMarked },
   { id: "tips", label: "Tips & shortcuts", Icon: Sparkles },
@@ -295,6 +298,62 @@ export default function UserGuide() {
             </P>
           </Section>
 
+          <Section id="image-hosting" Icon={ImageIcon} title="Image hosting — uploads vs URLs">
+            <P>
+              Anywhere the editor lets you add an image, you have two
+              options: <strong>upload</strong> a file from your computer
+              or <strong>paste a hosted URL</strong> (your existing CDN,
+              your e-commerce DAM, your blog's media library, an Unsplash
+              link, etc.). Both produce the same visual result. They are
+              <strong> not</strong> equivalent operationally.
+            </P>
+            <Warning>
+              <strong>Prefer hosted URLs whenever you can.</strong>{" "}
+              Uploaded images are stored by Design Workshop and served
+              from this service. If Design Workshop is offline for any
+              reason, every snippet you've embedded into a customer site
+              will keep rendering its layout, colours, copy and animations
+              — but uploaded images in those snippets won't load. Hosted
+              URLs point to wherever the image already lives, completely
+              independent of this service, so they keep working through
+              any disruption here.
+            </Warning>
+            <P>
+              <strong>When upload is the right choice:</strong> bespoke
+              graphics, logos you don't already host anywhere, anything
+              created specifically for one snippet. The 10 MB cap and
+              auto-served caching headers make it the path of least
+              resistance for one-off assets.
+            </P>
+            <P>
+              <strong>When URL is the better choice:</strong>
+            </P>
+            <Bullets
+              items={[
+                <>Product photography that already lives on your e-commerce platform's CDN — paste the existing image URL.</>,
+                <>Manufacturer-supplied marketing imagery hosted on the brand's site.</>,
+                <>Royalty-free stock from Unsplash / Pexels / Pixabay (right-click → "Copy image address").</>,
+                <>Anything served from a hosted image library you already pay for (Cloudinary, Imgix, Sirv, ImageKit…).</>,
+                <>Blog post hero images already embedded in your CMS.</>,
+              ]}
+            />
+            <P>
+              For mission-critical pages — homepage hero, top-of-funnel
+              landing pages, big seasonal campaigns — hosted URLs are the
+              defensible choice. They survive any disruption to this
+              service indefinitely. Treat uploads as the convenience option
+              for everything else.
+            </P>
+            <Note>
+              We host uploaded images behind a long-lived edge cache, so
+              short outages typically don't affect delivery — caches keep
+              serving the bytes for weeks. The caveat above is about
+              extended disruption (multi-day outage, account closure,
+              service deprecation) — events you should plan for if your
+              snippets need to outlast this service.
+            </Note>
+          </Section>
+
           <Section id="snippet" Icon={Code2} title="Copy & embed the snippet">
             <P>
               Every section editor and page editor has a{" "}
@@ -493,6 +552,18 @@ function Note({ children }) {
   return (
     <div className="border-l-2 border-[#E01839] bg-[#E01839]/5 px-4 py-3 rounded-r-md text-[14px] text-slate-700">
       {children}
+    </div>
+  );
+}
+
+// Amber callout, distinct from the brand-red Note. Used for things the
+// user should be aware of but isn't strictly an error — e.g. operational
+// dependencies, cost trade-offs, durability caveats.
+function Warning({ children }) {
+  return (
+    <div className="flex gap-3 border-l-2 border-amber-500 bg-amber-50 px-4 py-3 rounded-r-md text-[14px] text-slate-700">
+      <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+      <div>{children}</div>
     </div>
   );
 }
