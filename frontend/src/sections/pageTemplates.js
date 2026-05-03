@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { SECTIONS_BY_ID } from "./registry";
 import { richtext } from "./richtext";
+import { makeUid } from "./shared";
 
 const section = (id, overrides = {}) => ({
   type: "section",
@@ -33,6 +34,24 @@ const rt = (html, overrides = {}) => ({
   config: { ...richtext.defaults(), html, ...overrides },
 });
 
+// Neutral IT-vendor logos for any template that includes a Logo Strip.
+// Served by simpleicons.org's CDN — official brand marks at any size,
+// no auth required, royalty-free for editorial use. Users replace these
+// with their own retailer/distributor partner logos via the editor.
+//
+// Generated fresh on each template instantiation so every spawned page
+// gets unique logo IDs (avoids collisions if the user copies blocks
+// between pages later).
+const sampleITLogos = () => [
+  { id: makeUid(), image: "https://cdn.simpleicons.org/hp",     alt: "HP",     link: "" },
+  { id: makeUid(), image: "https://cdn.simpleicons.org/dell",   alt: "Dell",   link: "" },
+  { id: makeUid(), image: "https://cdn.simpleicons.org/lenovo", alt: "Lenovo", link: "" },
+  { id: makeUid(), image: "https://cdn.simpleicons.org/intel",  alt: "Intel",  link: "" },
+  { id: makeUid(), image: "https://cdn.simpleicons.org/nvidia", alt: "NVIDIA", link: "" },
+  { id: makeUid(), image: "https://cdn.simpleicons.org/cisco",  alt: "Cisco",  link: "" },
+  { id: makeUid(), image: "https://cdn.simpleicons.org/apple",  alt: "Apple",  link: "" },
+];
+
 export const PAGE_TEMPLATES = [
   {
     id: "blank",
@@ -44,7 +63,7 @@ export const PAGE_TEMPLATES = [
   {
     id: "landing",
     name: "Landing page",
-    description: "Hero → value prop → features → CTA. Marketing-ready.",
+    description: "Hero → value prop → vendor logos → features → CTA. Marketing-ready.",
     icon: Sparkles,
     blocks: [
       section("hero"),
@@ -52,6 +71,7 @@ export const PAGE_TEMPLATES = [
         "<h2>Built for IT and telecom retailers</h2><p>Ship faster, convert better, scale without re-platforming. A pragmatic toolkit designed by operators who've actually run the store.</p>",
         { padY: 64, align: "center", maxWidth: 720 }
       ),
+      section("logos", { logos: sampleITLogos() }),
       section("insights"),
       rt(
         "<h2>Ready when you are</h2><p>Book a 20-minute walkthrough and see how Nettailer fits your stack.</p>",
@@ -79,7 +99,7 @@ export const PAGE_TEMPLATES = [
   {
     id: "category-hub",
     name: "Category hub",
-    description: "Banner → top products → subcategory tabs → insights.",
+    description: "Banner → top products → subcategory tabs → vendor logos → insights.",
     icon: LayoutGrid,
     blocks: [
       section("break"),
@@ -89,13 +109,14 @@ export const PAGE_TEMPLATES = [
       ),
       section("products"),
       section("tabs"),
+      section("logos", { logos: sampleITLogos() }),
       section("insights"),
     ],
   },
   {
     id: "about-us",
     name: "About us",
-    description: "Story-led: hero → manifesto → values → resources.",
+    description: "Story-led: hero → manifesto → vendor logos → values → resources.",
     icon: Users,
     blocks: [
       section("hero"),
@@ -103,6 +124,7 @@ export const PAGE_TEMPLATES = [
         "<h1>A bit about us</h1><p>We build tooling for IT and telecom retailers because we've been them. Every decision optimises for the person behind the till — not the one signing the SaaS contract.</p><p>The team is small, the backlog isn't. If you'd like to work with us, get in touch.</p>",
         { padY: 80, align: "left", maxWidth: 720 }
       ),
+      section("logos", { logos: sampleITLogos() }),
       section("insights"),
       section("resources"),
     ],
