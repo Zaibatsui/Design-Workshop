@@ -5,7 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Upload, X, Loader2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Backend URL is normally baked at build time from REACT_APP_BACKEND_URL.
+// If that arg was missing during `docker compose build` (compose env file
+// not picked up, etc.), fall back to the page's own origin at runtime —
+// our deployment topology serves the SPA and /api/* from the same host,
+// so window.location.origin is always the right answer when the env var
+// is empty. This makes image URLs absolute regardless of how the bundle
+// was built.
+const buildTimeBackendUrl = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
+const BACKEND_URL =
+  buildTimeBackendUrl ||
+  (typeof window !== "undefined" ? window.location.origin : "");
 const API = `${BACKEND_URL}/api`;
 
 export default function ImageUpload({ value, onChange, testid, compact }) {

@@ -1,5 +1,15 @@
 // Thin fetch wrapper for the FastAPI backend. Always sends cookies.
-const API = process.env.REACT_APP_BACKEND_URL;
+//
+// Backend URL is normally baked at build time from REACT_APP_BACKEND_URL.
+// Fall back to the page's own origin at runtime when that arg was missing
+// during `docker compose build` — same-origin requests always work
+// regardless of how the bundle was built. Empty string also works (axios
+// resolves relative URLs against the page origin) but having an explicit
+// absolute URL surfaces config drift in DevTools where it's discoverable.
+const buildTimeBackendUrl = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
+const API =
+  buildTimeBackendUrl ||
+  (typeof window !== "undefined" ? window.location.origin : "");
 
 // Bound every fetch with an AbortController so a stuck connection (e.g. a
 // stale dev-server HMR socket or a dropped backend) surfaces as a toastable

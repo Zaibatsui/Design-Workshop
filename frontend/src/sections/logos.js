@@ -20,10 +20,6 @@ import { Label } from "@/components/ui/label";
 
 const ID = "logos";
 
-const UPLOAD_BASE =
-  (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "") +
-  "/api/files/modular-pages/uploads";
-
 const defaults = () => ({
   uid: makeUid(),
   speedSeconds: 40,
