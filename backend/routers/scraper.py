@@ -2,6 +2,7 @@
 for JS-rendered product galleries (Cnet Cloud / 1WorldSync widgets)."""
 import json
 import logging
+import os
 import re
 from urllib.parse import urljoin
 
@@ -220,6 +221,25 @@ def _looks_like_logo(src: str) -> bool:
     return any(k in s for k in ("logo", "icon", "header", "footer", "sprite"))
 
 
+def _chromium_executable_path():
+    """Resolve which chromium binary to launch.
+
+    Order of preference:
+      1. PLAYWRIGHT_CHROME_EXECUTABLE_PATH env var (explicit override).
+      2. /usr/bin/chromium if it exists (preview/dev env where the
+         distro chromium is version-matched to a system playwright).
+      3. None — let Playwright auto-discover its bundled browser
+         (production: the MSFT image puts a perfectly version-matched
+         chromium in /ms-playwright).
+    """
+    explicit = os.environ.get("PLAYWRIGHT_CHROME_EXECUTABLE_PATH")
+    if explicit and os.path.isfile(explicit):
+        return explicit
+    if os.path.isfile("/usr/bin/chromium"):
+        return "/usr/bin/chromium"
+    return None
+
+
 async def _scrape_image_with_browser(url: str):
     """Render the page with headless Chromium and pull the main product image."""
     try:
@@ -240,11 +260,14 @@ async def _scrape_image_with_browser(url: str):
     ]
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                executable_path="/usr/bin/chromium",
-                args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
-            )
+            launch_kwargs = {
+                "headless": True,
+                "args": ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+            }
+            chrome_exec = _chromium_executable_path()
+            if chrome_exec:
+                launch_kwargs["executable_path"] = chrome_exec
+            browser = await p.chromium.launch(**launch_kwargs)
             try:
                 context = await browser.new_context(
                     user_agent=(
