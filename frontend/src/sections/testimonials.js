@@ -18,6 +18,7 @@ import {
   TextField,
   TextAreaField,
   SliderField,
+  SelectField,
   ToggleField,
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
@@ -38,8 +39,12 @@ const sampleCard = (quote, name, role, rating = 5) => ({
 
 const defaults = () => ({
   uid: makeUid(),
+  eyebrow: "",
   title: "What our customers say",
+  subheading: "",
+  textAlign: "left",
   titleColor: "#1f2937",
+  bodyColor: "#64748b",
   accentColor: "#E01839",
   bgColor: "#f8fafc",
   cardBg: "#ffffff",
@@ -84,9 +89,14 @@ function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-testi-${uid}`;
   const accent = cfg.accentColor || "#E01839";
+  const align =
+    cfg.textAlign === "right" || cfg.textAlign === "center"
+      ? cfg.textAlign
+      : "left";
 
   const styleVars = [
     `--ns-title-color:${cfg.titleColor}`,
+    `--ns-body-color:${cfg.bodyColor || "#64748b"}`,
     `--ns-accent:${accent}`,
     `--ns-bg:${cfg.bgColor}`,
     `--ns-card-bg:${cfg.cardBg}`,
@@ -123,14 +133,34 @@ function render(cfg) {
 
   const animName = `nsTestiScroll_${uid.replace(/[^a-z0-9]/gi, "")}`;
 
-  const titleHtml = cfg.title
-    ? `<h2 class="ns-title">${escHtml(cfg.title)}</h2>`
+  const eyebrowHtml = cfg.eyebrow
+    ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>`
     : "";
+  const subHtml = cfg.subheading
+    ? `<p class="ns-sub">${escHtml(cfg.subheading)}</p>`
+    : "";
+  const hasHeader = !!(cfg.title || cfg.eyebrow || cfg.subheading);
+  const headerHtml = hasHeader
+    ? `<div class="ns-head-wrap"><header class="ns-head"><div class="ns-head-inner">${eyebrowHtml}${cfg.title ? `<h2 class="ns-heading">${escHtml(cfg.title)}</h2>` : ""}${subHtml}</div></header></div>`
+    : "";
+
+  // Head-inner margin logic matches Feature Grid / Steps / FAQ exactly.
+  const headInnerAlign =
+    align === "center"
+      ? "margin:0 auto;"
+      : align === "right"
+        ? "margin:0 0 0 auto;"
+        : "";
 
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 0;width:100%;background:var(--ns-bg);overflow:hidden}
-.${cls} .ns-title{font-size:clamp(22px,2.4vw,30px);font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 auto 36px;max-width:720px;padding:0 24px!important}
+.${cls} .ns-head-wrap{max-width:1200px;margin:0 auto;padding:0 20px;text-align:${align}}
+.${cls} .ns-head{margin-bottom:40px}
+.${cls} .ns-head-inner{max-width:720px;${headInnerAlign}}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-accent);margin-bottom:14px}
+.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:var(--ns-title-color)}
+.${cls} .ns-sub{margin-top:14px;font-size:16px;color:var(--ns-body-color);line-height:1.6}
 .${cls} .ns-track{display:flex;width:max-content;animation:${animName} var(--ns-speed) linear infinite;will-change:transform}
 .${cls} .ns-item{flex:0 0 auto;width:var(--ns-card-w);margin:0 calc(var(--ns-gap) / 2);background:var(--ns-card-bg);border:1px solid #e5e7eb;border-radius:12px;padding:26px 26px 22px;display:flex;flex-direction:column;gap:18px;position:relative}
 .${cls} .ns-item::before{content:"";position:absolute;top:0;left:26px;right:26px;height:3px;background:var(--ns-accent);border-radius:0 0 3px 3px;opacity:0.9}
@@ -145,10 +175,11 @@ ${baseReset(cls)}
 @keyframes ${animName}{to{transform:translateX(-50%)}}
 .${cls}:hover .ns-track{animation-play-state:paused}
 @media (prefers-reduced-motion: reduce){.${cls} .ns-track{animation:none}}
+@media (max-width:640px){.${cls} .ns-heading{font-size:26px}}
 `.trim();
 
   const html = `<section class="ns-testimonials ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
-  ${titleHtml}
+  ${headerHtml}
   <div class="ns-track" data-ns-track>${itemsHtml}</div>
 </section>`;
 
@@ -197,16 +228,47 @@ function FormPanel({ config, onUpdate }) {
     <div className="space-y-5">
       <Group title="Header">
         <TextField
+          label="Eyebrow (optional)"
+          value={config.eyebrow || ""}
+          onChange={(v) => onUpdate({ eyebrow: v })}
+          placeholder="What people say"
+          testid="testi-eyebrow"
+        />
+        <TextField
           label="Section title"
           value={config.title}
           onChange={(v) => onUpdate({ title: v })}
           testid="testi-title"
+        />
+        <TextAreaField
+          label="Subheading (optional)"
+          value={config.subheading || ""}
+          onChange={(v) => onUpdate({ subheading: v })}
+          rows={2}
+          testid="testi-subheading"
+        />
+        <SelectField
+          label="Header alignment"
+          value={config.textAlign || "left"}
+          onChange={(v) => onUpdate({ textAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Centre" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="testi-text-align"
         />
         <ColorField
           label="Title color"
           value={config.titleColor}
           onChange={(v) => onUpdate({ titleColor: v })}
           testid="testi-title-color"
+        />
+        <ColorField
+          label="Subheading color"
+          value={config.bodyColor || "#64748b"}
+          onChange={(v) => onUpdate({ bodyColor: v })}
+          testid="testi-body-color"
         />
       </Group>
 
