@@ -10,12 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Palette, Type as TypeIcon, RotateCcw, Save } from "lucide-react";
+import { ArrowLeft, Palette, Type as TypeIcon, RotateCcw, Save, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { DEFAULT_BRAND_KIT, FONTS, INHERIT_FONT, fontImportUrl } from "@/lib/brandKit";
 import { useBrandKit } from "@/lib/BrandKitContext";
 import ColorField from "@/components/ColorField";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
 import { useAuth } from "@/auth/AuthContext";
 
@@ -190,6 +192,69 @@ export default function BrandKitPage() {
               sample="The quick brown fox jumps over the lazy dog."
               size="base"
             />
+          </div>
+        </section>
+
+        <section data-testid="brand-kit-eyebrow">
+          <SectionHeader Icon={Sparkles} title="Eyebrow defaults" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
+            <p className="text-sm text-slate-500 -mt-1">
+              An eyebrow is the small uppercase accent line above a section's
+              heading. Fill these in and every new section that supports one
+              (Content, Products, Insights, Resources, Break, Feature Grid,
+              Steps, FAQ, CTA Banner, Testimonials) starts with them
+              pre-filled. Leave blank to skip.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Default text (optional)
+                </Label>
+                <Input
+                  value={draft.eyebrow_text}
+                  onChange={(e) => set({ eyebrow_text: e.target.value })}
+                  placeholder="e.g. ZAIBATSUI LABS"
+                  data-testid="brand-eyebrow-text"
+                />
+              </div>
+              <ColorField
+                label="Eyebrow color"
+                value={draft.eyebrow_color || draft.primary_color}
+                onChange={(v) => set({ eyebrow_color: v })}
+                testid="brand-eyebrow-color"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 block">
+                Preview
+              </Label>
+              <div
+                className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
+                style={{
+                  fontFamily:
+                    draft.heading_font === INHERIT_FONT
+                      ? "inherit"
+                      : `"${draft.heading_font}", sans-serif`,
+                }}
+              >
+                <span
+                  data-testid="brand-eyebrow-preview"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: draft.eyebrow_color || draft.primary_color,
+                  }}
+                >
+                  {draft.eyebrow_text || "Your eyebrow text here"}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                The eyebrow inherits your brand <strong>heading font</strong>{" "}
+                by default.
+              </p>
+            </div>
           </div>
         </section>
 

@@ -21,6 +21,10 @@ class BrandKit(BaseModel):
     background_color: str = Field(default="#ffffff")
     heading_font: str = Field(default="Poppins")
     body_font: str = Field(default="Poppins")
+    # Eyebrow defaults — applied to new sections that expose an eyebrow
+    # field. Blank = fall back (color → primary_color, text → empty).
+    eyebrow_text: str = Field(default="")
+    eyebrow_color: str = Field(default="")
 
 
 DEFAULT_KIT = BrandKit().model_dump()

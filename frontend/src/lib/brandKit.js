@@ -46,7 +46,34 @@ export const DEFAULT_BRAND_KIT = {
   background_color: "#ffffff",
   heading_font: "Poppins",
   body_font: "Poppins",
+  eyebrow_text: "",
+  eyebrow_color: "",
 };
+
+/**
+ * Sections that expose an `eyebrow` field. Kept as a whitelist so we
+ * never silently stamp eyebrow defaults onto sections that don't
+ * render one (hero, tabs, logos, placeholder).
+ */
+const EYEBROW_SECTIONS = new Set([
+  "content",
+  "products",
+  "resources",
+  "insights",
+  "break",
+  "feature-grid",
+  "steps",
+  "faq",
+  "cta-banner",
+  "testimonials",
+]);
+
+function eyebrowFields(b) {
+  return {
+    eyebrow: b.eyebrow_text || "",
+    eyebrowColor: b.eyebrow_color || b.primary_color,
+  };
+}
 
 /**
  * Build the Google Fonts @import URL for a given font name. The returned
@@ -143,8 +170,11 @@ const FIELD_MAP = {
 export function applyBrandKit(typeId, config, brandKit) {
   if (!brandKit) return config;
   const mapper = FIELD_MAP[typeId];
-  if (mapper) return mapper(config, brandKit);
-  return { ...config, font: brandKit.heading_font };
+  let next = mapper ? mapper(config, brandKit) : { ...config, font: brandKit.heading_font };
+  if (EYEBROW_SECTIONS.has(typeId)) {
+    next = { ...next, ...eyebrowFields(brandKit) };
+  }
+  return next;
 }
 
 /**
