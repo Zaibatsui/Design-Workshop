@@ -1,7 +1,8 @@
 /**
  * Logo Strip — auto-scrolling infinite logo bar.
- * JS duplicates content until the strip exceeds 2x viewport so the loop is
- * seamless. Speed configured via CSS variable.
+ * JS pads the base set so it's ≥ viewport width, then clones it once.
+ * Pure-CSS animation loops translateX(0 → -50%), so the clone lands
+ * where the original was — seamless without any JS measurement.
  */
 import { Building2 } from "lucide-react";
 import {
@@ -79,11 +80,11 @@ function render(cfg) {
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 0;width:100%;background:var(--ns-bg);overflow:hidden}
-.${cls} .ns-track{display:flex;width:max-content;animation:${animName} var(--ns-speed) linear infinite;will-change:transform;--ns-distance:0px}
+.${cls} .ns-track{display:flex;width:max-content;animation:${animName} var(--ns-speed) linear infinite;will-change:transform}
 .${cls} .ns-item{flex:0 0 auto;width:var(--ns-w);display:flex;justify-content:center;align-items:center;margin:0 calc(var(--ns-gap) / 2)}
 .${cls} .ns-item img{height:var(--ns-h);width:auto;object-fit:contain}
 .${cls} .ns-item a{display:flex;align-items:center;justify-content:center;width:100%;height:100%;text-decoration:none;outline-offset:4px}
-@keyframes ${animName}{0%{transform:translateX(0)}100%{transform:translateX(calc(-1 * var(--ns-distance)))}}
+@keyframes ${animName}{to{transform:translateX(-50%)}}
 .${cls}:hover .ns-track{animation-play-state:paused}
 ${greyCss}
 `.trim();
@@ -92,9 +93,12 @@ ${greyCss}
   <div class="ns-track" data-ns-track>${itemsHtml}</div>
 </section>`;
 
+  // Infinite marquee pattern: ensure the base set covers the viewport,
+  // then clone it once. CSS animates translateX(0 → -50%), which lands
+  // the clone exactly where the original was — seamless loop, pure CSS.
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");if(!track)return;var origItems=track.querySelectorAll("[data-ns-original]");if(!origItems.length)return;var orig=Array.prototype.map.call(origItems,function(el){return el.outerHTML;}).join("");function pad(){var html=orig;track.innerHTML=html;var safety=0;while(track.scrollWidth<window.innerWidth*2&&safety<20){html+=orig;track.innerHTML=html;safety++;}var dist=track.scrollWidth;track.style.setProperty("--ns-distance",dist+"px");track.innerHTML=html+html;}pad();var ro=window.ResizeObserver?new ResizeObserver(function(){pad();}):null;if(ro){ro.observe(document.body);}else{window.addEventListener("resize",pad);}`
+    `var track=root.querySelector("[data-ns-track]");if(!track)return;var origItems=track.querySelectorAll("[data-ns-original]");if(!origItems.length)return;var orig=Array.prototype.map.call(origItems,function(el){return el.outerHTML;}).join("");var base=orig;track.innerHTML=base;var safety=0;while(track.scrollWidth<window.innerWidth&&safety<10){base+=orig;track.innerHTML=base;safety++;}track.innerHTML=base+base;`
   );
 
   return wrapSnippet({ html, css, js });
