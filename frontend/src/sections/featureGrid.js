@@ -135,7 +135,7 @@ function FormPanel({ config, onUpdate }) {
     <div className="space-y-6">
       <Group title="Header">
         <TextField
-          label="Eyebrow"
+          label="Eyebrow (optional)"
           value={config.eyebrow}
           onChange={(v) => onUpdate({ eyebrow: v })}
           testid="fg-eyebrow"

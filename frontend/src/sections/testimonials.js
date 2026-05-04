@@ -235,7 +235,7 @@ function FormPanel({ config, onUpdate }) {
           testid="testi-eyebrow"
         />
         <TextField
-          label="Section title"
+          label="Heading"
           value={config.title}
           onChange={(v) => onUpdate({ title: v })}
           testid="testi-title"
@@ -247,6 +247,9 @@ function FormPanel({ config, onUpdate }) {
           rows={2}
           testid="testi-subheading"
         />
+      </Group>
+
+      <Group title="Layout">
         <SelectField
           label="Header alignment"
           value={config.textAlign || "left"}
@@ -257,39 +260,6 @@ function FormPanel({ config, onUpdate }) {
             { value: "right", label: "Right" },
           ]}
           testid="testi-text-align"
-        />
-        <ColorField
-          label="Title color"
-          value={config.titleColor}
-          onChange={(v) => onUpdate({ titleColor: v })}
-          testid="testi-title-color"
-        />
-        <ColorField
-          label="Subheading color"
-          value={config.bodyColor || "#64748b"}
-          onChange={(v) => onUpdate({ bodyColor: v })}
-          testid="testi-body-color"
-        />
-      </Group>
-
-      <Group title="Appearance">
-        <ColorField
-          label="Background"
-          value={config.bgColor}
-          onChange={(v) => onUpdate({ bgColor: v })}
-          testid="testi-bg"
-        />
-        <ColorField
-          label="Card background"
-          value={config.cardBg}
-          onChange={(v) => onUpdate({ cardBg: v })}
-          testid="testi-card-bg"
-        />
-        <ColorField
-          label="Accent (stars & top bar)"
-          value={config.accentColor}
-          onChange={(v) => onUpdate({ accentColor: v })}
-          testid="testi-accent"
         />
         <ToggleField
           label="Make wide"
@@ -340,6 +310,39 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="testi-pad"
+        />
+      </Group>
+
+      <Group title="Theme">
+        <ColorField
+          label="Background"
+          value={config.bgColor}
+          onChange={(v) => onUpdate({ bgColor: v })}
+          testid="testi-bg"
+        />
+        <ColorField
+          label="Card background"
+          value={config.cardBg}
+          onChange={(v) => onUpdate({ cardBg: v })}
+          testid="testi-card-bg"
+        />
+        <ColorField
+          label="Heading color"
+          value={config.titleColor}
+          onChange={(v) => onUpdate({ titleColor: v })}
+          testid="testi-title-color"
+        />
+        <ColorField
+          label="Subheading color"
+          value={config.bodyColor || "#64748b"}
+          onChange={(v) => onUpdate({ bodyColor: v })}
+          testid="testi-body-color"
+        />
+        <ColorField
+          label="Accent (stars & top bar)"
+          value={config.accentColor}
+          onChange={(v) => onUpdate({ accentColor: v })}
+          testid="testi-accent"
         />
       </Group>
 

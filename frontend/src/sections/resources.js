@@ -54,8 +54,10 @@ const sampleResource = (i) => ({
 
 const defaults = () => ({
   uid: makeUid(),
+  eyebrow: "",
   title: "Insights and Resources",
   titleColor: "#1f2937",
+  eyebrowColor: "#E01839",
   tagColor: "#E01839",
   hoverBorder: "#E01839",
   columns: 4,
@@ -73,6 +75,7 @@ function render(cfg) {
 
   const styleVars = [
     `--ns-title-color:${cfg.titleColor}`,
+    `--ns-eyebrow-color:${cfg.eyebrowColor || cfg.tagColor}`,
     `--ns-tag-color:${cfg.tagColor}`,
     `--ns-hover-border:${cfg.hoverBorder}`,
     `--ns-pad:${cfg.paddingY}px`,
@@ -105,6 +108,7 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto;position:relative}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:center;margin:0 0 10px}
 .${cls} .ns-h{font-size:30px;font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 0 28px}
 .${cls} .ns-track{display:flex;align-items:stretch;gap:var(--ns-gap);overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none}
 .${cls} .ns-track::-webkit-scrollbar{display:none}
@@ -125,6 +129,7 @@ ${baseReset(cls)}
 
   const html = `<section class="ns-resources ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-wrap">
+    ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     ${cfg.title ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
     ${arrowsHtml}
     <div class="ns-track" data-ns-track>
@@ -169,20 +174,22 @@ function FormPanel({ config, onUpdate }) {
 
   return (
     <div className="space-y-5">
-      <Group title="Section">
-        <ToggleField
-          label="Make wide"
-          description="Stretch background to full viewport width"
-          checked={config.fullBleed}
-          onChange={(v) => onUpdate({ fullBleed: v })}
-          testid="resources-full-bleed"
+      <Group title="Header">
+        <TextField
+          label="Eyebrow (optional)"
+          value={config.eyebrow || ""}
+          onChange={(v) => onUpdate({ eyebrow: v })}
+          testid="resources-eyebrow"
         />
         <TextField
-          label="Title (optional)"
+          label="Heading (optional)"
           value={config.title}
           onChange={(v) => onUpdate({ title: v })}
           testid="resources-title"
         />
+      </Group>
+
+      <Group title="Layout">
         <SelectField
           label="Columns"
           value={config.columns}
@@ -195,8 +202,39 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="resources-columns"
         />
+        <ToggleField
+          label="Show arrows"
+          checked={config.showArrows}
+          onChange={(v) => onUpdate({ showArrows: v })}
+          testid="resources-arrows"
+        />
+        <ToggleField
+          label="Make wide"
+          description="Stretch background to full viewport width"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="resources-full-bleed"
+        />
+        <SliderField
+          label="Vertical padding"
+          value={config.paddingY}
+          min={20}
+          max={120}
+          suffix="px"
+          onChange={(v) => onUpdate({ paddingY: v })}
+          testid="resources-pad"
+        />
+      </Group>
+
+      <Group title="Theme">
         <ColorField
-          label="Title color"
+          label="Eyebrow color"
+          value={config.eyebrowColor || config.tagColor}
+          onChange={(v) => onUpdate({ eyebrowColor: v })}
+          testid="resources-eyebrow-color"
+        />
+        <ColorField
+          label="Heading color"
           value={config.titleColor}
           onChange={(v) => onUpdate({ titleColor: v })}
           testid="resources-title-color"
@@ -212,21 +250,6 @@ function FormPanel({ config, onUpdate }) {
           value={config.hoverBorder}
           onChange={(v) => onUpdate({ hoverBorder: v })}
           testid="resources-hover"
-        />
-        <ToggleField
-          label="Show arrows"
-          checked={config.showArrows}
-          onChange={(v) => onUpdate({ showArrows: v })}
-          testid="resources-arrows"
-        />
-        <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
-          min={20}
-          max={120}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="resources-pad"
         />
       </Group>
 

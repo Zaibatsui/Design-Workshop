@@ -28,11 +28,13 @@ const ID = "content";
 
 const defaults = () => ({
   uid: makeUid(),
+  eyebrow: "",
   heading:
     "From everyday essentials to tailored eCommerce technology, Nettailer helps your business find, manage and scale the right IT.",
   body: "",
   headingColor: "#E01839",
   bodyColor: "#555555",
+  eyebrowColor: "#E01839",
   fontSize: 28,
   fontWeight: "600",
   textAlign: "center",
@@ -76,6 +78,7 @@ function render(cfg) {
   const styleVars = [
     `--ns-h-color:${cfg.headingColor}`,
     `--ns-b-color:${cfg.bodyColor}`,
+    `--ns-eyebrow-color:${cfg.eyebrowColor || cfg.headingColor}`,
     `--ns-accent:${cfg.primaryColor}`,
     `--ns-bg:${cfg.background}`,
     `--ns-size:${cfg.fontSize}px`,
@@ -107,11 +110,15 @@ function render(cfg) {
   const bodyHtml = (cfg.body || "").trim()
     ? `<p class="ns-p">${escHtml(cfg.body)}</p>`
     : "";
+  const eyebrowHtml = cfg.eyebrow
+    ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>`
+    : "";
 
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{max-width:var(--ns-max);margin:0 auto;text-align:var(--ns-align)}
+.${cls} .ns-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color)}
 .${cls} .ns-h{margin:0 0 14px;font-size:var(--ns-size);font-weight:var(--ns-weight);line-height:1.3;color:var(--ns-h-color)}
 .${cls} .ns-p{margin:0 0 24px;font-size:16px;line-height:1.55;color:var(--ns-b-color)}
 .${cls} .ns-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:var(--ns-btn-justify,center)}
@@ -125,6 +132,7 @@ ${baseReset(cls)}
 
   const html = `<section class="ns-content ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-inner">
+    ${eyebrowHtml}
     <h2 class="ns-h">${escHtml(cfg.heading)}</h2>
     ${bodyHtml}
     ${btnsHtml}
@@ -138,13 +146,12 @@ ${baseReset(cls)}
 function FormPanel({ config, onUpdate }) {
   return (
     <div className="space-y-5">
-      <Group title="Content">
-        <ToggleField
-          label="Make wide"
-          description="Stretch background to full viewport width"
-          checked={config.fullBleed}
-          onChange={(v) => onUpdate({ fullBleed: v })}
-          testid="content-full-bleed"
+      <Group title="Header">
+        <TextField
+          label="Eyebrow (optional)"
+          value={config.eyebrow || ""}
+          onChange={(v) => onUpdate({ eyebrow: v })}
+          testid="content-eyebrow"
         />
         <TextAreaField
           label="Heading"
@@ -162,33 +169,17 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title="Typography">
-        <ColorField
-          label="Heading color"
-          value={config.headingColor}
-          onChange={(v) => onUpdate({ headingColor: v })}
-          testid="content-h-color"
-        />
-        <ColorField
-          label="Body color"
-          value={config.bodyColor}
-          onChange={(v) => onUpdate({ bodyColor: v })}
-          testid="content-b-color"
-        />
-        <ColorField
-          label="Background"
-          value={config.background}
-          onChange={(v) => onUpdate({ background: v })}
-          testid="content-bg"
-        />
-        <SliderField
-          label="Heading size"
-          value={config.fontSize}
-          min={16}
-          max={56}
-          suffix="px"
-          onChange={(v) => onUpdate({ fontSize: v })}
-          testid="content-size"
+      <Group title="Layout">
+        <SelectField
+          label="Alignment"
+          value={config.textAlign}
+          onChange={(v) => onUpdate({ textAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="content-align"
         />
         <SelectField
           label="Heading weight"
@@ -202,16 +193,21 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="content-weight"
         />
-        <SelectField
-          label="Alignment"
-          value={config.textAlign}
-          onChange={(v) => onUpdate({ textAlign: v })}
-          options={[
-            { value: "left", label: "Left" },
-            { value: "center", label: "Center" },
-            { value: "right", label: "Right" },
-          ]}
-          testid="content-align"
+        <SliderField
+          label="Heading size"
+          value={config.fontSize}
+          min={16}
+          max={56}
+          suffix="px"
+          onChange={(v) => onUpdate({ fontSize: v })}
+          testid="content-size"
+        />
+        <ToggleField
+          label="Make wide"
+          description="Stretch background to full viewport width"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="content-full-bleed"
         />
         <SliderField
           label="Vertical padding"
@@ -234,13 +230,40 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title={`Buttons (${(config.buttons || []).length})`}>
+      <Group title="Theme">
+        <ColorField
+          label="Background"
+          value={config.background}
+          onChange={(v) => onUpdate({ background: v })}
+          testid="content-bg"
+        />
+        <ColorField
+          label="Eyebrow color"
+          value={config.eyebrowColor || config.headingColor}
+          onChange={(v) => onUpdate({ eyebrowColor: v })}
+          testid="content-eyebrow-color"
+        />
+        <ColorField
+          label="Heading color"
+          value={config.headingColor}
+          onChange={(v) => onUpdate({ headingColor: v })}
+          testid="content-h-color"
+        />
+        <ColorField
+          label="Body color"
+          value={config.bodyColor}
+          onChange={(v) => onUpdate({ bodyColor: v })}
+          testid="content-b-color"
+        />
         <ColorField
           label="Primary button accent"
           value={config.primaryColor}
           onChange={(v) => onUpdate({ primaryColor: v })}
           testid="content-accent"
         />
+      </Group>
+
+      <Group title={`Buttons (${(config.buttons || []).length})`}>
         <ButtonsList config={config} onUpdate={onUpdate} />
       </Group>
     </div>

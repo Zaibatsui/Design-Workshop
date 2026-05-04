@@ -45,8 +45,10 @@ const sampleCard = (i) => ({
 
 const defaults = () => ({
   uid: makeUid(),
+  eyebrow: "",
   title: "Insights and Resources",
   titleColor: "#1f2937",
+  eyebrowColor: "#E01839",
   accentColor: "#E01839",
   columns: 2,
   paddingY: 60,
@@ -61,6 +63,7 @@ function render(cfg) {
 
   const styleVars = [
     `--ns-title-color:${cfg.titleColor}`,
+    `--ns-eyebrow-color:${cfg.eyebrowColor || cfg.accentColor}`,
     `--ns-accent:${cfg.accentColor}`,
     `--ns-pad:${cfg.paddingY}px`,
     `--ns-cols:${cols}`,
@@ -89,6 +92,7 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:center;margin:0 0 10px}
 .${cls} .ns-h{font-size:30px;font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 0 28px}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:20px}
 .${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;border-left:6px solid var(--ns-accent);border-radius:6px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
@@ -104,6 +108,7 @@ ${baseReset(cls)}
 
   const html = `<section class="ns-insights ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-wrap">
+    ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     ${cfg.title ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
     <div class="ns-grid">
       ${cardsHtml}
@@ -136,20 +141,22 @@ function FormPanel({ config, onUpdate }) {
 
   return (
     <div className="space-y-5">
-      <Group title="Section">
-        <ToggleField
-          label="Make wide"
-          description="Stretch background to full viewport width"
-          checked={config.fullBleed}
-          onChange={(v) => onUpdate({ fullBleed: v })}
-          testid="insights-full-bleed"
+      <Group title="Header">
+        <TextField
+          label="Eyebrow (optional)"
+          value={config.eyebrow || ""}
+          onChange={(v) => onUpdate({ eyebrow: v })}
+          testid="insights-eyebrow"
         />
         <TextField
-          label="Title (optional)"
+          label="Heading (optional)"
           value={config.title}
           onChange={(v) => onUpdate({ title: v })}
           testid="insights-title"
         />
+      </Group>
+
+      <Group title="Layout">
         <SelectField
           label="Columns"
           value={config.columns}
@@ -161,17 +168,12 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="insights-columns"
         />
-        <ColorField
-          label="Title color"
-          value={config.titleColor}
-          onChange={(v) => onUpdate({ titleColor: v })}
-          testid="insights-title-color"
-        />
-        <ColorField
-          label="Accent color"
-          value={config.accentColor}
-          onChange={(v) => onUpdate({ accentColor: v })}
-          testid="insights-accent"
+        <ToggleField
+          label="Make wide"
+          description="Stretch background to full viewport width"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="insights-full-bleed"
         />
         <SliderField
           label="Vertical padding"
@@ -181,6 +183,27 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="insights-pad"
+        />
+      </Group>
+
+      <Group title="Theme">
+        <ColorField
+          label="Eyebrow color"
+          value={config.eyebrowColor || config.accentColor}
+          onChange={(v) => onUpdate({ eyebrowColor: v })}
+          testid="insights-eyebrow-color"
+        />
+        <ColorField
+          label="Heading color"
+          value={config.titleColor}
+          onChange={(v) => onUpdate({ titleColor: v })}
+          testid="insights-title-color"
+        />
+        <ColorField
+          label="Accent color"
+          value={config.accentColor}
+          onChange={(v) => onUpdate({ accentColor: v })}
+          testid="insights-accent"
         />
       </Group>
 
