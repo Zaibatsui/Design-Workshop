@@ -8,6 +8,7 @@ export const SECTION_PREVIEW_HEIGHT = {
   insights: 320,
   placeholder: 460,
   logos: 140,
+  testimonials: 360,
   break: 320,
   tabs: 540,
 };

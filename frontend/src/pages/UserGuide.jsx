@@ -20,6 +20,7 @@ import {
   Megaphone,
   Palette,
   PenLine,
+  Quote,
   Rocket,
   Save,
   Sparkles,
@@ -211,7 +212,7 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships fourteen section types. All are
+              Design Workshop ships fifteen section types. All are
               colour-themable, font-themable and contain at least one
               image-bearing field where applicable.
             </P>
@@ -223,6 +224,7 @@ export default function UserGuide() {
               <SectionCard Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
               <SectionCard Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined, tinted or solid card styles." />
               <SectionCard Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
+              <SectionCard Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." />
               <SectionCard Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." />
               <SectionCard Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Centred or left-aligned." />
               <SectionCard Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." />
@@ -401,6 +403,8 @@ export default function UserGuide() {
                 <>The "Recently edited" strip at the top jumps you straight back to your last 5 active items.</>,
                 <>The Logo Strip <strong>greyscale-until-hover</strong> toggle pairs with the existing scroll-pause-on-hover for a polished marquee.</>,
                 <>Each Logo Strip image accepts an optional <strong>link</strong> — the rendered <Code>{"<a>"}</Code> opens in a new tab.</>,
+                <>The Testimonials carousel <strong>pauses on hover</strong> so readers can finish a quote — and respects <Code>prefers-reduced-motion</Code> for accessibility.</>,
+                <>Set a testimonial's rating to <strong>0</strong> to hide its stars individually, or toggle "Show star ratings" off to hide them across the whole block.</>,
                 <>The Grid section starts with neutral sample photos — swap each cell's image for your own via the editor's image picker.</>,
               ]}
             />
@@ -419,7 +423,7 @@ export default function UserGuide() {
             </Q>
             <Q q="Can I export a section without its IIFE?">
               The IIFE is required for any section that auto-scrolls or has
-              interactivity (Logo Strip, carousels, tabs). Static sections
+              interactivity (Logo Strip, Testimonials, carousels, tabs). Static sections
               (Content, Break banner) don't need one and don't ship one.
             </Q>
             <Q q="What about analytics?">

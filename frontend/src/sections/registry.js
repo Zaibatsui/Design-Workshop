@@ -11,6 +11,7 @@ import { featureGrid } from "./featureGrid";
 import { steps } from "./steps";
 import { faq } from "./faq";
 import { ctaBanner } from "./ctaBanner";
+import { testimonials } from "./testimonials";
 
 export const SECTIONS = [
   hero,
@@ -20,6 +21,7 @@ export const SECTIONS = [
   insights,
   featureGrid,
   steps,
+  testimonials,
   faq,
   ctaBanner,
   placeholder,

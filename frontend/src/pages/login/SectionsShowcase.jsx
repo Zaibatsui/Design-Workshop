@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Megaphone,
   Sparkles,
+  Quote,
 } from "lucide-react";
 
 const SECTIONS = [
@@ -23,6 +24,7 @@ const SECTIONS = [
   { Icon: BookOpen, name: "Resources", desc: "Tag-tinted card carousel for blog posts, guides, downloads." },
   { Icon: Sparkles, name: "Feature Grid", desc: "2-4 column value-prop cards with icon, title and body." },
   { Icon: ListOrdered, name: "Steps", desc: "Numbered process strip — horizontal or vertical stack." },
+  { Icon: Quote, name: "Testimonials", desc: "Auto-scrolling quote carousel with ratings + avatars. Pauses on hover." },
   { Icon: HelpCircle, name: "FAQ", desc: "Collapsible Q+A accordion. Native zero-JS accessibility." },
   { Icon: Megaphone, name: "CTA Banner", desc: "Final-call conversion block with one or two buttons." },
   { Icon: ImageIcon, name: "Logo Strip", desc: "Auto-scrolling marquee. Optional links + greyscale-on-hover." },
@@ -48,7 +50,7 @@ export default function SectionsShowcase() {
             Section types in the box
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Fourteen composable building blocks. Every page is one snippet.
+            Fifteen composable building blocks. Every page is one snippet.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them

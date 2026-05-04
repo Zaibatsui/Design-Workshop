@@ -63,7 +63,7 @@ export const PAGE_TEMPLATES = [
   {
     id: "landing",
     name: "Landing page",
-    description: "Hero → value prop → vendor logos → features → CTA. Marketing-ready.",
+    description: "Hero → value prop → vendor logos → features → testimonials → CTA. Marketing-ready.",
     icon: Sparkles,
     blocks: [
       section("hero"),
@@ -73,6 +73,7 @@ export const PAGE_TEMPLATES = [
       ),
       section("logos", { logos: sampleITLogos() }),
       section("insights"),
+      section("testimonials"),
       rt(
         "<h2>Ready when you are</h2><p>Book a 20-minute walkthrough and see how Nettailer fits your stack.</p>",
         { padY: 48, align: "center", maxWidth: 640 }
