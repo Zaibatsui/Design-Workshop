@@ -1,18 +1,66 @@
 """Product-page scraper — BeautifulSoup4 with a Playwright Chromium fallback
-for JS-rendered product galleries (Cnet Cloud / 1WorldSync widgets)."""
+for JS-rendered product galleries (Cnet Cloud / 1WorldSync widgets).
+
+Hardened with an in-process TTL cache + per-URL single-flight lock so a
+busy embedded snippet (or a viral page) cannot cause your IP to flood
+the upstream site. See the bottom of the file for the cache layer."""
+import asyncio
 import json
 import logging
 import os
 import re
+import time
+from collections import OrderedDict
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 
 router = APIRouter(tags=["scraper"])
 logger = logging.getLogger(__name__)
+
+# ── In-process scrape cache ─────────────────────────────────────────────
+# Keyed by URL. Entries expire after _CACHE_TTL seconds. LRU-capped at
+# _CACHE_MAX so a long-running container can't grow the dict unbounded.
+_CACHE_TTL = 600  # 10 min — must match the Cache-Control max-age below
+_CACHE_MAX = 500
+_cache: "OrderedDict[str, tuple[float, dict]]" = OrderedDict()
+
+# Per-URL single-flight: if 50 visitors land at the same instant we still
+# fire ONE upstream request. The other 49 await the same coroutine's
+# result via the per-URL asyncio.Lock.
+_locks: "dict[str, asyncio.Lock]" = {}
+_locks_guard = asyncio.Lock()
+
+
+def _cache_get(url: str):
+    entry = _cache.get(url)
+    if not entry:
+        return None
+    ts, data = entry
+    if time.time() - ts > _CACHE_TTL:
+        _cache.pop(url, None)
+        return None
+    _cache.move_to_end(url)
+    return data
+
+
+def _cache_set(url: str, data: dict):
+    _cache[url] = (time.time(), data)
+    _cache.move_to_end(url)
+    while len(_cache) > _CACHE_MAX:
+        _cache.popitem(last=False)
+
+
+async def _get_url_lock(url: str) -> asyncio.Lock:
+    async with _locks_guard:
+        lock = _locks.get(url)
+        if lock is None:
+            lock = asyncio.Lock()
+            _locks[url] = lock
+        return lock
 
 
 class ScrapeRequest(BaseModel):
@@ -337,11 +385,9 @@ async def _scrape_image_with_browser(url: str):
         return None
 
 
-@router.post("/scrape-product")
-async def scrape_product(req: ScrapeRequest):
-    url = req.url.strip()
-    if not re.match(r"^https?://", url):
-        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
+async def _do_scrape(url: str) -> dict:
+    """Actual upstream fetch — bypasses cache & lock. Use scrape_product()
+    as the public entry point so callers always go through the protections."""
     try:
         resp = requests.get(
             url,
@@ -371,3 +417,32 @@ async def scrape_product(req: ScrapeRequest):
 
     data["url"] = url
     return data
+
+
+@router.post("/scrape-product")
+async def scrape_product(req: ScrapeRequest, response: Response):
+    url = req.url.strip()
+    if not re.match(r"^https?://", url):
+        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
+
+    # Tell Cloudflare / browsers to cache the result for 10 min — same TTL
+    # as our in-process cache. Combined with the snippet's 30-min
+    # localStorage cache this gives us three layers of de-duplication.
+    response.headers["Cache-Control"] = "public, max-age=600"
+
+    # Fast path — fresh hit in the in-process cache.
+    cached = _cache_get(url)
+    if cached is not None:
+        return cached
+
+    # Slow path — single-flight per URL. If 50 concurrent requests arrive
+    # for the same URL, only the first acquires the lock and scrapes; the
+    # other 49 await it and read the result from the cache below.
+    lock = await _get_url_lock(url)
+    async with lock:
+        cached = _cache_get(url)
+        if cached is not None:
+            return cached
+        data = await _do_scrape(url)
+        _cache_set(url, data)
+        return data
