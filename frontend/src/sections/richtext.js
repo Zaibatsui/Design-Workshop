@@ -64,13 +64,17 @@ ${baseReset(cls)}
   return wrapSnippet({ html: htmlOut, css, js: "" });
 }
 
-/** Strip only a trailing <style>/<script> tag from another snippet's output.
- *  Used when composing a page so we don't end up with a huge pile of
- *  redundant @import Poppins declarations.
+/** Strip ALL Google Fonts @import declarations from a snippet. Used when
+ *  composing a page so we don't end up with N redundant @imports — only the
+ *  first block keeps its font import.
+ *
+ *  Matches any family name (Poppins, Lato, "Playfair Display", …) so the
+ *  strip is order-independent — works whether composePage runs before or
+ *  after applyFontToSnippet has rewritten the family.
  */
 export function stripSnippetFontImport(snippet) {
   return String(snippet).replace(
-    new RegExp(`@import url\\("https://fonts.googleapis.com/css2\\?family=Poppins[^"]+"\\);?`, "g"),
+    /@import\s+url\(["']?https:\/\/fonts\.googleapis\.com\/css2\?family=[^)]+\);?/g,
     ""
   );
 }
