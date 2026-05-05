@@ -10,10 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Palette, Type as TypeIcon, RotateCcw, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, Palette, Type as TypeIcon, RotateCcw, Save, Sparkles, Wand2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
-import { DEFAULT_BRAND_KIT, FONTS, INHERIT_FONT, fontImportUrl } from "@/lib/brandKit";
+import {
+  DEFAULT_BRAND_KIT,
+  FONTS,
+  INHERIT_FONT,
+  applyBrandKit,
+  applyBrandKitToRichText,
+  fontImportUrl,
+} from "@/lib/brandKit";
 import { useBrandKit } from "@/lib/BrandKitContext";
 import ColorField from "@/components/ColorField";
 import { Input } from "@/components/ui/input";
@@ -26,6 +33,7 @@ export default function BrandKitPage() {
   const { brandKit, setBrandKit } = useBrandKit();
   const [draft, setDraft] = useState(brandKit);
   const [saving, setSaving] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   // Re-hydrate on initial fetch / external updates.
   useEffect(() => {
@@ -87,6 +95,77 @@ export default function BrandKitPage() {
     setDraft(DEFAULT_BRAND_KIT);
   };
 
+  // Bulk re-apply the SAVED brand kit over every Section + every Page
+  // block in the user's library. Uses the same `applyBrandKit` /
+  // `applyBrandKitToRichText` helpers as the Editor's per-section button,
+  // so the merge logic stays in one place. Only saved kits are applied —
+  // dirty drafts could surprise the user.
+  const applyToLibrary = async () => {
+    if (dirty) {
+      toast.warning("Save your brand kit first", {
+        description: "Apply works against the saved kit, not the draft.",
+      });
+      return;
+    }
+    if (
+      !window.confirm(
+        "Re-apply the brand kit to every saved Section and Page in your library? This rewrites their colours, fonts and eyebrow defaults — content (text, images, products) is preserved."
+      )
+    ) {
+      return;
+    }
+    setApplying(true);
+    try {
+      const [sections, pages] = await Promise.all([
+        api.listSections(),
+        api.listPages(),
+      ]);
+
+      // Sections: merge kit onto each saved config and PUT back.
+      const sectionPromises = sections.map((s) => {
+        const merged = applyBrandKit(s.type, s.config || {}, brandKit);
+        if (!merged.uid) merged.uid = s.config?.uid;
+        return api.updateSection(s.section_id, { config: merged });
+      });
+
+      // Pages: walk each block. Section blocks → applyBrandKit; richtext
+      // blocks → applyBrandKitToRichText. Untyped blocks pass through.
+      const pagePromises = pages.map((p) => {
+        const newBlocks = (p.blocks || []).map((b) => {
+          if (!b) return b;
+          if (b.type === "richtext") {
+            return {
+              ...b,
+              config: applyBrandKitToRichText(b.config || {}, brandKit),
+            };
+          }
+          if (b.type === "section") {
+            const merged = applyBrandKit(
+              b.section_type,
+              b.config || {},
+              brandKit
+            );
+            if (!merged.uid) merged.uid = b.config?.uid;
+            return { ...b, config: merged };
+          }
+          return b;
+        });
+        return api.updatePage(p.page_id, { blocks: newBlocks });
+      });
+
+      await Promise.all([...sectionPromises, ...pagePromises]);
+      toast.success("Brand kit applied to library", {
+        description: `${sections.length} section${sections.length === 1 ? "" : "s"} and ${pages.length} page${pages.length === 1 ? "" : "s"} updated.`,
+      });
+    } catch (err) {
+      toast.error("Apply failed", {
+        description: err?.message || "Some items may not have been updated.",
+      });
+    } finally {
+      setApplying(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
@@ -117,6 +196,20 @@ export default function BrandKitPage() {
             >
               <RotateCcw className="w-4 h-4 mr-1.5" />
               Reset to defaults
+            </Button>
+            <Button
+              variant="outline"
+              onClick={applyToLibrary}
+              disabled={dirty || applying}
+              data-testid="brand-kit-apply-to-library"
+              title={
+                dirty
+                  ? "Save the kit first — apply works against the saved kit"
+                  : "Re-apply the kit to every saved Section and Page"
+              }
+            >
+              <Wand2 className="w-4 h-4 mr-1.5" />
+              {applying ? "Applying…" : "Apply to library"}
             </Button>
             <Button
               onClick={save}
@@ -224,37 +317,10 @@ export default function BrandKitPage() {
                 testid="brand-eyebrow-color"
               />
             </div>
-            <div>
-              <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 block">
-                Preview
-              </Label>
-              <div
-                className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
-                style={{
-                  fontFamily:
-                    draft.heading_font === INHERIT_FONT
-                      ? "inherit"
-                      : `"${draft.heading_font}", sans-serif`,
-                }}
-              >
-                <span
-                  data-testid="brand-eyebrow-preview"
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: draft.eyebrow_color || draft.primary_color,
-                  }}
-                >
-                  {draft.eyebrow_text || "Your eyebrow text here"}
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-2">
-                The eyebrow inherits your brand <strong>heading font</strong>{" "}
-                by default.
-              </p>
-            </div>
+            <p className="text-xs text-slate-500">
+              The eyebrow inherits your brand <strong>heading font</strong> by
+              default. See it live in the Preview below.
+            </p>
           </div>
         </section>
 
@@ -265,6 +331,23 @@ export default function BrandKitPage() {
             style={{ backgroundColor: draft.background_color }}
           >
           <div className="p-10">
+            <p
+              data-testid="brand-eyebrow-preview"
+              className="mb-4"
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: draft.eyebrow_color || draft.primary_color,
+                fontFamily:
+                  draft.heading_font === INHERIT_FONT
+                    ? "inherit"
+                    : `"${draft.heading_font}", sans-serif`,
+              }}
+            >
+              {draft.eyebrow_text || "Your eyebrow text here"}
+            </p>
             <h2
               className="text-3xl mb-3"
               style={{
