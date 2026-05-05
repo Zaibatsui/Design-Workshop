@@ -9,6 +9,8 @@ import {
   escHtml,
   fullBleedClass,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -100,21 +102,28 @@ const render = (cfg) => {
     return (r * 299 + g * 587 + b * 114) / 1000 < 128;
   })();
 
+  const bg = safeColor(cfg.bgColor, "#0f172a");
+  const textColor = safeColor(cfg.textColor, "#ffffff");
+  const accent = safeColor(cfg.accentColor, "#E01839");
+  const bodyColor = safeColor(cfg.bodyColor, "rgba(255,255,255,0.7)");
+  const align = cfg.textAlign === "left" ? "left" : "center";
+  const padY = num(cfg.paddingY, 96);
+
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad,96px) 20px;background:${cfg.bgColor};color:${cfg.textColor};--ns-pad:${cfg.paddingY}px}
-.${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${cfg.textAlign}}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${cfg.accentColor};margin-bottom:14px}
-.${cls} .ns-heading{font-size:36px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;color:${cfg.textColor}}
-.${cls} .ns-sub{margin-top:18px;font-size:16px;color:${cfg.bodyColor};line-height:1.65}
-.${cls} .ns-actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;${cfg.textAlign === "center" ? "justify-content:center" : "justify-content:flex-start"}}
+.${cls}{padding:var(--ns-pad,96px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
+.${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
+.${cls} .ns-heading{font-size:36px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;color:${textColor}}
+.${cls} .ns-sub{margin-top:18px;font-size:16px;color:${bodyColor};line-height:1.65}
+.${cls} .ns-actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;${align === "center" ? "justify-content:center" : "justify-content:flex-start"}}
 .${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 24px;font-size:15px;font-weight:500;border-radius:6px;text-decoration:none;transition:opacity .18s ease,transform .18s ease,background .18s ease,color .18s ease}
 .${cls} .ns-btn:hover{transform:translateY(-1px);opacity:0.92}
-.${cls} .ns-btn-primary{background:${cfg.accentColor};color:#fff}
-.${cls} .ns-btn-secondary{background:transparent;color:${cfg.textColor};border:1px solid ${
+.${cls} .ns-btn-primary{background:${accent};color:#fff}
+.${cls} .ns-btn-secondary{background:transparent;color:${textColor};border:1px solid ${
     isDarkBg ? "rgba(255,255,255,0.25)" : "rgba(15,23,42,0.2)"
   }}
-.${cls} .ns-btn-secondary:hover{border-color:${cfg.textColor}}
+.${cls} .ns-btn-secondary:hover{border-color:${textColor}}
 @media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}}
 `.trim();
 

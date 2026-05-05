@@ -10,6 +10,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -72,11 +74,11 @@ function render(cfg) {
   const styleVars = [
     `--ns-cols:${cols}`,
     `--ns-rows:${rows}`,
-    `--ns-h:${cfg.itemHeight}px`,
-    `--ns-bg:${cfg.bgColor}`,
-    `--ns-r:${cfg.borderRadius}px`,
-    `--ns-pad:${cfg.paddingY}px`,
-    `--ns-gap:${cfg.gap}px`,
+    `--ns-h:${num(cfg.itemHeight, 200)}px`,
+    `--ns-bg:${safeColor(cfg.bgColor, "#f1f5f9")}`,
+    `--ns-r:${num(cfg.borderRadius, 8)}px`,
+    `--ns-pad:${num(cfg.paddingY, 30)}px`,
+    `--ns-gap:${num(cfg.gap, 16)}px`,
   ].join(";");
 
   // Take first `total` items; pad with empty cells if shorter.

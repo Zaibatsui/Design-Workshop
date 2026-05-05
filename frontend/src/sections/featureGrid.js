@@ -13,6 +13,8 @@ import {
   escHtml,
   fullBleedClass,
   makeUid,
+  num,
+  safeColor,
   wrapSnippet,
 } from "./shared";
 import { ICON_OPTIONS, svgIcon } from "./iconLib";
@@ -95,21 +97,29 @@ const render = (cfg) => {
     cfg.heading || ""
   )}</h2>${subHtml}</div></header><div class="ns-grid">${featuresHtml}</div></div></section>`;
 
+  const bg = safeColor(cfg.bgColor, "#ffffff");
+  const textColor = safeColor(cfg.textColor, "#1f2937");
+  const accent = safeColor(cfg.accentColor, "#E01839");
+  const bodyColor = safeColor(cfg.bodyColor, "#64748b");
+  const align = cfg.textAlign === "center" ? "center" : "left";
+  const padY = num(cfg.paddingY, 80);
+  const isSolid = cfg.cardStyle === "solid";
+
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad,80px) 20px;background:${cfg.bgColor};color:${cfg.textColor};--ns-pad:${cfg.paddingY}px}
-.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${cfg.textAlign}}
+.${cls}{padding:var(--ns-pad,80px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
+.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align}}
 .${cls} .ns-head{margin-bottom:48px}
-.${cls} .ns-head-inner{max-width:720px;${cfg.textAlign === "center" ? "margin:0 auto;" : ""}}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${cfg.accentColor};margin-bottom:14px}
-.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${cfg.textColor}}
-.${cls} .ns-sub{margin-top:14px;font-size:16px;color:${cfg.bodyColor};line-height:1.6}
+.${cls} .ns-head-inner{max-width:720px;${align === "center" ? "margin:0 auto;" : ""}}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
+.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
+.${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px}
 .${cls} .ns-card{${cardBase};border-radius:8px;padding:28px;text-align:left;transition:border-color .18s ease,transform .18s ease}
 .${cls} .ns-card:hover{${cardHover};transform:translateY(-2px)}
-.${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${cfg.accentColor}1a;color:${cfg.accentColor};margin-bottom:20px}
-.${cls} .ns-card .ns-title{font-size:16px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:${cfg.cardStyle === "solid" ? "#fff" : cfg.textColor};margin-bottom:8px}
-.${cls} .ns-card .ns-body{font-size:14px;line-height:1.6;color:${cfg.cardStyle === "solid" ? "rgba(255,255,255,0.7)" : cfg.bodyColor}}
+.${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${accent}1a;color:${accent};margin-bottom:20px}
+.${cls} .ns-card .ns-title{font-size:16px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:${isSolid ? "#fff" : textColor};margin-bottom:8px}
+.${cls} .ns-card .ns-body{font-size:14px;line-height:1.6;color:${isSolid ? "rgba(255,255,255,0.7)" : bodyColor}}
 @media (max-width:1024px){.${cls} .ns-grid{grid-template-columns:repeat(${Math.min(cols, 2)},minmax(0,1fr))}}
 @media (max-width:640px){.${cls} .ns-grid{grid-template-columns:1fr}}
 `.trim();

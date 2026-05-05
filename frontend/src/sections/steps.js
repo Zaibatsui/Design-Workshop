@@ -9,6 +9,8 @@ import {
   escHtml,
   fullBleedClass,
   makeUid,
+  num,
+  safeColor,
   wrapSnippet,
 } from "./shared";
 import { ICON_OPTIONS, svgIcon } from "./iconLib";
@@ -88,24 +90,30 @@ const render = (cfg) => {
   )}</h2>${subHtml}</div></header><div class="ns-track">${stepsHtml}</div></div></section>`;
 
   const stepCount = (cfg.steps || []).length || 1;
+  const bg = safeColor(cfg.bgColor, "#ffffff");
+  const textColor = safeColor(cfg.textColor, "#1f2937");
+  const accent = safeColor(cfg.accentColor, "#E01839");
+  const bodyColor = safeColor(cfg.bodyColor, "#64748b");
+  const align = cfg.textAlign === "center" ? "center" : "left";
+  const padY = num(cfg.paddingY, 80);
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad,80px) 20px;background:${cfg.bgColor};color:${cfg.textColor};--ns-pad:${cfg.paddingY}px}
-.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${cfg.textAlign}}
+.${cls}{padding:var(--ns-pad,80px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
+.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align}}
 .${cls} .ns-head{margin-bottom:40px}
-.${cls} .ns-head-inner{max-width:720px;${cfg.textAlign === "center" ? "margin:0 auto;" : ""}}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${cfg.accentColor};margin-bottom:14px}
-.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${cfg.textColor}}
-.${cls} .ns-sub{margin-top:14px;font-size:16px;color:${cfg.bodyColor};line-height:1.6}
+.${cls} .ns-head-inner{max-width:720px;${align === "center" ? "margin:0 auto;" : ""}}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
+.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
+.${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 .${cls} .ns-track{display:grid;${horizontal ? `grid-template-columns:repeat(${stepCount},minmax(0,1fr));gap:0` : "gap:32px"};${divider && horizontal ? "border:1px solid #e2e8f0;border-radius:8px;overflow:hidden" : ""}}
 .${cls} .ns-step{padding:${horizontal ? "32px" : "0"};text-align:left;${divider && horizontal ? "background:#fff" : ""}}
 .${cls} .ns-step + .ns-step{${horizontal && divider ? "border-left:1px solid #e2e8f0" : !horizontal && divider ? "padding-top:32px;border-top:1px solid #e2e8f0" : ""}}
 .${cls} .ns-step-head{display:flex;align-items:baseline;gap:12px;margin-bottom:${cfg.numberStyle === "large" ? 20 : 14}px}
-.${cls} .ns-num{font-size:${numberSize}px;font-weight:600;color:${cfg.accentColor};line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
-.${cls} .ns-icon{display:inline-flex;color:${cfg.bodyColor}}
-.${cls} .ns-step-title{font-size:18px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;margin-bottom:8px;color:${cfg.textColor}}
-.${cls} .ns-step-body{font-size:14px;line-height:1.6;color:${cfg.bodyColor}}
+.${cls} .ns-num{font-size:${numberSize}px;font-weight:600;color:${accent};line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+.${cls} .ns-icon{display:inline-flex;color:${bodyColor}}
+.${cls} .ns-step-title{font-size:18px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;margin-bottom:8px;color:${textColor}}
+.${cls} .ns-step-body{font-size:14px;line-height:1.6;color:${bodyColor}}
 @media (max-width:880px){.${cls} .ns-track{grid-template-columns:1fr;${divider ? "border:0;border-radius:0" : ""}}.${cls} .ns-step + .ns-step{border-left:0;${divider ? "border-top:1px solid #e2e8f0;padding-top:28px;margin-top:28px" : ""}}}
 `.trim();
 

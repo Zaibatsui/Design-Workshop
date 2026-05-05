@@ -9,6 +9,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -40,12 +42,12 @@ function render(cfg) {
   const cls = `ns-break-${uid}`;
 
   const styleVars = [
-    `--ns-h:${cfg.height}px`,
-    `--ns-text:${cfg.textColor}`,
-    `--ns-eyebrow:${cfg.eyebrowColor || cfg.textColor}`,
-    `--ns-size:${cfg.fontSize}px`,
-    `--ns-overlay:${cfg.overlayColor}`,
-    `--ns-overlay-op:${cfg.overlayOpacity}`,
+    `--ns-h:${num(cfg.height, 280)}px`,
+    `--ns-text:${safeColor(cfg.textColor, "#ffffff")}`,
+    `--ns-eyebrow:${safeColor(cfg.eyebrowColor || cfg.textColor, "#ffffff")}`,
+    `--ns-size:${num(cfg.fontSize, 34)}px`,
+    `--ns-overlay:${safeColor(cfg.overlayColor, "#000000")}`,
+    `--ns-overlay-op:${num(cfg.overlayOpacity, 0.55)}`,
   ].join(";");
 
   const css = `

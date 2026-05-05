@@ -30,8 +30,44 @@ export const escHtml = (s = "") =>
 export const safeUrl = (u = "") => {
   const s = String(u || "").trim();
   if (!s) return "";
-  if (/^javascript:/i.test(s)) return "";
+  // Block dangerous schemes outright. We allow `data:image/*` because
+  // legitimate base64-encoded thumbnails are common and a future "bake"
+  // feature relies on them, but block every other `data:` variant —
+  // `data:text/html` is the script-execution vector.
+  const lower = s.toLowerCase();
+  if (/^(javascript|vbscript|file|about|blob)\s*:/.test(lower)) return "";
+  if (lower.startsWith("data:") && !/^data:image\//.test(lower)) return "";
   return s;
+};
+
+/**
+ * Whitelist for CSS colour values. Anything that isn't an obvious colour
+ * gets replaced with the fallback. Stops `red"></style><script>` style
+ * payloads from escaping a `<style>` block via colour form fields.
+ *
+ * Accepts: hex (#fff, #ffffff, #ffffff80), rgb/rgba/hsl/hsla, plain
+ * named colours / CSS keywords (red, transparent, inherit, currentColor).
+ * Anything containing `;`, `<`, `>`, quotes or other CSS-syntax
+ * terminators is rejected.
+ */
+export const safeColor = (c = "", fallback = "#000000") => {
+  const s = String(c == null ? "" : c).trim();
+  if (!s) return fallback;
+  if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;
+  if (/^(rgb|rgba|hsl|hsla)\(\s*[\d.,\s%/-]+\s*\)$/i.test(s)) return s;
+  if (/^[a-zA-Z][a-zA-Z0-9-]{1,30}$/.test(s)) return s; // named colour / keyword
+  return fallback;
+};
+
+/**
+ * Coerce a value to a finite number for safe interpolation into CSS
+ * length expressions like `${num(cfg.paddingY)}px`. Defends against
+ * corrupt DB records or malicious form submissions injecting CSS via
+ * what would otherwise be numeric fields.
+ */
+export const num = (v, fallback = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
 };
 
 /**

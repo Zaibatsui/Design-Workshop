@@ -9,6 +9,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -66,10 +68,10 @@ function render(cfg) {
   const cls = `ns-tabs-${uid}`;
 
   const styleVars = [
-    `--ns-bg:${cfg.bgColor}`,
-    `--ns-accent:${cfg.accentColor}`,
-    `--ns-body:${cfg.bodyColor}`,
-    `--ns-pad:${cfg.paddingY}px`,
+    `--ns-bg:${safeColor(cfg.bgColor, "#ffffff")}`,
+    `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
+    `--ns-body:${safeColor(cfg.bodyColor, "#1f2937")}`,
+    `--ns-pad:${num(cfg.paddingY, 60)}px`,
   ].join(";");
 
   const tabs = cfg.tabs || [];

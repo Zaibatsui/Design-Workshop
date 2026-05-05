@@ -11,6 +11,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -76,16 +78,16 @@ function render(cfg) {
   const cls = `ns-content-${uid}`;
 
   const styleVars = [
-    `--ns-h-color:${cfg.headingColor}`,
-    `--ns-b-color:${cfg.bodyColor}`,
-    `--ns-eyebrow-color:${cfg.eyebrowColor || cfg.headingColor}`,
-    `--ns-accent:${cfg.primaryColor}`,
-    `--ns-bg:${cfg.background}`,
-    `--ns-size:${cfg.fontSize}px`,
-    `--ns-weight:${cfg.fontWeight}`,
-    `--ns-align:${cfg.textAlign}`,
-    `--ns-pad:${cfg.paddingY}px`,
-    `--ns-max:${cfg.maxWidth}px`,
+    `--ns-h-color:${safeColor(cfg.headingColor, "#E01839")}`,
+    `--ns-b-color:${safeColor(cfg.bodyColor, "#555555")}`,
+    `--ns-eyebrow-color:${safeColor(cfg.eyebrowColor || cfg.headingColor, "#E01839")}`,
+    `--ns-accent:${safeColor(cfg.primaryColor, "#E01839")}`,
+    `--ns-bg:${safeColor(cfg.background, "#ffffff")}`,
+    `--ns-size:${num(cfg.fontSize, 28)}px`,
+    `--ns-weight:${num(cfg.fontWeight, 600)}`,
+    `--ns-align:${cfg.textAlign === "right" || cfg.textAlign === "center" ? cfg.textAlign : "left"}`,
+    `--ns-pad:${num(cfg.paddingY, 60)}px`,
+    `--ns-max:${num(cfg.maxWidth, 1200)}px`,
   ].join(";");
 
   const btn = (label, href, variant, sameTab) => {

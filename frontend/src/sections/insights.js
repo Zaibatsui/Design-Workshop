@@ -10,6 +10,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -62,10 +64,10 @@ function render(cfg) {
   const cols = Math.max(1, Math.min(3, Number(cfg.columns) || 2));
 
   const styleVars = [
-    `--ns-title-color:${cfg.titleColor}`,
-    `--ns-eyebrow-color:${cfg.eyebrowColor || cfg.accentColor}`,
-    `--ns-accent:${cfg.accentColor}`,
-    `--ns-pad:${cfg.paddingY}px`,
+    `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
+    `--ns-eyebrow-color:${safeColor(cfg.eyebrowColor || cfg.accentColor, "#E01839")}`,
+    `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
+    `--ns-pad:${num(cfg.paddingY, 60)}px`,
     `--ns-cols:${cols}`,
   ].join(";");
 

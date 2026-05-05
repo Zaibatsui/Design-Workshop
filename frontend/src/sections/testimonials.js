@@ -11,6 +11,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -88,22 +90,22 @@ function stars(n, accent) {
 function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-testi-${uid}`;
-  const accent = cfg.accentColor || "#E01839";
+  const accent = safeColor(cfg.accentColor, "#E01839");
   const align =
     cfg.textAlign === "right" || cfg.textAlign === "center"
       ? cfg.textAlign
       : "left";
 
   const styleVars = [
-    `--ns-title-color:${cfg.titleColor}`,
-    `--ns-body-color:${cfg.bodyColor || "#64748b"}`,
+    `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
+    `--ns-body-color:${safeColor(cfg.bodyColor, "#64748b")}`,
     `--ns-accent:${accent}`,
-    `--ns-bg:${cfg.bgColor}`,
-    `--ns-card-bg:${cfg.cardBg}`,
-    `--ns-speed:${cfg.speedSeconds}s`,
-    `--ns-card-w:${cfg.cardWidth}px`,
-    `--ns-gap:${cfg.cardGap}px`,
-    `--ns-pad:${cfg.paddingY}px`,
+    `--ns-bg:${safeColor(cfg.bgColor, "#f8fafc")}`,
+    `--ns-card-bg:${safeColor(cfg.cardBg, "#ffffff")}`,
+    `--ns-speed:${num(cfg.speedSeconds, 50)}s`,
+    `--ns-card-w:${num(cfg.cardWidth, 340)}px`,
+    `--ns-gap:${num(cfg.cardGap, 24)}px`,
+    `--ns-pad:${num(cfg.paddingY, 72)}px`,
   ].join(";");
 
   const items = Array.isArray(cfg.items) ? cfg.items : [];

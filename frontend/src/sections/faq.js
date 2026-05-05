@@ -12,6 +12,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   wrapSnippet,
 } from "./shared";
 import {
@@ -88,27 +90,34 @@ const render = (cfg) => {
       ? ""
       : `.${cls} .ns-list{border-top:1px solid #e2e8f0}.${cls} .ns-item{border-bottom:1px solid #e2e8f0}`;
 
+  const bg = safeColor(cfg.bgColor, "#ffffff");
+  const textColor = safeColor(cfg.textColor, "#1f2937");
+  const accent = safeColor(cfg.accentColor, "#E01839");
+  const bodyColor = safeColor(cfg.bodyColor, "#64748b");
+  const align = cfg.textAlign === "center" ? "center" : "left";
+  const padY = num(cfg.paddingY, 80);
+
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad,80px) 20px;background:${cfg.bgColor};color:${cfg.textColor};--ns-pad:${cfg.paddingY}px}
-.${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${cfg.textAlign}}
+.${cls}{padding:var(--ns-pad,80px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
+.${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
 .${cls} .ns-head{margin-bottom:40px}
-.${cls} .ns-head-inner{${cfg.textAlign === "center" ? "max-width:560px;margin:0 auto;" : ""}}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${cfg.accentColor};margin-bottom:14px}
-.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${cfg.textColor}}
-.${cls} .ns-sub{margin-top:14px;font-size:16px;color:${cfg.bodyColor};line-height:1.6}
+.${cls} .ns-head-inner{${align === "center" ? "max-width:560px;margin:0 auto;" : ""}}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
+.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
+.${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 ${dividerCss}
 .${cls} .ns-item{padding:0}
 .${cls} .ns-item summary{list-style:none;cursor:pointer}
 .${cls} .ns-item summary::-webkit-details-marker{display:none}
-.${cls} .ns-q{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0;font-size:16px;font-weight:600;color:${cfg.textColor};letter-spacing:-0.005em;line-height:1.4}
+.${cls} .ns-q{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0;font-size:16px;font-weight:600;color:${textColor};letter-spacing:-0.005em;line-height:1.4}
 .${cls} .ns-q-text{flex:1;text-align:left}
-.${cls} .ns-q-mark{position:relative;width:14px;height:14px;flex-shrink:0;color:${cfg.accentColor}}
+.${cls} .ns-q-mark{position:relative;width:14px;height:14px;flex-shrink:0;color:${accent}}
 .${cls} .ns-q-mark::before,.${cls} .ns-q-mark::after{content:"";position:absolute;background:currentColor;border-radius:1px;transition:transform .2s ease}
 .${cls} .ns-q-mark::before{top:6px;left:0;right:0;height:2px}
 .${cls} .ns-q-mark::after{top:0;bottom:0;left:6px;width:2px}
 .${cls} .ns-item[open] .ns-q-mark::after{transform:scaleY(0)}
-.${cls} .ns-a{padding:0 0 22px;font-size:14px;line-height:1.7;color:${cfg.bodyColor};max-width:680px}
+.${cls} .ns-a{padding:0 0 22px;font-size:14px;line-height:1.7;color:${bodyColor};max-width:680px}
 @media (max-width:640px){.${cls} .ns-q{font-size:15px}}
 `.trim();
 

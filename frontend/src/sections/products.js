@@ -12,6 +12,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -63,11 +65,11 @@ function render(cfg) {
   const gap = 18;
 
   const styleVars = [
-    `--ns-title-color:${cfg.titleColor}`,
-    `--ns-eyebrow-color:${cfg.eyebrowColor || cfg.priceColor}`,
-    `--ns-price-color:${cfg.priceColor}`,
-    `--ns-hover-border:${cfg.hoverBorder}`,
-    `--ns-pad:${cfg.paddingY}px`,
+    `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
+    `--ns-eyebrow-color:${safeColor(cfg.eyebrowColor || cfg.priceColor, "#E01839")}`,
+    `--ns-price-color:${safeColor(cfg.priceColor, "#E01839")}`,
+    `--ns-hover-border:${safeColor(cfg.hoverBorder, "#E01839")}`,
+    `--ns-pad:${num(cfg.paddingY, 60)}px`,
     `--ns-cols:${cols}`,
     `--ns-gap:${gap}px`,
   ].join(";");

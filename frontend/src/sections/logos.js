@@ -11,6 +11,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -42,12 +44,12 @@ function render(cfg) {
   const cls = `ns-logos-${uid}`;
 
   const styleVars = [
-    `--ns-speed:${cfg.speedSeconds}s`,
-    `--ns-h:${cfg.itemHeight}px`,
-    `--ns-w:${cfg.itemWidth}px`,
-    `--ns-gap:${cfg.itemGap}px`,
-    `--ns-pad:${cfg.paddingY}px`,
-    `--ns-bg:${cfg.bgColor}`,
+    `--ns-speed:${num(cfg.speedSeconds, 40)}s`,
+    `--ns-h:${num(cfg.itemHeight, 50)}px`,
+    `--ns-w:${num(cfg.itemWidth, 140)}px`,
+    `--ns-gap:${num(cfg.itemGap, 24)}px`,
+    `--ns-pad:${num(cfg.paddingY, 30)}px`,
+    `--ns-bg:${safeColor(cfg.bgColor, "#ffffff")}`,
   ].join(";");
 
   const itemsHtml = (cfg.logos || [])

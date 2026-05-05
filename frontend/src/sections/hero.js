@@ -10,6 +10,8 @@ import {
   fullBleedClass,
   iife,
   makeUid,
+  num,
+  safeColor,
   safeUrl,
   wrapSnippet,
 } from "./shared";
@@ -94,12 +96,12 @@ function renderSlide(cfg) {
   const slides = (cfg.slides || []).filter(Boolean);
 
   const styleVars = [
-    `--ns-cta-bg:${t.ctaBg}`,
-    `--ns-cta-text:${t.ctaText}`,
-    `--ns-title:${t.titleColor}`,
-    `--ns-subtitle:${t.subtitleColor}`,
-    `--ns-height:${l.height}px`,
-    `--ns-content-max:${l.contentMaxWidth}px`,
+    `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
+    `--ns-cta-text:${safeColor(t.ctaText, "#ffffff")}`,
+    `--ns-title:${safeColor(t.titleColor, "#ffffff")}`,
+    `--ns-subtitle:${safeColor(t.subtitleColor, "#ffffff")}`,
+    `--ns-height:${num(l.height, 520)}px`,
+    `--ns-content-max:${num(l.contentMaxWidth, 720)}px`,
   ].join(";");
 
   const slidesHtml = slides
@@ -183,16 +185,16 @@ function renderFade(cfg) {
   const slides = (cfg.slides || []).filter(Boolean);
 
   const styleVars = [
-    `--ns-cta-bg:${t.ctaBg}`,
-    `--ns-cta-text:${t.ctaText}`,
-    `--ns-title:${t.titleColor}`,
-    `--ns-subtitle:${t.subtitleColor}`,
-    `--ns-overlay:${t.overlayColor}`,
-    `--ns-overlay-opacity:${t.overlayOpacity}`,
-    `--ns-height:${l.height}px`,
-    `--ns-content-max:${l.contentMaxWidth}px`,
-    `--ns-radius:${l.borderRadius}px`,
-    `--ns-text-align:${l.textAlign}`,
+    `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
+    `--ns-cta-text:${safeColor(t.ctaText, "#ffffff")}`,
+    `--ns-title:${safeColor(t.titleColor, "#ffffff")}`,
+    `--ns-subtitle:${safeColor(t.subtitleColor, "#ffffff")}`,
+    `--ns-overlay:${safeColor(t.overlayColor, "#000000")}`,
+    `--ns-overlay-opacity:${num(t.overlayOpacity, 0.5)}`,
+    `--ns-height:${num(l.height, 520)}px`,
+    `--ns-content-max:${num(l.contentMaxWidth, 720)}px`,
+    `--ns-radius:${num(l.borderRadius, 0)}px`,
+    `--ns-text-align:${l.textAlign === "right" || l.textAlign === "center" ? l.textAlign : "left"}`,
   ].join(";");
 
   const slidesHtml = slides
