@@ -43,6 +43,7 @@ const sampleProduct = () => ({
   link: "#",
   overlay: "",
   overlayPosition: "top-left",
+  overlaySize: 38,
 });
 
 const defaults = () => ({
@@ -92,8 +93,9 @@ function render(cfg) {
       )
         ? p.overlayPosition
         : "top-left";
+      const overlaySize = num(p.overlaySize, 38);
       const overlayHtml = overlaySrc
-        ? `<img class="ns-overlay ns-overlay-${overlayPos}" src="${escAttr(overlaySrc)}" alt="" aria-hidden="true"/>`
+        ? `<img class="ns-overlay ns-overlay-${overlayPos}" src="${escAttr(overlaySrc)}" alt="" aria-hidden="true" style="max-width:${overlaySize}%;max-height:${overlaySize}%"/>`
         : "";
       return `<div class="ns-card"${liveAttr}>
   <a href="${escAttr(link)}" target="${target}"${rel}>
@@ -128,7 +130,7 @@ ${baseReset(cls)}
 .${cls} .ns-card a{display:flex;flex-direction:column;width:100%;color:inherit;text-decoration:none}
 .${cls} .ns-image-wrap{position:relative;flex-shrink:0}
 .${cls} .ns-image-wrap > img{width:100%;height:170px;object-fit:contain;padding:16px;display:block}
-.${cls} .ns-overlay{position:absolute;max-width:38%;max-height:38%;height:auto;width:auto;pointer-events:none;z-index:2}
+.${cls} .ns-overlay{position:absolute;height:auto;width:auto;pointer-events:none;z-index:2}
 .${cls} .ns-overlay-top-left{top:0;left:0}
 .${cls} .ns-overlay-top-right{top:0;right:0}
 .${cls} .ns-overlay-bottom-left{bottom:0;left:0}
@@ -466,20 +468,33 @@ function FormPanel({ config, onUpdate }) {
                 />
               </div>
               {p.overlay ? (
-                <SelectField
-                  label="Overlay position"
-                  value={p.overlayPosition || "top-left"}
-                  onChange={(v) =>
-                    updateProduct(p.id, { overlayPosition: v })
-                  }
-                  options={[
-                    { value: "top-left", label: "Top left" },
-                    { value: "top-right", label: "Top right" },
-                    { value: "bottom-left", label: "Bottom left" },
-                    { value: "bottom-right", label: "Bottom right" },
-                  ]}
-                  testid={`product-overlay-pos-${p.id}`}
-                />
+                <>
+                  <SelectField
+                    label="Overlay position"
+                    value={p.overlayPosition || "top-left"}
+                    onChange={(v) =>
+                      updateProduct(p.id, { overlayPosition: v })
+                    }
+                    options={[
+                      { value: "top-left", label: "Top left" },
+                      { value: "top-right", label: "Top right" },
+                      { value: "bottom-left", label: "Bottom left" },
+                      { value: "bottom-right", label: "Bottom right" },
+                    ]}
+                    testid={`product-overlay-pos-${p.id}`}
+                  />
+                  <SliderField
+                    label="Overlay size"
+                    value={Number(p.overlaySize) || 38}
+                    min={10}
+                    max={80}
+                    suffix="% of card"
+                    onChange={(v) =>
+                      updateProduct(p.id, { overlaySize: v })
+                    }
+                    testid={`product-overlay-size-${p.id}`}
+                  />
+                </>
               ) : null}
             </>
           )}
