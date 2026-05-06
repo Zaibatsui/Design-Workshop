@@ -360,7 +360,7 @@ While the preview is **still up** (its Emergent storage is the source-of-truth f
 ```bash
 docker compose exec backend \
   python /app/deploy/scripts/migrate-uploads.py \
-    --source https://ecom-builder-127.preview.emergentagent.com \
+    --source https://snippet-builder-2.preview.emergentagent.com \
     --target https://designworkshop.zaibatsui.co.uk
 ```
 
