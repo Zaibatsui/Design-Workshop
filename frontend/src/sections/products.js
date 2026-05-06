@@ -41,6 +41,8 @@ const sampleProduct = () => ({
   priceSuffix: "Excl VAT",
   image: "",
   link: "#",
+  overlay: "",
+  overlayPosition: "top-left",
 });
 
 const defaults = () => ({
@@ -84,9 +86,21 @@ function render(cfg) {
         p.liveRefresh && /^https?:\/\//i.test(link)
           ? ` data-ns-src="${escAttr(link)}"`
           : "";
+      const overlaySrc = safeUrl(p.overlay);
+      const overlayPos = ["top-left", "top-right", "bottom-left", "bottom-right"].includes(
+        p.overlayPosition
+      )
+        ? p.overlayPosition
+        : "top-left";
+      const overlayHtml = overlaySrc
+        ? `<img class="ns-overlay ns-overlay-${overlayPos}" src="${escAttr(overlaySrc)}" alt="" aria-hidden="true"/>`
+        : "";
       return `<div class="ns-card"${liveAttr}>
   <a href="${escAttr(link)}" target="${target}"${rel}>
-    <img src="${escAttr(img)}" alt="${escAttr(p.name || "")}"/>
+    <div class="ns-image-wrap">
+      <img src="${escAttr(img)}" alt="${escAttr(p.name || "")}"/>
+      ${overlayHtml}
+    </div>
     <div class="ns-card-body">
       <h3 class="ns-name">${escHtml(p.name || "")}</h3>
       <p class="ns-price"><span class="ns-price-amount">${escHtml(p.price || "")}</span>${p.priceSuffix ? `<span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
@@ -112,7 +126,13 @@ ${baseReset(cls)}
 .${cls} .ns-card{flex:0 0 calc((100% - (var(--ns-cols) - 1) * var(--ns-gap)) / var(--ns-cols));border:1px solid #f2f2f2;border-radius:6px;background:#fff;overflow:hidden;transition:border-color .2s ease,box-shadow .2s ease;display:flex}
 .${cls} .ns-card:hover{border-color:var(--ns-hover-border);box-shadow:0 4px 18px rgba(0,0,0,.06)}
 .${cls} .ns-card a{display:flex;flex-direction:column;width:100%;color:inherit;text-decoration:none}
-.${cls} .ns-card img{width:100%;height:170px;object-fit:contain;padding:16px;display:block;flex-shrink:0}
+.${cls} .ns-image-wrap{position:relative;flex-shrink:0}
+.${cls} .ns-image-wrap > img{width:100%;height:170px;object-fit:contain;padding:16px;display:block}
+.${cls} .ns-overlay{position:absolute;max-width:38%;max-height:38%;height:auto;width:auto;pointer-events:none;z-index:2}
+.${cls} .ns-overlay-top-left{top:0;left:0}
+.${cls} .ns-overlay-top-right{top:0;right:0}
+.${cls} .ns-overlay-bottom-left{bottom:0;left:0}
+.${cls} .ns-overlay-bottom-right{bottom:0;right:0}
 .${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto}
 .${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
 .${cls} .ns-price{font-size:18px;font-weight:600;color:var(--ns-price-color);margin:auto 0 0}
@@ -212,6 +232,8 @@ function FormPanel({ config, onUpdate }) {
         image: data.image || "",
         link: url,
         liveRefresh: true,
+        overlay: data.overlay?.src || "",
+        overlayPosition: data.overlay?.position || "top-left",
       };
       onUpdate({ products: [...config.products, newProduct] });
       setFetchUrl("");
@@ -428,6 +450,37 @@ function FormPanel({ config, onUpdate }) {
                 }
                 testid={`product-same-tab-${p.id}`}
               />
+              <div>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Overlay badge (optional)
+                </Label>
+                <p className="text-xs text-slate-500 mt-1 mb-2">
+                  An optional badge image (e.g. "In stock") layered over the
+                  product photo. Auto-detected when fetching from a URL.
+                </p>
+                <ImageUpload
+                  value={p.overlay}
+                  onChange={(v) => updateProduct(p.id, { overlay: v })}
+                  testid={`product-overlay-${p.id}`}
+                  compact
+                />
+              </div>
+              {p.overlay ? (
+                <SelectField
+                  label="Overlay position"
+                  value={p.overlayPosition || "top-left"}
+                  onChange={(v) =>
+                    updateProduct(p.id, { overlayPosition: v })
+                  }
+                  options={[
+                    { value: "top-left", label: "Top left" },
+                    { value: "top-right", label: "Top right" },
+                    { value: "bottom-left", label: "Bottom left" },
+                    { value: "bottom-right", label: "Bottom right" },
+                  ]}
+                  testid={`product-overlay-pos-${p.id}`}
+                />
+              ) : null}
             </>
           )}
         />

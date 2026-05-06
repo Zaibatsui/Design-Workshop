@@ -261,7 +261,47 @@ def _extract_product(soup):
         "name": (name or "").strip()[:200] or None,
         "price": _format_price(price),
         "image": image,
+        "overlay": _extract_overlay(soup),
     }
+
+
+# Map common overlay-position class names → our canonical 4 positions.
+_OVERLAY_POSITION_PATTERNS = {
+    "top-left": (re.compile(r"(top[\s_-]*left|top-start|tl)\b", re.I),),
+    "top-right": (re.compile(r"(top[\s_-]*right|top-end|tr)\b", re.I),),
+    "bottom-left": (re.compile(r"(bottom[\s_-]*left|bl)\b", re.I),),
+    "bottom-right": (re.compile(r"(bottom[\s_-]*right|br)\b", re.I),),
+}
+
+
+def _extract_overlay(soup):
+    """Find a product-image overlay (e.g. an "IN STOCK" badge) layered
+    over the main product image. Returns ``{"src": ..., "position": ...}``
+    or None.
+
+    Looks for elements whose class contains ``image-overlay``, ``badge``,
+    or ``ribbon``, takes the first ``<img>`` inside, and parses the
+    position from the class names. Position falls back to ``top-left``
+    which matches the most common badge convention.
+    """
+    candidates = soup.select(
+        "[class*='image-overlay'], [class*='product-badge'], [class*='ribbon']"
+    )
+    for el in candidates:
+        img = el.find("img")
+        if not img:
+            continue
+        src = img.get("src") or img.get("data-src")
+        if not src or _looks_like_logo(src):
+            continue
+        cls = " ".join(el.get("class") or [])
+        position = "top-left"
+        for canonical, patterns in _OVERLAY_POSITION_PATTERNS.items():
+            if any(p.search(cls) for p in patterns):
+                position = canonical
+                break
+        return {"src": src, "position": position}
+    return None
 
 
 def _looks_like_logo(src: str) -> bool:
@@ -409,6 +449,12 @@ async def _do_scrape(url: str) -> dict:
     data = _extract_product(soup)
     if data.get("image"):
         data["image"] = urljoin(resp.url, data["image"])
+    overlay = data.get("overlay")
+    if overlay and overlay.get("src"):
+        overlay["src"] = urljoin(resp.url, overlay["src"])
+        # Drop overlays whose URL ended up outside our trust whitelist.
+        if not re.match(r"^https?://", overlay["src"]):
+            data["overlay"] = None
 
     if not data.get("image"):
         js_image = await _scrape_image_with_browser(url)
