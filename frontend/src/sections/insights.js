@@ -35,6 +35,7 @@ const sampleCard = (i) => ({
     i === 1
       ? "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop"
       : "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=800&auto=format&fit=crop",
+  iconAlt: "",
   heading: i === 1 ? "Explore our latest articles" : "See how we support our customers",
   body:
     i === 1
@@ -77,7 +78,7 @@ function render(cfg) {
       const target = c.openInSameTab ? "_self" : "_blank";
       const rel = c.openInSameTab ? "" : ' rel="noopener noreferrer"';
       const iconImg = c.icon
-        ? `<img src="${escAttr(safeUrl(c.icon))}" alt=""/>`
+        ? `<img src="${escAttr(safeUrl(c.icon))}" alt="${escAttr(c.iconAlt || c.heading || "")}"/>`
         : "";
       return `<a class="ns-card" href="${escAttr(href)}" target="${target}"${rel}>
   <div class="ns-icon">${iconImg}</div>
@@ -245,6 +246,13 @@ function FormPanel({ config, onUpdate }) {
                   compact
                 />
               </div>
+              <TextField
+                label="Image alt text (optional)"
+                value={c.iconAlt || ""}
+                onChange={(v) => updateCard(c.id, { iconAlt: v })}
+                placeholder="Falls back to the card heading"
+                testid={`insight-icon-alt-${c.id}`}
+              />
               <TextField
                 label="Heading"
                 value={c.heading}

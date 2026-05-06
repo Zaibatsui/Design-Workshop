@@ -36,6 +36,7 @@ const sampleCard = (quote, name, role, rating = 5) => ({
   name,
   role,
   avatar: "",
+  avatarAlt: "",
   rating,
 });
 
@@ -113,7 +114,7 @@ function render(cfg) {
     .map((t) => {
       const avatar = safeUrl(t.avatar);
       const avatarHtml = avatar
-        ? `<img class="ns-avatar" src="${escAttr(avatar)}" alt="${escAttr(t.name || "")}"/>`
+        ? `<img class="ns-avatar" src="${escAttr(avatar)}" alt="${escAttr(t.avatarAlt || t.name || "")}"/>`
         : `<div class="ns-avatar ns-avatar-placeholder" aria-hidden="true">${escHtml((t.name || "?").slice(0, 1).toUpperCase())}</div>`;
       const ratingHtml =
         cfg.showRatings && Number(t.rating) > 0
@@ -206,6 +207,7 @@ function FormPanel({ config, onUpdate }) {
           name: "",
           role: "",
           avatar: "",
+          avatarAlt: "",
           rating: 5,
         },
       ],
@@ -406,6 +408,13 @@ function FormPanel({ config, onUpdate }) {
                   compact
                 />
               </div>
+              <TextField
+                label="Avatar alt text (optional)"
+                value={t.avatarAlt || ""}
+                onChange={(v) => updateItem(t.id, { avatarAlt: v })}
+                placeholder="Falls back to the author name"
+                testid={`testi-avatar-alt-${t.id}`}
+              />
               <SliderField
                 label="Rating (0 to hide)"
                 value={Number(t.rating) || 0}

@@ -28,6 +28,7 @@ const sampleTab = (label, heading, body, image) => ({
   heading,
   body,
   image,
+  imageAlt: "",
 });
 
 const defaults = () => ({
@@ -97,7 +98,7 @@ function render(cfg) {
       <h2 class="ns-heading">${escHtml(tab.heading)}</h2>
       ${paragraphs}
     </div>
-    <div class="ns-image">${img ? `<img src="${escAttr(img)}" alt="${escAttr(tab.label)}"/>` : ""}</div>
+    <div class="ns-image">${img ? `<img src="${escAttr(img)}" alt="${escAttr(tab.imageAlt || tab.label || "")}"/>` : ""}</div>
   </div>
 </div>`;
     })
@@ -289,6 +290,13 @@ function FormPanel({ config, onUpdate }) {
                   compact
                 />
               </div>
+              <TextField
+                label="Image alt text (optional)"
+                value={t.imageAlt || ""}
+                onChange={(v) => updateTab(t.id, { imageAlt: v })}
+                placeholder="Falls back to the tab label"
+                testid={`tab-image-alt-${t.id}`}
+              />
             </>
           )}
         />

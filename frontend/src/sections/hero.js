@@ -57,6 +57,7 @@ const defaults = () => ({
     {
       id: makeUid(),
       logo: "",
+      logoAlt: "",
       title: "Tailor-made eCommerce solutions",
       subtitle: "Built for IT and telecom retailers ready to scale online.",
       image:
@@ -67,6 +68,7 @@ const defaults = () => ({
     {
       id: makeUid(),
       logo: "",
+      logoAlt: "",
       title: "Ready in no time",
       subtitle: "Launch your B2B web shop fast — and grow without limits.",
       image:
@@ -77,6 +79,7 @@ const defaults = () => ({
     {
       id: makeUid(),
       logo: "",
+      logoAlt: "",
       title: "Enterprise-grade, customer-first",
       subtitle: "Advanced features for medium and large IT & telecom resellers.",
       image:
@@ -115,7 +118,7 @@ function renderSlide(cfg) {
       return `<div class="ns-slide" style="background-image:url('${escAttr(bg)}')">
       <div class="ns-overlay"></div>
       <div class="ns-content">
-        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt=""/>` : ""}
+        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
@@ -208,7 +211,7 @@ function renderFade(cfg) {
       return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="background-image:url('${escAttr(bg)}')">
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
-        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt=""/>` : ""}
+        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
@@ -295,6 +298,7 @@ function FormPanel({ config, onUpdate }) {
           subtitle: "Subtitle",
           image: "",
           logo: "",
+          logoAlt: "",
           ctaText: "Shop now",
           ctaLink: "#",
         },
@@ -391,6 +395,15 @@ function FormPanel({ config, onUpdate }) {
                   compact
                 />
               </div>
+              {slide.logo ? (
+                <TextField
+                  label="Logo alt text (optional)"
+                  value={slide.logoAlt || ""}
+                  onChange={(v) => updateSlide(slide.id, { logoAlt: v })}
+                  placeholder="Leave blank if purely decorative"
+                  testid={`hero-slide-logo-alt-${slide.id}`}
+                />
+              ) : null}
               <TextField
                 label="Title"
                 value={slide.title}

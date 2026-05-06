@@ -39,6 +39,7 @@ const STOCK_IMAGES = [
 const sampleResource = (i) => ({
   id: makeUid(),
   image: STOCK_IMAGES[(i - 1) % STOCK_IMAGES.length],
+  imageAlt: "",
   tag: i % 2 === 0 ? "Case Study" : "Blog",
   title:
     i === 1
@@ -92,7 +93,7 @@ function render(cfg) {
       const target = r.openInSameTab ? "_self" : "_blank";
       const rel = r.openInSameTab ? "" : ' rel="noopener noreferrer"';
       return `<a class="ns-card" href="${escAttr(link)}" target="${target}"${rel}>
-  <div class="ns-img"><img src="${escAttr(img)}" alt="${escAttr(r.title || "")}"/></div>
+  <div class="ns-img"><img src="${escAttr(img)}" alt="${escAttr(r.imageAlt || r.title || "")}"/></div>
   <div class="ns-body">
     ${r.tag ? `<span class="ns-tag">${escHtml(r.tag)}</span>` : ""}
     <h3 class="ns-rh">${escHtml(r.title || "")}</h3>
@@ -294,6 +295,13 @@ function FormPanel({ config, onUpdate }) {
                   compact
                 />
               </div>
+              <TextField
+                label="Image alt text (optional)"
+                value={r.imageAlt || ""}
+                onChange={(v) => updateResource(r.id, { imageAlt: v })}
+                placeholder="Falls back to the title"
+                testid={`resource-image-alt-${r.id}`}
+              />
               <TextField
                 label="Tag (e.g. Blog / Case Study)"
                 value={r.tag}

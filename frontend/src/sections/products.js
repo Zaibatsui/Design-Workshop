@@ -40,8 +40,10 @@ const sampleProduct = () => ({
   price: "",
   priceSuffix: "Excl VAT",
   image: "",
+  imageAlt: "",
   link: "#",
   overlay: "",
+  overlayAlt: "",
   overlayPosition: "top-left",
   overlaySize: 38,
 });
@@ -88,6 +90,7 @@ function render(cfg) {
           ? ` data-ns-src="${escAttr(link)}"`
           : "";
       const overlaySrc = safeUrl(p.overlay);
+      const overlayAlt = (p.overlayAlt || "").trim();
       const overlayPos = ["top-left", "top-right", "bottom-left", "bottom-right"].includes(
         p.overlayPosition
       )
@@ -95,12 +98,12 @@ function render(cfg) {
         : "top-left";
       const overlaySize = num(p.overlaySize, 38);
       const overlayHtml = overlaySrc
-        ? `<img class="ns-overlay ns-overlay-${overlayPos}" src="${escAttr(overlaySrc)}" alt="" aria-hidden="true" style="max-width:${overlaySize}%;max-height:${overlaySize}%"/>`
+        ? `<img class="ns-overlay ns-overlay-${overlayPos}" src="${escAttr(overlaySrc)}" alt="${escAttr(overlayAlt)}"${overlayAlt ? "" : ' aria-hidden="true"'} style="max-width:${overlaySize}%;max-height:${overlaySize}%"/>`
         : "";
       return `<div class="ns-card"${liveAttr}>
   <a href="${escAttr(link)}" target="${target}"${rel}>
     <div class="ns-image-wrap">
-      <img src="${escAttr(img)}" alt="${escAttr(p.name || "")}"/>
+      <img src="${escAttr(img)}" alt="${escAttr(p.imageAlt || p.name || "")}"/>
       ${overlayHtml}
     </div>
     <div class="ns-card-body">
@@ -419,6 +422,13 @@ function FormPanel({ config, onUpdate }) {
                 />
               </div>
               <TextField
+                label="Image alt text (optional)"
+                value={p.imageAlt || ""}
+                onChange={(v) => updateProduct(p.id, { imageAlt: v })}
+                placeholder="Falls back to the product name"
+                testid={`product-image-alt-${p.id}`}
+              />
+              <TextField
                 label="Name"
                 value={p.name}
                 onChange={(v) => updateProduct(p.id, { name: v })}
@@ -469,6 +479,13 @@ function FormPanel({ config, onUpdate }) {
               </div>
               {p.overlay ? (
                 <>
+                  <TextField
+                    label="Overlay alt text (optional)"
+                    value={p.overlayAlt || ""}
+                    onChange={(v) => updateProduct(p.id, { overlayAlt: v })}
+                    placeholder='e.g. "In stock" — leave blank if purely decorative'
+                    testid={`product-overlay-alt-${p.id}`}
+                  />
                   <SelectField
                     label="Overlay position"
                     value={p.overlayPosition || "top-left"}
