@@ -238,7 +238,11 @@ Single-tenant per deployment. Authentication is Direct Google OAuth — every us
 
 ## Licence
 
-Source-available. Pick a licence that suits your situation; the canonical recommendations for self-hosted productivity tools are [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) (copyleft) or [PolyForm Noncommercial](https://polyformproject.org/licenses/noncommercial/1.0.0/) (no commercial competition). Drop a `LICENSE` file at the repo root with whichever you choose.
+[AGPL-3.0-or-later](LICENSE). © 2026 Zaibatsui Labs.
+
+You're free to use, modify, and self-host Design Workshop for any purpose, including commercial. If you run a modified version as a service accessible over a network, you must publish your modifications under the same licence — the canonical AGPL clause that keeps the project open while still letting individuals and businesses use it freely.
+
+For a proprietary licence (e.g. you need to embed a modified Design Workshop in a closed-source product), contact Zaibatsui Labs to negotiate an exception.
 
 ## Acknowledgements
 
