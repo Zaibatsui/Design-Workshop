@@ -12,9 +12,11 @@ import { steps } from "./steps";
 import { faq } from "./faq";
 import { ctaBanner } from "./ctaBanner";
 import { testimonials } from "./testimonials";
+import { welcome } from "./welcome";
 
 export const SECTIONS = [
   hero,
+  welcome,
   content,
   products,
   resources,
