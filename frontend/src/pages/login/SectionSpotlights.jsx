@@ -1,16 +1,27 @@
-import { useMemo } from "react";
-import { Sparkles, ShoppingBag } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
+import { SECTIONS_BY_ID } from "@/sections/registry";
 import { welcome } from "@/sections/welcome";
 import { products } from "@/sections/products";
 import { previewDoc, makeUid } from "@/sections/shared";
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "";
+const PUBLIC_URL = `${BACKEND_URL}/api/public/landing-spotlights`;
+
 /**
- * SectionSpotlights — two stand-out section types previewed live as
- * tilted iframe cards on the marketing landing page. The frames render
- * the actual snippet output, not screenshots, so they stay in sync
- * whenever the section renderers change.
+ * SectionSpotlights — two stand-out sections previewed live as tilted
+ * iframe cards on the marketing landing page.
+ *
+ * Slot picks are admin-curated from the Brand Kit page (Landing
+ * spotlights card). When no picks are set, falls back to a hand-rolled
+ * Welcome + Products demo so first-run visitors don't see an empty
+ * band. When the admin explicitly clears both slots, the band hides
+ * entirely.
  */
-function welcomeCfg() {
+
+// --- Hand-rolled fallback configs (only shown when the public API has
+// never been written to). ----------------------------------------------
+function fallbackWelcomeCfg() {
   return {
     ...welcome.defaults(),
     uid: makeUid(),
@@ -30,7 +41,7 @@ function welcomeCfg() {
   };
 }
 
-function productsCfg() {
+function fallbackProductsCfg() {
   return {
     ...products.defaults(),
     uid: makeUid(),
@@ -39,59 +50,29 @@ function productsCfg() {
     columns: 4,
     paddingY: 28,
     products: [
-      {
-        id: "p1",
-        name: "Aero Wireless Headset",
-        price: "£189.00",
-        priceSuffix: "Excl VAT",
-        image:
-          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop",
-        link: "#",
-        overlay: "",
-        overlayPosition: "top-left",
-        overlaySize: 38,
-      },
-      {
-        id: "p2",
-        name: "Ultraslim Laptop 14\"",
-        price: "£1,299.00",
-        priceSuffix: "Excl VAT",
-        image:
-          "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=600&auto=format&fit=crop",
-        link: "#",
-        overlay: "",
-        overlayPosition: "top-left",
-        overlaySize: 38,
-      },
-      {
-        id: "p3",
-        name: "Mechanical Keyboard",
-        price: "£139.00",
-        priceSuffix: "Excl VAT",
-        image:
-          "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=600&auto=format&fit=crop",
-        link: "#",
-        overlay: "",
-        overlayPosition: "top-left",
-        overlaySize: 38,
-      },
-      {
-        id: "p4",
-        name: "Studio Webcam Pro",
-        price: "£229.00",
-        priceSuffix: "Excl VAT",
-        image:
-          "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=600&auto=format&fit=crop",
-        link: "#",
-        overlay: "",
-        overlayPosition: "top-left",
-        overlaySize: 38,
-      },
+      { id: "p1", name: "Aero Wireless Headset", price: "£189.00", priceSuffix: "Excl VAT", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop", link: "#", overlay: "", overlayPosition: "top-left", overlaySize: 38 },
+      { id: "p2", name: "Ultraslim Laptop 14\"", price: "£1,299.00", priceSuffix: "Excl VAT", image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=600&auto=format&fit=crop", link: "#", overlay: "", overlayPosition: "top-left", overlaySize: 38 },
+      { id: "p3", name: "Mechanical Keyboard", price: "£139.00", priceSuffix: "Excl VAT", image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=600&auto=format&fit=crop", link: "#", overlay: "", overlayPosition: "top-left", overlaySize: 38 },
+      { id: "p4", name: "Studio Webcam Pro", price: "£229.00", priceSuffix: "Excl VAT", image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=600&auto=format&fit=crop", link: "#", overlay: "", overlayPosition: "top-left", overlaySize: 38 },
     ],
   };
 }
 
-function Spotlight({ headline, blurb, Icon, snippet, tilt, frameHeight, testid }) {
+// --- Render a picked section into a sandboxed iframe doc -------------
+function renderPicked(item) {
+  if (!item) return null;
+  const def = SECTIONS_BY_ID[item.type];
+  if (!def || typeof def.render !== "function") return null;
+  // Stamp a fresh uid so multiple instances on the page never collide.
+  const cfg = { ...item.config, uid: makeUid() };
+  return {
+    headline: item.name || def.name || "Featured section",
+    blurb: def.description || "",
+    doc: previewDoc(def.render(cfg)),
+  };
+}
+
+function Spotlight({ headline, blurb, snippet, tilt, frameHeight, testid }) {
   return (
     <div
       data-testid={testid}
@@ -99,7 +80,7 @@ function Spotlight({ headline, blurb, Icon, snippet, tilt, frameHeight, testid }
       style={{ transform: `rotate(${tilt}deg)`, transformOrigin: "center" }}
     >
       <div className="absolute -top-3 left-6 z-10 inline-flex items-center gap-2 bg-[#E01839] text-white text-[10px] font-bold tracking-[0.18em] uppercase px-2.5 py-1 rounded-sm shadow-sm">
-        <Icon className="w-3 h-3" />
+        <Sparkles className="w-3 h-3" />
         Spotlight
       </div>
       <div className="rounded-md overflow-hidden border border-slate-200 bg-white shadow-[0_18px_42px_-22px_rgba(15,23,42,0.35)] transition-transform duration-300 group-hover:-translate-y-1">
@@ -107,7 +88,11 @@ function Spotlight({ headline, blurb, Icon, snippet, tilt, frameHeight, testid }
           <h3 className="font-heading text-xl md:text-2xl font-semibold tracking-tight text-slate-900 leading-tight">
             {headline}
           </h3>
-          <p className="text-sm leading-relaxed text-slate-500 mt-2">{blurb}</p>
+          {blurb && (
+            <p className="text-sm leading-relaxed text-slate-500 mt-2">
+              {blurb}
+            </p>
+          )}
         </div>
         <div className="bg-slate-50 border-t border-slate-200">
           <iframe
@@ -125,8 +110,56 @@ function Spotlight({ headline, blurb, Icon, snippet, tilt, frameHeight, testid }
 }
 
 export default function SectionSpotlights() {
-  const welcomeDoc = useMemo(() => previewDoc(welcome.render(welcomeCfg())), []);
-  const productsDoc = useMemo(() => previewDoc(products.render(productsCfg())), []);
+  // null = still loading; {left, right} once resolved.
+  const [picks, setPicks] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(PUBLIC_URL)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((data) => {
+        if (cancelled) return;
+        setPicks(data || { left: null, right: null });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Render whichever slots are filled. If admin set neither, fall back
+  // to the hand-rolled defaults so the band always has something
+  // worth showing for first-run / never-curated deployments.
+  const slots = useMemo(() => {
+    if (picks == null) return { left: null, right: null, mode: "loading" };
+
+    const left = renderPicked(picks.left);
+    const right = renderPicked(picks.right);
+
+    if (!left && !right) {
+      // Fallback to the original hardcoded demo.
+      return {
+        left: {
+          headline: "A first impression that feels personal.",
+          blurb:
+            "The Welcome banner greets each customer by name, pins their account manager in reach, and lets you slide every block to a different corner per brand.",
+          doc: previewDoc(welcome.render(fallbackWelcomeCfg())),
+        },
+        right: {
+          headline: "Product carousels that look hand-built.",
+          blurb:
+            "Pull live prices straight from your storefront, drop badges on any corner, and let your shoppers swipe through curated picks with zero runtime libraries.",
+          doc: previewDoc(products.render(fallbackProductsCfg())),
+        },
+        mode: "fallback",
+      };
+    }
+
+    return { left, right, mode: "curated" };
+  }, [picks]);
+
+  // Loading: render nothing (avoids layout pop).
+  if (slots.mode === "loading") return null;
 
   return (
     <section
@@ -148,24 +181,30 @@ export default function SectionSpotlights() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
-          <Spotlight
-            testid="spotlight-welcome"
-            Icon={Sparkles}
-            headline="A first impression that feels personal."
-            blurb="The Welcome banner greets each customer by name, pins their account manager in reach, and lets you slide every block to a different corner per brand."
-            snippet={welcomeDoc}
-            tilt={-1.4}
-            frameHeight={300}
-          />
-          <Spotlight
-            testid="spotlight-products"
-            Icon={ShoppingBag}
-            headline="Product carousels that look hand-built."
-            blurb="Pull live prices straight from your storefront, drop badges on any corner, and let your shoppers swipe through curated picks with zero runtime libraries."
-            snippet={productsDoc}
-            tilt={1.4}
-            frameHeight={440}
-          />
+          {slots.left ? (
+            <Spotlight
+              testid="spotlight-left"
+              headline={slots.left.headline}
+              blurb={slots.left.blurb}
+              snippet={slots.left.doc}
+              tilt={-1.4}
+              frameHeight={360}
+            />
+          ) : (
+            <div />
+          )}
+          {slots.right ? (
+            <Spotlight
+              testid="spotlight-right"
+              headline={slots.right.headline}
+              blurb={slots.right.blurb}
+              snippet={slots.right.doc}
+              tilt={1.4}
+              frameHeight={440}
+            />
+          ) : (
+            <div />
+          )}
         </div>
       </div>
     </section>

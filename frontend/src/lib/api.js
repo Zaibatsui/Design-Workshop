@@ -102,6 +102,14 @@ export const api = {
       body: JSON.stringify({ page_id: pageId }),
     }),
 
+  // Landing-spotlights picker (admin-only writes). Two slots: left/right.
+  getLandingSpotlights: () => req("/admin/landing-spotlights"),
+  setLandingSpotlights: ({ left, right }) =>
+    req("/admin/landing-spotlights", {
+      method: "PUT",
+      body: JSON.stringify({ left: left || null, right: right || null }),
+    }),
+
   // Admin user management.
   listUsers: () => req("/admin/users"),
   setUserStatus: (userId, isActive) =>

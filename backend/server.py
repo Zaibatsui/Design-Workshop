@@ -26,6 +26,7 @@ from routers import admin as admin_router  # noqa: E402
 from routers import auth as auth_router  # noqa: E402
 from routers import brand_kit as brand_kit_router  # noqa: E402
 from routers import landing_demo as landing_demo_router  # noqa: E402
+from routers import landing_spotlights as landing_spotlights_router  # noqa: E402
 from routers import page_templates as page_templates_router  # noqa: E402
 from routers import pages as pages_router  # noqa: E402
 from routers import scraper as scraper_router  # noqa: E402
@@ -114,6 +115,8 @@ api_router.include_router(scraper_router.router)
 api_router.include_router(brand_kit_router.router)
 api_router.include_router(landing_demo_router.admin_router)
 api_router.include_router(landing_demo_router.public_router)
+api_router.include_router(landing_spotlights_router.admin_router)
+api_router.include_router(landing_spotlights_router.public_router)
 api_router.include_router(admin_router.router)
 
 app.include_router(api_router)

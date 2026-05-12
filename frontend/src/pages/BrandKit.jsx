@@ -26,6 +26,7 @@ import ColorField from "@/components/ColorField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
+import LandingSpotlightsPicker from "./brand-kit/LandingSpotlightsPicker";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function BrandKitPage() {
@@ -408,6 +409,7 @@ export default function BrandKitPage() {
         </section>
 
         {user?.is_admin && <LandingDemoPicker />}
+        {user?.is_admin && <LandingSpotlightsPicker />}
       </main>
 
       <Toaster richColors position="top-center" />
