@@ -6,6 +6,7 @@ import Header from "./login/Header";
 import Hero from "./login/Hero";
 import ValueProps from "./login/ValueProps";
 import SectionsShowcase from "./login/SectionsShowcase";
+import SectionSpotlights from "./login/SectionSpotlights";
 import HowItWorks from "./login/HowItWorks";
 import LiveDemo from "./login/LiveDemo";
 import FAQ from "./login/FAQ";
@@ -58,6 +59,7 @@ export default function Login() {
         <Hero />
         <ValueProps />
         <SectionsShowcase />
+        <SectionSpotlights />
         <HowItWorks />
         <LiveDemo />
         <FAQ />

@@ -18,6 +18,7 @@ import {
 
 const SECTIONS = [
   { Icon: Layers, name: "Hero", desc: "Slide / fade carousels with CTA + background media." },
+  { Icon: Sparkles, name: "Welcome", desc: "Post-login greeter with movable header, customer logo and account-manager card." },
   { Icon: AlignLeft, name: "Content", desc: "Heading + body + buttons. The all-purpose marquee block." },
   { Icon: ShoppingBag, name: "Products", desc: "Card carousel with image, name, price, hover border." },
   { Icon: LayoutGrid, name: "Insights Grid", desc: "Editorial 2-3 column card grid for articles & case studies." },

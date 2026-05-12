@@ -212,12 +212,13 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships fifteen section types. All are
+              Design Workshop ships sixteen section types. All are
               colour-themable, font-themable and contain at least one
               image-bearing field where applicable.
             </P>
             <Grid>
               <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour overrides." />
+              <SectionCard Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
               <SectionCard Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
               <SectionCard Icon={Boxes} name="Products" desc="Card carousel with image, name, price and a hover-tinted border. Optional links." />
               <SectionCard Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media." />
