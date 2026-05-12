@@ -118,17 +118,17 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;min-height:var(--ns-h);background-size:cover;background-position:center;overflow:hidden;color:var(--ns-text)}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay);opacity:var(--ns-overlay-op);pointer-events:none}
-.${cls} .ns-grid{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:12px;padding:clamp(12px,3vw,32px);box-sizing:border-box}
-.${cls} .ns-block{max-width:480px;min-width:0}
-.${cls} .pos-tl{grid-area:1/1;align-self:start;justify-self:start;text-align:left}
-.${cls} .pos-tc{grid-area:1/2;align-self:start;justify-self:center;text-align:center}
-.${cls} .pos-tr{grid-area:1/3;align-self:start;justify-self:end;text-align:right}
-.${cls} .pos-cl{grid-area:2/1;align-self:center;justify-self:start;text-align:left}
-.${cls} .pos-cc{grid-area:2/2;align-self:center;justify-self:center;text-align:center}
-.${cls} .pos-cr{grid-area:2/3;align-self:center;justify-self:end;text-align:right}
-.${cls} .pos-bl{grid-area:3/1;align-self:end;justify-self:start;text-align:left}
-.${cls} .pos-bc{grid-area:3/2;align-self:end;justify-self:center;text-align:center}
-.${cls} .pos-br{grid-area:3/3;align-self:end;justify-self:end;text-align:right}
+.${cls} .ns-grid{position:absolute;inset:clamp(12px,3vw,32px);z-index:2}
+.${cls} .ns-block{position:absolute;max-width:min(480px,100%);min-width:0}
+.${cls} .pos-tl{top:0;left:0;text-align:left}
+.${cls} .pos-tc{top:0;left:50%;transform:translateX(-50%);text-align:center}
+.${cls} .pos-tr{top:0;right:0;text-align:right}
+.${cls} .pos-cl{top:50%;left:0;transform:translateY(-50%);text-align:left}
+.${cls} .pos-cc{top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.${cls} .pos-cr{top:50%;right:0;transform:translateY(-50%);text-align:right}
+.${cls} .pos-bl{bottom:0;left:0;text-align:left}
+.${cls} .pos-bc{bottom:0;left:50%;transform:translateX(-50%);text-align:center}
+.${cls} .pos-br{bottom:0;right:0;text-align:right}
 .${cls} .ns-eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ns-eyebrow);opacity:.95}
 .${cls} .ns-h{margin:0 0 12px;font-size:36px;line-height:1.2;font-weight:600;color:var(--ns-text)}
 .${cls} .ns-body{margin:0;font-size:16px;line-height:1.55;color:var(--ns-text);opacity:.92;max-width:48ch}
@@ -144,8 +144,8 @@ ${baseReset(cls)}
 .${cls} .ns-am-link:hover{color:var(--ns-am-accent)}
 .${cls} .ns-am-link svg{width:14px;height:14px;flex-shrink:0;color:var(--ns-am-accent)}
 @media (max-width:780px){
-  .${cls} .ns-grid{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:24px;gap:18px}
-  .${cls} .ns-block{max-width:100%;text-align:left!important;justify-self:stretch!important;align-self:stretch!important}
+  .${cls} .ns-grid{position:relative;inset:auto;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:24px;gap:18px}
+  .${cls} .ns-block{position:static;transform:none!important;max-width:100%;text-align:left!important;inset:auto!important}
   .${cls} .ns-h{font-size:26px}
   .${cls} .ns-am{min-width:0}
 }
