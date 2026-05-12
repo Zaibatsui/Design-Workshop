@@ -180,7 +180,7 @@ export default function SectionSpotlights() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
+        <div className="grid grid-cols-1 gap-12 md:gap-16">
           {slots.left ? (
             <Spotlight
               testid="spotlight-left"
