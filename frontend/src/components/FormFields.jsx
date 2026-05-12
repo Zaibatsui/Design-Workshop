@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,19 +56,30 @@ export function SliderField({
   testid,
   disabled,
 }) {
+  // Hold the in-flight value locally so the thumb + label update on
+  // every tick, but only fire `onChange` (which triggers the parent
+  // section re-render + iframe srcDoc swap) when the user releases the
+  // pointer. Massive UX win for sliders that affect image sizing or
+  // section height — no thrashing the snippet rebuild on every pixel.
+  const [drag, setDrag] = useState(null);
+  const display = drag != null ? drag : value;
   return (
     <div className={disabled ? "opacity-50 pointer-events-none" : ""}>
       <div className="flex justify-between mb-2">
         <Label className={labelCls}>{label}</Label>
         <span className="text-xs text-slate-500">
-          {value}
+          {display}
           {suffix}
         </span>
       </div>
       <Slider
         data-testid={testid}
-        value={[value]}
-        onValueChange={(v) => onChange(v[0])}
+        value={[display]}
+        onValueChange={(v) => setDrag(v[0])}
+        onValueCommit={(v) => {
+          setDrag(null);
+          onChange(v[0]);
+        }}
         min={min}
         max={max}
         step={step}

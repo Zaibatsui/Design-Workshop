@@ -2,7 +2,7 @@
 // Used by both the Editor's main preview and the Dashboard card thumbnails.
 export const SECTION_PREVIEW_HEIGHT = {
   hero: 540,
-  welcome: 580,
+  welcome: 360,
   content: 280,
   products: 520,
   resources: 460,

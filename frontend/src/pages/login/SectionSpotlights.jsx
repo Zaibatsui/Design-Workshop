@@ -25,7 +25,7 @@ function welcomeCfg() {
     amRole: "Your Account Manager",
     amEmail: "priya@acme.com",
     amPhone: "+44 20 7946 0123",
-    height: 360,
+    height: 280,
     overlayOpacity: 0.6,
   };
 }
@@ -155,7 +155,7 @@ export default function SectionSpotlights() {
             blurb="The Welcome banner greets each customer by name, pins their account manager in reach, and lets you slide every block to a different corner per brand."
             snippet={welcomeDoc}
             tilt={-1.4}
-            frameHeight={360}
+            frameHeight={300}
           />
           <Spotlight
             testid="spotlight-products"

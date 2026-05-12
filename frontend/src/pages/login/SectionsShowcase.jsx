@@ -51,7 +51,7 @@ export default function SectionsShowcase() {
             Section types in the box
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Fifteen composable building blocks. Every page is one snippet.
+            Sixteen composable building blocks. Every page is one snippet.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them

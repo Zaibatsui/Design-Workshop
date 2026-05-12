@@ -88,7 +88,7 @@ const defaults = () => ({
   amAccentColor: "#0ea5e9",
 
   // Layout / theme
-  height: 560,
+  height: 320,
   fullBleed: false,
   image:
     "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600&auto=format&fit=crop",
@@ -105,7 +105,7 @@ function render(cfg) {
   const amPos = safePos(cfg.amPos, "br");
 
   const styleVars = [
-    `--ns-h:${num(cfg.height, 560)}px`,
+    `--ns-h:${num(cfg.height, 320)}px`,
     `--ns-text:${safeColor(cfg.headerTextColor, "#ffffff")}`,
     `--ns-eyebrow:${safeColor(cfg.eyebrowColor || cfg.headerTextColor, "#ffffff")}`,
     `--ns-overlay:${safeColor(cfg.overlayColor, "#0f172a")}`,
@@ -118,8 +118,8 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;min-height:var(--ns-h);background-size:cover;background-position:center;overflow:hidden;color:var(--ns-text)}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay);opacity:var(--ns-overlay-op);pointer-events:none}
-.${cls} .ns-grid{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:24px;padding:40px;min-height:var(--ns-h);box-sizing:border-box}
-.${cls} .ns-block{max-width:480px}
+.${cls} .ns-grid{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto 1fr auto;gap:16px;padding:clamp(14px,3vw,32px);box-sizing:border-box}
+.${cls} .ns-block{max-width:480px;min-width:0}
 .${cls} .pos-tl{grid-area:1/1;align-self:start;justify-self:start;text-align:left}
 .${cls} .pos-tc{grid-area:1/2;align-self:start;justify-self:center;text-align:center}
 .${cls} .pos-tr{grid-area:1/3;align-self:start;justify-self:end;text-align:right}
