@@ -51,6 +51,32 @@ const POSITION_OPTIONS = [
   { value: "br", label: "Bottom right" },
 ];
 
+// At short heights the 3-row grid collapses — "Top left" and "Bottom
+// left" end up visually identical. Below the threshold we offer just
+// the horizontal axis (mapped to the middle row so blocks sit nicely
+// inside the narrow strip).
+const POSITION_OPTIONS_COMPACT = [
+  { value: "cl", label: "Left" },
+  { value: "cc", label: "Center" },
+  { value: "cr", label: "Right" },
+];
+
+const COMPACT_HEIGHT_THRESHOLD = 240;
+
+// Returns the option list relevant to the current section height. If
+// the user already has a value selected that isn't in the relevant
+// list (e.g. they had "Top left" then shrank the section), prepend it
+// so the Select still shows the right label and lets them switch.
+function positionOptionsForHeight(height, currentValue) {
+  const base =
+    num(height, 320) < COMPACT_HEIGHT_THRESHOLD
+      ? POSITION_OPTIONS_COMPACT
+      : POSITION_OPTIONS;
+  if (base.some((o) => o.value === currentValue)) return base;
+  const stale = POSITION_OPTIONS.find((o) => o.value === currentValue);
+  return stale ? [stale, ...base] : base;
+}
+
 // Allow-list for position values used in classnames. Any unknown value
 // falls back to a safe default — prevents user-controlled CSS class
 // names from being injected into the snippet.
@@ -235,7 +261,7 @@ function FormPanel({ config, onUpdate }) {
           label="Header position"
           value={config.headerPos}
           onChange={(v) => onUpdate({ headerPos: v })}
-          options={POSITION_OPTIONS}
+          options={positionOptionsForHeight(config.height, config.headerPos)}
           testid="welcome-header-pos"
         />
       </Group>
@@ -345,7 +371,7 @@ function FormPanel({ config, onUpdate }) {
               label="Logo position"
               value={config.logoPos}
               onChange={(v) => onUpdate({ logoPos: v })}
-              options={POSITION_OPTIONS}
+              options={positionOptionsForHeight(config.height, config.logoPos)}
               testid="welcome-logo-pos"
             />
           </>
@@ -407,7 +433,7 @@ function FormPanel({ config, onUpdate }) {
               label="Account manager position"
               value={config.amPos}
               onChange={(v) => onUpdate({ amPos: v })}
-              options={POSITION_OPTIONS}
+              options={positionOptionsForHeight(config.height, config.amPos)}
               testid="welcome-am-pos"
             />
           </>
