@@ -51,32 +51,6 @@ const POSITION_OPTIONS = [
   { value: "br", label: "Bottom right" },
 ];
 
-// At short heights the 3-row grid collapses — "Top left" and "Bottom
-// left" end up visually identical. Below the threshold we offer just
-// the horizontal axis (mapped to the middle row so blocks sit nicely
-// inside the narrow strip).
-const POSITION_OPTIONS_COMPACT = [
-  { value: "cl", label: "Left" },
-  { value: "cc", label: "Center" },
-  { value: "cr", label: "Right" },
-];
-
-const COMPACT_HEIGHT_THRESHOLD = 240;
-
-// Returns the option list relevant to the current section height. If
-// the user already has a value selected that isn't in the relevant
-// list (e.g. they had "Top left" then shrank the section), prepend it
-// so the Select still shows the right label and lets them switch.
-function positionOptionsForHeight(height, currentValue) {
-  const base =
-    num(height, 320) < COMPACT_HEIGHT_THRESHOLD
-      ? POSITION_OPTIONS_COMPACT
-      : POSITION_OPTIONS;
-  if (base.some((o) => o.value === currentValue)) return base;
-  const stale = POSITION_OPTIONS.find((o) => o.value === currentValue);
-  return stale ? [stale, ...base] : base;
-}
-
 // Allow-list for position values used in classnames. Any unknown value
 // falls back to a safe default — prevents user-controlled CSS class
 // names from being injected into the snippet.
@@ -144,7 +118,7 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;min-height:var(--ns-h);background-size:cover;background-position:center;overflow:hidden;color:var(--ns-text)}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay);opacity:var(--ns-overlay-op);pointer-events:none}
-.${cls} .ns-grid{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto 1fr auto;gap:16px;padding:clamp(14px,3vw,32px);box-sizing:border-box}
+.${cls} .ns-grid{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:12px;padding:clamp(12px,3vw,32px);box-sizing:border-box}
 .${cls} .ns-block{max-width:480px;min-width:0}
 .${cls} .pos-tl{grid-area:1/1;align-self:start;justify-self:start;text-align:left}
 .${cls} .pos-tc{grid-area:1/2;align-self:start;justify-self:center;text-align:center}
@@ -261,7 +235,7 @@ function FormPanel({ config, onUpdate }) {
           label="Header position"
           value={config.headerPos}
           onChange={(v) => onUpdate({ headerPos: v })}
-          options={positionOptionsForHeight(config.height, config.headerPos)}
+          options={POSITION_OPTIONS}
           testid="welcome-header-pos"
         />
       </Group>
@@ -371,7 +345,7 @@ function FormPanel({ config, onUpdate }) {
               label="Logo position"
               value={config.logoPos}
               onChange={(v) => onUpdate({ logoPos: v })}
-              options={positionOptionsForHeight(config.height, config.logoPos)}
+              options={POSITION_OPTIONS}
               testid="welcome-logo-pos"
             />
           </>
@@ -433,7 +407,7 @@ function FormPanel({ config, onUpdate }) {
               label="Account manager position"
               value={config.amPos}
               onChange={(v) => onUpdate({ amPos: v })}
-              options={positionOptionsForHeight(config.height, config.amPos)}
+              options={POSITION_OPTIONS}
               testid="welcome-am-pos"
             />
           </>

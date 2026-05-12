@@ -418,17 +418,84 @@ function SaveIndicator({ status, savedAt }) {
 }
 
 function PreviewFrame({ doc, sectionId }) {
-  const h = previewHeightFor(sectionId);
+  const defaultH = previewHeightFor(sectionId);
+  // Preferred height per section type, persisted across sessions so
+  // the user's last drag sticks when they come back to the same kind
+  // of section. Falls back to the per-type recommended height.
+  const storageKey = `dw:preview-h:${sectionId}`;
+  const [h, setH] = useState(() => {
+    try {
+      const stored = parseInt(localStorage.getItem(storageKey) || "", 10);
+      if (Number.isFinite(stored) && stored >= 120 && stored <= 1600) return stored;
+    } catch (_) { /* localStorage unavailable */ }
+    return defaultH;
+  });
+  // If we navigate to a different section type, reset to that type's
+  // default unless the user has already customised it.
+  useEffect(() => {
+    try {
+      const stored = parseInt(localStorage.getItem(storageKey) || "", 10);
+      setH(Number.isFinite(stored) && stored >= 120 && stored <= 1600 ? stored : defaultH);
+    } catch (_) {
+      setH(defaultH);
+    }
+  }, [storageKey, defaultH]);
+
+  const drag = useRef(null);
+  const onPointerDown = (e) => {
+    e.preventDefault();
+    drag.current = { startY: e.clientY, startH: h, lastH: h };
+    document.body.style.cursor = "ns-resize";
+    document.body.style.userSelect = "none";
+    const onMove = (ev) => {
+      if (!drag.current) return;
+      const next = Math.min(1600, Math.max(120, drag.current.startH + (ev.clientY - drag.current.startY)));
+      drag.current.lastH = next;
+      setH(next);
+    };
+    const onUp = () => {
+      const finalH = drag.current?.lastH;
+      drag.current = null;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("pointermove", onMove);
+      if (finalH != null) {
+        try { localStorage.setItem(storageKey, String(finalH)); } catch (_) { /* ignore */ }
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp, { once: true });
+  };
+
+  const resetH = () => {
+    try { localStorage.removeItem(storageKey); } catch (_) { /* ignore */ }
+    setH(defaultH);
+  };
+
   return (
-    <iframe
-      key={sectionId}
-      data-testid="preview-iframe"
-      title="Live preview"
-      srcDoc={doc}
-      sandbox="allow-scripts allow-same-origin"
-      className="w-full block border-0"
-      style={{ height: `${h}px` }}
-    />
+    <div className="relative">
+      <iframe
+        key={sectionId}
+        data-testid="preview-iframe"
+        title="Live preview"
+        srcDoc={doc}
+        sandbox="allow-scripts allow-same-origin"
+        className="w-full block border-0"
+        style={{ height: `${h}px` }}
+      />
+      <div
+        data-testid="preview-resize-handle"
+        onPointerDown={onPointerDown}
+        onDoubleClick={resetH}
+        title="Drag to resize · double-click to reset"
+        className="group h-3 w-full flex items-center justify-center cursor-ns-resize bg-slate-50 border-t border-slate-200 hover:bg-slate-100 transition-colors"
+      >
+        <span className="block w-12 h-1 rounded-full bg-slate-300 group-hover:bg-slate-500 transition-colors" />
+      </div>
+      <span className="absolute right-2 -bottom-5 text-[10px] font-mono text-slate-400 select-none">
+        {h}px
+      </span>
+    </div>
   );
 }
 
