@@ -66,6 +66,7 @@ const EYEBROW_SECTIONS = new Set([
   "faq",
   "cta-banner",
   "testimonials",
+  "welcome",
 ]);
 
 function eyebrowFields(b) {
@@ -139,6 +140,7 @@ const FIELD_MAP = {
   resources: (cfg, b) => ({
     ...cfg,
     accentColor: b.primary_color,
+    tagColor: b.primary_color,
     titleColor: b.text_color,
     font: b.heading_font,
   }),
@@ -150,8 +152,8 @@ const FIELD_MAP = {
   }),
   tabs: (cfg, b) => ({
     ...cfg,
+    bgColor: b.background_color,
     accentColor: b.primary_color,
-    titleColor: b.text_color,
     font: b.heading_font,
   }),
   logos: (cfg, b) => ({
@@ -160,6 +162,58 @@ const FIELD_MAP = {
     font: b.heading_font,
   }),
   placeholder: (cfg, b) => ({ ...cfg, font: b.heading_font }),
+  // Light-on-dark / accent-driven block kinds. The body / muted colours
+  // stay at the section's design default — those are typography choices,
+  // not brand identity.
+  "feature-grid": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    textColor: b.text_color,
+    accentColor: b.primary_color,
+    font: b.heading_font,
+  }),
+  steps: (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    textColor: b.text_color,
+    accentColor: b.primary_color,
+    font: b.heading_font,
+  }),
+  faq: (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    textColor: b.text_color,
+    accentColor: b.primary_color,
+    font: b.heading_font,
+  }),
+  // CTA banner traditionally inverts the palette for emphasis — dark
+  // background, light text, primary brand colour on the button. The
+  // brand kit's `secondary_color` carries the dark slate for the bg.
+  "cta-banner": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.secondary_color,
+    textColor: b.background_color,
+    accentColor: b.primary_color,
+    font: b.heading_font,
+  }),
+  testimonials: (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    titleColor: b.text_color,
+    accentColor: b.primary_color,
+    font: b.heading_font,
+  }),
+  // Welcome banner sits over a photo + dark overlay — light text is
+  // intentional. We only stamp brand accent onto the highlights
+  // (eyebrow, AM accent) and tint the overlay with the brand's dark
+  // secondary colour.
+  welcome: (cfg, b) => ({
+    ...cfg,
+    eyebrowColor: b.primary_color,
+    amAccentColor: b.primary_color,
+    overlayColor: b.secondary_color,
+    font: b.heading_font,
+  }),
 };
 
 /**
