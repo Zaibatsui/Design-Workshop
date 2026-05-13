@@ -125,7 +125,7 @@ export function wrapSnippet({ html, css, js }) {
   return `${html}\n<style>${FONT_IMPORT}\n${css}</style>\n<script>${js}</script>`;
 }
 
-export function previewDoc(snippet) {
+export function previewDoc(snippet, opts) {
   // Editor-only "LIVE" badge: every card with data-ns-src (a fetched product
   // wired up for live price refresh) gets a small ribbon in the editor preview.
   // This style only lives in the editor iframe — copied snippets do NOT include it.
@@ -133,5 +133,25 @@ export function previewDoc(snippet) {
 .ns-card[data-ns-src]{position:relative}
 .ns-card[data-ns-src]::after{content:"LIVE";position:absolute;top:8px;left:8px;z-index:5;background:#10b981;color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 6px;border-radius:3px;line-height:1;font-family:"Poppins",sans-serif;box-shadow:0 1px 2px rgba(0,0,0,.15);pointer-events:none}
 `;
-  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}</style></head><body>${snippet}</body></html>`;
+  // Editor-only VAT preview pill (Product Carousel sections / pages). Lets
+  // the editor verify how the host store's VAT toggle will affect prices
+  // without having to embed the snippet on a real Nettailer page. It
+  // mutates a `.vat-switcher-label` element which the snippet's own
+  // MutationObserver already listens for, so prices repaint from the
+  // pre-warmed localStorage cache instantly when toggled.
+  const withVat = !!(opts && opts.withVatToggle);
+  const vatToggleHtml = withVat
+    ? `<div class="dw-edit-vat-toggle" data-testid="editor-vat-toggle"><button type="button" data-state="incl" title="Editor preview — toggle host VAT view"><span class="dw-vat-dot"></span><span class="vat-switcher-label">Incl VAT</span></button></div>`
+    : "";
+  const vatToggleCss = withVat
+    ? `.dw-edit-vat-toggle{position:fixed;top:10px;right:10px;z-index:9999;font-family:"Poppins",sans-serif}` +
+      `.dw-edit-vat-toggle button{background:#0f172a;color:#fff;border:0;padding:6px 12px 6px 10px;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.18);transition:transform .12s ease}` +
+      `.dw-edit-vat-toggle button:hover{transform:translateY(-1px)}` +
+      `.dw-edit-vat-toggle .dw-vat-dot{width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block}` +
+      `.dw-edit-vat-toggle button[data-state="excl"] .dw-vat-dot{background:#f59e0b}`
+    : "";
+  const vatToggleJs = withVat
+    ? `<script>(function(){function ready(f){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",f);else f();}ready(function(){var b=document.querySelector(".dw-edit-vat-toggle button");if(!b)return;b.addEventListener("click",function(){var l=b.querySelector(".vat-switcher-label");var cur=b.getAttribute("data-state")||"incl";var nx=cur==="incl"?"excl":"incl";b.setAttribute("data-state",nx);if(l)l.textContent=nx==="incl"?"Incl VAT":"Excl VAT";});});})();</script>`
+    : "";
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}</style></head><body>${vatToggleHtml}${snippet}${vatToggleJs}</body></html>`;
 }

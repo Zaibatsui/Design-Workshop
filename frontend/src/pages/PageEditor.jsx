@@ -286,9 +286,16 @@ export default function PageEditor() {
   // Deferred snippet keeps form interactions (drag, slider, color pickers)
   // smooth while the iframe re-render is non-urgent.
   const deferredSnippet = useDeferredValue(snippet);
+  // Show the editor-only VAT toggle pill in the preview if any block on
+  // this page is a Product Carousel — so editors can verify how host-page
+  // VAT toggling affects scraped prices without leaving Design Workshop.
+  const hasProducts = useMemo(
+    () => (page?.blocks || []).some((b) => b?.type === "products"),
+    [page]
+  );
   const previewHtml = useMemo(
-    () => previewDoc(deferredSnippet),
-    [deferredSnippet]
+    () => previewDoc(deferredSnippet, { withVatToggle: hasProducts }),
+    [deferredSnippet, hasProducts]
   );
 
   const copySnippet = async () => {
