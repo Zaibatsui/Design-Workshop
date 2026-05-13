@@ -124,9 +124,14 @@ export default function BrandKitPage() {
         api.listPages(),
       ]);
 
-      // Sections: merge kit onto each saved config and PUT back.
+      // Sections: merge kit onto each saved config and PUT back. We pass
+      // `seedLogos: true` so the brand kit's logos propagate into empty
+      // logo fields. Per-customer logos that the user has already set
+      // are preserved (the seeder only fills empty fields).
       const sectionPromises = sections.map((s) => {
-        const merged = applyBrandKit(s.type, s.config || {}, brandKit);
+        const merged = applyBrandKit(s.type, s.config || {}, brandKit, {
+          seedLogos: true,
+        });
         if (!merged.uid) merged.uid = s.config?.uid;
         return api.updateSection(s.section_id, { config: merged });
       });
@@ -146,7 +151,8 @@ export default function BrandKitPage() {
             const merged = applyBrandKit(
               b.section_type,
               b.config || {},
-              brandKit
+              brandKit,
+              { seedLogos: true }
             );
             if (!merged.uid) merged.uid = b.config?.uid;
             return { ...b, config: merged };

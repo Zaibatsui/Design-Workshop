@@ -237,17 +237,33 @@ const FIELD_MAP = {
 };
 
 /**
- * Sections that auto-seed their logo field from the brand kit when a
- * NEW section is created. We intentionally don't apply this on bulk
- * re-apply (because the user often customises per-customer logos and
- * would lose them) — only on creation.
+ * Sections that auto-seed their logo field from the brand kit.
  *
- * The value is the bg type the section's logo sits on, so we know which
- * brand kit slot (light vs dark) to pull from.
+ * The flat LOGO_SEED map covers sections with a top-level `logo` field.
+ * Hero is a special case (slides[].logo) handled inline in
+ * applyBrandKit below.
+ *
+ * `bg` indicates whether the logo sits on a dark or light background,
+ * so we can pull the right brand-kit slot. Seeding only fills empty
+ * fields — never overwrites a logo the user (or template) already set.
  */
 const LOGO_SEED = {
   welcome: { field: "logo", bg: "dark" },
 };
+
+function seedHeroLogos(cfg, b) {
+  // Hero slides typically have a dark / image background → use logo_dark.
+  // We only stamp when the slide's logo is empty so per-slide customer
+  // logos are preserved.
+  const logo = b.logo_dark;
+  if (!logo || !Array.isArray(cfg.slides)) return cfg;
+  return {
+    ...cfg,
+    slides: cfg.slides.map((s) =>
+      s.logo ? s : { ...s, logo }
+    ),
+  };
+}
 
 /**
  * Overlay brand kit values onto a section's pristine defaults. Returns a
@@ -255,9 +271,11 @@ const LOGO_SEED = {
  * mapper just get a `font` field stamped on.
  *
  * `opts.seedLogos`: when true, also stamp the brand-kit logo into the
- * section's logo field (only sections in LOGO_SEED). We default this to
- * false because bulk "apply to library" should preserve per-customer
- * logos. Pass `true` from the "new section" creation paths.
+ * section's logo field(s). Seeding only fills empty logo fields — a
+ * value the user (or template) already set is always preserved. Passed
+ * `true` from new-section creation paths and from the "Apply to library"
+ * bulk button on the Brand Kit page so the brand logos flow into both
+ * fresh and existing sections without clobbering per-customer logos.
  */
 export function applyBrandKit(typeId, config, brandKit, opts = {}) {
   if (!brandKit) return config;
@@ -272,11 +290,12 @@ export function applyBrandKit(typeId, config, brandKit, opts = {}) {
     const seed = LOGO_SEED[typeId];
     if (seed) {
       const url = seed.bg === "dark" ? brandKit.logo_dark : brandKit.logo_light;
-      // Only seed when the section's logo field is currently empty —
-      // never overwrite a value the user (or template) already set.
       if (url && !next[seed.field]) {
         next = { ...next, [seed.field]: url };
       }
+    }
+    if (typeId === "hero") {
+      next = seedHeroLogos(next, brandKit);
     }
   }
   return next;
