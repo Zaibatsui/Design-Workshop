@@ -18,6 +18,7 @@ class BrandKit(BaseModel):
     primary_color: str = Field(default="#E01839")
     secondary_color: str = Field(default="#1f2937")
     text_color: str = Field(default="#1f2937")
+    body_color: str = Field(default="#64748b")
     background_color: str = Field(default="#ffffff")
     heading_font: str = Field(default="Poppins")
     body_font: str = Field(default="Poppins")
@@ -25,6 +26,12 @@ class BrandKit(BaseModel):
     # field. Blank = fall back (color → primary_color, text → empty).
     eyebrow_text: str = Field(default="")
     eyebrow_color: str = Field(default="")
+    # Two logo slots so the same kit works on light AND dark sections —
+    # Welcome's dark overlay needs a logo that reads on dark backgrounds,
+    # while a Hero with a light background wants the inverse. Either may
+    # be blank.
+    logo_dark: str = Field(default="")   # logo that reads on DARK bg
+    logo_light: str = Field(default="")  # logo that reads on LIGHT bg
 
 
 DEFAULT_KIT = BrandKit().model_dump()

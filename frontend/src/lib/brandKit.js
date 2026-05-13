@@ -43,11 +43,14 @@ export const DEFAULT_BRAND_KIT = {
   primary_color: "#E01839",
   secondary_color: "#1f2937",
   text_color: "#1f2937",
+  body_color: "#64748b",
   background_color: "#ffffff",
   heading_font: "Poppins",
   body_font: "Poppins",
   eyebrow_text: "",
   eyebrow_color: "",
+  logo_dark: "",
+  logo_light: "",
 };
 
 /**
@@ -119,7 +122,7 @@ const FIELD_MAP = {
   content: (cfg, b) => ({
     ...cfg,
     headingColor: b.primary_color,
-    bodyColor: b.text_color,
+    bodyColor: b.body_color,
     background: b.background_color,
     primaryColor: b.primary_color,
     font: b.heading_font,
@@ -154,6 +157,7 @@ const FIELD_MAP = {
     ...cfg,
     bgColor: b.background_color,
     accentColor: b.primary_color,
+    bodyColor: b.body_color,
     font: b.heading_font,
   }),
   logos: (cfg, b) => ({
@@ -162,13 +166,12 @@ const FIELD_MAP = {
     font: b.heading_font,
   }),
   placeholder: (cfg, b) => ({ ...cfg, font: b.heading_font }),
-  // Light-on-dark / accent-driven block kinds. The body / muted colours
-  // stay at the section's design default — those are typography choices,
-  // not brand identity.
+  // Light-on-dark / accent-driven block kinds.
   "feature-grid": (cfg, b) => ({
     ...cfg,
     bgColor: b.background_color,
     textColor: b.text_color,
+    bodyColor: b.body_color,
     accentColor: b.primary_color,
     font: b.heading_font,
   }),
@@ -176,6 +179,7 @@ const FIELD_MAP = {
     ...cfg,
     bgColor: b.background_color,
     textColor: b.text_color,
+    bodyColor: b.body_color,
     accentColor: b.primary_color,
     font: b.heading_font,
   }),
@@ -183,6 +187,7 @@ const FIELD_MAP = {
     ...cfg,
     bgColor: b.background_color,
     textColor: b.text_color,
+    bodyColor: b.body_color,
     accentColor: b.primary_color,
     font: b.heading_font,
   }),
@@ -193,6 +198,7 @@ const FIELD_MAP = {
     ...cfg,
     bgColor: b.secondary_color,
     textColor: b.background_color,
+    bodyColor: b.body_color,
     accentColor: b.primary_color,
     font: b.heading_font,
   }),
@@ -200,6 +206,7 @@ const FIELD_MAP = {
     ...cfg,
     bgColor: b.background_color,
     titleColor: b.text_color,
+    bodyColor: b.body_color,
     accentColor: b.primary_color,
     font: b.heading_font,
   }),
@@ -217,16 +224,47 @@ const FIELD_MAP = {
 };
 
 /**
+ * Sections that auto-seed their logo field from the brand kit when a
+ * NEW section is created. We intentionally don't apply this on bulk
+ * re-apply (because the user often customises per-customer logos and
+ * would lose them) — only on creation.
+ *
+ * The value is the bg type the section's logo sits on, so we know which
+ * brand kit slot (light vs dark) to pull from.
+ */
+const LOGO_SEED = {
+  welcome: { field: "logo", bg: "dark" },
+};
+
+/**
  * Overlay brand kit values onto a section's pristine defaults. Returns a
  * new object — the input is not mutated. Sections without a registered
  * mapper just get a `font` field stamped on.
+ *
+ * `opts.seedLogos`: when true, also stamp the brand-kit logo into the
+ * section's logo field (only sections in LOGO_SEED). We default this to
+ * false because bulk "apply to library" should preserve per-customer
+ * logos. Pass `true` from the "new section" creation paths.
  */
-export function applyBrandKit(typeId, config, brandKit) {
+export function applyBrandKit(typeId, config, brandKit, opts = {}) {
   if (!brandKit) return config;
   const mapper = FIELD_MAP[typeId];
-  let next = mapper ? mapper(config, brandKit) : { ...config, font: brandKit.heading_font };
+  let next = mapper
+    ? mapper(config, brandKit)
+    : { ...config, font: brandKit.heading_font };
   if (EYEBROW_SECTIONS.has(typeId)) {
     next = { ...next, ...eyebrowFields(brandKit) };
+  }
+  if (opts.seedLogos) {
+    const seed = LOGO_SEED[typeId];
+    if (seed) {
+      const url = seed.bg === "dark" ? brandKit.logo_dark : brandKit.logo_light;
+      // Only seed when the section's logo field is currently empty —
+      // never overwrite a value the user (or template) already set.
+      if (url && !next[seed.field]) {
+        next = { ...next, [seed.field]: url };
+      }
+    }
   }
   return next;
 }

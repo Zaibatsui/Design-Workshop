@@ -63,11 +63,35 @@ export default function PageEditor() {
         template && template.id !== "blank" ? template.name : "Untitled page";
       // Template blocks live in memory until first save — stamp a block_id
       // on each one now so they can be selected, dragged, deleted, and
-      // edited in the rail before the DB-side normalization runs.
-      const blocks = (template?.blocks || []).map((b) => ({
-        ...b,
-        block_id: b.block_id || `blk_${Math.random().toString(36).slice(2, 10)}`,
-      }));
+      // edited in the rail before the DB-side normalization runs. Also
+      // overlay the user's brand kit so a freshly-templated page picks
+      // up the user's colours / fonts / logo immediately instead of
+      // showing the section's shipped defaults.
+      const blocks = (template?.blocks || []).map((b) => {
+        const stamped = {
+          ...b,
+          block_id: b.block_id || `blk_${Math.random().toString(36).slice(2, 10)}`,
+        };
+        if (!brandKit) return stamped;
+        if (stamped.type === "section" && stamped.section_type) {
+          return {
+            ...stamped,
+            config: applyBrandKit(
+              stamped.section_type,
+              stamped.config || {},
+              brandKit,
+              { seedLogos: true }
+            ),
+          };
+        }
+        if (stamped.type === "richtext") {
+          return {
+            ...stamped,
+            config: applyBrandKitToRichText(stamped.config || {}, brandKit),
+          };
+        }
+        return stamped;
+      });
       setPage({ page_id: null, name, blocks });
       setLoadError(null);
       return undefined;
@@ -185,7 +209,7 @@ export default function PageEditor() {
       block_id: makeBlockId(),
       type: "section",
       section_type: typeId,
-      config: applyBrandKit(typeId, def.defaults(), brandKit),
+      config: applyBrandKit(typeId, def.defaults(), brandKit, { seedLogos: true }),
     };
     setBlocks([...(page.blocks || []), newBlock]);
     setSelectedBlockId(newBlock.block_id);

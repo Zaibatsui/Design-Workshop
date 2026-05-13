@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Palette, Type as TypeIcon, RotateCcw, Save, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, Palette, Type as TypeIcon, RotateCcw, Save, Sparkles, Wand2, Image as ImageIcon, Library } from "lucide-react";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import {
@@ -23,6 +23,8 @@ import {
 } from "@/lib/brandKit";
 import { useBrandKit } from "@/lib/BrandKitContext";
 import ColorField from "@/components/ColorField";
+import ImageUpload from "@/components/ImageUpload";
+import ImageLibrarySection from "./brand-kit/ImageLibrarySection";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
@@ -410,6 +412,11 @@ export default function BrandKitPage() {
 
         {user?.is_admin && <LandingDemoPicker />}
         {user?.is_admin && <LandingSpotlightsPicker />}
+
+        <section data-testid="brand-kit-image-library">
+          <SectionHeader Icon={Library} title="Image library" />
+          <ImageLibrarySection />
+        </section>
       </main>
 
       <Toaster richColors position="top-center" />

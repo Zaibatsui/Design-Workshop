@@ -110,6 +110,22 @@ export const api = {
       body: JSON.stringify({ left: left || null, right: right || null }),
     }),
 
+  // Image library — per-user reusable image collection. Used by the
+  // brand kit page and surfaced inside every ImageUpload field.
+  listImageLibrary: () => req("/image-library"),
+  addImageToLibrary: ({ url, name, source }) =>
+    req("/image-library", {
+      method: "POST",
+      body: JSON.stringify({ url, name: name || "", source: source || "url" }),
+    }),
+  renameImageInLibrary: (imageId, name) =>
+    req(`/image-library/${imageId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name }),
+    }),
+  deleteImageFromLibrary: (imageId) =>
+    req(`/image-library/${imageId}`, { method: "DELETE" }),
+
   // Admin user management.
   listUsers: () => req("/admin/users"),
   setUserStatus: (userId, isActive) =>

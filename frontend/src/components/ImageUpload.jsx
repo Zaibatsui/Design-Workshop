@@ -2,8 +2,10 @@ import { useRef, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, X, Loader2, Link as LinkIcon, Info } from "lucide-react";
+import { Upload, X, Loader2, Link as LinkIcon, Info, Library, BookmarkPlus } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import ImageLibraryPicker from "@/components/ImageLibraryPicker";
 
 // Backend URL is normally baked at build time from REACT_APP_BACKEND_URL.
 // If that arg was missing during `docker compose build` (compose env file
@@ -22,8 +24,29 @@ export default function ImageUpload({ value, onChange, testid, compact }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [showUrl, setShowUrl] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const onPickFile = () => fileRef.current?.click();
+
+  const saveToLibrary = async () => {
+    if (!value || saving) return;
+    setSaving(true);
+    try {
+      // Best-effort name from URL — user can rename later in the library.
+      const name =
+        decodeURIComponent(value.split("?")[0].split("/").pop() || "Image")
+          .replace(/\.[a-z0-9]+$/i, "")
+          .slice(0, 80) || "Image";
+      const source = value.startsWith(BACKEND_URL) ? "upload" : "url";
+      await api.addImageToLibrary({ url: value, name, source });
+      toast.success("Saved to library");
+    } catch {
+      toast.error("Couldn't save to library");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const onFileChange = async (e) => {
     const f = e.target.files?.[0];
@@ -148,6 +171,12 @@ export default function ImageUpload({ value, onChange, testid, compact }) {
         className="hidden"
         onChange={onFileChange}
         data-testid={`${testid}-input`}
+      />
+
+      <ImageLibraryPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={(url) => onChange(url)}
       />
     </div>
   );
