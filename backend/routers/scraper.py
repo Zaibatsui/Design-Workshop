@@ -548,12 +548,16 @@ async def _do_scrape(url: str, vat_mode: str | None = None) -> dict:
                             price_inc, price_exc = data["price"], data2["price"]
                         else:
                             price_inc, price_exc = data2["price"], data["price"]
-                        # Pick the requested view (default to inc-VAT
-                        # which matches Nettailer's typical retail view).
-                        if vat_mode == "excl":
-                            data["price"] = price_exc
-                        else:
+                        # Pick the requested view. Nettailer's anonymous
+                        # default is ex-VAT (the `.vat-switcher-label`
+                        # reads "Excl VAT" on a fresh visit), so when the
+                        # caller doesn't specify a mode we mirror that
+                        # default — keeps the editor preview consistent
+                        # with what real customers see.
+                        if vat_mode == "incl":
                             data["price"] = price_inc
+                        else:
+                            data["price"] = price_exc
         except Exception as e:
             logger.warning("Nettailer VAT toggle fetch failed for %s: %s", url, e)
 
@@ -607,14 +611,19 @@ async def scrape_product(req: ScrapeRequest, response: Response):
             return cached
         data = await _do_scrape(url, vat_mode=vat_mode)
         _cache_set(cache_key, data)
-        # When the Nettailer scrape produced both views in one shot, also
-        # populate the sibling cache entry so an immediate toggle on the
-        # host page doesn't trigger a second upstream fetch.
+        # When the Nettailer scrape produced both views in one shot,
+        # populate every cache key (default/incl/excl) so any future
+        # request — whichever mode it asks for — hits the cache instantly
+        # without re-scraping upstream.
         if data.get("priceInc") and data.get("priceExc"):
-            other_mode = "excl" if (vat_mode or "incl") == "incl" else "incl"
-            other_key = f"{url}::{other_mode}"
-            if _cache_get(other_key) is None:
-                sibling = dict(data)
-                sibling["price"] = data["priceExc"] if other_mode == "excl" else data["priceInc"]
-                _cache_set(other_key, sibling)
+            for mode_key, price_for_mode in (
+                ("default", data["priceExc"]),  # anonymous Nettailer default = ex-VAT
+                ("incl", data["priceInc"]),
+                ("excl", data["priceExc"]),
+            ):
+                k = f"{url}::{mode_key}"
+                if _cache_get(k) is None:
+                    sibling = dict(data)
+                    sibling["price"] = price_for_mode
+                    _cache_set(k, sibling)
         return data

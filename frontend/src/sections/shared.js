@@ -141,7 +141,7 @@ export function previewDoc(snippet, opts) {
   // pre-warmed localStorage cache instantly when toggled.
   const withVat = !!(opts && opts.withVatToggle);
   const vatToggleHtml = withVat
-    ? `<div class="dw-edit-vat-toggle" data-testid="editor-vat-toggle"><button type="button" data-state="incl" title="Editor preview — toggle host VAT view"><span class="dw-vat-dot"></span><span class="vat-switcher-label">Incl VAT</span></button></div>`
+    ? `<div class="dw-edit-vat-toggle" data-testid="editor-vat-toggle"><button type="button" data-state="excl" title="Editor preview — toggle host VAT view"><span class="dw-vat-dot"></span><span class="vat-switcher-label">Excl VAT</span></button></div>`
     : "";
   const vatToggleCss = withVat
     ? `.dw-edit-vat-toggle{position:fixed;top:10px;right:10px;z-index:9999;font-family:"Poppins",sans-serif}` +
@@ -151,7 +151,7 @@ export function previewDoc(snippet, opts) {
       `.dw-edit-vat-toggle button[data-state="excl"] .dw-vat-dot{background:#f59e0b}`
     : "";
   const vatToggleJs = withVat
-    ? `<script>(function(){function ready(f){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",f);else f();}ready(function(){var b=document.querySelector(".dw-edit-vat-toggle button");if(!b)return;b.addEventListener("click",function(){var l=b.querySelector(".vat-switcher-label");var cur=b.getAttribute("data-state")||"incl";var nx=cur==="incl"?"excl":"incl";b.setAttribute("data-state",nx);if(l)l.textContent=nx==="incl"?"Incl VAT":"Excl VAT";});});})();</script>`
+    ? `<script>(function(){function ready(f){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",f);else f();}ready(function(){var b=document.querySelector(".dw-edit-vat-toggle button");if(!b)return;b.addEventListener("click",function(){var l=b.querySelector(".vat-switcher-label");var cur=b.getAttribute("data-state")||"excl";var nx=cur==="incl"?"excl":"incl";b.setAttribute("data-state",nx);if(l)l.textContent=nx==="incl"?"Incl VAT":"Excl VAT";});});})();</script>`
     : "";
   return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}</style></head><body>${vatToggleHtml}${snippet}${vatToggleJs}</body></html>`;
 }
