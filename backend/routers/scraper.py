@@ -11,7 +11,7 @@ import os
 import re
 import time
 from collections import OrderedDict
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -430,44 +430,65 @@ async def _scrape_image_with_browser(url: str):
         return None
 
 
+def _parse_money(price_str):
+    """Pull a numeric value out of a price string like '£1,234.56' or '£99'."""
+    if not price_str:
+        return None
+    m = re.search(r"\d[\d,]*(?:\.\d+)?", str(price_str))
+    if not m:
+        return None
+    try:
+        return float(m.group(0).replace(",", ""))
+    except Exception:
+        return None
+
+
+def _is_nettailer(final_url: str, html: str) -> bool:
+    """Detect a Nettailer / netset storefront so we know the VAT-toggle
+    endpoint is available. We accept either a host match or in-page
+    markers because resellers white-label Nettailer on their own domain."""
+    try:
+        host = (urlsplit(final_url).hostname or "").lower()
+    except Exception:
+        host = ""
+    if "nettailer" in host or "netset" in host:
+        return True
+    if html and ("change_inc_vat" in html or "vat-switcher" in html):
+        return True
+    return False
+
+
+def _origin(url: str) -> str:
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}"
+
+
+_DEFAULT_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/146.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-GB,en;q=0.9",
+}
+
+
 async def _do_scrape(url: str, vat_mode: str | None = None) -> dict:
     """Actual upstream fetch — bypasses cache & lock. Use scrape_product()
     as the public entry point so callers always go through the protections.
 
-    When `vat_mode` is "incl" or "excl", we attach the Nettailer-family
-    cookies + URL params that flip the upstream price view. Cookie names
-    are best-effort (Nettailer / netset don't publish the spec) — we set
-    several common candidates so it works on a handful of related Swedish
-    storefront engines."""
-    cookies = {}
-    fetch_url = url
-    if vat_mode in ("incl", "excl"):
-        # Common Nettailer / netset cookie patterns. Setting all of them
-        # is harmless on storefronts that don't recognise the names.
-        flag_true = "true" if vat_mode == "incl" else "false"
-        flag_int = "1" if vat_mode == "incl" else "0"
-        cookies = {
-            "incl_vat": flag_true,
-            "include_vat": flag_true,
-            "vat_mode": vat_mode,
-            "show_vat": flag_int,
-            "vatIncluded": flag_true,
-        }
-        # Some storefronts also accept a URL param.
-        sep = "&" if "?" in url else "?"
-        fetch_url = f"{url}{sep}vat_mode={vat_mode}"
+    For Nettailer storefronts we exploit the ``/nodeapi/change_inc_vat``
+    toggle endpoint discovered in DevTools: we fetch the page once with a
+    fresh session, POST the toggle (which is stored server-side in the
+    session, not in a client cookie value), then fetch again. The larger
+    of the two parsed prices is inc-VAT, the smaller is ex-VAT.
+
+    For non-Nettailer pages we just do a single fetch."""
+    session = requests.Session()
+    session.headers.update(_DEFAULT_HEADERS)
+
     try:
-        resp = requests.get(
-            fetch_url,
-            timeout=15,
-            headers={
-                "User-Agent": "Mozilla/5.0 (compatible; NettailerSectionBuilder/1.0; +https://demo.nettailer.com)",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-GB,en;q=0.9",
-            },
-            cookies=cookies,
-            allow_redirects=True,
-        )
+        resp = session.get(url, timeout=15, allow_redirects=True)
         resp.raise_for_status()
     except requests.HTTPError as e:
         raise HTTPException(status_code=400, detail=f"Page returned {e.response.status_code}")
@@ -476,12 +497,71 @@ async def _do_scrape(url: str, vat_mode: str | None = None) -> dict:
 
     soup = BeautifulSoup(resp.text, "html.parser")
     data = _extract_product(soup)
+
+    price_inc = None
+    price_exc = None
+
+    # Nettailer-only: fetch the other VAT view by POSTing the toggle in
+    # the same session, then re-fetching the product page.
+    if _is_nettailer(resp.url, resp.text) and data.get("price"):
+        try:
+            origin = _origin(resp.url)
+            toggle_url = f"{origin}/nodeapi/change_inc_vat"
+            base_toggle_headers = {
+                "X-Requested-With": "XMLHttpRequest",
+                "Accept": "application/json, */*; q=0.01",
+                "Content-Type": "application/json; charset=UTF-8",
+                "Origin": origin,
+                "Referer": resp.url,
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-origin",
+            }
+            # Nettailer's /nodeapi/ endpoints reject the first call from a
+            # fresh session with an app-level ``{"status":{"code":449}}``
+            # body, and use that response to set a ``node`` cookie. The
+            # client JS then reads that cookie and echoes it back as a
+            # custom ``node:`` HTTP header on subsequent calls — only
+            # those calls actually succeed. We replicate that handshake:
+            # one priming call to get the cookie, then the real toggle
+            # with the cookie value mirrored into the header.
+            toggle_ok = False
+            for attempt in range(2):
+                hdrs = dict(base_toggle_headers)
+                node_val = session.cookies.get("node")
+                if node_val:
+                    hdrs["node"] = node_val
+                t = session.post(toggle_url, headers=hdrs, timeout=10, allow_redirects=True)
+                body = (t.text or "").strip()
+                if t.status_code < 400 and '"code":449' not in body:
+                    toggle_ok = True
+                    break
+            if toggle_ok:
+                resp2 = session.get(url, timeout=15, allow_redirects=True)
+                if resp2.status_code < 400:
+                    soup2 = BeautifulSoup(resp2.text, "html.parser")
+                    data2 = _extract_product(soup2)
+                    p1 = _parse_money(data.get("price"))
+                    p2 = _parse_money(data2.get("price"))
+                    if p1 is not None and p2 is not None and p1 != p2:
+                        if p1 > p2:
+                            price_inc, price_exc = data["price"], data2["price"]
+                        else:
+                            price_inc, price_exc = data2["price"], data["price"]
+                        # Pick the requested view (default to inc-VAT
+                        # which matches Nettailer's typical retail view).
+                        if vat_mode == "excl":
+                            data["price"] = price_exc
+                        else:
+                            data["price"] = price_inc
+        except Exception as e:
+            logger.warning("Nettailer VAT toggle fetch failed for %s: %s", url, e)
+
     if data.get("image"):
         data["image"] = urljoin(resp.url, data["image"])
     overlay = data.get("overlay")
     if overlay and overlay.get("src"):
         overlay["src"] = urljoin(resp.url, overlay["src"])
-        # Drop overlays whose URL ended up outside our trust whitelist.
         if not re.match(r"^https?://", overlay["src"]):
             data["overlay"] = None
 
@@ -489,6 +569,11 @@ async def _do_scrape(url: str, vat_mode: str | None = None) -> dict:
         js_image = await _scrape_image_with_browser(url)
         if js_image:
             data["image"] = js_image
+
+    if price_inc is not None:
+        data["priceInc"] = price_inc
+    if price_exc is not None:
+        data["priceExc"] = price_exc
 
     data["url"] = url
     return data
@@ -522,4 +607,14 @@ async def scrape_product(req: ScrapeRequest, response: Response):
             return cached
         data = await _do_scrape(url, vat_mode=vat_mode)
         _cache_set(cache_key, data)
+        # When the Nettailer scrape produced both views in one shot, also
+        # populate the sibling cache entry so an immediate toggle on the
+        # host page doesn't trigger a second upstream fetch.
+        if data.get("priceInc") and data.get("priceExc"):
+            other_mode = "excl" if (vat_mode or "incl") == "incl" else "incl"
+            other_key = f"{url}::{other_mode}"
+            if _cache_get(other_key) is None:
+                sibling = dict(data)
+                sibling["price"] = data["priceExc"] if other_mode == "excl" else data["priceInc"]
+                _cache_set(other_key, sibling)
         return data
