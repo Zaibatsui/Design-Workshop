@@ -113,30 +113,22 @@ export function fontImportUrl(fontName) {
 // color never silently mutates an unintended field.
 // ──────────────────────────────────────────────────────────────────────
 function applyToHero(cfg, b) {
-  const buttonBg = pick(b, "button_color");
-  const next = { ...cfg, font: b.heading_font };
-  if (Array.isArray(cfg.layouts)) {
-    next.layouts = cfg.layouts.map((l) => ({
-      ...l,
-      titleColor: b.text_color,
-      subtitleColor: b.text_color,
-      ctaBg: buttonBg,
-      ctaColor: b.background_color,
-    }));
-  }
-  if (Array.isArray(cfg.slides)) {
-    next.slides = cfg.slides.map((s) => ({
-      ...s,
-      // Bulk-apply mode: overwrite per-slide colours so re-themeing
-      // actually pushes through. Per-slide custom colours need to be
-      // re-set after each Apply to library run — that's the expected
-      // contract for "make my whole library match the brand".
-      titleColor: b.text_color,
-      subtitleColor: b.text_color,
-      overlayColor: b.text_color,
-    }));
-  }
-  return next;
+  // Hero stores its colours in a nested `theme` object (ctaBg, ctaText,
+  // titleColor, subtitleColor, overlayColor) — NOT in flat top-level
+  // fields and NOT inside individual slides. Map onto theme so changing
+  // the brand kit + Apply to library actually re-skins hero slides.
+  return {
+    ...cfg,
+    font: b.heading_font,
+    theme: {
+      ...(cfg.theme || {}),
+      titleColor: b.background_color,        // light text on photo bg
+      subtitleColor: b.background_color,
+      ctaBg: pick(b, "button_color"),        // CTA button bg
+      ctaText: b.background_color,           // CTA button text
+      overlayColor: b.text_color,            // dark slate tint over photo
+    },
+  };
 }
 
 const FIELD_MAP = {
