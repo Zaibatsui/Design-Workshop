@@ -82,7 +82,11 @@ const EYEBROW_SECTIONS = new Set([
 function eyebrowFields(b) {
   return {
     eyebrow: b.eyebrow_text || "",
-    eyebrowColor: b.eyebrow_color || b.primary_color,
+    // Fallback chain: explicit eyebrow_color > accent_color override >
+    // primary. Means setting `accent_color` propagates to every accent
+    // position including eyebrows, while `eyebrow_color` still wins
+    // when set explicitly.
+    eyebrowColor: b.eyebrow_color || b.accent_color || b.primary_color,
   };
 }
 
@@ -125,6 +129,9 @@ function applyToHero(cfg, b) {
       ...s,
       titleColor: s.titleColor || b.text_color,
       subtitleColor: s.subtitleColor || b.text_color,
+      // Hero overlay sits on top of the slide image to darken it for
+      // text legibility — same dark-slate intent as Break section.
+      overlayColor: s.overlayColor || b.text_color,
     }));
   }
   return next;
@@ -158,6 +165,7 @@ const FIELD_MAP = {
     accentColor: pick(b, "accent_color"),
     tagColor: pick(b, "link_color"),
     titleColor: b.text_color,
+    hoverBorder: pick(b, "accent_color"),
     font: b.heading_font,
   }),
   break: (cfg, b) => ({
@@ -218,6 +226,7 @@ const FIELD_MAP = {
   testimonials: (cfg, b) => ({
     ...cfg,
     bgColor: b.background_color,
+    cardBg: b.background_color,
     titleColor: b.text_color,
     bodyColor: b.body_color,
     accentColor: pick(b, "accent_color"),
@@ -229,6 +238,7 @@ const FIELD_MAP = {
   // secondary colour.
   welcome: (cfg, b) => ({
     ...cfg,
+    headerTextColor: b.background_color,
     eyebrowColor: pick(b, "accent_color"),
     amAccentColor: pick(b, "accent_color"),
     overlayColor: b.secondary_color,
