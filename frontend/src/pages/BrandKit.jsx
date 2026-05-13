@@ -312,6 +312,74 @@ export default function BrandKitPage() {
           </div>
         </section>
 
+        <section data-testid="brand-kit-logos">
+          <SectionHeader Icon={ImageIcon} title="Brand logos" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
+            <p className="text-sm text-slate-500 -mt-1">
+              Two slots so the same kit works on light AND dark sections.
+              Both flow into new sections automatically, and into your
+              existing library when you press <strong>Apply to library</strong>.
+              Per-customer logos that are already set never get overwritten.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  For dark backgrounds
+                </Label>
+                <div
+                  className="rounded-md p-3 border border-slate-200 min-h-[80px] flex items-center justify-center"
+                  style={{ backgroundColor: draft.secondary_color || "#1f2937" }}
+                >
+                  {draft.logo_dark ? (
+                    <img
+                      src={draft.logo_dark}
+                      alt="Dark-bg logo preview"
+                      className="max-h-16 max-w-full"
+                    />
+                  ) : (
+                    <p className="text-xs text-white/60 text-center">
+                      No logo yet
+                    </p>
+                  )}
+                </div>
+                <ImageUpload
+                  value={draft.logo_dark}
+                  onChange={(v) => set({ logo_dark: v })}
+                  testid="brand-logo-dark"
+                  compact
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  For light backgrounds
+                </Label>
+                <div
+                  className="rounded-md p-3 border border-slate-200 min-h-[80px] flex items-center justify-center"
+                  style={{ backgroundColor: draft.background_color || "#ffffff" }}
+                >
+                  {draft.logo_light ? (
+                    <img
+                      src={draft.logo_light}
+                      alt="Light-bg logo preview"
+                      className="max-h-16 max-w-full"
+                    />
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center">
+                      No logo yet
+                    </p>
+                  )}
+                </div>
+                <ImageUpload
+                  value={draft.logo_light}
+                  onChange={(v) => set({ logo_light: v })}
+                  testid="brand-logo-light"
+                  compact
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section data-testid="brand-kit-fonts">
           <SectionHeader Icon={TypeIcon} title="Typography" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white border border-slate-200 rounded-xl p-6">

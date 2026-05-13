@@ -88,6 +88,22 @@ export default function ImageUpload({ value, onChange, testid, compact }) {
           />
           <button
             type="button"
+            onClick={saveToLibrary}
+            disabled={saving}
+            className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/95 hover:bg-white shadow text-[11px] font-medium text-slate-700 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+            aria-label="Save to library"
+            data-testid={`${testid}-save-library`}
+            title="Save this image to your library for reuse elsewhere"
+          >
+            {saving ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <BookmarkPlus className="w-3 h-3" />
+            )}
+            Save
+          </button>
+          <button
+            type="button"
             onClick={() => onChange("")}
             className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/95 hover:bg-white shadow flex items-center justify-center transition-transform hover:scale-105"
             aria-label="Remove image"
@@ -97,32 +113,43 @@ export default function ImageUpload({ value, onChange, testid, compact }) {
           </button>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={onPickFile}
-          disabled={uploading}
-          data-testid={`${testid}-dropzone`}
-          className={`w-full flex flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50 transition-colors ${
-            compact ? "py-4" : "py-6"
-          }`}
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="w-5 h-5 text-slate-500 animate-spin" />
-              <span className="text-xs text-slate-500">Uploading…</span>
-            </>
-          ) : (
-            <>
-              <Upload className="w-5 h-5 text-slate-400" />
-              <span className="text-xs text-slate-600 font-medium">
-                Click to upload
-              </span>
-              <span className="text-[10px] text-slate-400">
-                PNG, JPG, WEBP up to 10MB
-              </span>
-            </>
-          )}
-        </button>
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={onPickFile}
+            disabled={uploading}
+            data-testid={`${testid}-dropzone`}
+            className={`w-full flex flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50 transition-colors ${
+              compact ? "py-4" : "py-6"
+            }`}
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="w-5 h-5 text-slate-500 animate-spin" />
+                <span className="text-xs text-slate-500">Uploading…</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-5 h-5 text-slate-400" />
+                <span className="text-xs text-slate-600 font-medium">
+                  Click to upload
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  PNG, JPG, WEBP up to 10MB
+                </span>
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            data-testid={`${testid}-pick-library`}
+            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-md border border-slate-200 hover:border-slate-400 hover:bg-slate-50 text-xs text-slate-600 font-medium transition-colors"
+          >
+            <Library className="w-3.5 h-3.5" />
+            Pick from library
+          </button>
+        </div>
       )}
 
       <div className="flex items-center gap-2">
