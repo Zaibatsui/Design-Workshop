@@ -49,6 +49,13 @@ export const DEFAULT_BRAND_KIT = {
   body_font: "Poppins",
   eyebrow_text: "",
   eyebrow_color: "",
+  // Role-specific colour overrides. Blank → fall back to primary_color
+  // at apply time (see `pick()` below). Lets users break a single
+  // element (button, link, accent) away from the primary without
+  // touching the rest.
+  link_color: "",
+  button_color: "",
+  accent_color: "",
   logo_dark: "",
   logo_light: "",
 };
@@ -79,6 +86,11 @@ function eyebrowFields(b) {
   };
 }
 
+// Pick a role-specific colour with primary_color as the universal
+// fallback. Lets users leave button_color / link_color / accent_color
+// blank and still get a consistent palette out of the box.
+const pick = (b, key) => b[key] || b.primary_color;
+
 /**
  * Build the Google Fonts @import URL for a given font name. The returned
  * URL bundles the same weight set Poppins originally shipped (300–700).
@@ -97,13 +109,14 @@ export function fontImportUrl(fontName) {
 // color never silently mutates an unintended field.
 // ──────────────────────────────────────────────────────────────────────
 function applyToHero(cfg, b) {
+  const buttonBg = pick(b, "button_color");
   const next = { ...cfg, font: b.heading_font };
   if (Array.isArray(cfg.layouts)) {
     next.layouts = cfg.layouts.map((l) => ({
       ...l,
       titleColor: b.text_color,
       subtitleColor: b.text_color,
-      ctaBg: b.primary_color,
+      ctaBg: buttonBg,
       ctaColor: b.background_color,
     }));
   }
@@ -121,29 +134,29 @@ const FIELD_MAP = {
   hero: applyToHero,
   content: (cfg, b) => ({
     ...cfg,
-    headingColor: b.primary_color,
+    headingColor: pick(b, "accent_color"),
     bodyColor: b.body_color,
     background: b.background_color,
-    primaryColor: b.primary_color,
+    primaryColor: pick(b, "button_color"),
     font: b.heading_font,
   }),
   products: (cfg, b) => ({
     ...cfg,
     titleColor: b.text_color,
-    priceColor: b.primary_color,
-    hoverBorder: b.primary_color,
+    priceColor: pick(b, "accent_color"),
+    hoverBorder: pick(b, "accent_color"),
     font: b.heading_font,
   }),
   insights: (cfg, b) => ({
     ...cfg,
-    accentColor: b.primary_color,
+    accentColor: pick(b, "accent_color"),
     titleColor: b.text_color,
     font: b.heading_font,
   }),
   resources: (cfg, b) => ({
     ...cfg,
-    accentColor: b.primary_color,
-    tagColor: b.primary_color,
+    accentColor: pick(b, "accent_color"),
+    tagColor: pick(b, "link_color"),
     titleColor: b.text_color,
     font: b.heading_font,
   }),
@@ -156,7 +169,7 @@ const FIELD_MAP = {
   tabs: (cfg, b) => ({
     ...cfg,
     bgColor: b.background_color,
-    accentColor: b.primary_color,
+    accentColor: pick(b, "accent_color"),
     bodyColor: b.body_color,
     font: b.heading_font,
   }),
@@ -172,7 +185,7 @@ const FIELD_MAP = {
     bgColor: b.background_color,
     textColor: b.text_color,
     bodyColor: b.body_color,
-    accentColor: b.primary_color,
+    accentColor: pick(b, "accent_color"),
     font: b.heading_font,
   }),
   steps: (cfg, b) => ({
@@ -180,7 +193,7 @@ const FIELD_MAP = {
     bgColor: b.background_color,
     textColor: b.text_color,
     bodyColor: b.body_color,
-    accentColor: b.primary_color,
+    accentColor: pick(b, "accent_color"),
     font: b.heading_font,
   }),
   faq: (cfg, b) => ({
@@ -188,7 +201,7 @@ const FIELD_MAP = {
     bgColor: b.background_color,
     textColor: b.text_color,
     bodyColor: b.body_color,
-    accentColor: b.primary_color,
+    accentColor: pick(b, "accent_color"),
     font: b.heading_font,
   }),
   // CTA banner traditionally inverts the palette for emphasis — dark
@@ -199,7 +212,7 @@ const FIELD_MAP = {
     bgColor: b.secondary_color,
     textColor: b.background_color,
     bodyColor: b.body_color,
-    accentColor: b.primary_color,
+    accentColor: pick(b, "button_color"),
     font: b.heading_font,
   }),
   testimonials: (cfg, b) => ({
@@ -207,7 +220,7 @@ const FIELD_MAP = {
     bgColor: b.background_color,
     titleColor: b.text_color,
     bodyColor: b.body_color,
-    accentColor: b.primary_color,
+    accentColor: pick(b, "accent_color"),
     font: b.heading_font,
   }),
   // Welcome banner sits over a photo + dark overlay — light text is
@@ -216,8 +229,8 @@ const FIELD_MAP = {
   // secondary colour.
   welcome: (cfg, b) => ({
     ...cfg,
-    eyebrowColor: b.primary_color,
-    amAccentColor: b.primary_color,
+    eyebrowColor: pick(b, "accent_color"),
+    amAccentColor: pick(b, "accent_color"),
     overlayColor: b.secondary_color,
     font: b.heading_font,
   }),

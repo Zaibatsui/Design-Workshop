@@ -269,6 +269,43 @@ export default function BrandKitPage() {
           </div>
         </section>
 
+        <section data-testid="brand-kit-roles">
+          <SectionHeader Icon={Wand2} title="Action colours" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+            <p className="text-sm text-slate-500 -mt-1">
+              Optional role-specific overrides. Leave blank to inherit
+              the primary colour — set one only when you want that
+              element to break away from the rest of the palette.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <RoleColorField
+                label="Link / inline accent"
+                value={draft.link_color}
+                fallback={draft.primary_color}
+                onChange={(v) => set({ link_color: v })}
+                testid="brand-link"
+                help="Resource tags, inline pills."
+              />
+              <RoleColorField
+                label="Button background"
+                value={draft.button_color}
+                fallback={draft.primary_color}
+                onChange={(v) => set({ button_color: v })}
+                testid="brand-button"
+                help="Hero CTA, Content button, CTA Banner button."
+              />
+              <RoleColorField
+                label="Accent (active tab + heading)"
+                value={draft.accent_color}
+                fallback={draft.primary_color}
+                onChange={(v) => set({ accent_color: v })}
+                testid="brand-accent"
+                help="Active tab indicator, FAQ chevron, step circles, stars, product price."
+              />
+            </div>
+          </div>
+        </section>
+
         <section data-testid="brand-kit-fonts">
           <SectionHeader Icon={TypeIcon} title="Typography" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white border border-slate-200 rounded-xl p-6">
@@ -431,6 +468,62 @@ function SectionHeader({ Icon, title }) {
       <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
         {title}
       </h2>
+    </div>
+  );
+}
+
+/**
+ * RoleColorField — a colour input that *may be blank*, in which case
+ * it visually inherits from a fallback (primary_color). Shows the
+ * effective colour with a "Inherits primary" badge when unset, and a
+ * one-click "Reset to inherit" link when set. Keeps the brand kit's
+ * "leave it blank to inherit" semantic obvious to the user.
+ */
+function RoleColorField({ label, value, fallback, onChange, testid, help }) {
+  const effective = value || fallback;
+  const isInherited = !value;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {label}
+        </Label>
+        {!isInherited && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="text-[10px] uppercase tracking-wider text-slate-400 hover:text-slate-900 font-medium"
+            data-testid={`${testid}-reset`}
+            title="Reset to inherit from primary"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <label
+          className="relative w-9 h-9 rounded-md border border-slate-200 overflow-hidden cursor-pointer shrink-0"
+          style={{ backgroundColor: effective }}
+        >
+          <input
+            type="color"
+            value={effective}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            data-testid={`${testid}-picker`}
+          />
+        </label>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={isInherited ? `Inherits ${fallback}` : ""}
+          className="text-xs font-mono"
+          data-testid={`${testid}-hex`}
+        />
+      </div>
+      {help && (
+        <p className="text-[10.5px] leading-snug text-slate-400">{help}</p>
+      )}
     </div>
   );
 }

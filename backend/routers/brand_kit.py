@@ -26,6 +26,12 @@ class BrandKit(BaseModel):
     # field. Blank = fall back (color → primary_color, text → empty).
     eyebrow_text: str = Field(default="")
     eyebrow_color: str = Field(default="")
+    # Specific role colours. All blank by default — when blank the
+    # frontend falls back to `primary_color`. Saved kits that pre-date
+    # these fields therefore behave identically to before.
+    link_color: str = Field(default="")     # links + small inline tag pills
+    button_color: str = Field(default="")   # CTA button backgrounds
+    accent_color: str = Field(default="")   # active tab, step circle, star, chevron, heading accent
     # Two logo slots so the same kit works on light AND dark sections —
     # Welcome's dark overlay needs a logo that reads on dark backgrounds,
     # while a Hero with a light background wants the inverse. Either may
