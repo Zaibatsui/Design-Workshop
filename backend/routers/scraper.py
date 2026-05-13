@@ -65,6 +65,11 @@ async def _get_url_lock(url: str) -> asyncio.Lock:
 
 class ScrapeRequest(BaseModel):
     url: str
+    # "incl" or "excl" — when present, attaches the matching VAT
+    # preference cookies/params so the upstream page renders the
+    # correct price view. Cache key includes this so the two views
+    # never serve crossed results.
+    vat_mode: str | None = None
 
 
 def _format_price(p):
@@ -425,18 +430,42 @@ async def _scrape_image_with_browser(url: str):
         return None
 
 
-async def _do_scrape(url: str) -> dict:
+async def _do_scrape(url: str, vat_mode: str | None = None) -> dict:
     """Actual upstream fetch — bypasses cache & lock. Use scrape_product()
-    as the public entry point so callers always go through the protections."""
+    as the public entry point so callers always go through the protections.
+
+    When `vat_mode` is "incl" or "excl", we attach the Nettailer-family
+    cookies + URL params that flip the upstream price view. Cookie names
+    are best-effort (Nettailer / netset don't publish the spec) — we set
+    several common candidates so it works on a handful of related Swedish
+    storefront engines."""
+    cookies = {}
+    fetch_url = url
+    if vat_mode in ("incl", "excl"):
+        # Common Nettailer / netset cookie patterns. Setting all of them
+        # is harmless on storefronts that don't recognise the names.
+        flag_true = "true" if vat_mode == "incl" else "false"
+        flag_int = "1" if vat_mode == "incl" else "0"
+        cookies = {
+            "incl_vat": flag_true,
+            "include_vat": flag_true,
+            "vat_mode": vat_mode,
+            "show_vat": flag_int,
+            "vatIncluded": flag_true,
+        }
+        # Some storefronts also accept a URL param.
+        sep = "&" if "?" in url else "?"
+        fetch_url = f"{url}{sep}vat_mode={vat_mode}"
     try:
         resp = requests.get(
-            url,
+            fetch_url,
             timeout=15,
             headers={
                 "User-Agent": "Mozilla/5.0 (compatible; NettailerSectionBuilder/1.0; +https://demo.nettailer.com)",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": "en-GB,en;q=0.9",
             },
+            cookies=cookies,
             allow_redirects=True,
         )
         resp.raise_for_status()
@@ -470,25 +499,27 @@ async def scrape_product(req: ScrapeRequest, response: Response):
     url = req.url.strip()
     if not re.match(r"^https?://", url):
         raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
+    vat_mode = req.vat_mode if req.vat_mode in ("incl", "excl") else None
 
     # Tell Cloudflare / browsers to cache the result for 10 min — same TTL
     # as our in-process cache. Combined with the snippet's 30-min
     # localStorage cache this gives us three layers of de-duplication.
     response.headers["Cache-Control"] = "public, max-age=600"
 
+    # Cache key includes vat_mode so the incl/excl views don't collide.
+    cache_key = f"{url}::{vat_mode or 'default'}"
+
     # Fast path — fresh hit in the in-process cache.
-    cached = _cache_get(url)
+    cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
-    # Slow path — single-flight per URL. If 50 concurrent requests arrive
-    # for the same URL, only the first acquires the lock and scrapes; the
-    # other 49 await it and read the result from the cache below.
-    lock = await _get_url_lock(url)
+    # Slow path — single-flight per cache_key.
+    lock = await _get_url_lock(cache_key)
     async with lock:
-        cached = _cache_get(url)
+        cached = _cache_get(cache_key)
         if cached is not None:
             return cached
-        data = await _do_scrape(url)
-        _cache_set(url, data)
+        data = await _do_scrape(url, vat_mode=vat_mode)
+        _cache_set(cache_key, data)
         return data

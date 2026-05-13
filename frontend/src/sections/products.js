@@ -166,8 +166,22 @@ ${baseReset(cls)}
   // Live price refresh: for cards marked with data-ns-src, periodically
   // call the scrape endpoint and update the price text. Cached 30 min in
   // localStorage. Failures are silent so the snippet always renders.
+  //
+  // Also reactive to the host page's VAT toggle (.vat-switcher-label):
+  // when the label text changes the snippet invalidates its cache and
+  // refetches every live card with the new VAT mode passed through to
+  // the scraper, so the displayed price matches what the storefront is
+  // currently showing.
   const liveJs = apiBase
-    ? `var TTL=18e5,API=${JSON.stringify(apiBase + "/api/scrape-product")};var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(card){var u=card.getAttribute("data-ns-src");if(!u)return;var k="ns-px:"+u,now=Date.now(),amt=card.querySelector(".ns-price-amount");function paint(p){if(amt&&p)amt.textContent=p;}try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));}catch(e){}}).catch(function(){});});}`
+    ? `var TTL=18e5,API=${JSON.stringify(apiBase + "/api/scrape-product")};` +
+      `function vatMode(){try{var el=document.querySelector(".vat-switcher-label");if(!el)return null;var t=(el.textContent||"").toLowerCase();return t.indexOf("incl")>=0?"incl":t.indexOf("excl")>=0?"excl":null;}catch(e){return null;}}` +
+      `function ckey(u,m){return"ns-px:"+u+"::"+(m||"default");}` +
+      `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount");function paint(p){if(amt&&p)amt.textContent=p;}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
+      `fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u,vat_mode:m})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));}catch(e){}}).catch(function(){});}` +
+      `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(c){fetchOne(c,false);});` +
+      // Watch the host's VAT switcher for label-text changes and refetch.
+      `try{var sw=document.querySelector(".vat-switcher-label");if(sw&&typeof MutationObserver!=="undefined"){var lastV=vatMode();var mo=new MutationObserver(function(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){fetchOne(c,true);});});mo.observe(sw,{childList:true,characterData:true,subtree:true});}}catch(e){}` +
+      `}`
     : "";
 
   const js = iife(
