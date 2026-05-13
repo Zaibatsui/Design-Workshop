@@ -438,7 +438,16 @@ function FormPanel({ config, onUpdate }) {
                 <TextField
                   label="Price"
                   value={p.price}
-                  onChange={(v) => updateProduct(p.id, { price: v })}
+                  onChange={(v) =>
+                    updateProduct(p.id, {
+                      price: v,
+                      // Manually editing the price implies the user
+                      // wants that exact value — turn off the snippet's
+                      // 30-min live refresh so it doesn't get clobbered
+                      // by the next scrape. They can re-enable below.
+                      liveRefresh: false,
+                    })
+                  }
                   testid={`product-price-${p.id}`}
                 />
                 <TextField
@@ -448,6 +457,19 @@ function FormPanel({ config, onUpdate }) {
                   testid={`product-suffix-${p.id}`}
                 />
               </div>
+              <ToggleField
+                label="Auto-refresh price from URL"
+                description={
+                  p.liveRefresh
+                    ? "Snippet re-scrapes the linked URL every 30 minutes and overwrites this price."
+                    : "Price stays exactly as set above. Recommended when you've typed a price manually."
+                }
+                checked={Boolean(p.liveRefresh)}
+                onChange={(v) =>
+                  updateProduct(p.id, { liveRefresh: v })
+                }
+                testid={`product-live-refresh-${p.id}`}
+              />
               <TextField
                 label="Link"
                 value={p.link}
