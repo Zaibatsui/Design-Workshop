@@ -127,11 +127,13 @@ function applyToHero(cfg, b) {
   if (Array.isArray(cfg.slides)) {
     next.slides = cfg.slides.map((s) => ({
       ...s,
-      titleColor: s.titleColor || b.text_color,
-      subtitleColor: s.subtitleColor || b.text_color,
-      // Hero overlay sits on top of the slide image to darken it for
-      // text legibility — same dark-slate intent as Break section.
-      overlayColor: s.overlayColor || b.text_color,
+      // Bulk-apply mode: overwrite per-slide colours so re-themeing
+      // actually pushes through. Per-slide custom colours need to be
+      // re-set after each Apply to library run — that's the expected
+      // contract for "make my whole library match the brand".
+      titleColor: b.text_color,
+      subtitleColor: b.text_color,
+      overlayColor: b.text_color,
     }));
   }
   return next;
@@ -312,16 +314,18 @@ export function applyBrandKit(typeId, config, brandKit, opts = {}) {
 }
 
 /**
- * Same overlay, but for the unified richtext block. Different shape —
- * richtext doesn't go through the section registry.
+ * Same overlay, but for the unified richtext block. The richtext
+ * renderer reads `bg`, `fg`, and `accent` — older versions of this
+ * helper wrote `color` / `font` keys that the renderer ignored, so
+ * Apply-to-library appeared to do nothing for richtext blocks.
  */
 export function applyBrandKitToRichText(config, brandKit) {
   if (!brandKit) return config;
   return {
     ...config,
     bg: brandKit.background_color,
-    color: brandKit.text_color,
-    font: brandKit.body_font,
+    fg: brandKit.text_color,
+    accent: brandKit.link_color || brandKit.primary_color,
   };
 }
 
