@@ -7,6 +7,7 @@ import {
   BookMarked,
   BookOpen,
   Boxes,
+  Clock,
   Code2,
   Copy,
   FileStack,
@@ -36,6 +37,7 @@ import { BRAND } from "@/lib/brand";
  */
 
 const SECTIONS = [
+  { id: "quickstart", label: "Quickstart (5 min)", Icon: Clock },
   { id: "getting-started", label: "Getting started", Icon: Rocket },
   { id: "dashboard", label: "Dashboard tour", Icon: LayoutGrid },
   { id: "section-editor", label: "Building a section", Icon: PenLine },
@@ -114,6 +116,52 @@ export default function UserGuide() {
             Skim the table of contents, jump anywhere.
           </Lead>
 
+          <Section id="quickstart" Icon={Clock} title="Quickstart — your first snippet in 5 minutes">
+            <P>
+              The fast path from zero to a snippet pasted into your CMS.
+              Every step links to its full chapter further down the guide
+              if you want the detail later.
+            </P>
+            <Ol>
+              <li>
+                <strong>Set your Brand Kit first.</strong> Open{" "}
+                <Code>/brand</Code>, pick a primary colour and (optionally)
+                a heading + body font. This becomes the default for every
+                new section you create.
+              </li>
+              <li>
+                <strong>Create a section.</strong> Back on the dashboard,
+                click <strong>"+ New section"</strong> and pick a type —
+                <em> Hero</em>, <em>Product Carousel</em>, and{" "}
+                <em>Logo Strip</em> are the most useful first picks.
+              </li>
+              <li>
+                <strong>Edit in the centre preview.</strong> The right-hand
+                rail groups controls into collapsible accordions (Content ·
+                Layout · Colours · Buttons). Change a field, watch the
+                preview repaint instantly. Nothing needs saving — autosave
+                fires on blur.
+              </li>
+              <li>
+                <strong>Click "Copy snippet"</strong> (top right). The
+                drawer shows the full self-contained HTML / CSS / JS.
+                Hit <strong>Copy</strong>.
+              </li>
+              <li>
+                <strong>Paste into your CMS</strong> as a raw HTML block
+                (Nettailer raw-HTML widget, custom CMS rich-text "source"
+                mode, Shopify custom HTML, etc.). Save and refresh — your
+                section renders.
+              </li>
+            </Ol>
+            <Note>
+              That's it. From here, build a few more sections, stack them
+              into a Page (one combined snippet for an entire landing
+              page), and use <strong>"Apply brand kit"</strong> to re-skin
+              an existing section if you tweak your colours later.
+            </Note>
+          </Section>
+
           <Section id="getting-started" Icon={Rocket} title="Getting started">
             <P>
               Design Workshop is a hybrid <strong>section + page editor</strong>{" "}
@@ -181,8 +229,16 @@ export default function UserGuide() {
           <Section id="section-editor" Icon={PenLine} title="Building a section">
             <P>
               The Section editor has three columns: a settings rail on the
-              left, a live preview in the centre, and a snippet drawer on the
-              right (toggle with <Kbd>Copy snippet</Kbd>).
+              right, a live preview in the centre, and a snippet drawer
+              that slides out when you hit <Kbd>Copy snippet</Kbd>.
+            </P>
+            <P>
+              The settings rail groups controls into <strong>collapsible
+              accordions</strong> — typically <em>Content</em>, <em>Layout</em>,
+              <em> Colours</em>, <em>Buttons</em>, and (where relevant){" "}
+              <em>Carousel</em>. Click a header to expand its panel; the
+              others auto-collapse so the rail never grows taller than the
+              screen.
             </P>
             <Bullets
               items={[
@@ -191,19 +247,19 @@ export default function UserGuide() {
                   centre preview updates as you type.
                 </>,
                 <>
-                  Each section has a <strong>collapsible item list</strong>{" "}
-                  (e.g. logos, slides, products, cards). Click the row title
-                  to expand its full editor; <Kbd>+</Kbd> at the bottom to add
-                  another.
+                  Sections with repeating items (logos, slides, products,
+                  cards, FAQ rows…) show a <strong>collapsible item
+                  list</strong>. Click a row title to expand its full
+                  editor; <Kbd>+</Kbd> at the bottom to add another.
                 </>,
                 <>
                   Press <Kbd>Esc</Kbd> any time to dismiss modals or close
                   the snippet drawer.
                 </>,
                 <>
-                  The <strong>"Apply brand kit"</strong> button (top of the
-                  rail) overlays your brand colours + fonts onto the section
-                  without touching content (your products, slides, copy stay
+                  The <strong>"Apply brand kit"</strong> button overlays
+                  your brand colours + fonts onto the section without
+                  touching content (your products, slides, copy stay
                   intact).
                 </>,
               ]}
@@ -212,22 +268,24 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships sixteen section types. All are
-              colour-themable, font-themable and contain at least one
-              image-bearing field where applicable.
+              Design Workshop ships sixteen reusable section types plus a
+              rich-text block for use inside Pages. All are colour-themable,
+              font-themable and contain at least one image-bearing field
+              where applicable.
             </P>
             <Grid>
-              <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour overrides." />
+              <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour overrides and an optional split slide layout (full-bleed image + container-aligned text)." />
+              <SectionCard Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use." />
               <SectionCard Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
               <SectionCard Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
-              <SectionCard Icon={Boxes} name="Products" desc="Card carousel with image, name, price and a hover-tinted border. Optional links." />
-              <SectionCard Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media." />
+              <SectionCard Icon={Boxes} name="Products" desc="Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
+              <SectionCard Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." />
               <SectionCard Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
-              <SectionCard Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined, tinted or solid card styles." />
+              <SectionCard Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />
               <SectionCard Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
               <SectionCard Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." />
               <SectionCard Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." />
-              <SectionCard Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Centred or left-aligned." />
+              <SectionCard Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides." />
               <SectionCard Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." />
               <SectionCard Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." />
               <SectionCard Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
@@ -382,15 +440,21 @@ export default function UserGuide() {
 
           <Section id="templates" Icon={BookMarked} title="Page templates">
             <P>
-              When you create a new page, the template picker offers a few
-              starting layouts (Landing, Product, Blog) plus a Blank option.
-              You can also <strong>save any page as a custom template</strong>{" "}
-              from the page editor's "Save as template" action — it'll then
-              appear in the picker for future pages.
+              When you create a new page, the template picker offers eight
+              starting points: <strong>Landing</strong>,{" "}
+              <strong>Product detail</strong>, <strong>Category hub</strong>,
+              <strong> About us</strong>, <strong>Pricing</strong>,{" "}
+              <strong>Blog post</strong>, <strong>Brand page</strong>, plus
+              <strong> Blank</strong>. Each one pre-stacks a coherent block
+              order with realistic placeholder content, all themed by your
+              Brand Kit.
             </P>
             <P>
-              Custom templates are private to your account. Editing the
-              template doesn't affect pages already created from it.
+              You can also <strong>save any page as a custom template</strong>{" "}
+              from the page editor's "Save as template" action — it'll then
+              appear in the picker for future pages. Custom templates are
+              private to your account, and editing the template doesn't
+              affect pages already created from it.
             </P>
           </Section>
 
@@ -439,7 +503,7 @@ export default function UserGuide() {
           </Section>
 
           <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500">
-            Last updated: 2026-05-02 · Want a feature documented?
+            Last updated: 2026-02-25 · Want a feature documented?
             File an issue or ping the Zaibatsui team.
           </div>
         </article>

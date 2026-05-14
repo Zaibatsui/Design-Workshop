@@ -22,21 +22,24 @@ The output is **strictly inert** — scoped CSS classes (one unique class per in
 
 ## Features
 
-### Section library — 16 composable building blocks
+### Section library — 16 composable section types
+
+Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages.
 
 | Block | What it does |
 |---|---|
-| **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Per-slide colour overrides. |
+| **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Per-slide colour overrides and optional `split` slide layout (full-bleed image + container-aligned text). |
+| **Split Banner** | Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter-weight cousin of Hero for non-carousel use. |
 | **Welcome** | Post-login banner with positionable heading, customer logo and account-manager card. Each block snaps to one of nine grid positions so one section serves many brands. |
 | **Content** | Heading + body + buttons. The all-purpose marquee block. |
-| **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image, with overlay-badge extraction. Detects Nettailer storefronts and live-flips inc-VAT ↔ ex-VAT prices when the host page's VAT toggle is clicked — no re-scrape, served from a pre-warmed `localStorage` cache. |
-| **Insights Grid** | Editorial 2–3 column card grid for articles & case studies. |
+| **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image, with overlay-badge extraction. Universal VAT toggle: snippet watches the host site's VAT switcher and live-flips between inc-VAT and ex-VAT prices, mirroring whatever label convention the host uses (`Inc VAT`, `Inkl. moms`, `TTC`, …). |
+| **Insights Grid** | Editorial 2–3 column card grid for articles & case studies. Per-card layouts (image-left, image-top, image-right), accent border toggle, configurable image width. |
 | **Resource Carousel** | Tag-tinted card carousel — blog posts, guides, downloads. |
-| **Feature Grid** | 2–4 column value-prop cards with icon, title, body. Outlined / tinted / solid card styles. |
+| **Feature Grid** | 2–4 column value-prop cards with icon, title, body. Outlined / tinted / solid card styles, plus an image-card variant (`image-top` / `image-left`). |
 | **Steps** | Numbered process strip. Horizontal or vertical, big editorial numerals or compact inline. |
 | **Testimonials** | Auto-scrolling quote carousel with avatars + 0–5 star ratings. Pauses on hover, respects `prefers-reduced-motion`. |
 | **FAQ** | Collapsible Q+A accordion. Native `<details>` / `<summary>` for zero-JS accessibility. |
-| **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. |
+| **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides. |
 | **Logo Strip** | Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle. |
 | **Break Banner** | Full-bleed parallax break with overlaid heading. Use it to chapter long pages. |
 | **Tabs** | Tabbed content panel with a side image. Configurable tab alignment and image position. |
@@ -45,11 +48,15 @@ The output is **strictly inert** — scoped CSS classes (one unique class per in
 
 ### Hybrid Page Builder
 
-Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder. Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Seven page templates ship out of the box.
+Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder. Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Eight page templates ship out of the box (Landing, Product detail, Category hub, About us, Pricing, Blog post, Brand page, plus Blank).
 
 ### Brand Kit
 
 Single source of truth for primary / secondary / text / background colours, heading + body fonts (12 curated Google fonts or "Inherit from site"), and a default eyebrow text + colour. One click re-skins every existing section without touching their content. "Inherit from site" ships the snippet without a font import — the host page's typography wins.
+
+### Compact editor UI
+
+Every section editor groups its controls into Shadcn accordions (Content · Layout · Colours · Buttons · Carousel · etc.). Long sections collapse to one screenful — no more endless vertical scroll to reach the colour pickers.
 
 ### Live previews everywhere
 
@@ -66,15 +73,15 @@ The login page (`/login`) doubles as a public marketing site. From `/brand`, adm
 
 Every user-facing config value passes through one of: `escHtml` (text), `escAttr` (attributes), `safeUrl` (links / images — blocks `javascript:`, `vbscript:`, `data:text/html`, etc.), `safeColor` (CSS colour values — whitelist hex / rgb / hsl / keywords), or `num` (numeric coercion). The snippets generated are architecturally incapable of leaking styles to the host site or executing attacker-supplied scripts via colour / URL / numeric form fields.
 
-### Nettailer-aware price scraping
+### Universal VAT-aware price scraping
 
-The Product Carousel scraper has first-class support for **Nettailer / Netset** storefronts:
+The Product Carousel scraper handles VAT-toggling storefronts as a first-class concern, with deep integration for **Nettailer / Netset**:
 
-- One scrape returns **both VAT views** (`priceInc` + `priceExc`). The scraper uses a `requests.Session`, primes Nettailer's `/nodeapi/` session-cookie handshake (echoing the server-issued `node` cookie back as a custom HTTP header), then POSTs `/nodeapi/change_inc_vat` to flip the VAT flag and re-fetches the product page.
+- One scrape returns **both VAT views** (`priceInc` + `priceExc`). For Nettailer the scraper uses a `requests.Session`, primes the `/nodeapi/` session-cookie handshake (echoing the server-issued `node` cookie back as a custom HTTP header), then POSTs `/nodeapi/change_inc_vat` to flip the VAT flag and re-fetches the product page.
 - An in-process TTL cache (10 min) plus a per-(URL, vat-mode) single-flight `asyncio.Lock` so a viral page that mounts the snippet 1000× still fires **one** upstream request.
 - Cache priming: every Nettailer scrape populates `::default`, `::incl` and `::excl` cache keys at once, so every subsequent request from any client hits the cache.
-- The snippet's embedded JS watches the host page's `.vat-switcher-label` via `MutationObserver`. When a customer clicks the storefront's VAT toggle, the snippet repaints prices **and** per-card `Incl VAT` / `Excl VAT` suffix labels from the pre-warmed `localStorage` cache — zero network round-trip, no flicker.
-- Editor preview ships a floating `Excl VAT` / `Incl VAT` pill so authors can verify both price views without leaving Design Workshop. The pill defaults to "Excl VAT" to match Nettailer's actual anonymous default.
+- **Universal host detection** in the snippet — pure JS, no framework assumptions. A `MutationObserver` plus polling fallback watches the host page for any of the common VAT-toggle label variants (`Inc VAT`, `Excl. VAT`, `Inkl. moms`, `Exkl. moms`, `TTC`, `HT`, and many more) and live-flips prices from a pre-warmed `localStorage` cache when the customer clicks the storefront's toggle. Per-card `Incl VAT` / `Excl VAT` suffix labels adapt their wording to mirror whatever convention the host site uses.
+- Editor preview ships a floating `Excl VAT` / `Incl VAT` pill so authors can verify both price views without leaving Design Workshop.
 
 ### In-app user guide
 
@@ -140,7 +147,6 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 │   │   ├── image_library.py     # /api/image-library (per-user image library)
 │   │   ├── admin.py             # /api/admin/users (user management)
 │   │   └── scraper.py           # /api/scrape-product
-│   ├── tests/                   # pytest regression suite
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
@@ -201,20 +207,6 @@ npm start                                  # http://localhost:3000
 **OAuth locally**: register `http://localhost:8001/api/auth/google/callback` as an authorised redirect URI on your Google OAuth client, then sign in via `http://localhost:3000/login`.
 
 **Admin gating**: add your Google account email to `backend/deps.py::ADMIN_EMAILS` to unlock `/brand` admin pickers and the `/admin/users` page.
-
-## Tests
-
-A pytest regression suite lives at `backend/tests/`. It currently covers
-the Nettailer VAT-toggle scraper helpers (host detection, price parsing,
-URL origin handling) plus an optional live end-to-end check that hits
-`demo.nettailer.com` and asserts the 20% VAT ratio.
-
-```bash
-cd backend
-pip install pytest                          # if not already installed
-python -m pytest tests/ -v                  # offline unit tests
-RUN_LIVE_NETTAILER_TEST=1 python -m pytest tests/ -v   # includes live check
-```
 
 ## Production deployment
 
