@@ -225,8 +225,25 @@ ${baseReset(cls)}
         `var bc=String(document.body.className||"").toLowerCase();` +
         `if(bc.indexOf("vat")>=0){var r4=classify(bc);if(r4)return r4;}` +
       `}catch(e){}return null;}` +
+      // vatLabel(mode) → the literal text the host store uses for the
+      // requested VAT mode. We read it straight from the host's own
+      // `.vat-switcher-label` and trust it only when it classifies as
+      // the SAME mode (i.e. the label is actually meaningful and not
+      // stale). The fallback is canonical English "Incl VAT" / "Excl
+      // VAT" so even a totally label-less host gets sensible suffix
+      // text. This lets a Swedish store show "Inkl. moms" / "Exkl.
+      // moms" on every card, and a UK store show "Inc. VAT" /
+      // "Ex. VAT" — matching whatever convention the store itself
+      // uses on its own price tags.
+      `function vatLabel(mode){try{var el=document.querySelector(".vat-switcher-label");` +
+        `if(el){var t=(el.textContent||"").trim();if(t&&classify(t)===mode)return t;}` +
+      `}catch(e){}return mode==="incl"?"Incl VAT":"Excl VAT";}` +
       `function ckey(u,m){return"ns-px:"+u+"::"+(m||"default");}` +
-      `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(amt&&p)amt.textContent=p;if(sfx&&m){var s=(sfx.textContent||"").toLowerCase();if(s.indexOf("vat")>=0){sfx.textContent=m==="incl"?"Incl VAT":"Excl VAT";}}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
+      // paint(p) writes the price and re-stamps the suffix with the
+      // host's current label text. We only re-stamp the suffix when
+      // the existing suffix is itself a recognised VAT label (so
+      // custom suffixes like "+ shipping" or "/month" stay intact).
+      `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(amt&&p)amt.textContent=p;if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
       `fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u,vat_mode:m})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));if(d.priceInc)localStorage.setItem(ckey(u,"incl"),JSON.stringify({t:now,p:d.priceInc}));if(d.priceExc)localStorage.setItem(ckey(u,"excl"),JSON.stringify({t:now,p:d.priceExc}));}catch(e){}}).catch(function(){});}` +
       `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(c){fetchOne(c,false);});` +
       `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){fetchOne(c,false);});}` +

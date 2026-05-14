@@ -73,6 +73,33 @@ def test_mutation_observer_is_broad():
     assert "attributeFilter" in src
 
 
+def test_host_label_adoption_present():
+    """The snippet must adopt the host store's actual VAT label text
+    (e.g. "Inc. VAT" / "Ex. VAT" / "Inkl. moms") on every paint, so
+    cards visually match the storefront's own convention rather than
+    forcing canonical "Incl VAT" / "Excl VAT" English on every host."""
+    src = _src()
+    # vatLabel(mode) helper exists and reads from .vat-switcher-label
+    assert "function vatLabel(mode)" in src
+    assert "vatLabel(m)" in src
+    # The fallback string must still be present (when no host label
+    # exists OR the host label doesn't classify to the requested mode).
+    assert '"Incl VAT"' in src
+    assert '"Excl VAT"' in src
+
+
+def test_custom_suffix_guard_preserved():
+    """When a card's existing suffix is NOT a recognised VAT label
+    (e.g. "+ shipping" or "/month"), the snippet must leave it alone.
+    Previously this was guarded by `s.indexOf("vat")>=0`; now it's the
+    cleaner `classify(sfx.textContent)!==null` so it also recognises
+    Swedish ("moms") and period-style ("Inc.") variants. Either way
+    benign custom suffixes must NOT be overwritten by a VAT label."""
+    src = _src()
+    # The guard must be wired into the paint() body.
+    assert "classify(sfx.textContent)" in src
+
+
 # ── Behavioural checks: the classify() regex actually matches real
 #    label variants. We rebuild the regex from the source so this stays
 #    truthful even if someone edits the classifier in-place.
