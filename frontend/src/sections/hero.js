@@ -770,37 +770,48 @@ function FormPanel({ config, onUpdate }) {
         </Group>
       )}
 
-      <Group title="Settings">
-        <ToggleField
-          label="Autoplay"
-          checked={s.autoplay}
-          onChange={(v) => setSettings({ autoplay: v })}
-          testid="hero-autoplay"
-        />
-        <SliderField
-          label="Interval"
-          value={s.interval}
-          min={2000}
-          max={12000}
-          step={500}
-          suffix="ms"
-          onChange={(v) => setSettings({ interval: v })}
-          testid="hero-interval"
-          disabled={!s.autoplay}
-        />
-        <ToggleField
-          label="Arrows"
-          checked={s.showArrows}
-          onChange={(v) => setSettings({ showArrows: v })}
-          testid="hero-arrows"
-        />
-        <ToggleField
-          label="Dots"
-          checked={s.showDots}
-          onChange={(v) => setSettings({ showDots: v })}
-          testid="hero-dots"
-        />
-      </Group>
+      {/* Carousel controls — only relevant with 2+ slides. Single-slide
+        * heroes never auto-advance and have nothing to flip between, so
+        * the autoplay / arrows / dots controls would just be noise. */}
+      {config.slides.length > 1 && (
+        <Group title="Carousel">
+          <p
+            className="text-xs text-slate-500 -mt-1 mb-1 leading-snug"
+            data-testid="hero-carousel-help"
+          >
+            Applies to the slideshow as a whole — not to individual slides.
+          </p>
+          <ToggleField
+            label="Autoplay"
+            checked={s.autoplay}
+            onChange={(v) => setSettings({ autoplay: v })}
+            testid="hero-autoplay"
+          />
+          <SliderField
+            label="Interval"
+            value={s.interval}
+            min={2000}
+            max={12000}
+            step={500}
+            suffix="ms"
+            onChange={(v) => setSettings({ interval: v })}
+            testid="hero-interval"
+            disabled={!s.autoplay}
+          />
+          <ToggleField
+            label="Arrows"
+            checked={s.showArrows}
+            onChange={(v) => setSettings({ showArrows: v })}
+            testid="hero-arrows"
+          />
+          <ToggleField
+            label="Dots"
+            checked={s.showDots}
+            onChange={(v) => setSettings({ showDots: v })}
+            testid="hero-dots"
+          />
+        </Group>
+      )}
     </div>
   );
 }
