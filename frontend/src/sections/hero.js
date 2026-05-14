@@ -639,53 +639,6 @@ function FormPanel({ config, onUpdate }) {
             />
           </>
         )}
-        {anySplit && (
-          <>
-            <SelectField
-              label="Panel background"
-              value={t.panelBgType || "solid"}
-              onChange={(v) => setTheme({ panelBgType: v })}
-              options={[
-                { value: "solid", label: "Solid colour" },
-                { value: "gradient", label: "Linear gradient" },
-              ]}
-              testid="hero-panel-bg-type"
-            />
-            {(t.panelBgType || "solid") === "gradient" ? (
-              <>
-                <ColorField
-                  label="Gradient from"
-                  value={t.panelGradientFrom}
-                  onChange={(v) => setTheme({ panelGradientFrom: v })}
-                  testid="hero-panel-grad-from"
-                />
-                <ColorField
-                  label="Gradient to"
-                  value={t.panelGradientTo}
-                  onChange={(v) => setTheme({ panelGradientTo: v })}
-                  testid="hero-panel-grad-to"
-                />
-                <SliderField
-                  label="Gradient angle"
-                  value={t.panelGradientAngle ?? 135}
-                  min={0}
-                  max={360}
-                  step={5}
-                  suffix="°"
-                  onChange={(v) => setTheme({ panelGradientAngle: v })}
-                  testid="hero-panel-grad-angle"
-                />
-              </>
-            ) : (
-              <ColorField
-                label="Panel colour"
-                value={t.panelBg}
-                onChange={(v) => setTheme({ panelBg: v })}
-                testid="hero-panel-bg"
-              />
-            )}
-          </>
-        )}
       </Group>
 
       <Group title="Layout">
@@ -701,31 +654,6 @@ function FormPanel({ config, onUpdate }) {
             ]}
             testid="hero-text-align"
           />
-        )}
-        {anySplit && (
-          <>
-            <SelectField
-              label="Image side"
-              value={l.imageSide || "right"}
-              onChange={(v) => setLayout({ imageSide: v })}
-              options={[
-                { value: "right", label: "Image right of text" },
-                { value: "left", label: "Image left of text" },
-              ]}
-              testid="hero-image-side"
-            />
-            <SelectField
-              label="Panel width"
-              value={String(l.panelRatio || 50)}
-              onChange={(v) => setLayout({ panelRatio: Number(v) })}
-              options={[
-                { value: "40", label: "40% — image dominant" },
-                { value: "50", label: "50% — balanced" },
-                { value: "60", label: "60% — text dominant" },
-              ]}
-              testid="hero-panel-ratio"
-            />
-          </>
         )}
         <SliderField
           label="Height"
@@ -759,6 +687,88 @@ function FormPanel({ config, onUpdate }) {
           />
         )}
       </Group>
+
+      {/* Split panel design — only rendered when at least one slide is
+        * marked "split". Groups the 6 controls that ONLY affect split
+        * slides so they're not mistaken for global hero settings. The
+        * settings still apply globally to every split slide (rather
+        * than per-slide) for visual consistency across the carousel.
+        */}
+      {anySplit && (
+        <Group title="Split panel design">
+          <p
+            className="text-xs text-slate-500 -mt-1 mb-1 leading-snug"
+            data-testid="hero-split-panel-help"
+          >
+            Applies to every slide set to <strong>Split panel</strong>{" "}
+            layout. Standard slides ignore these settings.
+          </p>
+          <SelectField
+            label="Image side"
+            value={l.imageSide || "right"}
+            onChange={(v) => setLayout({ imageSide: v })}
+            options={[
+              { value: "right", label: "Image right of text" },
+              { value: "left", label: "Image left of text" },
+            ]}
+            testid="hero-image-side"
+          />
+          <SelectField
+            label="Panel width"
+            value={String(l.panelRatio || 50)}
+            onChange={(v) => setLayout({ panelRatio: Number(v) })}
+            options={[
+              { value: "40", label: "40% — image dominant" },
+              { value: "50", label: "50% — balanced" },
+              { value: "60", label: "60% — text dominant" },
+            ]}
+            testid="hero-panel-ratio"
+          />
+          <SelectField
+            label="Panel background"
+            value={t.panelBgType || "solid"}
+            onChange={(v) => setTheme({ panelBgType: v })}
+            options={[
+              { value: "solid", label: "Solid colour" },
+              { value: "gradient", label: "Linear gradient" },
+            ]}
+            testid="hero-panel-bg-type"
+          />
+          {(t.panelBgType || "solid") === "gradient" ? (
+            <>
+              <ColorField
+                label="Gradient from"
+                value={t.panelGradientFrom}
+                onChange={(v) => setTheme({ panelGradientFrom: v })}
+                testid="hero-panel-grad-from"
+              />
+              <ColorField
+                label="Gradient to"
+                value={t.panelGradientTo}
+                onChange={(v) => setTheme({ panelGradientTo: v })}
+                testid="hero-panel-grad-to"
+              />
+              <SliderField
+                label="Gradient angle"
+                value={t.panelGradientAngle ?? 135}
+                min={0}
+                max={360}
+                step={5}
+                suffix="°"
+                onChange={(v) => setTheme({ panelGradientAngle: v })}
+                testid="hero-panel-grad-angle"
+              />
+            </>
+          ) : (
+            <ColorField
+              label="Panel colour"
+              value={t.panelBg}
+              onChange={(v) => setTheme({ panelBg: v })}
+              testid="hero-panel-bg"
+            />
+          )}
+        </Group>
+      )}
 
       <Group title="Settings">
         <ToggleField
