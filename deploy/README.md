@@ -140,7 +140,7 @@ container:
 
 ```bash
 docker compose exec backend python /app/deploy/scripts/migrate-uploads.py \
-    --source https://snippet-builder-2.preview.emergentagent.com \
+    --source https://page-craft-320.preview.emergentagent.com \
     --target https://designworkshop.zaibatsui.co.uk
 ```
 
