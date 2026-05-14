@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const API_BASE = process.env.REACT_APP_BACKEND_URL;
 
 const ID = "products";
@@ -337,7 +338,7 @@ function FormPanel({ config, onUpdate }) {
   };
 
   return (
-    <div className="space-y-5">
+    <FormAccordion sectionType="products">
       <Group title="Header">
         <TextField
           label="Eyebrow (optional)"
@@ -621,18 +622,7 @@ function FormPanel({ config, onUpdate }) {
           )}
         />
       </div>
-    </div>
-  );
-}
-
-function Group({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
+    </FormAccordion>
   );
 }
 

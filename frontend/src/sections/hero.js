@@ -27,6 +27,7 @@ import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
 
+import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const ID = "hero";
 
 const defaults = () => ({
@@ -462,7 +463,7 @@ function FormPanel({ config, onUpdate }) {
   const anySplit = (config.slides || []).some((s) => slideMode(s) === "split");
 
   return (
-    <div className="space-y-5">
+    <FormAccordion sectionType="hero">
       <Group title="Section">
         <SelectField
           label="Transition"
@@ -483,10 +484,7 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-          Slides ({config.slides.length})
-        </h3>
+      <Group title={`Slides (${config.slides.length})`}>
         <ListEditor
           items={config.slides}
           onAdd={addSlide}
@@ -593,7 +591,7 @@ function FormPanel({ config, onUpdate }) {
             </>
           )}
         />
-      </div>
+      </Group>
 
       <Group title="Theme">
         <ColorField
@@ -812,18 +810,7 @@ function FormPanel({ config, onUpdate }) {
           />
         </Group>
       )}
-    </div>
-  );
-}
-
-function Group({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
+    </FormAccordion>
   );
 }
 

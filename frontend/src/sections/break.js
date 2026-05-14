@@ -19,6 +19,7 @@ import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
 
+import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const ID = "break";
 
 const defaults = () => ({
@@ -74,7 +75,7 @@ ${baseReset(cls)}
 
 function FormPanel({ config, onUpdate }) {
   return (
-    <div className="space-y-5">
+    <FormAccordion sectionType="break">
       <Group title="Header">
         <TextField
           label="Eyebrow (optional)"
@@ -159,18 +160,7 @@ function FormPanel({ config, onUpdate }) {
           testid="break-opacity"
         />
       </Group>
-    </div>
-  );
-}
-
-function Group({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
+    </FormAccordion>
   );
 }
 

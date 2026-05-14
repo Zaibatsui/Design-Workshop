@@ -20,6 +20,7 @@ import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
 
+import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const ID = "tabs";
 
 const sampleTab = (label, heading, body, image) => ({
@@ -180,7 +181,7 @@ function FormPanel({ config, onUpdate }) {
     });
 
   return (
-    <div className="space-y-5">
+    <FormAccordion sectionType="tabs">
       <Group title="Theme">
         <ToggleField
           label="Make wide"
@@ -301,18 +302,7 @@ function FormPanel({ config, onUpdate }) {
           )}
         />
       </div>
-    </div>
-  );
-}
-
-function Group({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
+    </FormAccordion>
   );
 }
 

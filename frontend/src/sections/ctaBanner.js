@@ -25,6 +25,7 @@ import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
 
+import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const ID = "cta-banner";
 
 const defaults = () => ({
@@ -170,7 +171,7 @@ ${baseReset(cls)}
 
 function FormPanel({ config, onUpdate }) {
   return (
-    <div className="space-y-6">
+    <FormAccordion sectionType="cta-banner">
       <Group title="Copy">
         <TextField
           label="Eyebrow (optional)"
@@ -376,18 +377,7 @@ function FormPanel({ config, onUpdate }) {
           testid="cta-accent"
         />
       </Group>
-    </div>
-  );
-}
-
-function Group({ title, children }) {
-  return (
-    <div className="space-y-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
+    </FormAccordion>
   );
 }
 

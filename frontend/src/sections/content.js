@@ -26,6 +26,7 @@ import {
 import ColorField from "@/components/ColorField";
 import ListEditor from "@/components/ListEditor";
 
+import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const ID = "content";
 
 const defaults = () => ({
@@ -147,7 +148,7 @@ ${baseReset(cls)}
 
 function FormPanel({ config, onUpdate }) {
   return (
-    <div className="space-y-5">
+    <FormAccordion sectionType="content">
       <Group title="Header">
         <TextField
           label="Eyebrow (optional)"
@@ -268,7 +269,7 @@ function FormPanel({ config, onUpdate }) {
       <Group title={`Buttons (${(config.buttons || []).length})`}>
         <ButtonsList config={config} onUpdate={onUpdate} />
       </Group>
-    </div>
+    </FormAccordion>
   );
 }
 
@@ -357,17 +358,6 @@ function ButtonsList({ config, onUpdate }) {
         </>
       )}
     />
-  );
-}
-
-function Group({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
   );
 }
 

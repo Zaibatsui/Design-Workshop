@@ -24,6 +24,7 @@ import {
 import ColorField from "@/components/ColorField";
 import ListEditor from "@/components/ListEditor";
 
+import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const ID = "steps";
 
 const sampleStep = (i) => ({
@@ -133,7 +134,7 @@ function FormPanel({ config, onUpdate }) {
   const reorderSteps = (next) => onUpdate({ steps: next });
 
   return (
-    <div className="space-y-6">
+    <FormAccordion sectionType="steps">
       <Group title="Header">
         <TextField
           label="Eyebrow (optional)"
@@ -281,18 +282,7 @@ function FormPanel({ config, onUpdate }) {
           )}
         />
       </Group>
-    </div>
-  );
-}
-
-function Group({ title, children }) {
-  return (
-    <div className="space-y-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
+    </FormAccordion>
   );
 }
 
