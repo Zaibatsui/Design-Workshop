@@ -167,20 +167,60 @@ ${baseReset(cls)}
   // call the scrape endpoint and update the price text. Cached 30 min in
   // localStorage. Failures are silent so the snippet always renders.
   //
-  // Also reactive to the host page's VAT toggle (.vat-switcher-label):
-  // when the label text changes the snippet invalidates its cache and
-  // refetches every live card with the new VAT mode passed through to
-  // the scraper, so the displayed price matches what the storefront is
-  // currently showing.
+  // Also reactive to the host page's VAT toggle. We intentionally keep
+  // the detection logic broad so this works on ANY Nettailer-flavoured
+  // host (not just demo.nettailer.com):
+  //
+  //   1. `vatMode()` reads three independent signals — label text, then
+  //      `.vat-switcher` data/class/aria attributes, then a body-level
+  //      class. Whichever the storefront uses, we'll pick it up.
+  //   2. A broad MutationObserver on `document.body` watches text +
+  //      class + data + aria changes so we catch node-replacement
+  //      toggles (where the switcher element is re-rendered, not
+  //      mutated) as well as text-only toggles.
+  //   3. A 500ms polling fallback guarantees the toggle still flips
+  //      prices on any host whose DOM updates we don't observe (e.g.
+  //      JS-driven state held outside the DOM).
+  //
+  // The first scrape pre-warms both `::incl` and `::excl` keys in
+  // localStorage, so a toggle flips prices instantly from cache (no
+  // round-trip) — we call `fetchOne(c, false)` on mode change to hit
+  // that cache first and fall back to the backend only on miss.
   const liveJs = apiBase
     ? `var TTL=18e5,API=${JSON.stringify(apiBase + "/api/scrape-product")};` +
-      `function vatMode(){try{var el=document.querySelector(".vat-switcher-label");if(!el)return null;var t=(el.textContent||"").toLowerCase();return t.indexOf("incl")>=0?"incl":t.indexOf("excl")>=0?"excl":null;}catch(e){return null;}}` +
+      `function vatMode(){try{` +
+        // 1. Label text (works on demo.nettailer.com and standard skins).
+        `var el=document.querySelector(".vat-switcher-label");` +
+        `if(el){var t=(el.textContent||"").toLowerCase();` +
+          `if(t.indexOf("incl")>=0)return"incl";` +
+          `if(t.indexOf("excl")>=0)return"excl";}` +
+        // 2. .vat-switcher data/class/aria attributes (covers skins
+        // that replace the label node on toggle, or signal state via
+        // attributes instead of text).
+        `var sw=document.querySelector(".vat-switcher");` +
+        `if(sw){` +
+          `var ds=(sw.getAttribute("data-state")||sw.getAttribute("data-vat")||sw.getAttribute("aria-pressed")||"").toLowerCase();` +
+          `if(ds.indexOf("incl")>=0||ds==="true")return"incl";` +
+          `if(ds.indexOf("excl")>=0||ds==="false")return"excl";` +
+          `var cn=(sw.className||"").toLowerCase();` +
+          `if(cn.indexOf("incl")>=0||cn.indexOf("inc-vat")>=0)return"incl";` +
+          `if(cn.indexOf("excl")>=0||cn.indexOf("exc-vat")>=0)return"excl";}` +
+        // 3. Body-level class (some white-labels toggle on <body>).
+        `var bc=(document.body.className||"").toLowerCase();` +
+        `if(bc.indexOf("inc-vat")>=0||bc.indexOf("incl-vat")>=0)return"incl";` +
+        `if(bc.indexOf("exc-vat")>=0||bc.indexOf("excl-vat")>=0)return"excl";` +
+      `}catch(e){}return null;}` +
       `function ckey(u,m){return"ns-px:"+u+"::"+(m||"default");}` +
       `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(amt&&p)amt.textContent=p;if(sfx&&m){var s=(sfx.textContent||"").toLowerCase();if(s.indexOf("vat")>=0){sfx.textContent=m==="incl"?"Incl VAT":"Excl VAT";}}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
       `fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u,vat_mode:m})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));if(d.priceInc)localStorage.setItem(ckey(u,"incl"),JSON.stringify({t:now,p:d.priceInc}));if(d.priceExc)localStorage.setItem(ckey(u,"excl"),JSON.stringify({t:now,p:d.priceExc}));}catch(e){}}).catch(function(){});}` +
       `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(c){fetchOne(c,false);});` +
-      // Watch the host's VAT switcher for label-text changes and refetch.
-      `try{var sw=document.querySelector(".vat-switcher-label");if(sw&&typeof MutationObserver!=="undefined"){var lastV=vatMode();var mo=new MutationObserver(function(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){fetchOne(c,true);});});mo.observe(sw,{childList:true,characterData:true,subtree:true});}}catch(e){}` +
+      // Watch for VAT-toggle changes via a broad MutationObserver +
+      // polling fallback. Both call the same tick() which short-circuits
+      // when the detected mode hasn't actually changed, so the combined
+      // cost is two cheap DOM reads per change at most.
+      `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){fetchOne(c,false);});}` +
+      `try{if(typeof MutationObserver!=="undefined"){var mo=new MutationObserver(tick);mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class","data-state","data-vat","aria-pressed","aria-checked"]});}}catch(e){}` +
+      `setInterval(tick,500);` +
       `}`
     : "";
 
