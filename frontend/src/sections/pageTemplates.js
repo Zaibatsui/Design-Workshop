@@ -18,6 +18,7 @@ import {
   Users,
   BadgeDollarSign,
   ScrollText,
+  Palette,
 } from "lucide-react";
 import { SECTIONS_BY_ID } from "./registry";
 import { richtext } from "./richtext";
@@ -59,6 +60,87 @@ export const PAGE_TEMPLATES = [
     description: "Start empty — add blocks as you go.",
     icon: FileText,
     blocks: [],
+  },
+  {
+    id: "brand-page",
+    name: "Brand page",
+    description:
+      "Split banner → use-case cards → tech-highlight tabs → product carousel → brand statement. Inspired by vendor brand-page layouts.",
+    icon: Palette,
+    blocks: [
+      // Lead split banner — coloured panel + product image. Brand Kit
+      // will overlay panel/gradient colours and seed the dark logo on
+      // creation. fullBleed:true gives the cinematic edge-to-edge feel
+      // typical of vendor brand pages.
+      section("split-banner", {
+        fullBleed: true,
+        imageSide: "right",
+        panelRatio: 50,
+        eyebrow: "",
+        heading: "Built for work, home and everything in between",
+      }),
+      rt(
+        "<h2>Discover the range</h2><p>Solutions designed to support productivity, visual performance and everyday comfort across professional and home environments.</p>",
+        { padY: 56, align: "center", maxWidth: 720 }
+      ),
+      // Two image-led intro cards — Insights Grid in image-left layout
+      // with the accent strip turned off for the clean hairline look
+      // used on vendor product-range pages.
+      section("insights", {
+        eyebrow: "",
+        title: "",
+        columns: 2,
+        cardLayout: "image-left",
+        showAccentBorder: false,
+        imageWidth: 200,
+        paddingY: 0,
+        cards: [
+          {
+            id: makeUid(),
+            icon: "https://images.unsplash.com/photo-1593642634402-b0eb5e2eebc9?q=80&w=800&auto=format&fit=crop",
+            iconAlt: "Professional workspace",
+            heading: "Professional use",
+            body: "Solutions that support productivity, visual performance, comfort and sustainability across everyday working environments.",
+            linkText: "",
+            link: "",
+          },
+          {
+            id: makeUid(),
+            icon: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?q=80&w=800&auto=format&fit=crop",
+            iconAlt: "Home workspace",
+            heading: "Home use",
+            body: "A rich and varied choice of displays inspired by today's vibrant and diverse lifestyles.",
+            linkText: "",
+            link: "",
+          },
+        ],
+      }),
+      // Mid-page brand statement — CTA Banner with logo + gradient and
+      // NO buttons (empty primaryLabel = no button rendered).
+      section("cta-banner", {
+        fullBleed: true,
+        backgroundType: "gradient",
+        eyebrow: "",
+        heading: "Committed to the environment",
+        subheading:
+          "Designed with performance, efficiency and responsible innovation in mind — helping businesses choose display solutions that support productivity while considering long-term environmental impact.",
+        primaryLabel: "",
+        showSecondary: false,
+      }),
+      // Technology-highlight tabs — toggle pills + split image/copy
+      // panels. Defaults already match the brand-page convention.
+      rt(
+        "<h2>Designed for modern working</h2><p>Built to support productivity, comfort and image performance across modern working environments.</p>",
+        { padY: 56, align: "center", maxWidth: 720 }
+      ),
+      section("tabs"),
+      // Featured products — live scrape carousel.
+      rt(
+        "<h2>Featured products</h2><p>Selected for advanced connectivity, visual performance and long-term reliability.</p>",
+        { padY: 56, align: "center", maxWidth: 720 }
+      ),
+      section("products"),
+    ],
   },
   {
     id: "landing",

@@ -15,6 +15,7 @@ import {
   makeUid,
   num,
   safeColor,
+  safeUrl,
   wrapSnippet,
 } from "./shared";
 import { ICON_OPTIONS, svgIcon } from "./iconLib";
@@ -26,14 +27,20 @@ import {
   ToggleField,
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
+import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
+import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 const ID = "feature-grid";
 
 const sampleFeature = (i) => ({
   id: makeUid(),
+  // Both `icon` and `image` are persisted on every feature so switching
+  // `cardLayout` back and forth doesn't lose previously-entered data.
   icon: ["zap", "shield", "layers", "code"][i % 4],
+  image: "",
+  imageAlt: "",
   title: ["Lightning fast", "Secure by default", "Composable", "Developer-friendly"][i % 4],
   body: "Short paragraph that backs up the title — keep it under 25 words for visual rhythm across cards.",
 });
@@ -53,6 +60,12 @@ const defaults = () => ({
   // Layout
   columns: 4, // 2 | 3 | 4
   cardStyle: "outlined", // "outlined" | "tinted" | "solid"
+  // `cardLayout` swaps between the icon-led card (current default) and
+  // two image-led variants. Image-led cards make Feature Grid suitable
+  // for "feature with hero image" / "use-case tile" patterns — same
+  // mental model as Insights Grid but with the cleaner value-prop
+  // headline rhythm Feature Grid is built around.
+  cardLayout: "icon", // "icon" | "image-top" | "image-left"
   textAlign: "left", // "left" | "center"
   features: [sampleFeature(0), sampleFeature(1), sampleFeature(2), sampleFeature(3)],
 });
@@ -73,8 +86,26 @@ const render = (cfg) => {
       ? "border-color:#fff"
       : "border-color:#cbd5e1";
 
+  const cardLayout =
+    cfg.cardLayout === "image-top" || cfg.cardLayout === "image-left"
+      ? cfg.cardLayout
+      : "icon";
+  const layoutMod = cardLayout === "icon" ? "" : ` is-${cardLayout}`;
+
   const featuresHtml = (cfg.features || [])
     .map((f) => {
+      // Image-led cards bypass the icon box entirely. We keep both
+      // `icon` and `image` persisted on the feature record so the user
+      // can flip cardLayout back to "icon" without losing data.
+      if (cardLayout !== "icon") {
+        const imgUrl = safeUrl(f.image);
+        const imgHtml = imgUrl
+          ? `<img src="${escAttr(imgUrl)}" alt="${escAttr(f.imageAlt || f.title || "")}"/>`
+          : "";
+        return `<article class="ns-card${layoutMod}"><div class="ns-image-wrap">${imgHtml}</div><div class="ns-card-body"><h3 class="ns-title">${escHtml(
+          f.title || ""
+        )}</h3><p class="ns-body">${escHtml(f.body || "")}</p></div></article>`;
+      }
       const iconHtml = svgIcon(f.icon || "none", 18);
       const iconBox = iconHtml
         ? `<div class="ns-icon-box" aria-hidden="true">${iconHtml}</div>`
@@ -121,8 +152,16 @@ ${baseReset(cls)}
 .${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${accent}1a;color:${accent};margin-bottom:20px}
 .${cls} .ns-card .ns-title{font-size:16px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:${isSolid ? "#fff" : textColor};margin-bottom:8px}
 .${cls} .ns-card .ns-body{font-size:14px;line-height:1.6;color:${isSolid ? "rgba(255,255,255,0.7)" : bodyColor}}
+.${cls} .ns-card.is-image-top,.${cls} .ns-card.is-image-left{padding:0;overflow:hidden}
+.${cls} .ns-card.is-image-top{display:flex;flex-direction:column}
+.${cls} .ns-card.is-image-top .ns-image-wrap{width:100%;aspect-ratio:16/9;background:#f1f5f9;overflow:hidden}
+.${cls} .ns-card.is-image-top .ns-card-body{padding:24px 24px 26px}
+.${cls} .ns-card.is-image-left{display:flex;flex-direction:row;align-items:stretch}
+.${cls} .ns-card.is-image-left .ns-image-wrap{flex:0 0 130px;align-self:stretch;background:#f1f5f9;overflow:hidden}
+.${cls} .ns-card.is-image-left .ns-card-body{padding:22px 24px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.${cls} .ns-card.is-image-top .ns-image-wrap img,.${cls} .ns-card.is-image-left .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 @media (max-width:1024px){.${cls} .ns-grid{grid-template-columns:repeat(${Math.min(cols, 2)},minmax(0,1fr))}}
-@media (max-width:640px){.${cls} .ns-grid{grid-template-columns:1fr}}
+@media (max-width:640px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-card.is-image-left{flex-direction:column}.${cls} .ns-card.is-image-left .ns-image-wrap{flex-basis:auto;width:100%;aspect-ratio:16/9}}
 `.trim();
 
   return wrapSnippet({ html, css, js: "" });
@@ -187,6 +226,17 @@ function FormPanel({ config, onUpdate }) {
             { value: "solid", label: "Solid (dark card, white text)" },
           ]}
           testid="fg-card-style"
+        />
+        <SelectField
+          label="Card layout"
+          value={config.cardLayout || "icon"}
+          onChange={(v) => onUpdate({ cardLayout: v })}
+          options={[
+            { value: "icon", label: "Icon (top-left, framed)" },
+            { value: "image-top", label: "Image (top of card, 16:9)" },
+            { value: "image-left", label: "Image (left of card, square)" },
+          ]}
+          testid="fg-card-layout"
         />
         <SelectField
           label="Header alignment"
@@ -259,13 +309,36 @@ function FormPanel({ config, onUpdate }) {
           )}
           renderForm={(f) => (
             <>
-              <SelectField
-                label="Icon"
-                value={f.icon || "none"}
-                onChange={(v) => updateFeature(f.id, { icon: v })}
-                options={ICON_OPTIONS}
-                testid={`fg-icon-${f.id}`}
-              />
+              {(config.cardLayout || "icon") === "icon" ? (
+                <SelectField
+                  label="Icon"
+                  value={f.icon || "none"}
+                  onChange={(v) => updateFeature(f.id, { icon: v })}
+                  options={ICON_OPTIONS}
+                  testid={`fg-icon-${f.id}`}
+                />
+              ) : (
+                <>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Image
+                    </Label>
+                    <ImageUpload
+                      value={f.image || ""}
+                      onChange={(v) => updateFeature(f.id, { image: v })}
+                      testid={`fg-image-${f.id}`}
+                      compact
+                    />
+                  </div>
+                  <TextField
+                    label="Image alt (optional)"
+                    value={f.imageAlt || ""}
+                    onChange={(v) => updateFeature(f.id, { imageAlt: v })}
+                    placeholder="Falls back to the title"
+                    testid={`fg-image-alt-${f.id}`}
+                  />
+                </>
+              )}
               <TextField
                 label="Title"
                 value={f.title}
