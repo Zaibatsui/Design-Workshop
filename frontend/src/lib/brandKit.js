@@ -220,6 +220,11 @@ const FIELD_MAP = {
   "cta-banner": (cfg, b) => ({
     ...cfg,
     bgColor: b.secondary_color,
+    // Gradient stops mirror Split Banner: primary → secondary so the
+    // CTA gradient stays on-brand whenever the user (or a template)
+    // flips `backgroundType` to "gradient".
+    gradientFrom: b.primary_color,
+    gradientTo: b.secondary_color,
     textColor: b.background_color,
     bodyColor: b.body_color,
     accentColor: pick(b, "button_color"),
