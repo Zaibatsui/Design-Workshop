@@ -365,7 +365,7 @@ function FormPanel({ config, onUpdate }) {
           testid="cta-text"
         />
         <ColorField
-          label="Body colour"
+          label="Subheading colour"
           value={config.bodyColor}
           onChange={(v) => onUpdate({ bodyColor: v })}
           testid="cta-body"

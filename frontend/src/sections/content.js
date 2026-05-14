@@ -221,16 +221,6 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="content-pad"
         />
-        <SliderField
-          label="Max width"
-          value={config.maxWidth}
-          min={420}
-          max={1400}
-          step={10}
-          suffix="px"
-          onChange={(v) => onUpdate({ maxWidth: v })}
-          testid="content-max"
-        />
       </Group>
 
       <Group title="Theme">

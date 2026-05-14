@@ -81,7 +81,7 @@ export const PAGE_TEMPLATES = [
       }),
       rt(
         "<h2>Discover the range</h2><p>Solutions designed to support productivity, visual performance and everyday comfort across professional and home environments.</p>",
-        { padY: 56, align: "center", maxWidth: 720 }
+        { padY: 56, align: "center" }
       ),
       // Two image-led intro cards — Insights Grid in image-left layout
       // with the accent strip turned off for the clean hairline look
@@ -131,13 +131,13 @@ export const PAGE_TEMPLATES = [
       // panels. Defaults already match the brand-page convention.
       rt(
         "<h2>Designed for modern working</h2><p>Built to support productivity, comfort and image performance across modern working environments.</p>",
-        { padY: 56, align: "center", maxWidth: 720 }
+        { padY: 56, align: "center" }
       ),
       section("tabs"),
       // Featured products — live scrape carousel.
       rt(
         "<h2>Featured products</h2><p>Selected for advanced connectivity, visual performance and long-term reliability.</p>",
-        { padY: 56, align: "center", maxWidth: 720 }
+        { padY: 56, align: "center" }
       ),
       section("products"),
     ],
@@ -151,14 +151,14 @@ export const PAGE_TEMPLATES = [
       section("hero"),
       rt(
         "<h2>Built for IT and telecom retailers</h2><p>Ship faster, convert better, scale without re-platforming. A pragmatic toolkit designed by operators who've actually run the store.</p>",
-        { padY: 64, align: "center", maxWidth: 720 }
+        { padY: 64, align: "center" }
       ),
       section("logos", { logos: sampleITLogos() }),
       section("insights"),
       section("testimonials"),
       rt(
         "<h2>Ready when you are</h2><p>Book a 20-minute walkthrough and see how Nettailer fits your stack.</p>",
-        { padY: 48, align: "center", maxWidth: 640 }
+        { padY: 48, align: "center" }
       ),
       section("break"),
     ],
@@ -172,7 +172,7 @@ export const PAGE_TEMPLATES = [
       section("hero"),
       rt(
         "<h2>Also worth a look</h2><p>Hand-picked alternatives and complements from our catalogue.</p>",
-        { padY: 56, align: "left", maxWidth: 1100 }
+        { padY: 56, align: "left" }
       ),
       section("products"),
       section("insights"),
@@ -188,7 +188,7 @@ export const PAGE_TEMPLATES = [
       section("break"),
       rt(
         "<h2>This week's picks</h2><p>Fast movers across the category — updated live from the catalogue.</p>",
-        { padY: 48, align: "left", maxWidth: 1100 }
+        { padY: 48, align: "left" }
       ),
       section("products"),
       section("tabs"),
@@ -205,7 +205,7 @@ export const PAGE_TEMPLATES = [
       section("hero"),
       rt(
         "<h1>A bit about us</h1><p>We build tooling for IT and telecom retailers because we've been them. Every decision optimises for the person behind the till — not the one signing the SaaS contract.</p><p>The team is small, the backlog isn't. If you'd like to work with us, get in touch.</p>",
-        { padY: 80, align: "left", maxWidth: 720 }
+        { padY: 80, align: "left" }
       ),
       section("logos", { logos: sampleITLogos() }),
       section("insights"),
@@ -221,17 +221,17 @@ export const PAGE_TEMPLATES = [
       section("break"),
       rt(
         "<h1>Honest pricing</h1><p>Pick the tier that fits today. Move between them any time — prorated, no sales call.</p>",
-        { padY: 64, align: "center", maxWidth: 720 }
+        { padY: 64, align: "center" }
       ),
       section("tabs"),
       rt(
         "<h2>Frequently asked</h2><p>A handful of answers to the questions we get most often.</p>",
-        { padY: 48, align: "left", maxWidth: 960 }
+        { padY: 48, align: "left" }
       ),
       section("insights"),
       rt(
         "<h2>Still on the fence?</h2><p>Book a 20-minute call — we'll tailor a demo to your actual stack.</p>",
-        { padY: 56, align: "center", maxWidth: 560 }
+        { padY: 56, align: "center" }
       ),
     ],
   },
@@ -244,16 +244,16 @@ export const PAGE_TEMPLATES = [
       section("hero"),
       rt(
         "<h1>A headline that earns the click</h1><p><em>Written by the team · 4 minute read</em></p><p>Open with the idea that would make a reader nod. Then back it up with one concrete example of the problem — something specific enough that it's obvious we've actually run into it ourselves.</p>",
-        { padY: 64, align: "left", maxWidth: 720 }
+        { padY: 64, align: "left" }
       ),
       rt(
         "<h2>The argument</h2><p>Here is where you make the case. Keep paragraphs tight — three or four sentences each. Use <strong>bold</strong> to pull the eye to the numbers that matter and link out <a href=\"#\">only when it's genuinely useful</a>.</p><ul><li>A punchy list when you need to slow the reader down</li><li>One item per thought — no smuggled sub-clauses</li><li>Three to five items max, otherwise it's a spreadsheet</li></ul><h2>What it looks like in practice</h2><p>Ground the idea in a scenario your reader would recognise. This is usually the section people screenshot and share.</p>",
-        { padY: 0, align: "left", maxWidth: 720 }
+        { padY: 0, align: "left" }
       ),
       section("resources"),
       rt(
         "<h2>You might also like</h2><p>Related products from the catalogue.</p>",
-        { padY: 56, align: "left", maxWidth: 1100 }
+        { padY: 56, align: "left" }
       ),
       section("products"),
     ],
