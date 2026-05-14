@@ -13,9 +13,11 @@ import { faq } from "./faq";
 import { ctaBanner } from "./ctaBanner";
 import { testimonials } from "./testimonials";
 import { welcome } from "./welcome";
+import { splitBanner } from "./splitBanner";
 
 export const SECTIONS = [
   hero,
+  splitBanner,
   welcome,
   content,
   products,
