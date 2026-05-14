@@ -148,23 +148,23 @@ function render(cfg) {
   const css = `
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;background:#fff;overflow:hidden}
-.${cls} .ns-grid{display:grid;grid-template-columns:${gridCols};min-height:${height}px;align-items:stretch}
-.${cls} .ns-panel{background:${panelBg};color:${safeColor(cfg.titleColor, "#ffffff")};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:48px 56px}
+.${cls} .ns-grid{display:grid;grid-template-columns:${gridCols};height:${height}px;min-height:${height}px;align-items:stretch}
+.${cls} .ns-panel{background:${panelBg};color:${safeColor(cfg.titleColor, "#ffffff")};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;height:100%}
 .${cls} .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
-.${cls} .ns-logo{display:block;max-height:64px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 22px;object-fit:contain}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 12px;opacity:.9}
-.${cls} .ns-title{font-size:clamp(1.75rem,3.4vw,2.5rem);font-weight:700;line-height:1.12;letter-spacing:-.02em;color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 14px}
-.${cls} .ns-subtitle{font-size:clamp(.95rem,1.3vw,1.0625rem);line-height:1.55;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 22px;max-width:560px}
-.${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:13px 26px;border-radius:8px;font-weight:600;font-size:15px;transition:transform .15s ease,filter .15s ease;margin-top:6px}
+.${cls} .ns-logo{display:block;max-height:48px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 12px;object-fit:contain}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 8px;opacity:.9}
+.${cls} .ns-title{font-size:clamp(1.4rem,3vw,2.4rem);font-weight:700;line-height:1.15;letter-spacing:-.02em;color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
+.${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
+.${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:8px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
-.${cls} .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden;min-height:${height}px}
+.${cls} .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden;height:100%}
 .${cls} .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls}:not(.is-full) .ns-grid{max-width:${contentMax}px;margin:0 auto}
 .${cls}.is-full .ns-panel.is-side-left{padding-left:max(20px,calc((100vw - ${contentMax}px) / 2));padding-right:48px}
 .${cls}.is-full .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
 .${cls}.is-full .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
-@media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:260px;height:260px}.${cls} .ns-panel{order:2;padding:40px 24px!important}.${cls} .ns-panel-inner{max-width:none;margin:0!important}.${cls} .ns-title{font-size:1.75rem}}
+@media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;height:auto;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:220px;height:220px}.${cls} .ns-panel{order:2;padding:32px 24px!important;height:auto}.${cls} .ns-panel-inner{max-width:none;margin:0!important}.${cls} .ns-title{font-size:1.5rem}}
 `.trim();
 
   return wrapSnippet({ html, css, js: "" });
@@ -294,7 +294,7 @@ function FormPanel({ config, onUpdate }) {
         <SliderField
           label="Height"
           value={config.height || 420}
-          min={260}
+          min={150}
           max={680}
           step={10}
           suffix="px"
