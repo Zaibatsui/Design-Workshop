@@ -14,7 +14,7 @@ import {
   safeUrl,
   wrapSnippet,
 } from "./shared";
-import { TextField, TextAreaField, SliderField, ToggleField } from "@/components/FormFields";
+import { TextField, TextAreaField, SliderField, SelectField, ToggleField } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,15 @@ const defaults = () => ({
   eyebrowColor: "#ffffff",
   fontSize: 34,
   height: 280,
+  // Background style — "image" is the classic Break Banner (photo +
+  // overlay), "solid" / "gradient" produce on-brand colour-only
+  // dividers. Image-mode keeps the existing overlay controls; the
+  // colour modes ignore them.
+  backgroundType: "image", // "image" | "solid" | "gradient"
+  bgColor: "#1f2937",
+  gradientFrom: "#E01839",
+  gradientTo: "#1f2937",
+  gradientAngle: 135,
   overlayColor: "#000000",
   overlayOpacity: 0.55,
   fullBleed: false,
@@ -41,6 +50,10 @@ const defaults = () => ({
 function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-break-${uid}`;
+  const bgMode =
+    cfg.backgroundType === "solid" || cfg.backgroundType === "gradient"
+      ? cfg.backgroundType
+      : "image";
 
   const styleVars = [
     `--ns-h:${num(cfg.height, 280)}px`,
@@ -51,9 +64,21 @@ function render(cfg) {
     `--ns-overlay-op:${num(cfg.overlayOpacity, 0.55)}`,
   ].join(";");
 
+  // Inline background style is mode-dependent so we keep the snippet
+  // self-contained (no extra rule chain for what is essentially a one
+  // -off banner).
+  let inlineBg = "";
+  if (bgMode === "image") {
+    inlineBg = `background-image:url('${escAttr(safeUrl(cfg.image))}');background-size:cover;background-position:center`;
+  } else if (bgMode === "gradient") {
+    inlineBg = `background:linear-gradient(${num(cfg.gradientAngle, 135)}deg, ${safeColor(cfg.gradientFrom, "#E01839")} 0%, ${safeColor(cfg.gradientTo, "#1f2937")} 100%)`;
+  } else {
+    inlineBg = `background:${safeColor(cfg.bgColor, "#1f2937")}`;
+  }
+
   const css = `
 ${baseReset(cls)}
-.${cls}{position:relative;width:100%;min-height:var(--ns-h);display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;overflow:hidden;color:var(--ns-text)}
+.${cls}{position:relative;width:100%;min-height:var(--ns-h);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--ns-text)}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay);opacity:var(--ns-overlay-op);pointer-events:none}
 .${cls} .ns-inner{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:40px 20px;text-align:center}
 .${cls} .ns-eyebrow{margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow);opacity:0.9}
@@ -61,8 +86,14 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-h{font-size:calc(var(--ns-size) * .75)}}
 `.trim();
 
-  const html = `<section class="ns-break ${cls}${fullBleedClass(cfg)}" style="${styleVars};background-image:url('${escAttr(safeUrl(cfg.image))}')">
-  <div class="ns-overlay"></div>
+  // Overlay is only meaningful when there's an image to soften — for
+  // solid + gradient modes we drop the overlay div entirely so the
+  // colour shines through pure and the editor controls below stay
+  // visually consistent with the snippet output.
+  const overlayHtml = bgMode === "image" ? `<div class="ns-overlay"></div>` : "";
+
+  const html = `<section class="ns-break ${cls}${fullBleedClass(cfg)}" style="${styleVars};${inlineBg}">
+  ${overlayHtml}
   <div class="ns-inner">
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     <h2 class="ns-h">${escHtml(cfg.heading)}</h2>
@@ -122,16 +153,80 @@ function FormPanel({ config, onUpdate }) {
       </Group>
 
       <Group title="Theme">
-        <div>
-          <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Background image
-          </Label>
-          <ImageUpload
-            value={config.image}
-            onChange={(v) => onUpdate({ image: v })}
-            testid="break-image"
+        <SelectField
+          label="Background style"
+          value={config.backgroundType || "image"}
+          onChange={(v) => onUpdate({ backgroundType: v })}
+          options={[
+            { value: "image", label: "Image with overlay" },
+            { value: "solid", label: "Solid colour" },
+            { value: "gradient", label: "Linear gradient" },
+          ]}
+          testid="break-bg-type"
+        />
+        {(config.backgroundType || "image") === "image" && (
+          <>
+            <div>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Background image
+              </Label>
+              <ImageUpload
+                value={config.image}
+                onChange={(v) => onUpdate({ image: v })}
+                testid="break-image"
+              />
+            </div>
+            <ColorField
+              label="Overlay color"
+              value={config.overlayColor}
+              onChange={(v) => onUpdate({ overlayColor: v })}
+              testid="break-overlay"
+            />
+            <SliderField
+              label="Overlay opacity"
+              value={Math.round(config.overlayOpacity * 100)}
+              min={0}
+              max={100}
+              suffix="%"
+              onChange={(v) => onUpdate({ overlayOpacity: v / 100 })}
+              testid="break-opacity"
+            />
+          </>
+        )}
+        {config.backgroundType === "solid" && (
+          <ColorField
+            label="Background colour"
+            value={config.bgColor}
+            onChange={(v) => onUpdate({ bgColor: v })}
+            testid="break-bg"
           />
-        </div>
+        )}
+        {config.backgroundType === "gradient" && (
+          <>
+            <ColorField
+              label="Gradient from"
+              value={config.gradientFrom}
+              onChange={(v) => onUpdate({ gradientFrom: v })}
+              testid="break-grad-from"
+            />
+            <ColorField
+              label="Gradient to"
+              value={config.gradientTo}
+              onChange={(v) => onUpdate({ gradientTo: v })}
+              testid="break-grad-to"
+            />
+            <SliderField
+              label="Gradient angle"
+              value={config.gradientAngle ?? 135}
+              min={0}
+              max={360}
+              step={5}
+              suffix="°"
+              onChange={(v) => onUpdate({ gradientAngle: v })}
+              testid="break-grad-angle"
+            />
+          </>
+        )}
         <ColorField
           label="Eyebrow color"
           value={config.eyebrowColor || config.textColor}
@@ -143,21 +238,6 @@ function FormPanel({ config, onUpdate }) {
           value={config.textColor}
           onChange={(v) => onUpdate({ textColor: v })}
           testid="break-text"
-        />
-        <ColorField
-          label="Overlay color"
-          value={config.overlayColor}
-          onChange={(v) => onUpdate({ overlayColor: v })}
-          testid="break-overlay"
-        />
-        <SliderField
-          label="Overlay opacity"
-          value={Math.round(config.overlayOpacity * 100)}
-          min={0}
-          max={100}
-          suffix="%"
-          onChange={(v) => onUpdate({ overlayOpacity: v / 100 })}
-          testid="break-opacity"
         />
       </Group>
     </FormAccordion>
