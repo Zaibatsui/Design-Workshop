@@ -32,6 +32,12 @@ const ID = "hero";
 const defaults = () => ({
   uid: makeUid(),
   transition: "slide",
+  // Slide layout — "standard" = background image with overlay (the
+  // classic hero), "split" = each slide is a 2-column block: panel
+  // (logo + title + subtitle + CTA) on one side, image on the other.
+  // The carousel mechanics (slide vs fade, autoplay, arrows, dots) are
+  // unchanged — only the inner slide markup differs.
+  slideLayout: "standard",
   theme: {
     ctaBg: "#E01839",
     ctaText: "#ffffff",
@@ -39,12 +45,23 @@ const defaults = () => ({
     subtitleColor: "#f1f5f9",
     overlayColor: "#000000",
     overlayOpacity: 0.4,
+    // Split-only fields (ignored in standard layout). Defaults track
+    // DEFAULT_BRAND_KIT secondary/primary; Brand Kit overlays them on
+    // new section creation.
+    panelBgType: "solid", // "solid" | "gradient"
+    panelBg: "#1f2937",
+    panelGradientFrom: "#E01839",
+    panelGradientTo: "#1f2937",
+    panelGradientAngle: 135,
   },
   layout: {
     height: 520,
     contentMaxWidth: 1200,
     textAlign: "left",
     borderRadius: 0,
+    // Split-only layout fields.
+    imageSide: "right", // "left" | "right"
+    panelRatio: 50, // 40 | 50 | 60 — % width of the panel column
   },
   settings: {
     autoplay: true,
@@ -90,6 +107,90 @@ const defaults = () => ({
   ],
 });
 
+// ──────────────────────────────────────────────────────────────────────
+// Split-slide helpers.
+//
+// When `cfg.slideLayout === "split"`, each slide is rendered as a 2-col
+// block: image on one side, brand panel on the other. The carousel
+// outer mechanics (track + transitions + autoplay + arrows + dots) are
+// untouched — only the inner slide markup + extra CSS differs.
+//
+// Full-bleed alignment trick: when the section sits at 100vw, the panel
+// column's OUTER edge gets a calc-based gutter so its inner content
+// lines up with where the host site's centred content column would
+// start/end. Prevents headings drifting to the far viewport edge on
+// wide monitors. Mirrors the standalone Split Banner section's logic.
+// ──────────────────────────────────────────────────────────────────────
+function splitSlideInner(slide, cfg) {
+  const imageSide = (cfg.layout || {}).imageSide === "left" ? "left" : "right";
+  const logo = safeUrl(slide.logo);
+  const bg = safeUrl(slide.image);
+  const cta = slide.ctaText && slide.ctaText.trim();
+  const link = safeUrl(slide.ctaLink || "#");
+  const target = slide.openInSameTab ? "_self" : "_blank";
+  const rel = slide.openInSameTab ? "" : ' rel="noopener noreferrer"';
+
+  // Panel sits on the side OPPOSITE to the image.
+  const panelSide = imageSide === "left" ? "right" : "left";
+
+  const panelHtml = `<div class="ns-panel is-side-${panelSide}">
+    <div class="ns-panel-inner">
+      ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
+      ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
+      ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
+      ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
+    </div>
+  </div>`;
+
+  const imageHtml = `<div class="ns-image-wrap">${
+    bg ? `<img src="${escAttr(bg)}" alt="${escAttr(slide.title || "")}"/>` : ""
+  }</div>`;
+
+  return `<div class="ns-split-grid">${imageSide === "left" ? imageHtml + panelHtml : panelHtml + imageHtml}</div>`;
+}
+
+function splitCss(cls, cfg) {
+  const t = cfg.theme || {};
+  const l = cfg.layout || {};
+  const imageSide = l.imageSide === "left" ? "left" : "right";
+  const ratio = Math.max(30, Math.min(70, num(l.panelRatio, 50)));
+  const panelPct = ratio;
+  const imagePct = 100 - ratio;
+  const contentMax = num(l.contentMaxWidth, 1200);
+
+  const panelBg =
+    t.panelBgType === "solid"
+      ? safeColor(t.panelBg, "#1f2937")
+      : `linear-gradient(${num(t.panelGradientAngle, 135)}deg, ${safeColor(
+          t.panelGradientFrom,
+          "#E01839"
+        )} 0%, ${safeColor(t.panelGradientTo, "#1f2937")} 100%)`;
+
+  const gridCols =
+    imageSide === "left"
+      ? `${imagePct}% ${panelPct}%`
+      : `${panelPct}% ${imagePct}%`;
+
+  // We *intentionally* re-scope inside .ns-slide so these rules override
+  // the standard padding / overlay rules in both renderSlide and
+  // renderFade without needing to touch their base CSS strings.
+  return `
+.${cls} .ns-slide{padding:0;background:none}
+.${cls} .ns-slide .ns-overlay{display:none}
+.${cls} .ns-split-grid{display:grid;grid-template-columns:${gridCols};width:100%;height:100%;align-items:stretch}
+.${cls} .ns-split-grid .ns-panel{background:${panelBg};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:48px 56px}
+.${cls} .ns-split-grid .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
+.${cls} .ns-split-grid .ns-panel-inner .ns-logo{margin:0 0 22px}
+.${cls} .ns-split-grid .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden}
+.${cls} .ns-split-grid .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.${cls}.is-full .ns-split-grid .ns-panel.is-side-left{padding-left:max(20px,calc((100vw - ${contentMax}px) / 2));padding-right:48px}
+.${cls}.is-full .ns-split-grid .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
+.${cls}.is-full .ns-split-grid .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
+.${cls}.is-full .ns-split-grid .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
+@media (max-width:767px){.${cls} .ns-split-grid{grid-template-columns:1fr}.${cls} .ns-split-grid .ns-image-wrap{order:1;min-height:240px;height:240px}.${cls} .ns-split-grid .ns-panel{order:2;padding:36px 24px!important}.${cls} .ns-split-grid .ns-panel-inner{max-width:none!important;margin:0!important}}
+`.trim();
+}
+
 function renderSlide(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-hero-slide-${uid}`;
@@ -97,6 +198,7 @@ function renderSlide(cfg) {
   const l = cfg.layout;
   const s = cfg.settings;
   const slides = (cfg.slides || []).filter(Boolean);
+  const isSplit = cfg.slideLayout === "split";
 
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
@@ -109,6 +211,9 @@ function renderSlide(cfg) {
 
   const slidesHtml = slides
     .map((slide) => {
+      if (isSplit) {
+        return `<div class="ns-slide">${splitSlideInner(slide, cfg)}</div>`;
+      }
       const bg = safeUrl(slide.image);
       const logo = safeUrl(slide.logo);
       const cta = slide.ctaText && slide.ctaText.trim();
@@ -163,6 +268,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
+${isSplit ? splitCss(cls, cfg) : ""}
 `.trim();
 
   const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}">
@@ -186,6 +292,7 @@ function renderFade(cfg) {
   const l = cfg.layout;
   const s = cfg.settings;
   const slides = (cfg.slides || []).filter(Boolean);
+  const isSplit = cfg.slideLayout === "split";
 
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
@@ -202,6 +309,9 @@ function renderFade(cfg) {
 
   const slidesHtml = slides
     .map((slide, i) => {
+      if (isSplit) {
+        return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}">${splitSlideInner(slide, cfg)}</div>`;
+      }
       const bg = safeUrl(slide.image);
       const logo = safeUrl(slide.logo);
       const cta = slide.ctaText && slide.ctaText.trim();
@@ -260,6 +370,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
+${isSplit ? splitCss(cls, cfg) : ""}
 `.trim();
 
   const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}">
@@ -322,6 +433,7 @@ function FormPanel({ config, onUpdate }) {
     });
 
   const isFade = config.transition === "fade";
+  const isSplit = config.slideLayout === "split";
 
   return (
     <div className="space-y-5">
@@ -335,6 +447,16 @@ function FormPanel({ config, onUpdate }) {
             { value: "fade", label: "Fade" },
           ]}
           testid="hero-transition"
+        />
+        <SelectField
+          label="Slide layout"
+          value={config.slideLayout || "standard"}
+          onChange={(v) => onUpdate({ slideLayout: v })}
+          options={[
+            { value: "standard", label: "Standard (background image + overlay)" },
+            { value: "split", label: "Split panel (image + coloured panel)" },
+          ]}
+          testid="hero-slide-layout"
         />
         <ToggleField
           label="Make wide"
@@ -485,10 +607,57 @@ function FormPanel({ config, onUpdate }) {
             />
           </>
         )}
+        {isSplit && (
+          <>
+            <SelectField
+              label="Panel background"
+              value={t.panelBgType || "solid"}
+              onChange={(v) => setTheme({ panelBgType: v })}
+              options={[
+                { value: "solid", label: "Solid colour" },
+                { value: "gradient", label: "Linear gradient" },
+              ]}
+              testid="hero-panel-bg-type"
+            />
+            {(t.panelBgType || "solid") === "gradient" ? (
+              <>
+                <ColorField
+                  label="Gradient from"
+                  value={t.panelGradientFrom}
+                  onChange={(v) => setTheme({ panelGradientFrom: v })}
+                  testid="hero-panel-grad-from"
+                />
+                <ColorField
+                  label="Gradient to"
+                  value={t.panelGradientTo}
+                  onChange={(v) => setTheme({ panelGradientTo: v })}
+                  testid="hero-panel-grad-to"
+                />
+                <SliderField
+                  label="Gradient angle"
+                  value={t.panelGradientAngle ?? 135}
+                  min={0}
+                  max={360}
+                  step={5}
+                  suffix="°"
+                  onChange={(v) => setTheme({ panelGradientAngle: v })}
+                  testid="hero-panel-grad-angle"
+                />
+              </>
+            ) : (
+              <ColorField
+                label="Panel colour"
+                value={t.panelBg}
+                onChange={(v) => setTheme({ panelBg: v })}
+                testid="hero-panel-bg"
+              />
+            )}
+          </>
+        )}
       </Group>
 
       <Group title="Layout">
-        {isFade && (
+        {isFade && !isSplit && (
           <SelectField
             label="Text alignment"
             value={l.textAlign}
@@ -500,6 +669,31 @@ function FormPanel({ config, onUpdate }) {
             ]}
             testid="hero-text-align"
           />
+        )}
+        {isSplit && (
+          <>
+            <SelectField
+              label="Image side"
+              value={l.imageSide || "right"}
+              onChange={(v) => setLayout({ imageSide: v })}
+              options={[
+                { value: "right", label: "Image right of text" },
+                { value: "left", label: "Image left of text" },
+              ]}
+              testid="hero-image-side"
+            />
+            <SelectField
+              label="Panel width"
+              value={String(l.panelRatio || 50)}
+              onChange={(v) => setLayout({ panelRatio: Number(v) })}
+              options={[
+                { value: "40", label: "40% — image dominant" },
+                { value: "50", label: "50% — balanced" },
+                { value: "60", label: "60% — text dominant" },
+              ]}
+              testid="hero-panel-ratio"
+            />
+          </>
         )}
         <SliderField
           label="Height"
@@ -515,13 +709,13 @@ function FormPanel({ config, onUpdate }) {
           label="Content max width"
           value={l.contentMaxWidth}
           min={320}
-          max={1200}
+          max={1440}
           step={10}
           suffix="px"
           onChange={(v) => setLayout({ contentMaxWidth: v })}
           testid="hero-content-max"
         />
-        {isFade && (
+        {isFade && !isSplit && (
           <SliderField
             label="Border radius"
             value={l.borderRadius}

@@ -46,9 +46,11 @@ const ID = "split-banner";
 
 const defaults = () => ({
   uid: makeUid(),
-  // Content
+  // Content — kept generic. Brand Kit overlays colours, logo, font and
+  // eyebrow at new-section creation; copy + image stay as the user types
+  // them.
   eyebrow: "",
-  heading: "Philips monitors for work, home and everything in between",
+  heading: "Your headline goes here",
   subheading: "",
   logoUrl: "",
   logoAlt: "",
@@ -65,16 +67,17 @@ const defaults = () => ({
   height: 420, // px — min-height of the banner
   contentMaxWidth: 1200, // matches the host site's content gutter
   fullBleed: false,
-  // Theme — panel
-  panelBgType: "gradient", // "solid" | "gradient"
-  panelBg: "#0267d7",
-  gradientFrom: "#0267d7",
-  gradientTo: "#0b3e80",
+  // Theme — panel. Defaults track DEFAULT_BRAND_KIT (secondary_color
+  // for solid panel, primary→secondary for gradient).
+  panelBgType: "solid", // "solid" | "gradient"
+  panelBg: "#1f2937",
+  gradientFrom: "#E01839",
+  gradientTo: "#1f2937",
   gradientAngle: 135,
   // Theme — text
   titleColor: "#ffffff",
   subtitleColor: "rgba(255,255,255,0.92)",
-  eyebrowColor: "#ffffff",
+  eyebrowColor: "#E01839",
   // Theme — CTA
   ctaBg: "#E01839",
   ctaTextColor: "#ffffff",

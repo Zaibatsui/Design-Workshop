@@ -77,6 +77,7 @@ const EYEBROW_SECTIONS = new Set([
   "cta-banner",
   "testimonials",
   "welcome",
+  "split-banner",
 ]);
 
 function eyebrowFields(b) {
@@ -117,6 +118,10 @@ function applyToHero(cfg, b) {
   // titleColor, subtitleColor, overlayColor) — NOT in flat top-level
   // fields and NOT inside individual slides. Map onto theme so changing
   // the brand kit + Apply to library actually re-skins hero slides.
+  //
+  // Split-only panel colours (panelBg, panelGradientFrom/To) are also
+  // seeded so that switching `slideLayout` to "split" immediately
+  // produces brand-coloured panels without an extra editor step.
   return {
     ...cfg,
     font: b.heading_font,
@@ -127,6 +132,9 @@ function applyToHero(cfg, b) {
       ctaBg: pick(b, "button_color"),        // CTA button bg
       ctaText: b.background_color,           // CTA button text
       overlayColor: b.text_color,            // dark slate tint over photo
+      panelBg: b.secondary_color,            // split: solid panel
+      panelGradientFrom: b.primary_color,    // split: gradient from
+      panelGradientTo: b.secondary_color,    // split: gradient to
     },
   };
 }
@@ -238,6 +246,23 @@ const FIELD_MAP = {
     overlayColor: b.secondary_color,
     font: b.heading_font,
   }),
+  // Split Banner mirrors the CTA banner's inverted palette: a dark
+  // brand-coloured panel (solid `secondary_color` by default; users can
+  // flip to a primary→secondary gradient), light text, primary brand
+  // colour on the CTA. The eyebrow + eyebrow_text fields are set by
+  // `eyebrowFields()` after this mapper runs (split-banner is in
+  // EYEBROW_SECTIONS) so the eyebrow always picks up the brand accent.
+  "split-banner": (cfg, b) => ({
+    ...cfg,
+    panelBg: b.secondary_color,
+    gradientFrom: b.primary_color,
+    gradientTo: b.secondary_color,
+    titleColor: b.background_color,
+    subtitleColor: b.background_color,
+    ctaBg: pick(b, "button_color"),
+    ctaTextColor: b.background_color,
+    font: b.heading_font,
+  }),
 };
 
 /**
@@ -253,6 +278,7 @@ const FIELD_MAP = {
  */
 const LOGO_SEED = {
   welcome: { field: "logo", bg: "dark" },
+  "split-banner": { field: "logoUrl", bg: "dark" },
 };
 
 function seedHeroLogos(cfg, b) {
