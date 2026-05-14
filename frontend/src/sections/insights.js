@@ -56,6 +56,11 @@ const defaults = () => ({
   columns: 2,
   paddingY: 60,
   fullBleed: false,
+  // Visual options (Philips-style intro cards / generic resource cards).
+  // Defaults preserve prior behaviour: image-left, accent border ON.
+  cardLayout: "image-left", // "image-left" | "image-top" | "image-right"
+  imageWidth: 160, // px — only relevant for image-left / image-right
+  showAccentBorder: true, // left/right strip in section accent colour
   cards: [sampleCard(1), sampleCard(2)],
 });
 
@@ -63,6 +68,14 @@ function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-insights-${uid}`;
   const cols = Math.max(1, Math.min(3, Number(cfg.columns) || 2));
+  // Back-compat: if cardLayout / imageWidth are missing on older records
+  // we treat them as the previous behaviour.
+  const cardLayout =
+    cfg.cardLayout === "image-top" || cfg.cardLayout === "image-right"
+      ? cfg.cardLayout
+      : "image-left";
+  const imageWidth = num(cfg.imageWidth, 160);
+  const showBorder = cfg.showAccentBorder !== false; // default true
 
   const styleVars = [
     `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
@@ -70,26 +83,64 @@ function render(cfg) {
     `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
     `--ns-pad:${num(cfg.paddingY, 60)}px`,
     `--ns-cols:${cols}`,
+    `--ns-img-w:${imageWidth}px`,
   ].join(";");
 
   const cardsHtml = (cfg.cards || [])
     .map((c) => {
-      const href = safeUrl(c.link || "#");
+      const rawLink = String(c.link || "").trim();
+      const href = safeUrl(rawLink || "#");
       const target = c.openInSameTab ? "_self" : "_blank";
       const rel = c.openInSameTab ? "" : ' rel="noopener noreferrer"';
       const iconImg = c.icon
         ? `<img src="${escAttr(safeUrl(c.icon))}" alt="${escAttr(c.iconAlt || c.heading || "")}"/>`
         : "";
-      return `<a class="ns-card" href="${escAttr(href)}" target="${target}"${rel}>
+      const inner = `
   <div class="ns-icon">${iconImg}</div>
   <div class="ns-body">
     <h3 class="ns-ch">${escHtml(c.heading || "")}</h3>
     <p class="ns-cp">${escHtml(c.body || "")}</p>
     ${c.linkText ? `<span class="ns-link">${escHtml(c.linkText)} →</span>` : ""}
-  </div>
-</a>`;
+  </div>`;
+      // Render as <a> when a link value is present (incl. legacy "#")
+      // so saved records keep their click behaviour. Empty string ⇒
+      // emit <div> instead so the card isn't a focusable dead link.
+      // Users opt into the static variant by clearing the link field.
+      const interactive = rawLink !== "";
+      return interactive
+        ? `<a class="ns-card is-link" href="${escAttr(href)}" target="${target}"${rel}>${inner}</a>`
+        : `<div class="ns-card">${inner}</div>`;
     })
     .join("");
+
+  // Layout-specific styles.
+  const layoutCss =
+    cardLayout === "image-top"
+      ? `
+.${cls} .ns-card{flex-direction:column;min-height:0}
+.${cls} .ns-icon{flex:0 0 auto;width:100%;aspect-ratio:16/9;align-self:auto}
+.${cls} .ns-icon img{width:100%;height:100%;object-fit:cover}
+.${cls} .ns-body{padding:24px}
+`
+      : cardLayout === "image-right"
+        ? `
+.${cls} .ns-card{flex-direction:row-reverse}
+.${cls} .ns-icon{flex:0 0 var(--ns-img-w);align-self:stretch}
+`
+        : `
+.${cls} .ns-card{flex-direction:row}
+.${cls} .ns-icon{flex:0 0 var(--ns-img-w);align-self:stretch}
+`;
+
+  // Accent border placement adapts to layout so it always reads as
+  // a leading strip on the side closest to reading order.
+  const borderCss = showBorder
+    ? cardLayout === "image-top"
+      ? `border-top:6px solid var(--ns-accent)`
+      : cardLayout === "image-right"
+        ? `border-right:6px solid var(--ns-accent)`
+        : `border-left:6px solid var(--ns-accent)`
+    : ``;
 
   const css = `
 ${baseReset(cls)}
@@ -98,15 +149,17 @@ ${baseReset(cls)}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:center;margin:0 0 10px}
 .${cls} .ns-h{font-size:30px;font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 0 28px}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:20px}
-.${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;border-left:6px solid var(--ns-accent);border-radius:6px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
-.${cls} .ns-card:hover{border-color:var(--ns-accent);transform:translateY(-2px)}
-.${cls} .ns-icon{flex:0 0 160px;align-self:stretch;background:#fafafa;overflow:hidden}
+.${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;${borderCss};border-radius:6px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
+.${cls} .ns-card.is-link:hover{border-color:var(--ns-accent);transform:translateY(-2px)}
+.${cls} .ns-icon{background:#fafafa;overflow:hidden}
 .${cls} .ns-icon img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls} .ns-body{padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center}
 .${cls} .ns-ch{margin:0 0 8px;font-size:18px;font-weight:600;color:#1f1f1f}
 .${cls} .ns-cp{margin:0 0 12px;font-size:15px;line-height:1.5;color:#555}
+.${cls} .ns-card:not(.is-link) .ns-cp:last-child{margin-bottom:0}
 .${cls} .ns-link{font-size:14px;font-weight:600;color:var(--ns-accent);letter-spacing:.01em}
-@media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-icon{flex-basis:120px}}
+${layoutCss}
+@media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-card{flex-direction:column}.${cls} .ns-icon{flex-basis:auto;width:100%;aspect-ratio:16/9}}
 `.trim();
 
   const html = `<section class="ns-insights ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
@@ -170,6 +223,35 @@ function FormPanel({ config, onUpdate }) {
             { value: 3, label: "3 columns" },
           ]}
           testid="insights-columns"
+        />
+        <SelectField
+          label="Card layout"
+          value={config.cardLayout || "image-left"}
+          onChange={(v) => onUpdate({ cardLayout: v })}
+          options={[
+            { value: "image-left", label: "Image left of text" },
+            { value: "image-right", label: "Image right of text" },
+            { value: "image-top", label: "Image above text" },
+          ]}
+          testid="insights-card-layout"
+        />
+        {config.cardLayout !== "image-top" ? (
+          <SliderField
+            label="Image width"
+            value={config.imageWidth || 160}
+            min={100}
+            max={300}
+            suffix="px"
+            onChange={(v) => onUpdate({ imageWidth: v })}
+            testid="insights-image-width"
+          />
+        ) : null}
+        <ToggleField
+          label="Show accent border"
+          description="Coloured strip leading the card"
+          checked={config.showAccentBorder !== false}
+          onChange={(v) => onUpdate({ showAccentBorder: v })}
+          testid="insights-accent-border"
         />
         <ToggleField
           label="Make wide"

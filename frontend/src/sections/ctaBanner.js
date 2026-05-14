@@ -22,6 +22,8 @@ import {
   ToggleField,
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
+import ImageUpload from "@/components/ImageUpload";
+import { Label } from "@/components/ui/label";
 
 const ID = "cta-banner";
 
@@ -31,14 +33,25 @@ const defaults = () => ({
   heading: "Start building today.",
   subheading:
     "Sign in with Google and have your first reusable section published in under five minutes.",
-  bgColor: "#0f172a", // slate-900
+  // Logo (optional) — renders above the heading. Useful for brand-banner blocks
+  // like "Committed to the environment" where no CTA is required.
+  logoUrl: "",
+  logoAlt: "",
+  logoMaxWidth: 150,
+  // Background — "solid" preserves prior behaviour, "gradient" unlocks
+  // brand-banner gradients (e.g. Philips blue 135deg #0267d7 → #0b3e80).
+  backgroundType: "solid", // "solid" | "gradient"
+  bgColor: "#0f172a", // slate-900 (solid mode)
+  gradientFrom: "#0267d7",
+  gradientTo: "#0b3e80",
+  gradientAngle: 135,
   textColor: "#ffffff",
   bodyColor: "#cbd5e1",
   accentColor: "#E01839",
   paddingY: 96,
   fullBleed: false,
   textAlign: "center", // "left" | "center"
-  // Buttons
+  // Buttons — both are optional now; empty label = button is dropped.
   primaryLabel: "Get started",
   primaryUrl: "#",
   primaryOpenInSameTab: false,
@@ -67,32 +80,49 @@ const render = (cfg) => {
   const subHtml = cfg.subheading
     ? `<p class="ns-sub">${escHtml(cfg.subheading)}</p>`
     : "";
-  const buttonsHtml = `<div class="ns-actions">${buttonHtml(
+  // Optional brand logo above the heading.
+  const logoUrl = safeUrl(cfg.logoUrl);
+  const logoHtml = logoUrl
+    ? `<img class="ns-logo" src="${escAttr(logoUrl)}" alt="${escAttr(
+        cfg.logoAlt || ""
+      )}"${cfg.logoAlt ? "" : ' aria-hidden="true"'}/>`
+    : "";
+  // Buttons are individually optional — empty label = no button rendered.
+  // If neither primary nor (enabled) secondary has a label, the entire
+  // .ns-actions wrapper is dropped so the spacing collapses cleanly.
+  const primaryBtn = buttonHtml(
     cfg.primaryLabel,
     cfg.primaryUrl,
     cfg.primaryOpenInSameTab,
     "primary"
-  )}${
-    cfg.showSecondary
-      ? buttonHtml(
-          cfg.secondaryLabel,
-          cfg.secondaryUrl,
-          cfg.secondaryOpenInSameTab,
-          "secondary"
-        )
-      : ""
-  }</div>`;
+  );
+  const secondaryBtn = cfg.showSecondary
+    ? buttonHtml(
+        cfg.secondaryLabel,
+        cfg.secondaryUrl,
+        cfg.secondaryOpenInSameTab,
+        "secondary"
+      )
+    : "";
+  const buttonsHtml =
+    primaryBtn || secondaryBtn
+      ? `<div class="ns-actions">${primaryBtn}${secondaryBtn}</div>`
+      : "";
 
   const html = `<section class="ns-cta ${cls}${fullBleedClass(cfg)}" data-ns-uid="${escAttr(
     uid
-  )}"><div class="ns-inner">${eyebrowHtml}<h2 class="ns-heading">${escHtml(
+  )}"><div class="ns-inner">${logoHtml}${eyebrowHtml}<h2 class="ns-heading">${escHtml(
     cfg.heading || ""
   )}</h2>${subHtml}${buttonsHtml}</div></section>`;
 
   // Detect if the background is dark to pick a contrast colour for the
-  // secondary button border. Heuristic: hex luminance < 128.
+  // secondary button border. Heuristic: hex luminance < 128. When in
+  // gradient mode we sample the "from" stop since that's the dominant
+  // visual at top-left where the secondary button typically sits.
+  const luminanceSourceColor =
+    cfg.backgroundType === "gradient" ? cfg.gradientFrom : cfg.bgColor;
   const isDarkBg = (() => {
-    const m = String(cfg.bgColor || "")
+    const m = String(luminanceSourceColor || "")
       .replace("#", "")
       .padEnd(6, "0")
       .slice(0, 6);
@@ -102,17 +132,25 @@ const render = (cfg) => {
     return (r * 299 + g * 587 + b * 114) / 1000 < 128;
   })();
 
-  const bg = safeColor(cfg.bgColor, "#0f172a");
+  const bg =
+    cfg.backgroundType === "gradient"
+      ? `linear-gradient(${num(cfg.gradientAngle, 135)}deg, ${safeColor(
+          cfg.gradientFrom,
+          "#0267d7"
+        )} 0%, ${safeColor(cfg.gradientTo, "#0b3e80")} 100%)`
+      : safeColor(cfg.bgColor, "#0f172a");
   const textColor = safeColor(cfg.textColor, "#ffffff");
   const accent = safeColor(cfg.accentColor, "#E01839");
   const bodyColor = safeColor(cfg.bodyColor, "rgba(255,255,255,0.7)");
   const align = cfg.textAlign === "left" ? "left" : "center";
   const padY = num(cfg.paddingY, 96);
+  const logoMaxW = num(cfg.logoMaxWidth, 150);
 
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad,96px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
 .${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
+.${cls} .ns-logo{display:block;max-width:${logoMaxW}px;max-height:64px;width:auto;height:auto;margin:0 0 20px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
 .${cls} .ns-heading{font-size:36px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;color:${textColor}}
 .${cls} .ns-sub{margin-top:18px;font-size:16px;color:${bodyColor};line-height:1.65}
@@ -154,26 +192,64 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title="Primary button">
+      <Group title="Brand logo (optional)">
+        <div>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Logo image
+          </Label>
+          <ImageUpload
+            value={config.logoUrl || ""}
+            onChange={(v) => onUpdate({ logoUrl: v })}
+            testid="cta-logo"
+            compact
+          />
+        </div>
+        {config.logoUrl ? (
+          <>
+            <TextField
+              label="Logo alt text (optional)"
+              value={config.logoAlt || ""}
+              onChange={(v) => onUpdate({ logoAlt: v })}
+              placeholder="Leave blank if purely decorative"
+              testid="cta-logo-alt"
+            />
+            <SliderField
+              label="Logo max width"
+              value={config.logoMaxWidth || 150}
+              min={60}
+              max={280}
+              suffix="px"
+              onChange={(v) => onUpdate({ logoMaxWidth: v })}
+              testid="cta-logo-width"
+            />
+          </>
+        ) : null}
+      </Group>
+
+      <Group title="Primary button (optional)">
         <TextField
-          label="Label"
+          label="Label (leave blank to hide)"
           value={config.primaryLabel}
           onChange={(v) => onUpdate({ primaryLabel: v })}
           testid="cta-primary-label"
         />
-        <TextField
-          label="URL"
-          placeholder="https://example.com"
-          value={config.primaryUrl}
-          onChange={(v) => onUpdate({ primaryUrl: v })}
-          testid="cta-primary-url"
-        />
-        <ToggleField
-          label="Open in same tab"
-          checked={!!config.primaryOpenInSameTab}
-          onChange={(v) => onUpdate({ primaryOpenInSameTab: v })}
-          testid="cta-primary-same-tab"
-        />
+        {config.primaryLabel ? (
+          <>
+            <TextField
+              label="URL"
+              placeholder="https://example.com"
+              value={config.primaryUrl}
+              onChange={(v) => onUpdate({ primaryUrl: v })}
+              testid="cta-primary-url"
+            />
+            <ToggleField
+              label="Open in same tab"
+              checked={!!config.primaryOpenInSameTab}
+              onChange={(v) => onUpdate({ primaryOpenInSameTab: v })}
+              testid="cta-primary-same-tab"
+            />
+          </>
+        ) : null}
       </Group>
 
       <Group title="Secondary button">
@@ -238,12 +314,49 @@ function FormPanel({ config, onUpdate }) {
       </Group>
 
       <Group title="Theme">
-        <ColorField
-          label="Background"
-          value={config.bgColor}
-          onChange={(v) => onUpdate({ bgColor: v })}
-          testid="cta-bg"
+        <SelectField
+          label="Background style"
+          value={config.backgroundType || "solid"}
+          onChange={(v) => onUpdate({ backgroundType: v })}
+          options={[
+            { value: "solid", label: "Solid colour" },
+            { value: "gradient", label: "Linear gradient" },
+          ]}
+          testid="cta-bg-type"
         />
+        {config.backgroundType === "gradient" ? (
+          <>
+            <ColorField
+              label="Gradient from"
+              value={config.gradientFrom}
+              onChange={(v) => onUpdate({ gradientFrom: v })}
+              testid="cta-grad-from"
+            />
+            <ColorField
+              label="Gradient to"
+              value={config.gradientTo}
+              onChange={(v) => onUpdate({ gradientTo: v })}
+              testid="cta-grad-to"
+            />
+            <SliderField
+              label="Gradient angle"
+              value={config.gradientAngle ?? 135}
+              min={0}
+              max={360}
+              step={5}
+              suffix="°"
+              onChange={(v) => onUpdate({ gradientAngle: v })}
+              testid="cta-grad-angle"
+            />
+          </>
+        ) : (
+          <ColorField
+            label="Background"
+            value={config.bgColor}
+            onChange={(v) => onUpdate({ bgColor: v })}
+            testid="cta-bg"
+          />
+        )}
         <ColorField
           label="Heading colour"
           value={config.textColor}
