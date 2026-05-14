@@ -3,6 +3,7 @@ import {
   AlignLeft,
   ShoppingBag,
   LayoutGrid,
+  LayoutPanelLeft,
   BookOpen,
   Image as ImageIcon,
   Minus,
@@ -17,17 +18,18 @@ import {
 } from "lucide-react";
 
 const SECTIONS = [
-  { Icon: Layers, name: "Hero", desc: "Slide / fade carousels with CTA + background media." },
+  { Icon: Layers, name: "Hero", desc: "Slide / fade carousels with CTA + background media. Per-slide colour overrides and an optional split layout." },
+  { Icon: LayoutPanelLeft, name: "Split Banner", desc: "Static full-bleed image with container-aligned heading and buttons over it." },
   { Icon: Sparkles, name: "Welcome", desc: "Post-login greeter with movable header, customer logo and account-manager card." },
   { Icon: AlignLeft, name: "Content", desc: "Heading + body + buttons. The all-purpose marquee block." },
-  { Icon: ShoppingBag, name: "Products", desc: "Card carousel with image, name, price, hover border." },
-  { Icon: LayoutGrid, name: "Insights Grid", desc: "Editorial 2-3 column card grid for articles & case studies." },
+  { Icon: ShoppingBag, name: "Products", desc: "Card carousel with universal VAT toggle — live-flips inc / ex prices to match the host site." },
+  { Icon: LayoutGrid, name: "Insights Grid", desc: "Editorial 2-3 column card grid with per-card image position and accent borders." },
   { Icon: BookOpen, name: "Resources", desc: "Tag-tinted card carousel for blog posts, guides, downloads." },
-  { Icon: Sparkles, name: "Feature Grid", desc: "2-4 column value-prop cards with icon, title and body." },
+  { Icon: Sparkles, name: "Feature Grid", desc: "2-4 column value-prop cards. Outlined / tinted / solid styles plus an image-card variant." },
   { Icon: ListOrdered, name: "Steps", desc: "Numbered process strip — horizontal or vertical stack." },
   { Icon: Quote, name: "Testimonials", desc: "Auto-scrolling quote carousel with ratings + avatars. Pauses on hover." },
   { Icon: HelpCircle, name: "FAQ", desc: "Collapsible Q+A accordion. Native zero-JS accessibility." },
-  { Icon: Megaphone, name: "CTA Banner", desc: "Final-call conversion block with one or two buttons." },
+  { Icon: Megaphone, name: "CTA Banner", desc: "Final-call conversion block with optional logo, gradient backgrounds and one or two buttons." },
   { Icon: ImageIcon, name: "Logo Strip", desc: "Auto-scrolling marquee. Optional links + greyscale-on-hover." },
   { Icon: Minus, name: "Break banner", desc: "Full-bleed parallax break with overlaid heading." },
   { Icon: Folders, name: "Tabs", desc: "Tabbed content with a side image. Great for product details." },
@@ -51,7 +53,7 @@ export default function SectionsShowcase() {
             Section types in the box
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Sixteen composable building blocks. Every page is one snippet.
+            Seventeen composable building blocks. Every page is one snippet.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them
