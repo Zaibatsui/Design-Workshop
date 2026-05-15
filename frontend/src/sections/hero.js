@@ -167,7 +167,7 @@ function splitSlideInner(slide, cfg) {
       ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
       ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
       ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
-      ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
+      ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
     </div>
   </div>`;
 
@@ -274,7 +274,7 @@ function renderSlide(cfg) {
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
-        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
+        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
       </div>
     </div>`;
     })
@@ -374,7 +374,7 @@ function renderFade(cfg) {
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
-        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
+        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
       </div>
     </div>`;
     })
@@ -636,6 +636,47 @@ function FormPanel({ config, onUpdate }) {
                 onChange={(v) => updateSlide(slide.id, { openInSameTab: v })}
                 testid={`hero-slide-same-tab-${slide.id}`}
               />
+
+              {slide.ctaText ? (
+                <div className="pt-2 border-t border-slate-200 mt-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                    Button colour override (this slide only)
+                  </p>
+                  <ToggleField
+                    label="Override button colours"
+                    checked={!!slide.ctaOverrideColors}
+                    onChange={(v) => {
+                      const patch = { ctaOverrideColors: v };
+                      // Seed override fields with the section theme on first
+                      // enable so the ColorFields show a starting hex.
+                      if (v && !slide.ctaBgColor) {
+                        patch.ctaBgColor = t.ctaBg || "#1f2937";
+                      }
+                      if (v && !slide.ctaTextColor) {
+                        patch.ctaTextColor = t.ctaText || "#ffffff";
+                      }
+                      updateSlide(slide.id, patch);
+                    }}
+                    testid={`hero-slide-cta-override-${slide.id}`}
+                  />
+                  {slide.ctaOverrideColors && (
+                    <>
+                      <ColorField
+                        label="Button background"
+                        value={slide.ctaBgColor || t.ctaBg || "#1f2937"}
+                        onChange={(v) => updateSlide(slide.id, { ctaBgColor: v })}
+                        testid={`hero-slide-cta-bg-${slide.id}`}
+                      />
+                      <ColorField
+                        label="Button text"
+                        value={slide.ctaTextColor || t.ctaText || "#ffffff"}
+                        onChange={(v) => updateSlide(slide.id, { ctaTextColor: v })}
+                        testid={`hero-slide-cta-text-color-${slide.id}`}
+                      />
+                    </>
+                  )}
+                </div>
+              ) : null}
 
               {slideMode(slide) === "split" && (
                 <div className="pt-2 border-t border-slate-200 mt-2">

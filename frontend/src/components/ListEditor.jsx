@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
  * Generic editor for arrays of items (slides, products, logos, tabs).
  * Each item is rendered as a collapsible row using `renderRow` for the
  * compact summary and `renderForm` for the expanded form.
+ *
+ * UX detail: when a new item is added (the items array grows), the
+ * newly-appended row auto-expands AND scrolls into view, so users can
+ * start editing it immediately instead of scrolling down and hunting
+ * for the new (collapsed) row. Reorder / remove operations don't
+ * trigger this behaviour.
  */
 export default function ListEditor({
   items,
@@ -18,6 +24,27 @@ export default function ListEditor({
   testidPrefix = "list",
 }) {
   const [openId, setOpenId] = useState(items[0]?.id || null);
+  const prevLen = useRef(items.length);
+  const rowRefs = useRef({});
+
+  useEffect(() => {
+    if (items.length > prevLen.current) {
+      const last = items[items.length - 1];
+      if (last) {
+        setOpenId(last.id);
+        // Scroll the new row into view once it has rendered expanded.
+        // `block: "center"` so the top edge of the now-tall row doesn't
+        // butt up against the editor toolbar / sticky header.
+        requestAnimationFrame(() => {
+          const el = rowRefs.current[last.id];
+          if (el && typeof el.scrollIntoView === "function") {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        });
+      }
+    }
+    prevLen.current = items.length;
+  }, [items]);
 
   return (
     <div className="space-y-2">
@@ -26,6 +53,10 @@ export default function ListEditor({
         return (
           <div
             key={item.id}
+            ref={(el) => {
+              if (el) rowRefs.current[item.id] = el;
+              else delete rowRefs.current[item.id];
+            }}
             data-testid={`${testidPrefix}-row-${idx}`}
             className={`rounded-md border transition-colors ${
               isOpen ? "border-slate-900" : "border-slate-200"
