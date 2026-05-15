@@ -92,6 +92,17 @@ function render(cfg) {
   const cols = Number(cfg.columns) === 4 ? 4 : 5;
   const gap = 18;
 
+  // Currency override — empty means "Auto" (use whatever the scraper or
+  // editor produced). Matching JS in the IIFE below uses the SAME regex
+  // so server-rendered prices and live-refreshed prices stay consistent.
+  const cur = typeof cfg.currencyOverride === "string" ? cfg.currencyOverride : "";
+  const CUR_STRIP_RE = /^\s*(?:[£$€¥₹₪₺₽]+|GBP|USD|EUR|JPY|SEK|NOK|DKK|CHF|AUD|CAD|NZD|HKD|SGD|kr|zł|Kč|Ft|R\$|AED|SAR|ZAR|INR|PLN|CZK|HUF|RUB|TRY|ILS|CNY|MXN|BRL)\s*/i;
+  const applyCur = (p) => {
+    if (!p) return p;
+    if (!cur) return p;
+    return cur + String(p).replace(CUR_STRIP_RE, "");
+  };
+
   const styleVars = [
     `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
     `--ns-eyebrow-color:${safeColor(cfg.eyebrowColor || cfg.priceColor, "#E01839")}`,
