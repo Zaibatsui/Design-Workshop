@@ -650,9 +650,26 @@ function FormPanel({ config, onUpdate }) {
                   <SelectField
                     label="Background type"
                     value={slide.panelBgType || ""}
-                    onChange={(v) =>
-                      updateSlide(slide.id, { panelBgType: v || "" })
-                    }
+                    onChange={(v) => {
+                      const patch = { panelBgType: v };
+                      // Seed override fields with the section's current
+                      // theme values the first time the user enables this
+                      // override — so the ColorField shows a starting hex
+                      // instead of a blank swatch. Existing values are
+                      // preserved.
+                      if (v === "solid" && !slide.panelBg) {
+                        patch.panelBg = t.panelBg || "#1f2937";
+                      }
+                      if (v === "gradient") {
+                        if (!slide.panelGradientFrom)
+                          patch.panelGradientFrom = t.panelGradientFrom || "#E01839";
+                        if (!slide.panelGradientTo)
+                          patch.panelGradientTo = t.panelGradientTo || "#1f2937";
+                        if (!slide.panelGradientAngle)
+                          patch.panelGradientAngle = t.panelGradientAngle || 135;
+                      }
+                      updateSlide(slide.id, patch);
+                    }}
                     options={[
                       { value: "", label: "Inherit from section" },
                       { value: "solid", label: "Solid color" },
@@ -663,7 +680,7 @@ function FormPanel({ config, onUpdate }) {
                   {slide.panelBgType === "solid" && (
                     <ColorField
                       label="Panel color"
-                      value={slide.panelBg || ""}
+                      value={slide.panelBg || t.panelBg || "#1f2937"}
                       onChange={(v) => updateSlide(slide.id, { panelBg: v })}
                       testid={`hero-slide-panel-bg-${slide.id}`}
                     />
@@ -672,7 +689,7 @@ function FormPanel({ config, onUpdate }) {
                     <>
                       <ColorField
                         label="Gradient from"
-                        value={slide.panelGradientFrom || ""}
+                        value={slide.panelGradientFrom || t.panelGradientFrom || "#E01839"}
                         onChange={(v) =>
                           updateSlide(slide.id, { panelGradientFrom: v })
                         }
@@ -680,7 +697,7 @@ function FormPanel({ config, onUpdate }) {
                       />
                       <ColorField
                         label="Gradient to"
-                        value={slide.panelGradientTo || ""}
+                        value={slide.panelGradientTo || t.panelGradientTo || "#1f2937"}
                         onChange={(v) =>
                           updateSlide(slide.id, { panelGradientTo: v })
                         }
@@ -688,7 +705,11 @@ function FormPanel({ config, onUpdate }) {
                       />
                       <SliderField
                         label="Gradient angle"
-                        value={Number(slide.panelGradientAngle) || 135}
+                        value={
+                          Number(slide.panelGradientAngle) ||
+                          Number(t.panelGradientAngle) ||
+                          135
+                        }
                         min={0}
                         max={360}
                         step={5}
