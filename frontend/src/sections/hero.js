@@ -149,6 +149,17 @@ function slidePanelBackground(slide, cfg) {
   return safeColor(t.panelBg, "#1f2937");
 }
 
+// Resolve per-slide CTA button colours. Override fields on the slide
+// take precedence; otherwise the section theme is used. Returns an
+// inline `style="..."` attribute fragment (with leading space) or "".
+function slideCtaStyle(slide, cfg) {
+  if (!slide.ctaOverrideColors) return "";
+  const t = cfg.theme || {};
+  const bg = safeColor(slide.ctaBgColor || t.ctaBg, "#1f2937");
+  const fg = safeColor(slide.ctaTextColor || t.ctaText, "#ffffff");
+  return ` style="background:${bg};color:${fg}"`;
+}
+
 function splitSlideInner(slide, cfg) {
   const imageSide = (cfg.layout || {}).imageSide === "left" ? "left" : "right";
   const logo = safeUrl(slide.logo);
