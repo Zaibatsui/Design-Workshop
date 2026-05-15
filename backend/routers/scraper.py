@@ -369,6 +369,18 @@ def _extract_product(soup):
                             currency = _detect_currency_from_text(cand)
                         break
 
+    # Look in the document for explicit "log in for price" / "price on
+    # application" gate text. We surface this verbatim so the snippet
+    # can render it (and optionally trigger a same-origin re-fetch from
+    # the user's browser when they're authenticated on the host site).
+    if not price:
+        body_text = soup.get_text(" ", strip=True)
+        for pat in _PRICE_GATE_PATTERNS:
+            m = pat.search(body_text)
+            if m:
+                price = m.group(0).strip()
+                break
+
     # Last-ditch: scan the document body for currency tokens adjacent to
     # digits — that filters out stray `$` from jQuery/Stripe JS and stray
     # `EUR` from base64 tokens. Anonymous Nettailer storefronts that gate
@@ -385,6 +397,21 @@ def _extract_product(soup):
         "overlay": _extract_overlay(soup),
         "currency": (currency or "GBP").upper() if currency else None,
     }
+
+
+# Phrases that storefronts use when they gate price behind login. We
+# surface them verbatim from the scraper so the embedded snippet can
+# show the same text the upstream site would.
+_PRICE_GATE_PATTERNS = [
+    re.compile(r"log\s*in\s+for\s+price", re.I),
+    re.compile(r"log\s*in\s+to\s+(?:see|view|reveal)\s+price[s]?", re.I),
+    re.compile(r"sign\s+in\s+to\s+(?:see|view|reveal)\s+price[s]?", re.I),
+    re.compile(r"login\s+(?:to\s+)?(?:see|view)\s+price[s]?", re.I),
+    re.compile(r"price\s+on\s+(?:application|request)", re.I),
+    re.compile(r"\bPOA\b", re.I),
+    re.compile(r"(?:contact|call)\s+us\s+for\s+(?:price|pricing|quote|a\s+quote)", re.I),
+    re.compile(r"request\s+a\s+quote", re.I),
+]
 
 
 # Map common overlay-position class names → our canonical 4 positions.
