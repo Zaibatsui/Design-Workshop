@@ -119,7 +119,36 @@ const defaults = () => ({
 // lines up with where the host site's centred content column would
 // start/end. Prevents headings drifting to the far viewport edge on
 // wide monitors. Mirrors the standalone Split Banner section's logic.
+//
+// Panel background resolution:
+//   - Per-slide overrides (slide.panelBgType, slide.panelBg, ...) win
+//     when set.
+//   - Otherwise the section-level theme (cfg.theme.panelBg*) is used.
+//   - Applied as INLINE style on the `.ns-panel` element so each slide
+//     can carry a different background without proliferating CSS rules.
 // ──────────────────────────────────────────────────────────────────────
+function slidePanelBackground(slide, cfg) {
+  const t = cfg.theme || {};
+  // Per-slide override wins if the user picked an explicit type.
+  const useSlide = slide.panelBgType === "solid" || slide.panelBgType === "gradient";
+  const type = useSlide ? slide.panelBgType : t.panelBgType || "solid";
+  if (type === "gradient") {
+    const angle = useSlide
+      ? num(slide.panelGradientAngle, num(t.panelGradientAngle, 135))
+      : num(t.panelGradientAngle, 135);
+    const from = useSlide && slide.panelGradientFrom
+      ? safeColor(slide.panelGradientFrom, "#E01839")
+      : safeColor(t.panelGradientFrom, "#E01839");
+    const to = useSlide && slide.panelGradientTo
+      ? safeColor(slide.panelGradientTo, "#1f2937")
+      : safeColor(t.panelGradientTo, "#1f2937");
+    return `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)`;
+  }
+  // Solid
+  if (useSlide && slide.panelBg) return safeColor(slide.panelBg, "#1f2937");
+  return safeColor(t.panelBg, "#1f2937");
+}
+
 function splitSlideInner(slide, cfg) {
   const imageSide = (cfg.layout || {}).imageSide === "left" ? "left" : "right";
   const logo = safeUrl(slide.logo);
@@ -131,8 +160,9 @@ function splitSlideInner(slide, cfg) {
 
   // Panel sits on the side OPPOSITE to the image.
   const panelSide = imageSide === "left" ? "right" : "left";
+  const panelBg = slidePanelBackground(slide, cfg);
 
-  const panelHtml = `<div class="ns-panel is-side-${panelSide}">
+  const panelHtml = `<div class="ns-panel is-side-${panelSide}" style="background:${panelBg}">
     <div class="ns-panel-inner">
       ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
       ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
@@ -157,19 +187,17 @@ function splitCss(cls, cfg) {
   const imagePct = 100 - ratio;
   const contentMax = num(l.contentMaxWidth, 1200);
 
-  const panelBg =
-    t.panelBgType === "solid"
-      ? safeColor(t.panelBg, "#1f2937")
-      : `linear-gradient(${num(t.panelGradientAngle, 135)}deg, ${safeColor(
-          t.panelGradientFrom,
-          "#E01839"
-        )} 0%, ${safeColor(t.panelGradientTo, "#1f2937")} 100%)`;
-
   const gridCols =
     imageSide === "left"
       ? `${imagePct}% ${panelPct}%`
       : `${panelPct}% ${imagePct}%`;
 
+  // Note: `.ns-panel` background is NOT set here — it's emitted as an
+  // inline style on the element itself from `splitSlideInner` so each
+  // slide can carry its own background (per-slide override). The
+  // section-level theme.panelBg* fields act as the default fallback,
+  // applied by `slidePanelBackground(slide, cfg)`.
+  //
   // We *intentionally* re-scope inside .ns-slide.is-split so these
   // rules override the standard padding / overlay rules in both
   // renderSlide and renderFade without needing to touch their base CSS
@@ -191,7 +219,7 @@ function splitCss(cls, cfg) {
 .${cls} .ns-slide.is-split .ns-overlay{display:none}
 .${cls} .ns-slide.is-split .ns-content{display:none}
 .${cls} .ns-slide.is-split .ns-split-grid{display:grid;grid-template-columns:${gridCols};width:100%;height:100%;min-height:100%;align-items:stretch}
-.${cls} .ns-slide.is-split .ns-panel{background:${panelBg};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden}
+.${cls} .ns-slide.is-split .ns-panel{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden}
 .${cls} .ns-slide.is-split .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 0 12px;object-fit:contain}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-title{margin:0 0 8px}
@@ -608,6 +636,72 @@ function FormPanel({ config, onUpdate }) {
                 onChange={(v) => updateSlide(slide.id, { openInSameTab: v })}
                 testid={`hero-slide-same-tab-${slide.id}`}
               />
+
+              {slideMode(slide) === "split" && (
+                <div className="pt-2 border-t border-slate-200 mt-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                    Panel design override (this slide only)
+                  </p>
+                  <p className="text-[11px] text-slate-500 mb-2 leading-snug">
+                    Leave at "Inherit" to use the section's "Split panel
+                    design" defaults. Pick a type here to override just
+                    this slide's panel.
+                  </p>
+                  <SelectField
+                    label="Background type"
+                    value={slide.panelBgType || ""}
+                    onChange={(v) =>
+                      updateSlide(slide.id, { panelBgType: v || "" })
+                    }
+                    options={[
+                      { value: "", label: "Inherit from section" },
+                      { value: "solid", label: "Solid color" },
+                      { value: "gradient", label: "Gradient" },
+                    ]}
+                    testid={`hero-slide-panel-bg-type-${slide.id}`}
+                  />
+                  {slide.panelBgType === "solid" && (
+                    <ColorField
+                      label="Panel color"
+                      value={slide.panelBg || ""}
+                      onChange={(v) => updateSlide(slide.id, { panelBg: v })}
+                      testid={`hero-slide-panel-bg-${slide.id}`}
+                    />
+                  )}
+                  {slide.panelBgType === "gradient" && (
+                    <>
+                      <ColorField
+                        label="Gradient from"
+                        value={slide.panelGradientFrom || ""}
+                        onChange={(v) =>
+                          updateSlide(slide.id, { panelGradientFrom: v })
+                        }
+                        testid={`hero-slide-panel-grad-from-${slide.id}`}
+                      />
+                      <ColorField
+                        label="Gradient to"
+                        value={slide.panelGradientTo || ""}
+                        onChange={(v) =>
+                          updateSlide(slide.id, { panelGradientTo: v })
+                        }
+                        testid={`hero-slide-panel-grad-to-${slide.id}`}
+                      />
+                      <SliderField
+                        label="Gradient angle"
+                        value={Number(slide.panelGradientAngle) || 135}
+                        min={0}
+                        max={360}
+                        step={5}
+                        suffix="°"
+                        onChange={(v) =>
+                          updateSlide(slide.id, { panelGradientAngle: v })
+                        }
+                        testid={`hero-slide-panel-grad-angle-${slide.id}`}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
             </>
           )}
         />
