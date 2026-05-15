@@ -427,62 +427,6 @@ function FormPanel({ config, onUpdate }) {
                   </>
                 ) : null}
               </div>
-
-              {(t.primaryLabel || t.secondaryLabel) ? (
-                <div className="pt-2 border-t border-slate-200 mt-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                    Button colour override (this tab only)
-                  </p>
-                  <ToggleField
-                    label="Override button colours"
-                    checked={!!t.overrideButtonColors}
-                    onChange={(v) => {
-                      const patch = { overrideButtonColors: v };
-                      // Seed override fields with the section accent on
-                      // first enable so users see a starting hex.
-                      if (v && !t.primaryBgColor) {
-                        patch.primaryBgColor = config.accentColor || "#E01839";
-                      }
-                      if (v && !t.primaryTextColor) {
-                        patch.primaryTextColor = "#ffffff";
-                      }
-                      if (v && !t.secondaryBgColor) {
-                        patch.secondaryBgColor = config.accentColor || "#E01839";
-                      }
-                      updateTab(t.id, patch);
-                    }}
-                    testid={`tab-override-buttons-${t.id}`}
-                  />
-                  {t.overrideButtonColors && (
-                    <>
-                      {t.primaryLabel ? (
-                        <>
-                          <ColorField
-                            label="Primary background"
-                            value={t.primaryBgColor || config.accentColor || "#E01839"}
-                            onChange={(v) => updateTab(t.id, { primaryBgColor: v })}
-                            testid={`tab-primary-bg-${t.id}`}
-                          />
-                          <ColorField
-                            label="Primary text"
-                            value={t.primaryTextColor || "#ffffff"}
-                            onChange={(v) => updateTab(t.id, { primaryTextColor: v })}
-                            testid={`tab-primary-text-${t.id}`}
-                          />
-                        </>
-                      ) : null}
-                      {t.secondaryLabel ? (
-                        <ColorField
-                          label="Secondary accent"
-                          value={t.secondaryBgColor || config.accentColor || "#E01839"}
-                          onChange={(v) => updateTab(t.id, { secondaryBgColor: v })}
-                          testid={`tab-secondary-bg-${t.id}`}
-                        />
-                      ) : null}
-                    </>
-                  )}
-                </div>
-              ) : null}
             </>
           )}
         />
