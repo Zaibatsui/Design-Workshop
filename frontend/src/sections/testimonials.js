@@ -108,6 +108,7 @@ function render(cfg) {
     `--ns-card-w:${num(cfg.cardWidth, 340)}px`,
     `--ns-gap:${num(cfg.cardGap, 24)}px`,
     `--ns-pad:${num(cfg.paddingY, 72)}px`,
+    `--ns-heading-size:${num(cfg.headingSize, 32)}px`,
   ].join(";");
 
   const items = Array.isArray(cfg.items) ? cfg.items : [];
@@ -163,7 +164,7 @@ ${baseReset(cls)}
 .${cls} .ns-head{margin-bottom:40px}
 .${cls} .ns-head-inner{max-width:720px;${headInnerAlign}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-accent);margin-bottom:14px}
-.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:var(--ns-title-color)}
+.${cls} .ns-heading{font-size:var(--ns-heading-size,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:var(--ns-title-color)}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:var(--ns-body-color);line-height:1.6}
 .${cls} .ns-track{display:flex;width:max-content;animation:${animName} var(--ns-speed) linear infinite;will-change:transform}
 .${cls} .ns-item{flex:0 0 auto;width:var(--ns-card-w);margin:0 calc(var(--ns-gap) / 2);background:var(--ns-card-bg);border:1px solid #e5e7eb;border-radius:12px;padding:26px 26px 22px;display:flex;flex-direction:column;gap:18px;position:relative}
@@ -315,6 +316,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="testi-pad"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 32}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="testi-heading-size"
         />
       </Group>
 

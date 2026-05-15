@@ -105,7 +105,7 @@ ${baseReset(cls)}
 .${cls} .ns-head{margin-bottom:40px}
 .${cls} .ns-head-inner{max-width:720px;${align === "center" ? "margin:0 auto;" : ""}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
-.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
+.${cls} .ns-heading{font-size:${num(cfg.headingSize, 32)}px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 .${cls} .ns-track{display:grid;${horizontal ? `grid-template-columns:repeat(${stepCount},minmax(0,1fr));gap:0` : "gap:32px"};${divider && horizontal ? "border:1px solid #e2e8f0;border-radius:8px;overflow:hidden" : ""}}
 .${cls} .ns-step{padding:${horizontal ? "32px" : "0"};text-align:left;${divider && horizontal ? "background:#fff" : ""}}
@@ -206,6 +206,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="steps-pad"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 32}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="steps-heading-size"
         />
         <ToggleField
           label="Make wide"

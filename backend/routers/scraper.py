@@ -72,7 +72,7 @@ class ScrapeRequest(BaseModel):
     vat_mode: str | None = None
 
 
-def _format_price(p):
+def _format_price(p, currency="GBP"):
     if p is None:
         return None
     s = str(p).strip()
@@ -80,10 +80,113 @@ def _format_price(p):
         return None
     if re.match(r"^\d+(?:[.,]\d+)?$", s):
         try:
-            return f"£{float(s.replace(',', '.')):.2f}"
+            return f"{_currency_symbol(currency)}{float(s.replace(',', '.')):.2f}"
         except Exception:
             return s
     return s
+
+
+# ISO-4217 → display symbol. Anything not listed falls back to the raw
+# code (e.g. "PLN 199.00") so we never silently mislabel a price.
+_CURRENCY_SYMBOLS = {
+    "GBP": "£",
+    "USD": "$",
+    "EUR": "€",
+    "JPY": "¥",
+    "CNY": "¥",
+    "INR": "₹",
+    "AUD": "$",
+    "CAD": "$",
+    "NZD": "$",
+    "CHF": "CHF ",
+    "SEK": "kr ",
+    "NOK": "kr ",
+    "DKK": "kr ",
+    "PLN": "zł ",
+    "CZK": "Kč ",
+    "HUF": "Ft ",
+    "ZAR": "R",
+    "BRL": "R$ ",
+    "MXN": "$",
+    "SGD": "$",
+    "HKD": "$",
+    "AED": "د.إ ",
+    "SAR": "﷼ ",
+    "ILS": "₪",
+    "TRY": "₺",
+    "RUB": "₽",
+}
+
+
+def _currency_symbol(code):
+    if not code:
+        return "£"
+    c = str(code).strip().upper()
+    return _CURRENCY_SYMBOLS.get(c, f"{c} ")
+
+
+# Reverse-map: page text symbol → ISO code. Used when the page has only
+# a rendered symbol (e.g. "€1,234.56") and no JSON-LD priceCurrency.
+_SYMBOL_TO_CODE = {
+    "£": "GBP",
+    "$": "USD",
+    "€": "EUR",
+    "¥": "JPY",
+    "₹": "INR",
+    "₪": "ILS",
+    "₺": "TRY",
+    "₽": "RUB",
+    "kr": "SEK",  # ambiguous (SEK/NOK/DKK) — assume SEK
+    "zł": "PLN",
+    "Kč": "CZK",
+}
+
+
+def _detect_currency_from_text(s):
+    """Find the currency adjacent to an actual price in the text. Returns
+    an ISO code or None.
+
+    We look for symbols/codes immediately before or after a number — that
+    excludes false positives like jQuery (`$('.foo')`), Stripe JS includes,
+    or base64 tokens that happen to contain `EUR`. Counts each match and
+    returns whichever is most frequent (ties favour the more
+    region-specific currency by insertion order)."""
+    if not s:
+        return None
+    s = str(s)
+    # Each pattern must match a currency token *next to* a digit run.
+    SYM_PATTERNS = {
+        "GBP": r"£\s?\d|\d\s?£",
+        "EUR": r"€\s?\d|\d\s?€",
+        "USD": r"\$\s?\d|\d\s?USD\b",   # `$1` requires the digit so jQuery `$.` doesn't trigger
+        "JPY": r"¥\s?\d|\d\s?¥|\d\s?JPY\b",
+        "INR": r"₹\s?\d|\d\s?₹",
+        "ILS": r"₪\s?\d|\d\s?₪",
+        "TRY": r"₺\s?\d|\d\s?₺",
+        "RUB": r"₽\s?\d|\d\s?₽",
+        "SEK": r"\d\s?kr\b|\bkr\s?\d",
+        "NOK": r"\d\s?NOK\b|\bNOK\s?\d",
+        "DKK": r"\d\s?DKK\b|\bDKK\s?\d",
+        "PLN": r"\d\s?zł\b|\bzł\s?\d",
+        "CZK": r"\d\s?Kč\b|\bKč\s?\d",
+        "CHF": r"\bCHF\s?\d|\d\s?CHF\b",
+        "AUD": r"\bAUD\s?\d|\d\s?AUD\b",
+        "CAD": r"\bCAD\s?\d|\d\s?CAD\b",
+        "NZD": r"\bNZD\s?\d|\d\s?NZD\b",
+        "ZAR": r"\bZAR\s?\d|\d\s?ZAR\b|R\s?\d{2,}",
+        "BRL": r"R\$\s?\d|\d\s?BRL\b",
+        "AED": r"\bAED\s?\d|\d\s?AED\b",
+        "SAR": r"\bSAR\s?\d|\d\s?SAR\b",
+        "HUF": r"\d\s?Ft\b|\bHUF\s?\d",
+    }
+    best_code = None
+    best_count = 0
+    for code, pat in SYM_PATTERNS.items():
+        n = len(re.findall(pat, s))
+        if n > best_count:
+            best_count = n
+            best_code = code
+    return best_code
 
 
 def _walk_jsonld(data):
@@ -99,6 +202,7 @@ def _walk_jsonld(data):
 
 def _extract_product(soup):
     name = price = image = None
+    currency = None  # ISO code if we can find one
 
     _NOISE_SELECTORS = [
         ".product-card-accessories",
@@ -167,6 +271,7 @@ def _extract_product(soup):
     name = name or og("og:title")
     image = image or og("og:image:secure_url") or og("og:image")
     price = price or og("product:price:amount") or og("og:price:amount")
+    currency = currency or og("product:price:currency") or og("og:price:currency")
 
     # 3. Twitter cards
     def tw(prop):
@@ -257,16 +362,28 @@ def _extract_product(soup):
                     or el.get_text(" ", strip=True)
                 )
                 if cand:
-                    m = re.search(r"[£$€]?\s*\d[\d,]*(?:\.\d+)?", cand)
+                    m = re.search(r"[£$€¥₹₪₺₽]?\s*\d[\d,]*(?:\.\d+)?", cand)
                     if m:
                         price = m.group(0).strip()
+                        if not currency:
+                            currency = _detect_currency_from_text(cand)
                         break
+
+    # Last-ditch: scan the document body for currency tokens adjacent to
+    # digits — that filters out stray `$` from jQuery/Stripe JS and stray
+    # `EUR` from base64 tokens. Anonymous Nettailer storefronts that gate
+    # prices behind login may not expose any price-shaped text at all; we
+    # still leave currency=None in that case rather than guess wrong.
+    if not currency:
+        body_text = soup.get_text(" ", strip=True)[:5000]
+        currency = _detect_currency_from_text(body_text)
 
     return {
         "name": (name or "").strip()[:200] or None,
-        "price": _format_price(price),
+        "price": _format_price(price, currency),
         "image": image,
         "overlay": _extract_overlay(soup),
+        "currency": (currency or "GBP").upper() if currency else None,
     }
 
 

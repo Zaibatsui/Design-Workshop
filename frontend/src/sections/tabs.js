@@ -74,6 +74,7 @@ function render(cfg) {
     `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
     `--ns-body:${safeColor(cfg.bodyColor, "#1f2937")}`,
     `--ns-pad:${num(cfg.paddingY, 60)}px`,
+    `--ns-heading-size:${num(cfg.headingSize, 30)}px`,
   ].join(";");
 
   const tabs = cfg.tabs || [];
@@ -129,7 +130,7 @@ ${baseReset(cls)}
 .${cls} .ns-panel.is-active{display:block}
 .${cls} .ns-split{display:grid;grid-template-columns:${imageOnLeft ? ".9fr 1.1fr" : "1.1fr .9fr"};gap:40px;align-items:center}
 ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
-.${cls} .ns-heading{font-size:30px;font-weight:600;color:var(--ns-accent);margin:0 0 16px;line-height:1.2}
+.${cls} .ns-heading{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-accent);margin:0 0 16px;line-height:1.2}
 .${cls} .ns-copy p{font-size:16px;color:var(--ns-body);line-height:1.6;margin:0}
 .${cls} .ns-copy p + p{margin-top:16px}
 .${cls} .ns-image img{width:100%;border-radius:6px;display:block}
@@ -240,6 +241,15 @@ function FormPanel({ config, onUpdate }) {
             { value: "left", label: "Left of text" },
           ]}
           testid="tabs-image-position"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 30}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="tabs-heading-size"
         />
       </Group>
 

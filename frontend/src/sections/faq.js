@@ -105,7 +105,7 @@ ${baseReset(cls)}
 .${cls} .ns-head{margin-bottom:40px}
 .${cls} .ns-head-inner{${align === "center" ? "max-width:560px;margin:0 auto;" : ""}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
-.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
+.${cls} .ns-heading{font-size:${num(cfg.headingSize, 32)}px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 ${dividerCss}
 .${cls} .ns-item{padding:0}
@@ -204,6 +204,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="faq-pad"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 32}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="faq-heading-size"
         />
         <ToggleField
           label="Make wide"

@@ -153,7 +153,7 @@ ${baseReset(cls)}
 .${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
 .${cls} .ns-logo{display:block;max-width:${logoMaxW}px;max-height:64px;width:auto;height:auto;margin:0 0 20px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
-.${cls} .ns-heading{font-size:36px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;color:${textColor}}
+.${cls} .ns-heading{font-size:${num(cfg.headingSize, 36)}px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;color:${textColor}}
 .${cls} .ns-sub{margin-top:18px;font-size:16px;color:${bodyColor};line-height:1.65}
 .${cls} .ns-actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;${align === "center" ? "justify-content:center" : "justify-content:flex-start"}}
 .${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 24px;font-size:15px;font-weight:500;border-radius:6px;text-decoration:none;transition:opacity .18s ease,transform .18s ease,background .18s ease,color .18s ease}
@@ -304,6 +304,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="cta-pad"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 36}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="cta-heading-size"
         />
         <ToggleField
           label="Make wide"

@@ -113,6 +113,7 @@ function render(cfg) {
     `--ns-overlay-op:${num(cfg.overlayOpacity, 0.55)}`,
     `--ns-am-accent:${safeColor(cfg.amAccentColor, "#0ea5e9")}`,
     `--ns-logo-w:${num(cfg.logoMaxWidth, 180)}px`,
+    `--ns-heading-size:${num(cfg.headingSize, 36)}px`,
   ].join(";");
 
   const css = `
@@ -131,7 +132,7 @@ ${baseReset(cls)}
 .${cls} .pos-bc{bottom:0;left:50%;transform:translateX(-50%);text-align:center}
 .${cls} .pos-br{bottom:0;right:0;text-align:right}
 .${cls} .ns-eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ns-eyebrow);opacity:.95}
-.${cls} .ns-h{margin:0 0 12px;font-size:36px;line-height:1.2;font-weight:600;color:var(--ns-text)}
+.${cls} .ns-h{margin:0 0 12px;font-size:var(--ns-heading-size,36px);line-height:1.2;font-weight:600;color:var(--ns-text)}
 .${cls} .ns-body{margin:0;font-size:16px;line-height:1.55;color:var(--ns-text);opacity:.92;max-width:48ch}
 .${cls} .ns-logo-wrap{display:inline-flex;align-items:center;justify-content:center}
 .${cls} .ns-logo-img{max-width:var(--ns-logo-w);max-height:120px;width:auto;height:auto;display:block}
@@ -258,6 +259,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ height: v })}
           testid="welcome-h"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 36}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="welcome-heading-size"
         />
       </Group>
 

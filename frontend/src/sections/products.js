@@ -61,8 +61,30 @@ const defaults = () => ({
   showArrows: true,
   paddingY: 60,
   fullBleed: false,
+  // "" = Auto (use whatever the scraper / user input already shows).
+  // Anything else REPLACES the leading currency token on every rendered
+  // price, including live-refreshed prices. See `swapCur` in the snippet
+  // JS below.
+  currencyOverride: "",
   products: [],
 });
+
+// The exact strings we'll prepend when an override is active. Trailing
+// space (where present) gives "kr 1234.56" rather than "kr1234.56".
+const CURRENCY_OPTIONS = [
+  { value: "",       label: "Auto-detect from source" },
+  { value: "£",      label: "£ — GBP" },
+  { value: "$",      label: "$ — USD" },
+  { value: "€",      label: "€ — EUR" },
+  { value: "¥",      label: "¥ — JPY / CNY" },
+  { value: "kr ",    label: "kr — SEK / NOK / DKK" },
+  { value: "CHF ",   label: "CHF — Swiss franc" },
+  { value: "R$ ",    label: "R$ — BRL" },
+  { value: "₹",      label: "₹ — INR" },
+  { value: "zł ",    label: "zł — PLN" },
+  { value: "Kč ",    label: "Kč — CZK" },
+  { value: "Ft ",    label: "Ft — HUF" },
+];
 
 function render(cfg) {
   const uid = cfg.uid || makeUid();
@@ -75,6 +97,7 @@ function render(cfg) {
     `--ns-eyebrow-color:${safeColor(cfg.eyebrowColor || cfg.priceColor, "#E01839")}`,
     `--ns-price-color:${safeColor(cfg.priceColor, "#E01839")}`,
     `--ns-hover-border:${safeColor(cfg.hoverBorder, "#E01839")}`,
+    `--ns-heading-size:${num(cfg.headingSize, 32)}px`,
     `--ns-pad:${num(cfg.paddingY, 60)}px`,
     `--ns-cols:${cols}`,
     `--ns-gap:${gap}px`,
@@ -109,7 +132,7 @@ function render(cfg) {
     </div>
     <div class="ns-card-body">
       <h3 class="ns-name">${escHtml(p.name || "")}</h3>
-      <p class="ns-price"><span class="ns-price-amount">${escHtml(p.price || "")}</span>${p.priceSuffix ? `<span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
+      <p class="ns-price"><span class="ns-price-amount">${escHtml(applyCur(p.price) || "")}</span>${p.priceSuffix ? `<span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
     </div>
   </a>
 </div>`;
@@ -189,6 +212,11 @@ ${baseReset(cls)}
   // that cache first and fall back to the backend only on miss.
   const liveJs = apiBase
     ? `var TTL=18e5,API=${JSON.stringify(apiBase + "/api/scrape-product")};` +
+      `var CUR=${JSON.stringify(cur)};` +
+      // swapCur(s) → s with its leading currency token replaced by CUR.
+      // Must mirror the server-side `CUR_STRIP_RE` above exactly so a
+      // server-rendered price and a live-refreshed price look identical.
+      `function swapCur(s){if(!CUR||!s)return s;return CUR+String(s).replace(/^\\s*(?:[£$€¥₹₪₺₽]+|GBP|USD|EUR|JPY|SEK|NOK|DKK|CHF|AUD|CAD|NZD|HKD|SGD|kr|zł|Kč|Ft|R\\$|AED|SAR|ZAR|INR|PLN|CZK|HUF|RUB|TRY|ILS|CNY|MXN|BRL)\\s*/i,"");}` +
       // classify(text) → "incl" | "excl" | null. Matches a wide range
       // of real-world VAT labels:
       //   "Incl VAT" / "Excl VAT"     (canonical Nettailer)
@@ -244,7 +272,7 @@ ${baseReset(cls)}
       // host's current label text. We only re-stamp the suffix when
       // the existing suffix is itself a recognised VAT label (so
       // custom suffixes like "+ shipping" or "/month" stay intact).
-      `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(amt&&p)amt.textContent=p;if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
+      `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(amt&&p)amt.textContent=swapCur(p);if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
       `fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u,vat_mode:m})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));if(d.priceInc)localStorage.setItem(ckey(u,"incl"),JSON.stringify({t:now,p:d.priceInc}));if(d.priceExc)localStorage.setItem(ckey(u,"excl"),JSON.stringify({t:now,p:d.priceExc}));}catch(e){}}).catch(function(){});}` +
       `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(c){fetchOne(c,false);});` +
       `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){fetchOne(c,false);});}` +
@@ -387,6 +415,15 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="products-pad"
         />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 32}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="products-heading-size"
+        />
       </Group>
 
       <Group title="Theme">
@@ -413,6 +450,13 @@ function FormPanel({ config, onUpdate }) {
           value={config.hoverBorder}
           onChange={(v) => onUpdate({ hoverBorder: v })}
           testid="products-hover"
+        />
+        <SelectField
+          label="Currency"
+          value={config.currencyOverride ?? ""}
+          onChange={(v) => onUpdate({ currencyOverride: v })}
+          options={CURRENCY_OPTIONS}
+          testid="products-currency-override"
         />
       </Group>
 

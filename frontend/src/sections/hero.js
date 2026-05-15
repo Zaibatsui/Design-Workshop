@@ -134,7 +134,7 @@ function splitSlideInner(slide, cfg) {
 
   const panelHtml = `<div class="ns-panel is-side-${panelSide}">
     <div class="ns-panel-inner">
-      ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
+      ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
       ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
       ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
       ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
@@ -243,7 +243,7 @@ function renderSlide(cfg) {
       return `<div class="ns-slide" style="background-image:url('${escAttr(bg)}')">
       <div class="ns-overlay"></div>
       <div class="ns-content">
-        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
+        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
@@ -274,7 +274,7 @@ ${baseReset(cls)}
 .${cls} .ns-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.55) 25%,rgba(0,0,0,.25) 50%,rgba(0,0,0,0) 75%);pointer-events:none}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:left}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
-.${cls} .ns-title{font-size:clamp(1.75rem,3.6vw,3.2rem);font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
+.${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 48)}px` : "clamp(1.75rem,3.6vw,3.2rem)"};font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:8px;font-weight:600;transition:transform .15s ease,filter .15s ease}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
@@ -343,7 +343,7 @@ function renderFade(cfg) {
       return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="background-image:url('${escAttr(bg)}')">
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
-        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
+        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}>${escHtml(cta)}</a>` : ""}
@@ -377,7 +377,7 @@ ${baseReset(cls)}
 .${cls} .ns-content[data-align="right"]{margin-left:auto}
 .${cls} .ns-logo{max-height:48px;max-width:190px;margin-bottom:20px;object-fit:contain}
 .${cls} .ns-content[data-align="center"] .ns-logo{margin-left:auto;margin-right:auto}
-.${cls} .ns-title{font-size:clamp(1.75rem,3.6vw,3rem);font-weight:700;line-height:1.1;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
+.${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 48)}px` : "clamp(1.75rem,3.6vw,3rem)"};font-weight:700;line-height:1.1;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);max-width:560px;margin:0 0 24px}
 .${cls} .ns-content[data-align="center"] .ns-subtitle{margin-left:auto;margin-right:auto}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:9999px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease}
@@ -475,6 +475,15 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="hero-transition"
         />
+        <SliderField
+          label="Slide title size"
+          value={Number(config.headingSize) || 0}
+          min={0}
+          max={96}
+          suffix={Number(config.headingSize) ? "px" : " (auto / responsive)"}
+          onChange={(v) => onUpdate({ headingSize: v || 0 })}
+          testid="hero-heading-size"
+        />
         <ToggleField
           label="Make wide"
           description="Stretch background to full viewport width"
@@ -548,13 +557,24 @@ function FormPanel({ config, onUpdate }) {
                 />
               </div>
               {slide.logo ? (
-                <TextField
-                  label="Logo alt text (optional)"
-                  value={slide.logoAlt || ""}
-                  onChange={(v) => updateSlide(slide.id, { logoAlt: v })}
-                  placeholder="Leave blank if purely decorative"
-                  testid={`hero-slide-logo-alt-${slide.id}`}
-                />
+                <>
+                  <TextField
+                    label="Logo alt text (optional)"
+                    value={slide.logoAlt || ""}
+                    onChange={(v) => updateSlide(slide.id, { logoAlt: v })}
+                    placeholder="Leave blank if purely decorative"
+                    testid={`hero-slide-logo-alt-${slide.id}`}
+                  />
+                  <SliderField
+                    label="Logo size"
+                    value={Number(slide.logoMaxHeight) || 48}
+                    min={20}
+                    max={140}
+                    suffix="px max-height"
+                    onChange={(v) => updateSlide(slide.id, { logoMaxHeight: v })}
+                    testid={`hero-slide-logo-size-${slide.id}`}
+                  />
+                </>
               ) : null}
               <TextField
                 label="Title"

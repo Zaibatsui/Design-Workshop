@@ -82,6 +82,7 @@ function render(cfg) {
     `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
     `--ns-eyebrow-color:${safeColor(cfg.eyebrowColor || cfg.accentColor, "#E01839")}`,
     `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
+    `--ns-heading-size:${num(cfg.headingSize, 30)}px`,
     `--ns-pad:${num(cfg.paddingY, 60)}px`,
     `--ns-cols:${cols}`,
     `--ns-img-w:${imageWidth}px`,
@@ -148,7 +149,7 @@ ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:center;margin:0 0 10px}
-.${cls} .ns-h{font-size:30px;font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 0 28px}
+.${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 0 28px}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:20px}
 .${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;${borderCss};border-radius:6px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
 .${cls} .ns-card.is-link:hover{border-color:var(--ns-accent);transform:translateY(-2px)}
@@ -269,6 +270,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="insights-pad"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 30}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="insights-heading-size"
         />
       </Group>
 

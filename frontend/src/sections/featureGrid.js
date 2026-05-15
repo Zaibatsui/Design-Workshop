@@ -144,7 +144,7 @@ ${baseReset(cls)}
 .${cls} .ns-head{margin-bottom:48px}
 .${cls} .ns-head-inner{max-width:720px;${align === "center" ? "margin:0 auto;" : ""}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
-.${cls} .ns-heading{font-size:32px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
+.${cls} .ns-heading{font-size:${num(cfg.headingSize, 32)}px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px}
 .${cls} .ns-card{${cardBase};border-radius:8px;padding:28px;text-align:left;transition:border-color .18s ease,transform .18s ease}
@@ -256,6 +256,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="fg-pad"
+        />
+        <SliderField
+          label="Heading size"
+          value={Number(config.headingSize) || 32}
+          min={20}
+          max={72}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
+          testid="fg-heading-size"
         />
         <ToggleField
           label="Make wide"
