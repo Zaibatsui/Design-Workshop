@@ -30,6 +30,15 @@ const sampleTab = (label, heading, body, image) => ({
   body,
   image,
   imageAlt: "",
+  // Per-tab CTAs — both optional. Empty label = button is dropped from
+  // render. Primary inherits the section accent colour; secondary is an
+  // outlined variant for the "Learn more"-style secondary action.
+  primaryLabel: "",
+  primaryUrl: "",
+  primaryOpenInSameTab: false,
+  secondaryLabel: "",
+  secondaryUrl: "",
+  secondaryOpenInSameTab: false,
 });
 
 const defaults = () => ({
@@ -86,6 +95,15 @@ function render(cfg) {
     )
     .join("");
 
+  const buttonHtml = (label, url, sameTab, variant) => {
+    if (!label) return "";
+    const target = sameTab ? "_self" : "_blank";
+    const rel = sameTab ? "" : ' rel="noopener noreferrer"';
+    return `<a class="ns-btn ns-btn-${variant}" href="${escAttr(
+      safeUrl(url) || "#"
+    )}" target="${target}"${rel}>${escHtml(label)}</a>`;
+  };
+
   const panelsHtml = tabs
     .map((tab, i) => {
       const paragraphs = String(tab.body || "")
@@ -94,11 +112,28 @@ function render(cfg) {
         .map((p) => `<p>${escHtml(p)}</p>`)
         .join("");
       const img = safeUrl(tab.image);
+      const primaryBtn = buttonHtml(
+        tab.primaryLabel,
+        tab.primaryUrl,
+        tab.primaryOpenInSameTab,
+        "primary"
+      );
+      const secondaryBtn = buttonHtml(
+        tab.secondaryLabel,
+        tab.secondaryUrl,
+        tab.secondaryOpenInSameTab,
+        "secondary"
+      );
+      const ctasHtml =
+        primaryBtn || secondaryBtn
+          ? `<div class="ns-ctas">${primaryBtn}${secondaryBtn}</div>`
+          : "";
       return `<div class="ns-panel${i === 0 ? " is-active" : ""}" data-ns-panel="${escAttr(tab.id)}">
   <div class="ns-split">
     <div class="ns-copy">
       <h2 class="ns-heading">${escHtml(tab.heading)}</h2>
       ${paragraphs}
+      ${ctasHtml}
     </div>
     <div class="ns-image">${img ? `<img src="${escAttr(img)}" alt="${escAttr(tab.imageAlt || tab.label || "")}"/>` : ""}</div>
   </div>
@@ -133,8 +168,14 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 .${cls} .ns-heading{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-accent);margin:0 0 16px;line-height:1.2}
 .${cls} .ns-copy p{font-size:16px;color:var(--ns-body);line-height:1.6;margin:0}
 .${cls} .ns-copy p + p{margin-top:16px}
+.${cls} .ns-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 22px;font-size:14px;font-weight:600;border-radius:6px;text-decoration:none;transition:transform .15s ease,filter .15s ease,background .15s ease,color .15s ease,border-color .15s ease}
+.${cls} .ns-btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.${cls} .ns-btn-primary{background:var(--ns-accent);color:#fff;border:1px solid var(--ns-accent)}
+.${cls} .ns-btn-secondary{background:transparent;color:var(--ns-accent);border:1px solid var(--ns-accent)}
+.${cls} .ns-btn-secondary:hover{background:var(--ns-accent);color:#fff}
 .${cls} .ns-image img{width:100%;border-radius:6px;display:block}
-@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr}.${cls} .ns-copy{order:1}.${cls} .ns-image{order:2}.${cls} .ns-heading{font-size:24px}}
+@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr}.${cls} .ns-copy{order:1}.${cls} .ns-image{order:2}.${cls} .ns-heading{font-size:24px}.${cls} .ns-ctas{flex-direction:column;align-items:stretch}.${cls} .ns-btn{width:100%}}
 `.trim();
 
   const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
@@ -308,6 +349,66 @@ function FormPanel({ config, onUpdate }) {
                 placeholder="Falls back to the tab label"
                 testid={`tab-image-alt-${t.id}`}
               />
+
+              <div className="pt-2 border-t border-slate-200 mt-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  Primary button (optional)
+                </p>
+                <TextField
+                  label="Label (leave blank to hide)"
+                  value={t.primaryLabel || ""}
+                  onChange={(v) => updateTab(t.id, { primaryLabel: v })}
+                  placeholder="Request a conversation"
+                  testid={`tab-primary-label-${t.id}`}
+                />
+                {t.primaryLabel ? (
+                  <>
+                    <TextField
+                      label="URL"
+                      value={t.primaryUrl || ""}
+                      onChange={(v) => updateTab(t.id, { primaryUrl: v })}
+                      placeholder="https://example.com/contact"
+                      testid={`tab-primary-url-${t.id}`}
+                    />
+                    <ToggleField
+                      label="Open in same tab"
+                      checked={!!t.primaryOpenInSameTab}
+                      onChange={(v) => updateTab(t.id, { primaryOpenInSameTab: v })}
+                      testid={`tab-primary-same-tab-${t.id}`}
+                    />
+                  </>
+                ) : null}
+              </div>
+
+              <div className="pt-2 border-t border-slate-200 mt-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  Secondary button (optional)
+                </p>
+                <TextField
+                  label="Label (leave blank to hide)"
+                  value={t.secondaryLabel || ""}
+                  onChange={(v) => updateTab(t.id, { secondaryLabel: v })}
+                  placeholder="Learn more"
+                  testid={`tab-secondary-label-${t.id}`}
+                />
+                {t.secondaryLabel ? (
+                  <>
+                    <TextField
+                      label="URL"
+                      value={t.secondaryUrl || ""}
+                      onChange={(v) => updateTab(t.id, { secondaryUrl: v })}
+                      placeholder="https://example.com/learn"
+                      testid={`tab-secondary-url-${t.id}`}
+                    />
+                    <ToggleField
+                      label="Open in same tab"
+                      checked={!!t.secondaryOpenInSameTab}
+                      onChange={(v) => updateTab(t.id, { secondaryOpenInSameTab: v })}
+                      testid={`tab-secondary-same-tab-${t.id}`}
+                    />
+                  </>
+                ) : null}
+              </div>
             </>
           )}
         />
