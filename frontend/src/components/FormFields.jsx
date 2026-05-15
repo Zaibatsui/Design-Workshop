@@ -94,17 +94,30 @@ export function ToggleField({ label, description, checked, onChange, testid }) {
   );
 }
 
+// Radix `<Select.Item>` forbids an empty-string `value` (it reserves `""`
+// for "no selection"). Several of our sections legitimately want one of
+// the dropdown options to mean "no override / inherit defaults" and
+// store that as `""` in the data model. We bridge by mapping the data
+// value `""` to a private sentinel `__empty__` inside the Select, and
+// translating back to `""` on change. Callers are unaware.
+const EMPTY_SENTINEL = "__empty__";
+const toSelectValue = (v) => (v === "" || v == null ? EMPTY_SENTINEL : String(v));
+const fromSelectValue = (v) => (v === EMPTY_SENTINEL ? "" : v);
+
 export function SelectField({ label, value, onChange, options, testid }) {
   return (
     <div>
       <Label className={labelCls}>{label}</Label>
-      <Select value={String(value)} onValueChange={(v) => onChange(v)}>
+      <Select
+        value={toSelectValue(value)}
+        onValueChange={(v) => onChange(fromSelectValue(v))}
+      >
         <SelectTrigger data-testid={testid} className="mt-1.5">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {options.map((o) => (
-            <SelectItem key={o.value} value={String(o.value)}>
+            <SelectItem key={String(o.value)} value={toSelectValue(o.value)}>
               {o.label}
             </SelectItem>
           ))}
