@@ -313,7 +313,7 @@ ${baseReset(cls)}
       // custom suffixes like "+ shipping" or "/month" stay intact).
       `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(amt&&p)amt.textContent=swapCur(p);if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
       `fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u,vat_mode:m})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));if(d.priceInc)localStorage.setItem(ckey(u,"incl"),JSON.stringify({t:now,p:d.priceInc}));if(d.priceExc)localStorage.setItem(ckey(u,"excl"),JSON.stringify({t:now,p:d.priceExc}));}catch(e){}}).catch(function(){});}` +
-      `var live=root.querySelectorAll(".ns-card[data-ns-src]:not([data-ns-clone])");if(live.length&&typeof fetch==="function"){live.forEach(function(c){fetchOne(c,false);setTimeout(function(){tryGated(c);},150);});` +
+      `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(c){fetchOne(c,false);setTimeout(function(){tryGated(c);},150);});` +
       `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){fetchOne(c,false);setTimeout(function(){tryGated(c);},150);});}` +
       `try{if(typeof MutationObserver!=="undefined"){var mo=new MutationObserver(tick);mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class","data-state","data-vat","aria-pressed","aria-checked"]});}}catch(e){}` +
       `setInterval(tick,500);` +
@@ -322,7 +322,7 @@ ${baseReset(cls)}
 
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var orig=[].slice.call(track.querySelectorAll(".ns-card"));var N=orig.length;if(N>1){for(var k=0;k<orig.length;k++){var ce=orig[k].cloneNode(true);ce.setAttribute("data-ns-clone","1");track.appendChild(ce);}for(var j=orig.length-1;j>=0;j--){var cs=orig[j].cloneNode(true);cs.setAttribute("data-ns-clone","1");track.insertBefore(cs,track.firstElementChild);}track.scrollLeft=N*(orig[0].offsetWidth+18);}function unitAmt(){var c=track.querySelector(".ns-card");return c?c.offsetWidth+18:0;}var pos=track.scrollLeft,lastT=0,rafId=null,snapT=null;function snap(){if(N<=1)return;var amt=unitAmt();if(!amt)return;var sl=track.scrollLeft;if(sl>=2*N*amt-2){track.scrollLeft=sl-N*amt;pos-=N*amt;}else if(sl<N*amt-2){track.scrollLeft=sl+N*amt;pos+=N*amt;}}function tick(now){if(!ap||N<=1){rafId=null;return;}if(lastT){var dt=Math.min((now-lastT)/1000,0.1);var amt=unitAmt();if(amt&&interval>0){pos+=(amt/(interval/1000))*dt;track.scrollLeft=Math.round(pos);snap();}}lastT=now;rafId=requestAnimationFrame(tick);}function start(){if(!ap)return;stop();pos=track.scrollLeft;lastT=0;rafId=requestAnimationFrame(tick);}function stop(){if(rafId){cancelAnimationFrame(rafId);rafId=null;}}function step(dir){var amt=unitAmt();if(!amt)return;stop();snap();track.scrollBy({left:dir*amt,behavior:"smooth"});if(snapT)clearTimeout(snapT);snapT=setTimeout(function(){snap();pos=track.scrollLeft;if(ap)start();},550);}var scrollEndT=null;track.addEventListener("scroll",function(){if(scrollEndT)clearTimeout(scrollEndT);scrollEndT=setTimeout(function(){snap();pos=track.scrollLeft;},150);});if(prev)prev.addEventListener("click",function(){step(-1);});if(next)next.addEventListener("click",function(){step(1);});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}start();}${liveJs}`
+    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var total=track.querySelectorAll(".ns-card").length;if(total){var current=0;var timer=null;function go(i){current=(i+total)%total;var c=track.querySelector(".ns-card");var amt=c?c.offsetWidth+18:0;track.scrollTo({left:current*amt,behavior:"smooth"});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}start();}}${liveJs}`
   );
 
   return wrapSnippet({ html, css, js });
@@ -451,7 +451,7 @@ function FormPanel({ config, onUpdate }) {
         />
         <ToggleField
           label="Autoplay"
-          description="Continuously scroll cards from right to left — infinite loop"
+          description="Auto-advance through cards on a timer"
           checked={!!config.autoplay}
           onChange={(v) => onUpdate({ autoplay: v })}
           testid="products-autoplay"
@@ -459,12 +459,12 @@ function FormPanel({ config, onUpdate }) {
         {config.autoplay ? (
           <>
             <SliderField
-              label="Speed"
+              label="Interval"
               value={Number(config.autoplayInterval) || 4000}
               min={2000}
               max={12000}
               step={500}
-              suffix="ms / card"
+              suffix="ms"
               onChange={(v) => onUpdate({ autoplayInterval: v })}
               testid="products-autoplay-interval"
             />
