@@ -19,6 +19,7 @@ import {
   safeUrl,
   wrapSnippet,
 } from "./shared";
+import { productLiveJs } from "./productLive";
 import {
   TextField,
   SliderField,
@@ -185,26 +186,12 @@ ${baseReset(cls)}
   </div>
 </section>`;
 
-  // Live price refresh — reuse the same logic as the Product Carousel.
-  // For cards marked data-ns-src, scrape every 30 min, with same-origin
-  // credentialed fallback for gated prices.
+  // Live price refresh + VAT-toggle reactivity — identical logic to
+  // the Product Carousel (shared in `./productLive.js`).
   const apiBase = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
   const liveJs =
     cardsHtml.indexOf("data-ns-src") >= 0
-      ? `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){live.forEach(function(c){fetchOne(c,false);setTimeout(function(){tryGated(c);},150);});}
-function key(u){return"nsprice:"+u;}
-function classify(t){if(!t)return null;var s=String(t).toLowerCase();if(/excl|exklusive|ex\\.\\s*vat|moms|netto/.test(s))return"excl";if(/incl|inklusive|inc\\.\\s*vat|tax|brutto/.test(s))return"incl";return null;}
-function vatLabel(mode){return mode==="incl"?"Incl VAT":"Excl VAT";}
-var CUR=${JSON.stringify(cur)};
-var STRIP_RE=/^\\s*(?:[£$€¥₹₪₺₽]+|GBP|USD|EUR|JPY|SEK|NOK|DKK|CHF|AUD|CAD|NZD|HKD|SGD|kr|zł|Kč|Ft|R\\$|AED|SAR|ZAR|INR|PLN|CZK|HUF|RUB|TRY|ILS|CNY|MXN|BRL)\\s*/i;
-function swapCur(p){return CUR?CUR+String(p||"").replace(STRIP_RE,""):p;}
-function paint(card,p){var amt=card.querySelector(".ns-price-amount");var sfx=card.querySelector(".ns-price-suffix");if(amt&&p)amt.textContent=swapCur(p);var m=window.__nsVat||null;if(sfx&&m&&classify(sfx.textContent)!==null)sfx.textContent=vatLabel(m);}
-function fromCache(u){try{var raw=localStorage.getItem(key(u));if(!raw)return null;var o=JSON.parse(raw);if(!o||!o.t)return null;if(Date.now()-o.t>1800000)return null;return o;}catch(e){return null;}}
-function toCache(u,v){try{localStorage.setItem(key(u),JSON.stringify({t:Date.now(),v:v}));}catch(e){}}
-function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;if(!force){var c=fromCache(u);if(c){paint(card,c.v);return;}}fetch("${apiBase}/api/scrape-product?url="+encodeURIComponent(u)).then(function(r){return r.json();}).then(function(d){if(d&&d.price){toCache(u,d.price);paint(card,d.price);}}).catch(function(){});}
-function tryGated(card){var u=card.getAttribute("data-ns-src");if(!u)return;try{var origin=new URL(u).origin;if(origin!==location.origin)return;}catch(e){return;}fetch(u,{credentials:"include"}).then(function(r){return r.text();}).then(function(t){var m=t.match(/(?:[£$€¥₹]\\s?|kr\\s?)([\\d.,]{3,})/i);if(m){var price=m[0].replace(/\\s+/g," ").trim();paint(card,price);}}).catch(function(){});}
-setInterval(function(){live.forEach(function(c){fetchOne(c,true);});},1800000);
-window.addEventListener("storage",function(e){if(e.key==="__nsVat")live.forEach(function(c){fetchOne(c,false);});});`
+      ? productLiveJs({ cur, apiBase })
       : "";
 
   const js = liveJs ? iife(cls, liveJs) : "";
