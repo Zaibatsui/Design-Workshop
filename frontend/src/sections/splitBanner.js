@@ -76,6 +76,10 @@ const defaults = () => ({
   // sub-headline weight. Toggle ON when the Split Banner is acting as a
   // page's main headline and needs a heavier 700 weight.
   headingBold: false,
+  // Heading size — 30px default to match Insights & Resources. The
+  // editor allows overriding (slider 20-96px); the snippet uses the
+  // value directly so typography stays in lock-step across sections.
+  headingSize: 30,
   // Theme — panel. Defaults track DEFAULT_BRAND_KIT (secondary_color
   // for solid panel, primary→secondary for gradient).
   panelBgType: "solid", // "solid" | "gradient"
@@ -162,7 +166,7 @@ ${baseReset(cls)}
 .${cls} .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 12px;object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 8px;opacity:.9}
-.${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 36)}px` : "clamp(1.4rem,3vw,2.4rem)"};font-weight:${cfg.headingBold ? 700 : 600};line-height:1.15;letter-spacing:-.02em;color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
+.${cls} .ns-title{font-size:${num(cfg.headingSize, 30)}px;font-weight:${cfg.headingBold ? 700 : 600};color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
 .${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
 .${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
@@ -173,7 +177,7 @@ ${baseReset(cls)}
 .${cls}.is-full .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
 .${cls}.is-full .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
-@media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;height:auto;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:220px;height:220px}.${cls} .ns-panel{order:2;padding:32px 24px!important;height:auto}.${cls} .ns-panel-inner{max-width:none;margin:0!important}.${cls} .ns-title{font-size:1.5rem}}
+@media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;height:auto;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:220px;height:220px}.${cls} .ns-panel{order:2;padding:32px 24px!important;height:auto}.${cls} .ns-panel-inner{max-width:none;margin:0!important}}
 `.trim();
 
   return wrapSnippet({ html, css, js: "" });
