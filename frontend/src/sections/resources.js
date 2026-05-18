@@ -69,8 +69,10 @@ const defaults = () => ({
   paddingY: 60,
   fullBleed: false,
   // Heading + eyebrow alignment across the section width.
-  // "left" | "center" | "right" — defaults to center to preserve prior behaviour.
-  textAlign: "center",
+  // "left" | "center" | "right" — defaults to left so new sections
+  // read like a normal article header. baseReset forces h-tags to
+  // inherit text-align, so this value is applied to `.ns-wrap`.
+  textAlign: "left",
   resources: Array.from({ length: 5 }, (_, i) => sampleResource(i + 1)),
 });
 
@@ -79,7 +81,7 @@ function render(cfg) {
   const cls = `ns-resources-${uid}`;
   const cols = Math.max(2, Math.min(5, Number(cfg.columns) || 4));
   const gap = 18;
-  const align = cfg.textAlign === "left" || cfg.textAlign === "right" ? cfg.textAlign : "center";
+  const align = cfg.textAlign === "center" || cfg.textAlign === "right" ? cfg.textAlign : "left";
 
   const styleVars = [
     `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
@@ -116,10 +118,10 @@ function render(cfg) {
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
-.${cls} .ns-wrap{max-width:1200px;margin:0 auto;position:relative}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:${align};margin:0 0 10px}
-.${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);text-align:${align};margin:0 0 28px}
-.${cls} .ns-track{display:flex;align-items:stretch;gap:var(--ns-gap);overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:10px 0;margin:-10px 0}
+.${cls} .ns-wrap{max-width:1200px;margin:0 auto;position:relative;text-align:${align}}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 10px}
+.${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);margin:0 0 28px}
+.${cls} .ns-track{display:flex;align-items:stretch;gap:var(--ns-gap);overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:10px 0;margin:-10px 0;text-align:left}
 .${cls} .ns-track::-webkit-scrollbar{display:none}
 .${cls} .ns-card{flex:0 0 calc((100% - (var(--ns-cols) - 1) * var(--ns-gap)) / var(--ns-cols));display:flex;flex-direction:column;border:1px solid #f2f2f2;border-radius:6px;background:#fff;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
 .${cls} .ns-card:hover{border-color:var(--ns-hover-border);box-shadow:0 4px 18px rgba(0,0,0,.06);transform:translateY(-2px)}
@@ -196,12 +198,9 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ title: v })}
           testid="resources-title"
         />
-      </Group>
-
-      <Group title="Layout">
         <SelectField
           label="Heading alignment"
-          value={config.textAlign || "center"}
+          value={config.textAlign || "left"}
           onChange={(v) => onUpdate({ textAlign: v })}
           options={[
             { value: "left", label: "Left" },
@@ -210,6 +209,9 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="resources-text-align"
         />
+      </Group>
+
+      <Group title="Layout">
         <SelectField
           label="Columns"
           value={config.columns}
