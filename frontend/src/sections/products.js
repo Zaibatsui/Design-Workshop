@@ -61,6 +61,9 @@ const defaults = () => ({
   showArrows: true,
   paddingY: 60,
   fullBleed: false,
+  // Heading + eyebrow alignment across the section width.
+  // "left" | "center" | "right" — defaults to center to preserve prior behaviour.
+  textAlign: "center",
   // "" = Auto (use whatever the scraper / user input already shows).
   // Anything else REPLACES the leading currency token on every rendered
   // price, including live-refreshed prices. See `swapCur` in the snippet
@@ -91,6 +94,7 @@ function render(cfg) {
   const cls = `ns-products-${uid}`;
   const cols = Number(cfg.columns) === 4 ? 4 : 5;
   const gap = 18;
+  const align = cfg.textAlign === "left" || cfg.textAlign === "right" ? cfg.textAlign : "center";
 
   // Currency override — empty means "Auto" (use whatever the scraper or
   // editor produced). Matching JS in the IIFE below uses the SAME regex
@@ -159,8 +163,8 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto;position:relative}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:center;margin:0 0 10px}
-.${cls} .ns-h{font-size:32px;font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 0 28px}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:${align};margin:0 0 10px}
+.${cls} .ns-h{font-size:var(--ns-heading-size,32px);font-weight:600;color:var(--ns-title-color);text-align:${align};margin:0 0 28px}
 .${cls} .ns-track{display:flex;align-items:stretch;gap:var(--ns-gap);overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none}
 .${cls} .ns-track::-webkit-scrollbar{display:none}
 .${cls} .ns-card{flex:0 0 calc((100% - (var(--ns-cols) - 1) * var(--ns-gap)) / var(--ns-cols));border:1px solid #f2f2f2;border-radius:6px;background:#fff;overflow:hidden;transition:border-color .2s ease,box-shadow .2s ease;display:flex}
@@ -411,6 +415,17 @@ function FormPanel({ config, onUpdate }) {
       </Group>
 
       <Group title="Layout">
+        <SelectField
+          label="Heading alignment"
+          value={config.textAlign || "center"}
+          onChange={(v) => onUpdate({ textAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="products-text-align"
+        />
         <SelectField
           label="Columns"
           value={config.columns}

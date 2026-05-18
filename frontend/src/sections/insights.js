@@ -67,6 +67,9 @@ const defaults = () => ({
   columns: 2,
   paddingY: 60,
   fullBleed: false,
+  // Heading + eyebrow alignment across the section width.
+  // "left" | "center" | "right" — defaults to center to preserve prior behaviour.
+  textAlign: "center",
   // Visual options (Philips-style intro cards / generic resource cards).
   // Defaults preserve prior behaviour: image-left, accent border ON.
   cardLayout: "image-left", // "image-left" | "image-top" | "image-right"
@@ -79,6 +82,7 @@ function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-insights-${uid}`;
   const cols = Math.max(1, Math.min(3, Number(cfg.columns) || 2));
+  const align = cfg.textAlign === "left" || cfg.textAlign === "right" ? cfg.textAlign : "center";
   // Back-compat: if cardLayout / imageWidth are missing on older records
   // we treat them as the previous behaviour.
   const cardLayout =
@@ -170,8 +174,8 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:center;margin:0 0 10px}
-.${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);text-align:center;margin:0 0 28px}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);text-align:${align};margin:0 0 10px}
+.${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);text-align:${align};margin:0 0 28px}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:20px}
 .${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;${borderCss};border-radius:6px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
 .${cls} .ns-card.is-link:hover{border-color:var(--ns-accent);transform:translateY(-2px)}
@@ -238,6 +242,17 @@ function FormPanel({ config, onUpdate }) {
       </Group>
 
       <Group title="Layout">
+        <SelectField
+          label="Heading alignment"
+          value={config.textAlign || "center"}
+          onChange={(v) => onUpdate({ textAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="insights-text-align"
+        />
         <SelectField
           label="Columns"
           value={config.columns}
