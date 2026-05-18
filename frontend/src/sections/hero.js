@@ -266,6 +266,7 @@ function renderSlide(cfg) {
     `--ns-subtitle:${safeColor(t.subtitleColor, "#ffffff")}`,
     `--ns-height:${num(l.height, 520)}px`,
     `--ns-content-max:${num(l.contentMaxWidth, 720)}px`,
+    `--ns-radius:${num(l.borderRadius, 0)}px`,
   ].join(";");
 
   const slidesHtml = slides
@@ -307,7 +308,7 @@ function renderSlide(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;color:var(--ns-title)}
+.${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius,0);color:var(--ns-title)}
 .${cls} .ns-track{display:flex;height:100%;transition:transform .6s ease;will-change:transform}
 .${cls} .ns-slide{flex:0 0 100%;height:100%;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;padding:48px 56px;position:relative}
 .${cls} .ns-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.55) 25%,rgba(0,0,0,.25) 50%,rgba(0,0,0,0) 75%);pointer-events:none}
