@@ -72,14 +72,12 @@ const defaults = () => ({
   // together (the section already has overflow:hidden). Disabled when
   // fullBleed because the banner runs edge-to-edge.
   borderRadius: 0,
-  // Heading weight — 600 by default to match the "Insights & Resources"
-  // sub-headline weight. Toggle ON when the Split Banner is acting as a
-  // page's main headline and needs a heavier 700 weight.
-  headingBold: false,
-  // Heading size — 30px default to match Insights & Resources. The
-  // editor allows overriding (slider 20-96px); the snippet uses the
-  // value directly so typography stays in lock-step across sections.
-  headingSize: 30,
+  // When this Split Banner is acting as the page's main headline,
+  // toggle ON to restore the larger responsive headline typography
+  // (clamp size + 700 weight + -.02em letter-spacing + 1.15 line-height).
+  // OFF (default) keeps the heading visually aligned with the
+  // "Insights & Resources" sub-headline style (30px / 600 / normal).
+  pageHeader: false,
   // Theme — panel. Defaults track DEFAULT_BRAND_KIT (secondary_color
   // for solid panel, primary→secondary for gradient).
   panelBgType: "solid", // "solid" | "gradient"
@@ -166,7 +164,10 @@ ${baseReset(cls)}
 .${cls} .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 12px;object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 8px;opacity:.9}
-.${cls} .ns-title{font-size:${num(cfg.headingSize, 30)}px;font-weight:${cfg.headingBold ? 700 : 600};color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
+.${cls} .ns-title{${cfg.pageHeader
+    ? `font-size:${cfg.headingSize ? `${num(cfg.headingSize, 36)}px` : "clamp(1.4rem,3vw,2.4rem)"};font-weight:700;line-height:1.15;letter-spacing:-.02em;`
+    : `font-size:${num(cfg.headingSize, 30)}px;font-weight:600;`
+  }color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
 .${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
 .${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
@@ -251,13 +252,6 @@ function FormPanel({ config, onUpdate }) {
           rows={2}
           testid="split-heading"
         />
-        <ToggleField
-          label="Bold heading"
-          description="Default weight matches 'Insights & Resources'. Turn on when this is the page's main headline."
-          checked={!!config.headingBold}
-          onChange={(v) => onUpdate({ headingBold: v })}
-          testid="split-heading-bold"
-        />
         <TextAreaField
           label="Subheading (optional)"
           value={config.subheading || ""}
@@ -290,6 +284,13 @@ function FormPanel({ config, onUpdate }) {
       </Group>
 
       <Group title="Layout">
+        <ToggleField
+          label="Page header"
+          description="Treat this Split Banner as the page's main headline — restores the larger responsive heading typography. Leave off when used as a sub-section so the heading stays in lock-step with the 'Insights & Resources' style."
+          checked={!!config.pageHeader}
+          onChange={(v) => onUpdate({ pageHeader: v })}
+          testid="split-page-header"
+        />
         <SelectField
           label="Image side"
           value={config.imageSide || "right"}
