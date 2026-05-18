@@ -156,8 +156,8 @@ function render(cfg) {
   // panel just uses symmetric padding.
   const css = `
 ${baseReset(cls)}
-.${cls}{position:relative;width:100%;background:#fff;overflow:hidden;border-radius:${num(cfg.borderRadius, 0)}px}
-.${cls} .ns-grid{display:grid;grid-template-columns:${gridCols};height:${height}px;min-height:${height}px;align-items:stretch}
+.${cls}{position:relative;width:100%;background:#fff;overflow:hidden}
+.${cls} .ns-grid{display:grid;grid-template-columns:${gridCols};height:${height}px;min-height:${height}px;align-items:stretch;border-radius:${num(cfg.borderRadius, 0)}px;overflow:hidden}
 .${cls} .ns-panel{background:${panelBg};color:${safeColor(cfg.titleColor, "#ffffff")};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;height:100%}
 .${cls} .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 12px;object-fit:contain}
