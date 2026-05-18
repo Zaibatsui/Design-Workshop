@@ -268,17 +268,20 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships sixteen reusable section types plus a
+              Design Workshop ships seventeen reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
-              where applicable.
+              where applicable. Two of them — <strong>Product Carousel</strong>
+              {" "}and <strong>Product Grid</strong> — are Pro / Nettailer-aware
+              blocks with live price scraping and a universal VAT toggle.
             </P>
             <Grid>
               <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour overrides and an optional split slide layout (full-bleed image + container-aligned text)." />
               <SectionCard Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use." />
               <SectionCard Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
               <SectionCard Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
-              <SectionCard Icon={Boxes} name="Products" desc="Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
+              <SectionCard Icon={Boxes} name="Product Carousel" desc="Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
+              <SectionCard Icon={LayoutGrid} name="Product Grid" desc="Same product cards as a static grid (2-6 per row, wraps to multiple rows). Identical scrape / VAT-toggle / gated-pricing behaviour as the Product Carousel — just no carousel." />
               <SectionCard Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." />
               <SectionCard Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
               <SectionCard Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />

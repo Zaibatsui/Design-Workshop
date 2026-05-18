@@ -72,6 +72,7 @@ export const DEFAULT_BRAND_KIT = {
 const EYEBROW_SECTIONS = new Set([
   "content",
   "products",
+  "productGrid",
   "resources",
   "insights",
   "break",
@@ -155,6 +156,13 @@ const FIELD_MAP = {
     font: b.heading_font,
   }),
   products: (cfg, b) => ({
+    ...cfg,
+    titleColor: b.text_color,
+    priceColor: pick(b, "accent_color"),
+    hoverBorder: pick(b, "accent_color"),
+    font: b.heading_font,
+  }),
+  productGrid: (cfg, b) => ({
     ...cfg,
     titleColor: b.text_color,
     priceColor: pick(b, "accent_color"),
