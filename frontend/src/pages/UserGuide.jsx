@@ -27,6 +27,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand";
+import TicketDialog from "@/components/TicketDialog";
+import { Button } from "@/components/ui/button";
 
 /**
  * UserGuide — the in-app reference manual. Long-form, opinionated,
@@ -53,6 +55,14 @@ const SECTIONS = [
 
 export default function UserGuide() {
   const [active, setActive] = useState("getting-started");
+  // Ticket dialog state — opened from the in-guide "Report a bug /
+  // request a feature" CTA and the bottom-of-page footer link.
+  const [ticketOpen, setTicketOpen] = useState(false);
+  const [ticketType, setTicketType] = useState("bug");
+  const openTicket = (type = "bug") => {
+    setTicketType(type);
+    setTicketOpen(true);
+  };
 
   // Sync sidebar highlight with scroll position via IntersectionObserver
   useEffect(() => {
@@ -505,12 +515,35 @@ export default function UserGuide() {
             </Q>
           </Section>
 
-          <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500">
-            Last updated: 2026-02-25 · Want a feature documented?
-            File an issue or ping the Zaibatsui team.
+          <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-3">
+            <span>Last updated: 2026-02-25 ·</span>
+            <span>Want a feature documented?</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => openTicket("bug")}
+              data-testid="guide-footer-report-bug"
+            >
+              Report a bug
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => openTicket("feature")}
+              data-testid="guide-footer-request-feature"
+            >
+              Request a feature
+            </Button>
           </div>
         </article>
       </div>
+      <TicketDialog
+        open={ticketOpen}
+        onClose={() => setTicketOpen(false)}
+        defaultType={ticketType}
+      />
     </div>
   );
 }

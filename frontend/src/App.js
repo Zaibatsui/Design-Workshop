@@ -12,6 +12,7 @@ import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
 import UserGuide from "@/pages/UserGuide";
 import AdminUsersPage from "@/pages/AdminUsers";
+import AdminTicketsPage from "@/pages/AdminTickets";
 
 /**
  * Surfaces runtime errors that bypass the render-time ErrorBoundary as
@@ -118,6 +119,14 @@ function App() {
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminUsersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tickets"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminTicketsPage />
                   </ProtectedRoute>
                 }
               />

@@ -133,4 +133,17 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ is_active: isActive }),
     }),
+
+  // Tickets (bug reports & feature requests).
+  // Create: any authenticated user. List/update/delete: admin only.
+  createTicket: (payload) =>
+    req("/tickets", { method: "POST", body: JSON.stringify(payload) }),
+  listTickets: () => req("/tickets"),
+  setTicketStatus: (ticketId, status) =>
+    req(`/tickets/${ticketId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+  deleteTicket: (ticketId) =>
+    req(`/tickets/${ticketId}`, { method: "DELETE" }),
 };

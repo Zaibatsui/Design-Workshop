@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, FileStack, Palette, BookOpen, Users as UsersIcon } from "lucide-react";
+import { Plus, LogOut, FileStack, Palette, BookOpen, Users as UsersIcon, Inbox, MessageSquarePlus } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
@@ -13,6 +13,7 @@ import PagesTab from "./dashboard/PagesTab";
 import RecentStrip from "./dashboard/RecentStrip";
 import { SectionPicker, Tabs } from "./dashboard/common";
 import PageTemplatePicker from "./dashboard/PageTemplatePicker";
+import TicketDialog from "@/components/TicketDialog";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -23,6 +24,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
   const [pagePicker, setPagePicker] = useState(false);
+  // Ticket dialog state — universal "Report" entry point from the header.
+  const [ticketOpen, setTicketOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -85,6 +88,28 @@ export default function Dashboard() {
               <BookOpen className="w-4 h-4 mr-1.5" />
               Guide
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTicketOpen(true)}
+              data-testid="open-ticket-dialog"
+              className="text-slate-500 hover:text-slate-900"
+            >
+              <MessageSquarePlus className="w-4 h-4 mr-1.5" />
+              Report
+            </Button>
+            {user?.is_admin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/tickets")}
+                data-testid="open-admin-tickets"
+                className="text-slate-500 hover:text-slate-900"
+              >
+                <Inbox className="w-4 h-4 mr-1.5" />
+                Tickets
+              </Button>
+            )}
             {user?.is_admin && (
               <Button
                 variant="ghost"
@@ -205,6 +230,10 @@ export default function Dashboard() {
           onClose={() => setPagePicker(false)}
         />
       )}
+      <TicketDialog
+        open={ticketOpen}
+        onClose={() => setTicketOpen(false)}
+      />
       <Toaster richColors position="top-center" />
     </div>
   );

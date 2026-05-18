@@ -32,6 +32,7 @@ from routers import page_templates as page_templates_router  # noqa: E402
 from routers import pages as pages_router  # noqa: E402
 from routers import scraper as scraper_router  # noqa: E402
 from routers import sections as sections_router  # noqa: E402
+from routers import tickets as tickets_router  # noqa: E402
 from routers import uploads as uploads_router  # noqa: E402
 from storage import init_storage  # noqa: E402
 
@@ -120,6 +121,7 @@ api_router.include_router(landing_spotlights_router.admin_router)
 api_router.include_router(landing_spotlights_router.public_router)
 api_router.include_router(image_library_router.router)
 api_router.include_router(admin_router.router)
+api_router.include_router(tickets_router.router)
 
 app.include_router(api_router)
 
