@@ -58,6 +58,10 @@ export const DEFAULT_BRAND_KIT = {
   accent_color: "",
   logo_dark: "",
   logo_light: "",
+  // Global button corner radius (px). Drives every CTA / .ns-btn across
+  // every section so buttons stay visually consistent across an entire
+  // page or page-group. 0 = sharp, 9999 = pill.
+  button_radius: 8,
 };
 
 /**
@@ -125,6 +129,7 @@ function applyToHero(cfg, b) {
   return {
     ...cfg,
     font: b.heading_font,
+    buttonRadius: b.button_radius ?? 8,
     theme: {
       ...(cfg.theme || {}),
       titleColor: b.background_color,        // light text on photo bg
@@ -181,6 +186,7 @@ const FIELD_MAP = {
     bgColor: b.background_color,
     accentColor: pick(b, "accent_color"),
     bodyColor: b.body_color,
+    buttonRadius: b.button_radius ?? 8,
     font: b.heading_font,
   }),
   logos: (cfg, b) => ({
@@ -228,6 +234,7 @@ const FIELD_MAP = {
     textColor: b.background_color,
     bodyColor: b.body_color,
     accentColor: pick(b, "button_color"),
+    buttonRadius: b.button_radius ?? 8,
     font: b.heading_font,
   }),
   testimonials: (cfg, b) => ({

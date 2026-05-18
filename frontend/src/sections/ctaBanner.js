@@ -156,7 +156,7 @@ ${baseReset(cls)}
 .${cls} .ns-heading{font-size:${num(cfg.headingSize, 36)}px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;color:${textColor}}
 .${cls} .ns-sub{margin-top:18px;font-size:16px;color:${bodyColor};line-height:1.65}
 .${cls} .ns-actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;${align === "center" ? "justify-content:center" : "justify-content:flex-start"}}
-.${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 24px;font-size:15px;font-weight:500;border-radius:6px;text-decoration:none;transition:opacity .18s ease,transform .18s ease,background .18s ease,color .18s ease}
+.${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 24px;font-size:15px;font-weight:500;border-radius:${num(cfg.buttonRadius, 8)}px;text-decoration:none;transition:opacity .18s ease,transform .18s ease,background .18s ease,color .18s ease}
 .${cls} .ns-btn:hover{transform:translateY(-1px);opacity:0.92}
 .${cls} .ns-btn-primary{background:${accent};color:#fff}
 .${cls} .ns-btn-secondary{background:transparent;color:${textColor};border:1px solid ${

@@ -187,7 +187,7 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 .${cls} .ns-copy p{font-size:16px;color:var(--ns-body);line-height:1.6;margin:0}
 .${cls} .ns-copy p + p{margin-top:16px}
 .${cls} .ns-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
-.${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 22px;font-size:14px;font-weight:600;border-radius:6px;text-decoration:none;transition:transform .15s ease,filter .15s ease,background .15s ease,color .15s ease,border-color .15s ease}
+.${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 22px;font-size:14px;font-weight:600;border-radius:${num(cfg.buttonRadius, 8)}px;text-decoration:none;transition:transform .15s ease,filter .15s ease,background .15s ease,color .15s ease,border-color .15s ease}
 .${cls} .ns-btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
 .${cls} .ns-btn-primary{background:var(--ns-accent);color:#fff;border:1px solid var(--ns-accent)}
 .${cls} .ns-btn-secondary{background:transparent;color:var(--ns-accent);border:1px solid var(--ns-accent)}

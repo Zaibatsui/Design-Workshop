@@ -315,7 +315,7 @@ ${baseReset(cls)}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
 .${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 48)}px` : "clamp(1.75rem,3.6vw,3.2rem)"};font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
-.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:8px;font-weight:600;transition:transform .15s ease,filter .15s ease}
+.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .${cls} .ns-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);color:#fff;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;transition:background .15s ease}
 .${cls} .ns-arrow:hover{background:rgba(0,0,0,.6)}
@@ -419,7 +419,7 @@ ${baseReset(cls)}
 .${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 48)}px` : "clamp(1.75rem,3.6vw,3rem)"};font-weight:700;line-height:1.1;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);max-width:560px;margin:0 0 24px}
 .${cls} .ns-content[data-align="center"] .ns-subtitle{margin-left:auto;margin-right:auto}
-.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:9999px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease}
+.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .${cls} .ns-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:9999px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.32);color:#fff;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;transition:background .15s ease}
 .${cls} .ns-arrow:hover{background:rgba(0,0,0,.55)}
@@ -860,7 +860,7 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => setLayout({ contentMaxWidth: v })}
           testid="hero-content-max"
         />
-        {isFade && (
+        {!l.fullBleed && (
           <SliderField
             label="Border radius"
             value={l.borderRadius}

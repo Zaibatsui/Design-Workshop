@@ -156,7 +156,7 @@ ${baseReset(cls)}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 8px;opacity:.9}
 .${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 36)}px` : "clamp(1.4rem,3vw,2.4rem)"};font-weight:700;line-height:1.15;letter-spacing:-.02em;color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
 .${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
-.${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:8px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
+.${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .${cls} .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden;height:100%}
 .${cls} .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}

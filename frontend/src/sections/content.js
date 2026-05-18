@@ -126,7 +126,7 @@ ${baseReset(cls)}
 .${cls} .ns-p{margin:0 0 24px;font-size:16px;line-height:1.55;color:var(--ns-b-color)}
 .${cls} .ns-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:var(--ns-btn-justify,center)}
 .${cls}[style*="--ns-align:left"] .ns-btns,.${cls} .ns-inner[style*="text-align:left"] .ns-btns{justify-content:flex-start}
-.${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:6px;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:.01em;transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease;border:1px solid transparent}
+.${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:${num(cfg.buttonRadius, 8)}px;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:.01em;transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease;border:1px solid transparent}
 .${cls} .ns-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .${cls} .ns-btn-primary{background:var(--ns-accent);color:#fff;border-color:var(--ns-accent)}
 .${cls} .ns-btn-secondary{background:#fff;color:var(--ns-accent);border-color:var(--ns-accent)}
