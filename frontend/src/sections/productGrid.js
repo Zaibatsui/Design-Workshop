@@ -87,7 +87,7 @@ const CURRENCY_OPTIONS = [
 function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-pgrid-${uid}`;
-  const cols = Math.max(2, Math.min(5, Number(cfg.columns) || 4));
+  const cols = Math.max(2, Math.min(6, Number(cfg.columns) || 4));
   const gap = 18;
   const align =
     cfg.textAlign === "center" || cfg.textAlign === "right"
@@ -317,6 +317,7 @@ function FormPanel({ config, onUpdate }) {
             { value: 3, label: "3 per row" },
             { value: 4, label: "4 per row" },
             { value: 5, label: "5 per row" },
+            { value: 6, label: "6 per row" },
           ]}
           testid="pgrid-columns"
         />
@@ -585,7 +586,7 @@ function FormPanel({ config, onUpdate }) {
 export const productGrid = {
   id: ID,
   name: "Product Grid",
-  description: "Static grid of product cards (2-5 per row, wraps to multiple rows)",
+  description: "Static grid of product cards (2-6 per row, wraps to multiple rows)",
   icon: LayoutGrid,
   defaults,
   render,
