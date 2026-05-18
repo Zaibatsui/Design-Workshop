@@ -68,6 +68,14 @@ const defaults = () => ({
   height: 420, // px — min-height of the banner
   contentMaxWidth: 1200, // matches the host site's content gutter
   fullBleed: false,
+  // Outer border radius — rounds both the panel and image corners
+  // together (the section already has overflow:hidden). Disabled when
+  // fullBleed because the banner runs edge-to-edge.
+  borderRadius: 0,
+  // Heading weight — 600 by default to match the "Insights & Resources"
+  // sub-headline weight. Toggle ON when the Split Banner is acting as a
+  // page's main headline and needs a heavier 700 weight.
+  headingBold: false,
   // Theme — panel. Defaults track DEFAULT_BRAND_KIT (secondary_color
   // for solid panel, primary→secondary for gradient).
   panelBgType: "solid", // "solid" | "gradient"
@@ -148,13 +156,13 @@ function render(cfg) {
   // panel just uses symmetric padding.
   const css = `
 ${baseReset(cls)}
-.${cls}{position:relative;width:100%;background:#fff;overflow:hidden}
+.${cls}{position:relative;width:100%;background:#fff;overflow:hidden;border-radius:${num(cfg.borderRadius, 0)}px}
 .${cls} .ns-grid{display:grid;grid-template-columns:${gridCols};height:${height}px;min-height:${height}px;align-items:stretch}
 .${cls} .ns-panel{background:${panelBg};color:${safeColor(cfg.titleColor, "#ffffff")};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;height:100%}
 .${cls} .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 12px;object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 8px;opacity:.9}
-.${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 36)}px` : "clamp(1.4rem,3vw,2.4rem)"};font-weight:700;line-height:1.15;letter-spacing:-.02em;color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
+.${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 36)}px` : "clamp(1.4rem,3vw,2.4rem)"};font-weight:${cfg.headingBold ? 700 : 600};line-height:1.15;letter-spacing:-.02em;color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
 .${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
 .${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
@@ -238,6 +246,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ heading: v })}
           rows={2}
           testid="split-heading"
+        />
+        <ToggleField
+          label="Bold heading"
+          description="Default weight matches 'Insights & Resources'. Turn on when this is the page's main headline."
+          checked={!!config.headingBold}
+          onChange={(v) => onUpdate({ headingBold: v })}
+          testid="split-heading-bold"
         />
         <TextAreaField
           label="Subheading (optional)"
@@ -328,6 +343,17 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="split-full-bleed"
         />
+        {!config.fullBleed && (
+          <SliderField
+            label="Border radius"
+            value={Number(config.borderRadius) || 0}
+            min={0}
+            max={32}
+            suffix="px"
+            onChange={(v) => onUpdate({ borderRadius: v })}
+            testid="split-border-radius"
+          />
+        )}
       </Group>
 
       <Group title="Panel background">
