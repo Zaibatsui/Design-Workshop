@@ -11,7 +11,7 @@ can prompt the user to delete older entries.
 """
 import uuid
 from datetime import datetime, timezone
-from typing import List, Literal, Optional
+from typing import List, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, HttpUrl, ValidationError

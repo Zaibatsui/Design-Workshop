@@ -38,9 +38,9 @@ The output is **strictly inert** — scoped CSS classes (one unique class per in
 
 ## Features
 
-### Section library — 16 composable section types
+### Section library — 18 composable section types
 
-Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages.
+Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Product Carousel and Product Grid are **Pro / Nettailer-aware** blocks with live-scraped pricing, a universal VAT toggle and gated-pricing fallback.
 
 | Block | What it does |
 |---|---|
@@ -49,6 +49,7 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages.
 | **Welcome** | Post-login banner with positionable heading, customer logo and account-manager card. Each block snaps to one of nine grid positions so one section serves many brands. |
 | **Content** | Heading + body + buttons. The all-purpose marquee block. |
 | **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image, with overlay-badge extraction. Universal VAT toggle: snippet watches the host site's VAT switcher and live-flips between inc-VAT and ex-VAT prices, mirroring whatever label convention the host uses (`Inc VAT`, `Inkl. moms`, `TTC`, …). |
+| **Product Grid** | Same product cards as the Carousel, laid out as a static grid (2–6 per row, wraps to multiple rows). Shares the live-price refresh + universal VAT toggle + gated-pricing fallback via the `productLive.js` helper. |
 | **Insights Grid** | Editorial 2–3 column card grid for articles & case studies. Per-card layouts (image-left, image-top, image-right), accent border toggle, configurable image width. |
 | **Resource Carousel** | Tag-tinted card carousel — blog posts, guides, downloads. |
 | **Feature Grid** | 2–4 column value-prop cards with icon, title, body. Outlined / tinted / solid card styles, plus an image-card variant (`image-top` / `image-left`). |
@@ -58,7 +59,7 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages.
 | **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides. |
 | **Logo Strip** | Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle. |
 | **Break Banner** | Full-bleed parallax break with overlaid heading. Use it to chapter long pages. |
-| **Tabs** | Tabbed content panel with a side image. Configurable tab alignment and image position. |
+| **Tabs** | Tabbed content panel with a side image. Configurable tab alignment and image position. Optional per-tab image link (open in new or same tab). |
 | **Grid** | 2×2 / 2×3 image grid with optional links per cell. |
 | **Rich text** | Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections. |
 
@@ -173,7 +174,7 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 │   │   ├── pages/page-editor/   # PageRail, BlockEditorDrawer, SaveIndicator
 │   │   ├── components/          # FormFields, ImageUpload, ListEditor, ErrorBoundary
 │   │   ├── components/ui/       # Shadcn primitives
-│   │   ├── sections/            # registry.js + 16 section modules + iconLib + shared helpers
+│   │   ├── sections/            # registry.js + 18 section modules + iconLib + shared helpers
 │   │   ├── lib/                 # api client, BrandKitContext, brand colours
 │   │   └── auth/                # AuthContext + startLogin
 │   └── package.json
