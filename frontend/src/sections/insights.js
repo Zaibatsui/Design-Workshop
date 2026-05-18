@@ -112,11 +112,17 @@ function render(cfg) {
       const logoHtml = logoUrl
         ? `<img class="ns-card-logo" src="${escAttr(logoUrl)}" alt="${escAttr(c.logoAlt || "")}"${c.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(c.logoMaxHeight, 40)}px"/>`
         : "";
+      // Per-card heading colour override — leaves the rest of the
+      // section's heading colour intact, lets the user spotlight a
+      // single card.
+      const headingStyle = c.headingColor
+        ? ` style="color:${safeColor(c.headingColor, "")}"`
+        : "";
       const inner = `
   <div class="ns-icon">${iconImg}</div>
   <div class="ns-body">
     ${logoHtml}
-    <h3 class="ns-ch">${escHtml(c.heading || "")}</h3>
+    <h3 class="ns-ch"${headingStyle}>${escHtml(c.heading || "")}</h3>
     <p class="ns-cp">${escHtml(c.body || "")}</p>
     ${c.linkText ? `<span class="ns-link">${escHtml(c.linkText)} →</span>` : ""}
   </div>`;
@@ -172,7 +178,7 @@ ${baseReset(cls)}
 .${cls} .ns-icon{background:#fafafa;overflow:hidden}
 .${cls} .ns-icon img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls} .ns-body{padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center}
-.${cls} .ns-card-logo{display:block;max-width:60%;margin:0 0 14px;object-fit:contain}
+.${cls} .ns-card-logo{display:block;margin:0 0 14px;object-fit:contain;width:auto;align-self:flex-start}
 .${cls} .ns-ch{margin:0 0 8px;font-size:18px;font-weight:600;color:var(--ns-card-h-color,#1f1f1f)}
 .${cls} .ns-cp{margin:0 0 12px;font-size:15px;line-height:1.5;color:#555}
 .${cls} .ns-card:not(.is-link) .ns-cp:last-child{margin-bottom:0}
@@ -408,6 +414,32 @@ function FormPanel({ config, onUpdate }) {
                 onChange={(v) => updateCard(c.id, { heading: v })}
                 testid={`insight-heading-${c.id}`}
               />
+              <ToggleField
+                label="Override heading colour"
+                description="Use a different colour just for this card"
+                checked={!!c.headingColor}
+                onChange={(v) => {
+                  if (v) {
+                    updateCard(c.id, {
+                      headingColor:
+                        c.headingColor ||
+                        config.cardHeadingColor ||
+                        "#1f1f1f",
+                    });
+                  } else {
+                    updateCard(c.id, { headingColor: "" });
+                  }
+                }}
+                testid={`insight-heading-color-toggle-${c.id}`}
+              />
+              {c.headingColor ? (
+                <ColorField
+                  label="Heading colour (this card)"
+                  value={c.headingColor}
+                  onChange={(v) => updateCard(c.id, { headingColor: v })}
+                  testid={`insight-heading-color-${c.id}`}
+                />
+              ) : null}
               <TextAreaField
                 label="Body"
                 value={c.body}
