@@ -116,87 +116,126 @@ export default function UserGuide() {
               </a>
             ))}
           </nav>
+
+          {/* Bottom-of-nav report CTA — mirrors the page footer so the
+              "tell us what's broken / what's missing" entry point is
+              always within reach without having to scroll. */}
+          <div className="mt-6 pt-5 border-t border-slate-200 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">
+              Stuck or have an idea?
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => openTicket("bug")}
+              data-testid="guide-sidebar-report-bug"
+              className="w-full justify-start"
+            >
+              Report a bug
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => openTicket("feature")}
+              data-testid="guide-sidebar-request-feature"
+              className="w-full justify-start"
+            >
+              Request a feature
+            </Button>
+          </div>
         </aside>
 
         <article className="prose-guide max-w-none">
           <H1>The Design Workshop user guide</H1>
           <Lead>
-            A practical reference for building, saving, theming and
-            shipping reusable e-commerce content with Design Workshop.
-            Skim the table of contents, jump anywhere.
+            A friendly walkthrough of how to build, save, theme and ship
+            beautiful sections of a webpage — even if you've never written
+            a line of code. Pick a chapter from the list on the left, or
+            scroll top-to-bottom for the full tour.
           </Lead>
 
-          <Section id="quickstart" Icon={Clock} title="Quickstart — your first snippet in 5 minutes">
+          <Section id="quickstart" Icon={Clock} title="Quickstart — your first design in 5 minutes">
             <P>
-              The fast path from zero to a snippet pasted into your CMS.
-              Every step links to its full chapter further down the guide
-              if you want the detail later.
+              The fastest path from "I just signed in" to "look at this
+              new section on our website." If you ever want more detail
+              on a step, every chapter below covers it in depth.
             </P>
             <Ol>
               <li>
-                <strong>Set your Brand Kit first.</strong> Open{" "}
-                <Code>/brand</Code>, pick a primary colour and (optionally)
-                a heading + body font. This becomes the default for every
-                new section you create.
+                <strong>Pick your brand colours first.</strong> Click{" "}
+                <strong>Brand Kit</strong> in the top right, choose your
+                main colour and (optionally) the fonts you want to use.
+                Everything new you build will pick these up automatically.
               </li>
               <li>
-                <strong>Create a section.</strong> Back on the dashboard,
-                click <strong>"+ New section"</strong> and pick a type —
-                <em> Hero</em>, <em>Product Carousel</em>, and{" "}
-                <em>Logo Strip</em> are the most useful first picks.
+                <strong>Start a new section.</strong> Back on the
+                dashboard, hit{" "}
+                <strong>"+ New section"</strong> and choose what kind you
+                want — a <em>Hero</em> banner, a <em>Product Carousel</em>,
+                or a <em>Logo Strip</em> are great first picks.
               </li>
               <li>
-                <strong>Edit in the centre preview.</strong> The right-hand
-                rail groups controls into collapsible accordions (Content ·
-                Layout · Colours · Buttons). Change a field, watch the
-                preview repaint instantly. Nothing needs saving — autosave
-                fires on blur.
+                <strong>Edit and watch it come to life.</strong> The
+                preview in the middle updates the second you change
+                anything. The panel on the right is where you change
+                text, images, colours and buttons. There's no <em>Save</em>
+                {" "}button — your work saves itself the moment you click
+                away from a field.
               </li>
               <li>
-                <strong>Click "Copy snippet"</strong> (top right). The
-                drawer shows the full self-contained HTML / CSS / JS.
-                Hit <strong>Copy</strong>.
+                <strong>Click "Copy snippet"</strong> in the top right.
+                That copies your finished section as a single block of
+                code you can paste straight into your website.
               </li>
               <li>
-                <strong>Paste into your CMS</strong> as a raw HTML block
-                (Nettailer raw-HTML widget, custom CMS rich-text "source"
-                mode, Shopify custom HTML, etc.). Save and refresh — your
-                section renders.
+                <strong>Paste it into your website.</strong> Most platforms
+                have a "Raw HTML", "Embed code" or "Source" option somewhere
+                in their page editor — paste the snippet there, save the
+                page, and refresh. Your new section is live.
               </li>
             </Ol>
             <Note>
-              That's it. From here, build a few more sections, stack them
-              into a Page (one combined snippet for an entire landing
-              page), and use <strong>"Apply brand kit"</strong> to re-skin
-              an existing section if you tweak your colours later.
+              That's the whole loop. From here you can build more
+              sections, combine them into a multi-section <em>Page</em>{" "}
+              that pastes in as one big block, and use{" "}
+              <strong>"Apply brand kit"</strong> to refresh any older
+              section to your latest brand colours.
             </Note>
           </Section>
 
           <Section id="getting-started" Icon={Rocket} title="Getting started">
             <P>
-              Design Workshop is a hybrid <strong>section + page editor</strong>{" "}
-              that exports self-contained HTML / CSS / JS snippets you paste
-              into your CMS. Three things to know before your first session:
+              Design Workshop is a visual builder for the kind of content
+              that lives between your homepage banner and your product
+              listings — heroes, feature blocks, testimonials, product
+              carousels and more. You build a section here, paste it
+              into your website's page editor, and you're done. Three
+              ideas you'll keep meeting:
             </P>
             <Ol>
               <li>
-                <strong>Sections</strong> are reusable building blocks (Hero,
-                Logos, Insights Grid, Tabs…). Each one ships as one snippet.
+                <strong>Sections</strong> are reusable building blocks —
+                things like a Hero banner, a Logo strip, a row of product
+                cards, a tabbed product detail block. Each one is one
+                ready-to-paste piece.
               </li>
               <li>
-                <strong>Pages</strong> are stacks of blocks (sections from
-                your library + ad-hoc rich-text). One page → one combined
-                snippet.
+                <strong>Pages</strong> are when you stack several sections
+                together and want them to paste in as a single piece. One
+                page → one copy-paste.
               </li>
               <li>
-                <strong>Brand Kit</strong> is your colour and font defaults.
-                Set it once and every new section honours it; click "Apply
-                brand kit" to re-skin existing sections.
+                <strong>Brand Kit</strong> is the home of your colours and
+                fonts. Set it once, every new section follows it, and
+                clicking "Apply brand kit" updates older sections too.
               </li>
             </Ol>
             <Note>
-              Everything autosaves. The moment you click off a field, it's
-              persisted. There is no Save button — and that's intentional.
+              Everything saves itself automatically. The moment you click
+              away from a field, it's stored. You'll never see a "Save"
+              button — and you'll never lose work.
             </Note>
           </Section>
 
@@ -238,39 +277,39 @@ export default function UserGuide() {
 
           <Section id="section-editor" Icon={PenLine} title="Building a section">
             <P>
-              The Section editor has three columns: a settings rail on the
-              right, a live preview in the centre, and a snippet drawer
-              that slides out when you hit <Kbd>Copy snippet</Kbd>.
+              The section editor has three areas: a settings panel on the
+              right, a live preview in the middle, and a "Copy snippet"
+              drawer that slides out when you're ready to take your
+              design to your website.
             </P>
             <P>
-              The settings rail groups controls into <strong>collapsible
-              accordions</strong> — typically <em>Content</em>, <em>Layout</em>,
-              <em> Colours</em>, <em>Buttons</em>, and (where relevant){" "}
-              <em>Carousel</em>. Click a header to expand its panel; the
-              others auto-collapse so the rail never grows taller than the
-              screen.
+              The settings panel is grouped into <strong>collapsible
+              sections</strong> — usually <em>Content</em>, <em>Layout</em>,
+              <em> Colours</em> and <em>Buttons</em> (plus <em>Carousel</em>
+              {" "}where it makes sense). Click a heading to open that
+              group; the others tuck themselves away so the panel never
+              feels overwhelming.
             </P>
             <Bullets
               items={[
                 <>
-                  Edit any field — text, colour, image, link — and the
-                  centre preview updates as you type.
+                  Type or change anything — text, colour, image, link —
+                  and the preview in the middle updates straight away.
                 </>,
                 <>
                   Sections with repeating items (logos, slides, products,
-                  cards, FAQ rows…) show a <strong>collapsible item
-                  list</strong>. Click a row title to expand its full
-                  editor; <Kbd>+</Kbd> at the bottom to add another.
+                  cards, FAQs…) show a <strong>tidy collapsed list</strong>.
+                  Click a row to open the full editor for that item; the
+                  <Kbd>+</Kbd> button at the bottom adds another.
                 </>,
                 <>
-                  Press <Kbd>Esc</Kbd> any time to dismiss modals or close
+                  Press <Kbd>Esc</Kbd> at any time to close any popup or
                   the snippet drawer.
                 </>,
                 <>
-                  The <strong>"Apply brand kit"</strong> button overlays
-                  your brand colours + fonts onto the section without
-                  touching content (your products, slides, copy stay
-                  intact).
+                  The <strong>"Apply brand kit"</strong> button repaints
+                  the section with your latest brand colours and fonts
+                  without touching your words, products, or images.
                 </>,
               ]}
             />
@@ -372,82 +411,80 @@ export default function UserGuide() {
             </P>
           </Section>
 
-          <Section id="image-hosting" Icon={ImageIcon} title="Image hosting — uploads vs URLs">
+          <Section id="image-hosting" Icon={ImageIcon} title="Adding images — upload or paste a link">
             <P>
-              Anywhere the editor lets you add an image, you have two
-              options: <strong>upload</strong> a file from your computer
-              or <strong>paste a hosted URL</strong> (your existing CDN,
-              your e-commerce DAM, your blog's media library, an Unsplash
-              link, etc.). Both produce the same visual result. They are
-              <strong> not</strong> equivalent operationally.
+              Anywhere the editor asks for an image, you have two
+              choices: <strong>upload</strong> a file from your computer,
+              or <strong>paste a link</strong> to an image that already
+              lives online somewhere (your product database, an Unsplash
+              photo, the brand's website…). They look identical when you
+              hit "Copy snippet" — but they behave a bit differently
+              behind the scenes.
             </P>
             <Warning>
-              <strong>Prefer hosted URLs whenever you can.</strong>{" "}
-              Uploaded images are stored by Design Workshop and served
-              from this service. If Design Workshop is offline for any
-              reason, every snippet you've embedded into a customer site
-              will keep rendering its layout, colours, copy and animations
-              — but uploaded images in those snippets won't load. Hosted
-              URLs point to wherever the image already lives, completely
-              independent of this service, so they keep working through
-              any disruption here.
+              <strong>Use links to existing images when you can.</strong>{" "}
+              Uploaded files are stored on our servers. If we ever go
+              offline, those uploaded images won't load (everything else
+              in your snippet — text, colours, layout — keeps working).
+              Linked images live wherever you copied the link from, so
+              they keep working no matter what happens here.
             </Warning>
             <P>
-              <strong>When upload is the right choice:</strong> bespoke
-              graphics, logos you don't already host anywhere, anything
-              created specifically for one snippet. The 10 MB cap and
-              auto-served caching headers make it the path of least
-              resistance for one-off assets.
+              <strong>Upload is great for:</strong> one-off graphics, a
+              logo you don't have hosted anywhere else, banner artwork
+              made specifically for a campaign. Files up to 10 MB.
             </P>
             <P>
-              <strong>When URL is the better choice:</strong>
+              <strong>A link is the safer choice for:</strong>
             </P>
             <Bullets
               items={[
-                <>Product photography that already lives on your e-commerce platform's CDN — paste the existing image URL.</>,
-                <>Manufacturer-supplied marketing imagery hosted on the brand's site.</>,
-                <>Royalty-free stock from Unsplash / Pexels / Pixabay (right-click → "Copy image address").</>,
-                <>Anything served from a hosted image library you already pay for (Cloudinary, Imgix, Sirv, ImageKit…).</>,
-                <>Blog post hero images already embedded in your CMS.</>,
+                <>Product photos that already live on your e-commerce platform — copy the image URL from there.</>,
+                <>Marketing images hosted on a brand's own website.</>,
+                <>Stock photos from Unsplash / Pexels / Pixabay (right-click an image and pick "Copy image address").</>,
+                <>Anything from an image library you already pay for (Cloudinary, Imgix, etc.).</>,
+                <>Blog post hero images already in your website's media library.</>,
               ]}
             />
             <P>
-              For mission-critical pages — homepage hero, top-of-funnel
-              landing pages, big seasonal campaigns — hosted URLs are the
-              defensible choice. They survive any disruption to this
-              service indefinitely. Treat uploads as the convenience option
-              for everything else.
+              For your most important pages — your homepage hero, a big
+              campaign — links to existing images are the safest bet.
+              They'll keep working through anything. Save uploads for
+              everything else, where the convenience of "just pick a
+              file" wins.
             </P>
             <Note>
-              We host uploaded images behind a long-lived edge cache, so
-              short outages typically don't affect delivery — caches keep
-              serving the bytes for weeks. The caveat above is about
-              extended disruption (multi-day outage, account closure,
-              service deprecation) — events you should plan for if your
-              snippets need to outlast this service.
+              We cache uploaded images aggressively, so a short outage
+              usually doesn't affect what your customers see — the
+              browser keeps showing the cached version for weeks. The
+              warning above is about much longer disruptions like an
+              extended outage or account closure.
             </Note>
           </Section>
 
-          <Section id="snippet" Icon={Code2} title="Copy & embed the snippet">
+          <Section id="snippet" Icon={Code2} title="Copy & paste into your website">
             <P>
-              Every section editor and page editor has a{" "}
-              <strong>"Copy snippet"</strong> button. Click it to open the
-              snippet drawer:
+              Every section editor and every page editor has a{" "}
+              <strong>"Copy snippet"</strong> button in the top right.
+              That's how you take your finished design out of Design
+              Workshop and into your website.
             </P>
             <Ol>
-              <li>The drawer shows the full self-contained HTML — markup, scoped CSS, and a tiny IIFE.</li>
-              <li>Click <strong>"Copy"</strong> — your clipboard now holds the entire snippet.</li>
-              <li>Paste it into your CMS as a raw HTML block (Nettailer raw-HTML widget, custom CMS rich-text source mode, etc.).</li>
+              <li>Click <strong>Copy snippet</strong> — a drawer slides in from the side previewing the exact code that will be pasted.</li>
+              <li>Click <strong>"Copy"</strong> — that copies the whole thing to your clipboard.</li>
+              <li>In your website's page editor, find the option to add a "Raw HTML", "Embed code" or "Source" block, and paste.</li>
+              <li>Save the page in your website and refresh — your design is live.</li>
             </Ol>
             <Note>
-              The CSS is scoped to a unique class per section so two sections
-              never collide. The IIFE auto-runs on paste — no setup, no
-              dependencies.
+              Each section's styles are scoped to itself, so you can drop
+              two different sections onto the same page and they won't
+              affect each other (or anything else on the page). No setup
+              required, no extra libraries — paste and you're done.
             </Note>
             <P>
-              <strong>Pages</strong> export the same way: one combined
-              snippet covering every block. Order in the snippet matches the
-              rail's vertical order.
+              <strong>Pages</strong> work exactly the same way: one
+              "Copy snippet" gives you every section stacked in the
+              order shown in the page editor.
             </P>
           </Section>
 
