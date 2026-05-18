@@ -313,7 +313,7 @@ ${baseReset(cls)}
 .${cls} .ns-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.55) 25%,rgba(0,0,0,.25) 50%,rgba(0,0,0,0) 75%);pointer-events:none}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:left}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
-.${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 48)}px` : "clamp(1.75rem,3.6vw,3.2rem)"};font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
+.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
@@ -324,7 +324,7 @@ ${baseReset(cls)}
 .${cls} .ns-dots{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:5}
 .${cls} .ns-dot{width:10px;height:10px;border-radius:50%;border:1px solid #fff;background:transparent;padding:0;cursor:pointer;transition:background .15s ease}
 .${cls} .ns-dot.is-active{background:#fff}
-@media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}}
+@media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
 ${anySplit ? splitCss(cls, cfg) : ""}
@@ -416,7 +416,7 @@ ${baseReset(cls)}
 .${cls} .ns-content[data-align="right"]{margin-left:auto}
 .${cls} .ns-logo{max-height:48px;max-width:190px;margin-bottom:20px;object-fit:contain}
 .${cls} .ns-content[data-align="center"] .ns-logo{margin-left:auto;margin-right:auto}
-.${cls} .ns-title{font-size:${cfg.headingSize ? `${num(cfg.headingSize, 48)}px` : "clamp(1.75rem,3.6vw,3rem)"};font-weight:700;line-height:1.1;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
+.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.1;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);max-width:560px;margin:0 0 24px}
 .${cls} .ns-content[data-align="center"] .ns-subtitle{margin-left:auto;margin-right:auto}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease}
@@ -428,7 +428,7 @@ ${baseReset(cls)}
 .${cls} .ns-dots{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:3}
 .${cls} .ns-dot{width:8px;height:8px;padding:0;border-radius:9999px;border:none;background:rgba(255,255,255,.5);cursor:pointer;transition:background .15s ease,width .15s ease}
 .${cls} .ns-dot.is-active{background:#fff;width:22px}
-@media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}}
+@media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
 ${anySplit ? splitCss(cls, cfg) : ""}
@@ -516,11 +516,11 @@ function FormPanel({ config, onUpdate }) {
         />
         <SliderField
           label="Slide title size"
-          value={Number(config.headingSize) || 0}
-          min={0}
+          value={Number(config.headingSize) || 48}
+          min={24}
           max={96}
-          suffix={Number(config.headingSize) ? "px" : " (auto / responsive)"}
-          onChange={(v) => onUpdate({ headingSize: v || 0 })}
+          suffix="px"
+          onChange={(v) => onUpdate({ headingSize: v })}
           testid="hero-heading-size"
         />
         <ToggleField

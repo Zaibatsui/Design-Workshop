@@ -38,6 +38,12 @@ class BrandKit(BaseModel):
     # be blank.
     logo_dark: str = Field(default="")   # logo that reads on DARK bg
     logo_light: str = Field(default="")  # logo that reads on LIGHT bg
+    # Global button corner radius — drives every CTA / .ns-btn across
+    # every section. 0 = sharp, 9999 = full pill. Kept as a number (not
+    # a string) so the frontend can drag a slider without round-trip
+    # conversion. Saved kits from before this field default to 8 px so
+    # behaviour stays consistent with the previous hardcoded value.
+    button_radius: int = Field(default=8, ge=0, le=9999)
 
 
 DEFAULT_KIT = BrandKit().model_dump()
