@@ -4,7 +4,7 @@
 Run this AFTER import-mongo.sh, INSIDE the new backend container:
 
     docker compose exec backend python /app/deploy/scripts/migrate-uploads.py \\
-        --source https://page-craft-320.preview.emergentagent.com \\
+        --source https://snippet-builder-3.preview.emergentagent.com \\
         --target https://designworkshop.zaibatsui.co.uk
 
 What it does:
@@ -76,7 +76,7 @@ def _download(source_url: str, rel_path: str) -> bytes:
 
 async def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--source", required=True, help="Old public URL, e.g. https://page-craft-320.preview.emergentagent.com")
+    ap.add_argument("--source", required=True, help="Old public URL, e.g. https://snippet-builder-3.preview.emergentagent.com")
     ap.add_argument("--target", required=True, help="New public URL, e.g. https://designworkshop.zaibatsui.co.uk")
     ap.add_argument("--dry-run", action="store_true", help="Report what would change but don't write anything")
     args = ap.parse_args()
