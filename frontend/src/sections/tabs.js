@@ -30,6 +30,11 @@ const sampleTab = (label, heading, body, image) => ({
   body,
   image,
   imageAlt: "",
+  // Optional image link — when imageUrl is set the image renders inside
+  // an <a> tag so users can click it. Hidden behind a toggle in the
+  // editor so the URL/same-tab fields only appear when needed.
+  imageUrl: "",
+  imageOpenInSameTab: false,
   // Per-tab CTAs — both optional. Empty label = button is dropped from
   // render. Primary inherits the section accent colour; secondary is an
   // outlined variant for the "Learn more"-style secondary action.
@@ -146,6 +151,11 @@ function render(cfg) {
         primaryBtn || secondaryBtn
           ? `<div class="ns-ctas">${primaryBtn}${secondaryBtn}</div>`
           : "";
+      const imgTag = img ? `<img src="${escAttr(img)}" alt="${escAttr(tab.imageAlt || tab.label || "")}"/>` : "";
+      const imgUrl = safeUrl(tab.imageUrl);
+      const imgHtml = imgTag && imgUrl
+        ? `<a class="ns-image-link" href="${escAttr(imgUrl)}" target="${tab.imageOpenInSameTab ? "_self" : "_blank"}"${tab.imageOpenInSameTab ? "" : ' rel="noopener noreferrer"'}>${imgTag}</a>`
+        : imgTag;
       return `<div class="ns-panel${i === 0 ? " is-active" : ""}" data-ns-panel="${escAttr(tab.id)}">
   <div class="ns-split">
     <div class="ns-copy">
@@ -153,7 +163,7 @@ function render(cfg) {
       ${paragraphs}
       ${ctasHtml}
     </div>
-    <div class="ns-image">${img ? `<img src="${escAttr(img)}" alt="${escAttr(tab.imageAlt || tab.label || "")}"/>` : ""}</div>
+    <div class="ns-image">${imgHtml}</div>
   </div>
 </div>`;
     })
@@ -193,6 +203,8 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 .${cls} .ns-btn-secondary{background:transparent;color:var(--ns-accent);border:1px solid var(--ns-accent)}
 .${cls} .ns-btn-secondary:hover{background:var(--ns-accent);color:#fff}
 .${cls} .ns-image img{width:100%;border-radius:6px;display:block}
+.${cls} .ns-image-link{display:block;line-height:0;transition:transform .15s ease,filter .15s ease}
+.${cls} .ns-image-link:hover{transform:translateY(-1px);filter:brightness(1.03)}
 @media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr;gap:24px}.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}.${cls} .ns-heading{font-size:24px;margin:0 0 12px}.${cls} .ns-ctas{flex-direction:column;align-items:stretch}.${cls} .ns-btn{width:100%}}
 `.trim();
 
@@ -367,6 +379,36 @@ function FormPanel({ config, onUpdate }) {
                 placeholder="Falls back to the tab label"
                 testid={`tab-image-alt-${t.id}`}
               />
+              <ToggleField
+                label="Link image"
+                description="Make the image clickable"
+                checked={!!t.imageUrl}
+                onChange={(v) => {
+                  if (v) {
+                    updateTab(t.id, { imageUrl: t.imageUrl || "#" });
+                  } else {
+                    updateTab(t.id, { imageUrl: "", imageOpenInSameTab: false });
+                  }
+                }}
+                testid={`tab-image-link-toggle-${t.id}`}
+              />
+              {t.imageUrl ? (
+                <>
+                  <TextField
+                    label="Image URL"
+                    value={t.imageUrl || ""}
+                    onChange={(v) => updateTab(t.id, { imageUrl: v })}
+                    placeholder="https://example.com/product"
+                    testid={`tab-image-url-${t.id}`}
+                  />
+                  <ToggleField
+                    label="Open in same tab"
+                    checked={!!t.imageOpenInSameTab}
+                    onChange={(v) => updateTab(t.id, { imageOpenInSameTab: v })}
+                    testid={`tab-image-same-tab-${t.id}`}
+                  />
+                </>
+              ) : null}
 
               <div className="pt-2 border-t border-slate-200 mt-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
