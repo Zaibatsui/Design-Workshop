@@ -26,6 +26,19 @@ export default function Dashboard() {
   const [pagePicker, setPagePicker] = useState(false);
   // Ticket dialog state — universal "Report" entry point from the header.
   const [ticketOpen, setTicketOpen] = useState(false);
+  // Open-ticket badge count for admins. Refreshed on mount, after the
+  // user submits a ticket (in case they're also an admin) and whenever
+  // the dialog closes.
+  const [openTicketCount, setOpenTicketCount] = useState(0);
+  const refreshTicketCount = async () => {
+    if (!user?.is_admin) return;
+    try {
+      const data = await api.ticketCount();
+      setOpenTicketCount(data?.open ?? 0);
+    } catch {
+      // best-effort badge; silent on failure so the dashboard isn't disturbed
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -40,6 +53,13 @@ export default function Dashboard() {
       }
     })();
   }, []);
+
+  // Fetch the open-ticket count once we know whether the signed-in user
+  // is an admin (and only then — the endpoint 401s for non-admins).
+  useEffect(() => {
+    refreshTicketCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.is_admin]);
 
   const createSection = (typeId) => {
     const def = SECTIONS_BY_ID[typeId];
@@ -104,10 +124,19 @@ export default function Dashboard() {
                 size="sm"
                 onClick={() => navigate("/admin/tickets")}
                 data-testid="open-admin-tickets"
-                className="text-slate-500 hover:text-slate-900"
+                className="text-slate-500 hover:text-slate-900 relative"
               >
                 <Inbox className="w-4 h-4 mr-1.5" />
                 Tickets
+                {openTicketCount > 0 && (
+                  <span
+                    data-testid="admin-tickets-badge"
+                    aria-label={`${openTicketCount} open ticket${openTicketCount === 1 ? "" : "s"}`}
+                    className="ml-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold bg-[#E01839] text-white leading-none"
+                  >
+                    {openTicketCount > 99 ? "99+" : openTicketCount}
+                  </span>
+                )}
               </Button>
             )}
             {user?.is_admin && (
@@ -232,7 +261,11 @@ export default function Dashboard() {
       )}
       <TicketDialog
         open={ticketOpen}
-        onClose={() => setTicketOpen(false)}
+        onClose={() => {
+          setTicketOpen(false);
+          // Refresh in case the user (if admin) just filed one themselves.
+          refreshTicketCount();
+        }}
       />
       <Toaster richColors position="top-center" />
     </div>

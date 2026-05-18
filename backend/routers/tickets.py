@@ -97,6 +97,13 @@ async def create_ticket(payload: TicketCreate, user: User = Depends(get_current_
     return _doc_to_out(doc)
 
 
+@router.get("/count")
+async def ticket_count(_user: User = Depends(require_admin)):
+    """Admin only — lightweight open-ticket counter for the dashboard badge."""
+    open_count = await db.tickets.count_documents({"status": "open"})
+    return {"open": open_count}
+
+
 @router.get("", response_model=List[TicketOut])
 async def list_tickets(_user: User = Depends(require_admin)):
     """Admin only — open tickets first, then by created_at desc inside each group."""

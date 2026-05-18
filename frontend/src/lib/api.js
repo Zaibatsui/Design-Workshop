@@ -139,6 +139,7 @@ export const api = {
   createTicket: (payload) =>
     req("/tickets", { method: "POST", body: JSON.stringify(payload) }),
   listTickets: () => req("/tickets"),
+  ticketCount: () => req("/tickets/count"),
   setTicketStatus: (ticketId, status) =>
     req(`/tickets/${ticketId}`, {
       method: "PATCH",
