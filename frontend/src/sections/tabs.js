@@ -193,7 +193,7 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 .${cls} .ns-btn-secondary{background:transparent;color:var(--ns-accent);border:1px solid var(--ns-accent)}
 .${cls} .ns-btn-secondary:hover{background:var(--ns-accent);color:#fff}
 .${cls} .ns-image img{width:100%;border-radius:6px;display:block}
-@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr}.${cls} .ns-copy{order:1}.${cls} .ns-image{order:2}.${cls} .ns-heading{font-size:24px}.${cls} .ns-ctas{flex-direction:column;align-items:stretch}.${cls} .ns-btn{width:100%}}
+@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr;gap:24px}.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}.${cls} .ns-heading{font-size:24px;margin:0 0 12px}.${cls} .ns-ctas{flex-direction:column;align-items:stretch}.${cls} .ns-btn{width:100%}}
 `.trim();
 
   const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
