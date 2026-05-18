@@ -317,7 +317,7 @@ ${baseReset(cls)}
 
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){function step(dir){var c=track.querySelector(".ns-card");if(!c)return;var amt=c.offsetWidth+18;track.scrollBy({left:dir*amt,behavior:"smooth"});}if(prev)prev.addEventListener("click",function(){step(-1);});if(next)next.addEventListener("click",function(){step(1);});}${liveJs}`
+    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){function step(dir){var c=track.querySelector(".ns-card");if(!c)return;var amt=c.offsetWidth+18;var max=track.scrollWidth-track.clientWidth;var sl=track.scrollLeft;var tol=5;if(dir>0&&sl>=max-tol){track.scrollTo({left:0,behavior:"smooth"});}else if(dir<0&&sl<=tol){track.scrollTo({left:max,behavior:"smooth"});}else{track.scrollBy({left:dir*amt,behavior:"smooth"});}}if(prev)prev.addEventListener("click",function(){step(-1);});if(next)next.addEventListener("click",function(){step(1);});}${liveJs}`
   );
 
   return wrapSnippet({ html, css, js });
