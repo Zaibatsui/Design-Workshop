@@ -310,55 +310,6 @@ export default function BrandKitPage() {
               />
             </div>
           </div>
-
-          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3 mt-4">
-            <div className="flex items-baseline justify-between">
-              <div>
-                <Label className="text-sm font-medium">Button corner radius</Label>
-                <p className="text-xs text-slate-500 mt-1">
-                  Drives every CTA / button across every section. 0 = sharp,
-                  9999 = full pill.
-                </p>
-              </div>
-              <span
-                data-testid="brand-button-radius-value"
-                className="text-sm tabular-nums text-slate-700"
-              >
-                {Number(draft.button_radius ?? 8) >= 9999
-                  ? "Pill"
-                  : `${Number(draft.button_radius ?? 8)}px`}
-              </span>
-            </div>
-            <input
-              data-testid="brand-button-radius"
-              type="range"
-              min={0}
-              max={32}
-              step={1}
-              value={Math.min(Number(draft.button_radius ?? 8), 32)}
-              onChange={(e) =>
-                set({ button_radius: Number(e.target.value) })
-              }
-              className="w-full"
-            />
-            <div className="flex gap-2 pt-1">
-              {[0, 6, 8, 12, 9999].map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => set({ button_radius: r })}
-                  data-testid={`brand-button-radius-preset-${r}`}
-                  className={`text-xs px-3 py-1.5 border rounded transition-colors ${
-                    Number(draft.button_radius ?? 8) === r
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-200 hover:border-slate-400 text-slate-600"
-                  }`}
-                >
-                  {r === 9999 ? "Pill" : r === 0 ? "Sharp" : `${r}px`}
-                </button>
-              ))}
-            </div>
-          </div>
         </section>
 
         <section data-testid="brand-kit-logos">
@@ -487,6 +438,58 @@ export default function BrandKitPage() {
           </div>
         </section>
 
+        <section data-testid="brand-kit-button-shape">
+          <SectionHeader title="Button shape" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <p className="text-xs text-slate-500">
+                  Drives every CTA / button across every section. 0 = sharp,
+                  9999 = full pill. Watch the buttons in the Preview below
+                  morph as you drag.
+                </p>
+              </div>
+              <span
+                data-testid="brand-button-radius-value"
+                className="text-sm tabular-nums text-slate-700 whitespace-nowrap"
+              >
+                {Number(draft.button_radius ?? 8) >= 9999
+                  ? "Pill"
+                  : `${Number(draft.button_radius ?? 8)}px`}
+              </span>
+            </div>
+            <input
+              data-testid="brand-button-radius"
+              type="range"
+              min={0}
+              max={32}
+              step={1}
+              value={Math.min(Number(draft.button_radius ?? 8), 32)}
+              onChange={(e) =>
+                set({ button_radius: Number(e.target.value) })
+              }
+              className="w-full"
+            />
+            <div className="flex gap-2 pt-1">
+              {[0, 6, 8, 12, 9999].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => set({ button_radius: r })}
+                  data-testid={`brand-button-radius-preset-${r}`}
+                  className={`text-xs px-3 py-1.5 border rounded transition-colors ${
+                    Number(draft.button_radius ?? 8) === r
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 hover:border-slate-400 text-slate-600"
+                  }`}
+                >
+                  {r === 9999 ? "Pill" : r === 0 ? "Sharp" : `${r}px`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section data-testid="brand-kit-preview">
           <SectionHeader title="Preview" />
           <div
@@ -538,13 +541,14 @@ export default function BrandKitPage() {
               kit and watch the rest of your library stay on-brand without
               touching a single block.
             </p>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap items-center">
               <span
-                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold"
+                className="inline-flex items-center text-base font-semibold"
                 style={{
                   backgroundColor: draft.button_color || draft.primary_color,
                   color: draft.background_color,
                   borderRadius: `${Number(draft.button_radius ?? 8)}px`,
+                  padding: "14px 28px",
                   fontFamily:
                     draft.heading_font === INHERIT_FONT
                       ? "inherit"
@@ -555,11 +559,12 @@ export default function BrandKitPage() {
                 Primary CTA
               </span>
               <span
-                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold border"
+                className="inline-flex items-center text-base font-semibold border-2"
                 style={{
                   borderColor: draft.secondary_color,
                   color: draft.secondary_color,
                   borderRadius: `${Number(draft.button_radius ?? 8)}px`,
+                  padding: "12px 26px",
                   fontFamily:
                     draft.heading_font === INHERIT_FONT
                       ? "inherit"
@@ -568,6 +573,28 @@ export default function BrandKitPage() {
                 data-testid="brand-preview-secondary-btn"
               >
                 Secondary
+              </span>
+              {/* Tall capsule — the same radius reads more dramatically
+                  on a taller surface, so users get instant feedback even
+                  for small px values. */}
+              <span
+                className="inline-flex items-center justify-center text-sm font-semibold"
+                style={{
+                  backgroundColor: draft.secondary_color,
+                  color: draft.background_color,
+                  borderRadius: `${Number(draft.button_radius ?? 8)}px`,
+                  height: 56,
+                  minWidth: 120,
+                  padding: "0 24px",
+                  fontFamily:
+                    draft.heading_font === INHERIT_FONT
+                      ? "inherit"
+                      : `"${draft.heading_font}", sans-serif`,
+                }}
+                data-testid="brand-preview-tall-btn"
+                title="Tall surface — exaggerates the radius for feedback"
+              >
+                Read more →
               </span>
             </div>
           </div>
