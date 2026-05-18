@@ -165,6 +165,7 @@ const FIELD_MAP = {
     ...cfg,
     accentColor: pick(b, "accent_color"),
     titleColor: b.text_color,
+    cardHeadingColor: b.text_color,
     font: b.heading_font,
   }),
   resources: (cfg, b) => ({

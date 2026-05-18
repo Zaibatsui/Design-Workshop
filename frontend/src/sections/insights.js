@@ -37,6 +37,12 @@ const sampleCard = (i) => ({
       ? "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop"
       : "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=800&auto=format&fit=crop",
   iconAlt: "",
+  // Per-card brand logo rendered ABOVE the heading inside the card
+  // body. Optional — empty `logo` skips the markup entirely. Use case:
+  // partner logos / customer logos on case-study teaser cards.
+  logo: "",
+  logoAlt: "",
+  logoMaxHeight: 40,
   heading: i === 1 ? "Explore our latest articles" : "See how we support our customers",
   body:
     i === 1
@@ -54,6 +60,10 @@ const defaults = () => ({
   titleColor: "#1f2937",
   eyebrowColor: "#E01839",
   accentColor: "#E01839",
+  // Colour of each card's H3 heading. Section-level so an Insights Grid
+  // reads visually consistent — per-card overrides would add clutter
+  // for negligible benefit.
+  cardHeadingColor: "#1f1f1f",
   columns: 2,
   paddingY: 60,
   fullBleed: false,
@@ -83,6 +93,7 @@ function render(cfg) {
     `--ns-eyebrow-color:${safeColor(cfg.eyebrowColor || cfg.accentColor, "#E01839")}`,
     `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
     `--ns-heading-size:${num(cfg.headingSize, 30)}px`,
+    `--ns-card-h-color:${safeColor(cfg.cardHeadingColor, "#1f1f1f")}`,
     `--ns-pad:${num(cfg.paddingY, 60)}px`,
     `--ns-cols:${cols}`,
     `--ns-img-w:${imageWidth}px`,
@@ -97,9 +108,14 @@ function render(cfg) {
       const iconImg = c.icon
         ? `<img src="${escAttr(safeUrl(c.icon))}" alt="${escAttr(c.iconAlt || c.heading || "")}"/>`
         : "";
+      const logoUrl = safeUrl(c.logo);
+      const logoHtml = logoUrl
+        ? `<img class="ns-card-logo" src="${escAttr(logoUrl)}" alt="${escAttr(c.logoAlt || "")}"${c.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(c.logoMaxHeight, 40)}px"/>`
+        : "";
       const inner = `
   <div class="ns-icon">${iconImg}</div>
   <div class="ns-body">
+    ${logoHtml}
     <h3 class="ns-ch">${escHtml(c.heading || "")}</h3>
     <p class="ns-cp">${escHtml(c.body || "")}</p>
     ${c.linkText ? `<span class="ns-link">${escHtml(c.linkText)} →</span>` : ""}
@@ -156,7 +172,8 @@ ${baseReset(cls)}
 .${cls} .ns-icon{background:#fafafa;overflow:hidden}
 .${cls} .ns-icon img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls} .ns-body{padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center}
-.${cls} .ns-ch{margin:0 0 8px;font-size:18px;font-weight:600;color:#1f1f1f}
+.${cls} .ns-card-logo{display:block;max-width:60%;margin:0 0 14px;object-fit:contain}
+.${cls} .ns-ch{margin:0 0 8px;font-size:18px;font-weight:600;color:var(--ns-card-h-color,#1f1f1f)}
 .${cls} .ns-cp{margin:0 0 12px;font-size:15px;line-height:1.5;color:#555}
 .${cls} .ns-card:not(.is-link) .ns-cp:last-child{margin-bottom:0}
 .${cls} .ns-link{font-size:14px;font-weight:600;color:var(--ns-accent);letter-spacing:.01em}
@@ -301,6 +318,12 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ accentColor: v })}
           testid="insights-accent"
         />
+        <ColorField
+          label="Card heading colour"
+          value={config.cardHeadingColor || "#1f1f1f"}
+          onChange={(v) => onUpdate({ cardHeadingColor: v })}
+          testid="insights-card-heading"
+        />
       </Group>
 
       <div>
@@ -346,6 +369,39 @@ function FormPanel({ config, onUpdate }) {
                 placeholder="Falls back to the card heading"
                 testid={`insight-icon-alt-${c.id}`}
               />
+
+              <div className="pt-2 border-t border-slate-200 mt-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  Brand logo (optional — sits above the heading)
+                </p>
+                <ImageUpload
+                  value={c.logo || ""}
+                  onChange={(v) => updateCard(c.id, { logo: v })}
+                  testid={`insight-logo-${c.id}`}
+                  compact
+                />
+                {c.logo ? (
+                  <>
+                    <TextField
+                      label="Logo alt text"
+                      value={c.logoAlt || ""}
+                      onChange={(v) => updateCard(c.id, { logoAlt: v })}
+                      placeholder="Leave blank if purely decorative"
+                      testid={`insight-logo-alt-${c.id}`}
+                    />
+                    <SliderField
+                      label="Logo size"
+                      value={Number(c.logoMaxHeight) || 40}
+                      min={20}
+                      max={120}
+                      suffix="px max-height"
+                      onChange={(v) => updateCard(c.id, { logoMaxHeight: v })}
+                      testid={`insight-logo-size-${c.id}`}
+                    />
+                  </>
+                ) : null}
+              </div>
+
               <TextField
                 label="Heading"
                 value={c.heading}
