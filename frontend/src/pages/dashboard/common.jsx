@@ -3,7 +3,7 @@
  * Kept here so SectionsTab and PagesTab stay lean and consistent.
  */
 import { useLayoutEffect, useRef, useState } from "react";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 
@@ -341,6 +341,12 @@ export function Tabs({ tab, onChange, sections, pages }) {
 
 export function SectionPicker({ sections, onPick, onClose }) {
   useEscapeKey(onClose);
+  // Split Pro / Nettailer-aware sections out into their own band at the
+  // top so the live-scraped product blocks are easy to find and visually
+  // distinct from the generic editorial sections.
+  const PRO_IDS = new Set(["products", "productGrid"]);
+  const proSections = sections.filter((s) => PRO_IDS.has(s.id));
+  const regularSections = sections.filter((s) => !PRO_IDS.has(s.id));
   return (
     <div
       className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 flex items-center justify-center p-4 sm:p-6"
@@ -357,25 +363,68 @@ export function SectionPicker({ sections, onPick, onClose }) {
         <p className="text-sm text-slate-500 mb-5">
           You can always change settings inside the editor.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-          {sections.map((s) => {
-            const Icon = s.icon;
-            return (
-              <button
-                key={s.id}
-                data-testid={`picker-${s.id}`}
-                onClick={() => onPick(s.id)}
-                className="text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
-              >
-                <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
-                <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
-                <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
-                  {s.description}
-                </p>
-              </button>
-            );
-          })}
-        </div>
+
+        {proSections.length > 0 && (
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold tracking-[0.18em] uppercase text-white bg-[#E01839] px-1.5 py-0.5 rounded-sm">
+                <Zap className="w-2.5 h-2.5" />
+                Pro · Nettailer-aware
+              </span>
+              <span className="text-[11px] text-slate-500">
+                Live-scraped prices · universal VAT toggle · gated-price fallback
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              {proSections.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <button
+                    key={s.id}
+                    data-testid={`picker-${s.id}`}
+                    onClick={() => onPick(s.id)}
+                    className="text-left p-3 rounded-lg border-2 border-[#E01839]/30 bg-[#E01839]/[0.02] hover:border-[#E01839] hover:bg-[#E01839]/[0.06] transition-colors"
+                  >
+                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
+                    <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
+                      {s.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {regularSections.length > 0 && (
+          <>
+            {proSections.length > 0 && (
+              <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
+                Editorial &amp; layout
+              </p>
+            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              {regularSections.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <button
+                    key={s.id}
+                    data-testid={`picker-${s.id}`}
+                    onClick={() => onPick(s.id)}
+                    className="text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+                  >
+                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
+                    <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
+                      {s.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
