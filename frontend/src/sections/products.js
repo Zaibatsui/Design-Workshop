@@ -59,6 +59,11 @@ const defaults = () => ({
   hoverBorder: "#E01839",
   columns: 5,
   showArrows: true,
+  // Carousel autoplay — off by default; if turned on, the section
+  // auto-advances by one card every `autoplayInterval` ms.
+  autoplay: false,
+  autoplayInterval: 4000,
+  pauseOnHover: true,
   paddingY: 60,
   fullBleed: false,
   // Heading + eyebrow alignment across the section width.
@@ -192,7 +197,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-card{flex-basis:80%}.${cls} .ns-prev{left:0}.${cls} .ns-next{right:0}}
 `.trim();
 
-  const html = `<section class="ns-products ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const html = `<section class="ns-products ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${cfg.autoplay ? "1" : "0"}" data-ns-interval="${num(cfg.autoplayInterval, 4000)}" data-ns-poh="${cfg.pauseOnHover === false ? "0" : "1"}">
   <div class="ns-wrap">
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     <h2 class="ns-h">${escHtml(cfg.title)}</h2>
@@ -317,7 +322,7 @@ ${baseReset(cls)}
 
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){function step(dir){var c=track.querySelector(".ns-card");if(!c)return;var amt=c.offsetWidth+18;var max=track.scrollWidth-track.clientWidth;var sl=track.scrollLeft;var tol=5;if(dir>0&&sl>=max-tol){track.scrollTo({left:0,behavior:"smooth"});}else if(dir<0&&sl<=tol){track.scrollTo({left:max,behavior:"smooth"});}else{track.scrollBy({left:dir*amt,behavior:"smooth"});}}if(prev)prev.addEventListener("click",function(){step(-1);});if(next)next.addEventListener("click",function(){step(1);});}${liveJs}`
+    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function step(dir){var c=track.querySelector(".ns-card");if(!c)return;var amt=c.offsetWidth+18;var max=track.scrollWidth-track.clientWidth;var sl=track.scrollLeft;var tol=5;if(dir>0&&sl>=max-tol){track.scrollTo({left:0,behavior:"smooth"});}else if(dir<0&&sl<=tol){track.scrollTo({left:max,behavior:"smooth"});}else{track.scrollBy({left:dir*amt,behavior:"smooth"});}}function start(){if(!ap)return;stop();timer=setInterval(function(){step(1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}if(prev)prev.addEventListener("click",function(){step(-1);start();});if(next)next.addEventListener("click",function(){step(1);start();});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}start();}${liveJs}`
   );
 
   return wrapSnippet({ html, css, js });
@@ -444,6 +449,33 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ showArrows: v })}
           testid="products-arrows"
         />
+        <ToggleField
+          label="Autoplay"
+          description="Auto-advance through cards on a timer"
+          checked={!!config.autoplay}
+          onChange={(v) => onUpdate({ autoplay: v })}
+          testid="products-autoplay"
+        />
+        {config.autoplay ? (
+          <>
+            <SliderField
+              label="Interval"
+              value={Number(config.autoplayInterval) || 4000}
+              min={2000}
+              max={12000}
+              step={500}
+              suffix="ms"
+              onChange={(v) => onUpdate({ autoplayInterval: v })}
+              testid="products-autoplay-interval"
+            />
+            <ToggleField
+              label="Pause on hover"
+              checked={config.pauseOnHover !== false}
+              onChange={(v) => onUpdate({ pauseOnHover: v })}
+              testid="products-pause-on-hover"
+            />
+          </>
+        ) : null}
         <ToggleField
           label="Make wide"
           description="Stretch background to full viewport width"
