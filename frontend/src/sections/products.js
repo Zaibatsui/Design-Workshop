@@ -322,7 +322,7 @@ ${baseReset(cls)}
 
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null,snapT=null;var orig=[].slice.call(track.querySelectorAll(".ns-card"));var N=orig.length;if(N>1){for(var k=0;k<orig.length;k++){var ce=orig[k].cloneNode(true);ce.setAttribute("data-ns-clone","1");track.appendChild(ce);}for(var j=orig.length-1;j>=0;j--){var cs=orig[j].cloneNode(true);cs.setAttribute("data-ns-clone","1");track.insertBefore(cs,track.firstElementChild);}var initAmt=orig[0].offsetWidth+18;track.scrollLeft=N*initAmt;}function unitAmt(){var c=track.querySelector(".ns-card");return c?c.offsetWidth+18:0;}function snap(){if(N<=1)return;var amt=unitAmt();if(!amt)return;var sl=track.scrollLeft;if(sl>=2*N*amt-2)track.scrollLeft=sl-N*amt;else if(sl<N*amt-2)track.scrollLeft=sl+N*amt;}function step(dir){var amt=unitAmt();if(!amt)return;snap();track.scrollBy({left:dir*amt,behavior:"smooth"});if(snapT)clearTimeout(snapT);snapT=setTimeout(snap,550);}function start(){if(!ap)return;stop();timer=setInterval(function(){step(1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}if(prev)prev.addEventListener("click",function(){step(-1);start();});if(next)next.addEventListener("click",function(){step(1);start();});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}start();}${liveJs}`
+    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var orig=[].slice.call(track.querySelectorAll(".ns-card"));var N=orig.length;if(N>1){for(var k=0;k<orig.length;k++){var ce=orig[k].cloneNode(true);ce.setAttribute("data-ns-clone","1");track.appendChild(ce);}for(var j=orig.length-1;j>=0;j--){var cs=orig[j].cloneNode(true);cs.setAttribute("data-ns-clone","1");track.insertBefore(cs,track.firstElementChild);}track.scrollLeft=N*(orig[0].offsetWidth+18);}function unitAmt(){var c=track.querySelector(".ns-card");return c?c.offsetWidth+18:0;}var pos=track.scrollLeft,lastT=0,rafId=null,snapT=null;function snap(){if(N<=1)return;var amt=unitAmt();if(!amt)return;var sl=track.scrollLeft;if(sl>=2*N*amt-2){track.scrollLeft=sl-N*amt;pos-=N*amt;}else if(sl<N*amt-2){track.scrollLeft=sl+N*amt;pos+=N*amt;}}function tick(now){if(!ap||N<=1){rafId=null;return;}if(lastT){var dt=Math.min((now-lastT)/1000,0.1);var amt=unitAmt();if(amt&&interval>0){pos+=(amt/(interval/1000))*dt;track.scrollLeft=Math.round(pos);snap();}}lastT=now;rafId=requestAnimationFrame(tick);}function start(){if(!ap)return;stop();pos=track.scrollLeft;lastT=0;rafId=requestAnimationFrame(tick);}function stop(){if(rafId){cancelAnimationFrame(rafId);rafId=null;}}function step(dir){var amt=unitAmt();if(!amt)return;stop();snap();track.scrollBy({left:dir*amt,behavior:"smooth"});if(snapT)clearTimeout(snapT);snapT=setTimeout(function(){snap();pos=track.scrollLeft;if(ap)start();},550);}if(prev)prev.addEventListener("click",function(){step(-1);});if(next)next.addEventListener("click",function(){step(1);});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}start();}${liveJs}`
   );
 
   return wrapSnippet({ html, css, js });
@@ -451,7 +451,7 @@ function FormPanel({ config, onUpdate }) {
         />
         <ToggleField
           label="Autoplay"
-          description="Auto-advance through cards on a timer"
+          description="Continuously scroll cards from right to left — infinite loop"
           checked={!!config.autoplay}
           onChange={(v) => onUpdate({ autoplay: v })}
           testid="products-autoplay"
@@ -459,12 +459,12 @@ function FormPanel({ config, onUpdate }) {
         {config.autoplay ? (
           <>
             <SliderField
-              label="Interval"
+              label="Speed"
               value={Number(config.autoplayInterval) || 4000}
               min={2000}
               max={12000}
               step={500}
-              suffix="ms"
+              suffix="ms / card"
               onChange={(v) => onUpdate({ autoplayInterval: v })}
               testid="products-autoplay-interval"
             />
