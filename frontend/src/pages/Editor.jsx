@@ -223,7 +223,11 @@ export default function Editor() {
   // form, with the preview catching up smoothly behind them.
   const deferredSnippet = useDeferredValue(snippet);
   const previewHtml = useMemo(
-    () => previewDoc(deferredSnippet, { withVatToggle: section?.type === "products" }),
+    () =>
+      previewDoc(deferredSnippet, {
+        withVatToggle:
+          section?.type === "products" || section?.type === "productGrid",
+      }),
     [deferredSnippet, section?.type]
   );
 

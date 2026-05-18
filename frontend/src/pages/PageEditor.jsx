@@ -287,10 +287,14 @@ export default function PageEditor() {
   // smooth while the iframe re-render is non-urgent.
   const deferredSnippet = useDeferredValue(snippet);
   // Show the editor-only VAT toggle pill in the preview if any block on
-  // this page is a Product Carousel — so editors can verify how host-page
-  // VAT toggling affects scraped prices without leaving Design Workshop.
+  // this page is a Product Carousel or Product Grid — so editors can
+  // verify how host-page VAT toggling affects scraped prices without
+  // leaving Design Workshop.
   const hasProducts = useMemo(
-    () => (page?.blocks || []).some((b) => b?.type === "products"),
+    () =>
+      (page?.blocks || []).some(
+        (b) => b?.type === "products" || b?.type === "productGrid"
+      ),
     [page]
   );
   const previewHtml = useMemo(
