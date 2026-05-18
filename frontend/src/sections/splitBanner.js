@@ -286,7 +286,7 @@ function FormPanel({ config, onUpdate }) {
       <Group title="Layout">
         <ToggleField
           label="Page header"
-          description="Treat this Split Banner as the page's main headline — restores the larger responsive heading typography. Leave off when used as a sub-section so the heading stays in lock-step with the 'Insights & Resources' style."
+          description="Treat this Split Banner as the page's main headline"
           checked={!!config.pageHeader}
           onChange={(v) => onUpdate({ pageHeader: v })}
           testid="split-page-header"
