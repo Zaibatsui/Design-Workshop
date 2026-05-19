@@ -257,6 +257,21 @@ docker compose logs -f backend             # wait for "Application startup compl
 
 Volumes (`mongo` + `uploads`) persist. Rollback is `git checkout <previous-sha>` then re-run the same `up -d --build`.
 
+## Testing
+
+```bash
+# Backend lint (ruff is bundled with the dev requirements)
+cd backend && ruff check .
+
+# Frontend type/syntax check runs as part of the build
+cd frontend && yarn build
+
+# Snippet behavioural tests (jsdom-backed, no browser required)
+cd frontend && yarn test:snippets
+```
+
+The snippet tests live in `frontend/src/sections/__tests__/` and verify the runtime price-resolution logic that ships inside every Product Carousel / Product Grid snippet — same-origin session pricing, gate-phrase harmonisation, VAT-suffix hide-on-gate, and price-magnitude sanity checks. Run them before opening a PR that touches anything under `frontend/src/sections/`.
+
 ## Contributing
 
 Pull requests welcome. The codebase is small enough (one router file per resource, one section file per block type) that adding a new section type means:
