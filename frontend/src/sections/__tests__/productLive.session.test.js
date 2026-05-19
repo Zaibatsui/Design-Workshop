@@ -1,17 +1,14 @@
 /**
  * Behavioral tests for session-aware pricing in `productLive.js`.
  *
- * Verifies the snippet (run inside the host e-commerce page) correctly:
- *   • overlays the user's session price on every same-origin card
- *   • produces no flicker when public/session prices are identical
- *   • prefers structured price markup (schema.org meta/itemprop) over
- *     the body-text regex, so accessory prices in sidebars are NOT
- *     mistaken for the main product price
- *   • skips cross-origin URLs silently
- *   • applies a 10× magnitude sanity check
+ * Uses jsdom for a faithful DOMParser implementation so we accurately
+ * reproduce real-world HTML structures (basket totals, accessory
+ * sidebars, schema.org markup) and verify the snippet picks the right
+ * price element.
  *
  * Run with:  node src/sections/__tests__/productLive.session.test.js
  */
+const { JSDOM } = require("jsdom");
 const { productLiveJs } = require("../productLive");
 const realSetTimeout = setTimeout;
 
@@ -25,67 +22,21 @@ function makeEnv(state) {
   let sessionFetches = 0;
   global.location = { href: "https://host.test/page", origin: "https://host.test" };
   global.URL = require("url").URL;
+  // Use jsdom to provide a real DOMParser. The host page itself doesn't
+  // need product markup — the snippet only inspects the FETCHED HTML.
+  const hostDom = new JSDOM("<html><body></body></html>", { url: "https://host.test/page" });
   global.document = {
     cookie: state.cookie || "",
     body: { className: "" },
     querySelector() { return null; },
     querySelectorAll() { return [card]; },
   };
+  global.DOMParser = hostDom.window.DOMParser;
   global.window = global;
   global.localStorage = { _s: {}, getItem(k) { return this._s[k] || null; }, setItem(k, v) { this._s[k] = v; } };
   global.MutationObserver = function () { this.observe = function () { }; };
   global.setInterval = () => { };
   global.setTimeout = (fn, ms) => realSetTimeout(fn, ms);
-  // Minimal DOMParser shim using jsdom-like text extraction. We just look
-  // for the markers the production code uses; this is enough to verify the
-  // strategy ordering. We support: meta[itemprop="price"], [itemprop="price"],
-  // and class-based selectors via simple regex.
-  global.DOMParser = function () {
-    return {
-      parseFromString(html) {
-        function find(re) {
-          const m = html.match(re);
-          return m ? m : null;
-        }
-        return {
-          querySelector(sel) {
-            // meta[itemprop="price"] etc — pick by 'content' attribute
-            if (sel.indexOf('meta[') === 0) {
-              const props = ["itemprop=\"price\"", "property=\"product:price:amount\"", "property=\"og:price:amount\"", "name=\"price\""];
-              for (const p of props) {
-                if (sel.includes(p)) {
-                  const re = new RegExp(`<meta[^>]+${p.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}[^>]+content=["']([^"']+)["']`, "i");
-                  const m = find(re);
-                  if (m) return { getAttribute: (a) => a === "content" ? m[1] : null };
-                }
-              }
-              return null;
-            }
-            // [itemprop="price"] — element with content attr or text
-            if (sel.includes('[itemprop="price"]')) {
-              const m = find(/<([a-z]+)[^>]+itemprop=["']price["'][^>]*(?:content=["']([^"']+)["'])?[^>]*>([^<]*)</i);
-              if (m) return { getAttribute: (a) => a === "content" ? (m[2] || null) : null, textContent: m[3] || "" };
-              return null;
-            }
-            // Product scope detection — return a marker object so production code keeps using doc
-            if (sel.includes("itemtype") || sel.includes("typeof") || sel.includes("product-detail")) {
-              return null; // fall through to doc.body
-            }
-            // Class selectors like .price-current,.product-price,...
-            const classes = sel.split(",").map(s => s.trim()).filter(s => s.startsWith("."));
-            for (const c of classes) {
-              const cls = c.slice(1);
-              const re = new RegExp(`<[a-z]+[^>]+class=["'][^"']*\\b${cls}\\b[^"']*["'][^>]*>([^<]*)<`, "i");
-              const m = find(re);
-              if (m) return { textContent: m[1] };
-            }
-            return null;
-          },
-          body: { querySelector(s) { return this.parentQuery ? this.parentQuery(s) : null; } },
-        };
-      },
-    };
-  };
   global.fetch = (url) => {
     if (url === "https://api.test/api/scrape-product") {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(state.api) });
@@ -99,14 +50,22 @@ function makeEnv(state) {
   return { card, getFetches: () => sessionFetches };
 }
 
-const NETTAILER_HTML = `
+// HTML fixtures modelling real Nettailer-style markup.
+
+// Logged-in product page with schema.org markup, a basket total in the
+// header reading "£0.00", an accessories sidebar, AND the real product
+// price. This is the exact shape the user is hitting.
+const NETTAILER_HTML_LOGGED_IN = `
 <html><body>
-<div class="header"><span>Logged in as LightningPCs</span></div>
+<header class="topbar">
+  <div class="basket-total"><span class="price">£0.00 Excl VAT</span></div>
+  <span class="user">Logged in as LightningPCs</span>
+</header>
 <aside class="suggested">
   <div class="acc"><span class="price">£41.50 Excl VAT</span></div>
   <div class="acc"><span class="price">£52.10 Excl VAT</span></div>
 </aside>
-<main itemscope itemtype="https://schema.org/Product">
+<main class="product-detail" itemscope itemtype="https://schema.org/Product">
   <h1>MG004QN/A - Apple iPhone 17 Pro Max</h1>
   <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
     <meta itemprop="priceCurrency" content="GBP">
@@ -116,26 +75,59 @@ const NETTAILER_HTML = `
 </main>
 </body></html>`;
 
+// Anonymous (logged-out) view of the same page — same structure, public price.
+const NETTAILER_HTML_PUBLIC = NETTAILER_HTML_LOGGED_IN.replace("1711.50", "2167.90").replace("£1,711.50", "£2,167.90");
+
+// Hostile case: page has a £0.00 in a basket WIDGET inside the product
+// scope itself (rare but possible — e.g. a "your basket" widget shown
+// on the product page). The snippet must NOT pick £0.00.
+const HTML_WITH_ZERO_IN_SCOPE = `
+<html><body>
+<main class="product-detail" itemscope itemtype="https://schema.org/Product">
+  <div class="basket-widget"><span class="product-price">£0.00</span></div>
+  <meta itemprop="price" content="0.00">
+  <span class="product-price">£500.00</span>
+</main>
+</body></html>`;
+
+// Plain HTML with NO schema.org and NO product scope — only basket totals
+// and the product price as a generic .price span. Must NOT pick £0.00.
+const HTML_NO_SCHEMA = `
+<html><body>
+<header><div class="basket"><span class="price">£0.00 Excl VAT</span></div></header>
+<div class="content"><span>Some product</span></div>
+</body></html>`;
+
 const cases = [
   {
-    name: "Nettailer-shaped page: schema.org meta wins, NOT sidebar £41.50",
-    state: { initial: "£2,167.90", cardUrl: "https://host.test/p/iphone17", api: { price: "£2,167.90" }, html: NETTAILER_HTML },
-    expectFetch: 1, expectPrice: "1711.50",
+    name: "Logged-in Nettailer: schema.org meta wins, ignores £0.00 basket + £41.50 sidebar",
+    state: { initial: "£2,167.90", cardUrl: "https://host.test/p/iphone17", api: { price: "£2,167.90" }, html: NETTAILER_HTML_LOGGED_IN },
+    expectFetch: 1, expectContains: "1711.50",
   },
   {
-    name: "Identical price → no repaint flicker",
-    state: { initial: "£99.00", api: { price: "£99.00" }, html: '<meta itemprop="price" content="99.00">' },
-    expectFetch: 1, expectPrice: "99",
+    name: "Logged-out Nettailer: extracts public price (no flicker)",
+    state: { initial: "£2,167.90", cardUrl: "https://host.test/p/iphone17", api: { price: "£2,167.90" }, html: NETTAILER_HTML_PUBLIC },
+    expectFetch: 1, expectContains: "2,167.90",
   },
   {
-    name: "Sanity skip: extracted price >10x cheaper than public → keep public",
-    state: { initial: "£2,167.90", api: { price: "£2,167.90" }, html: '<meta itemprop="price" content="41.50">' },
-    expectFetch: 1, expectPrice: "2,167.90",
+    name: "Page with £0.00 inside schema → skip zero, pick £500",
+    state: { initial: "£999.00", api: { price: "£999.00" }, html: HTML_WITH_ZERO_IN_SCOPE },
+    expectFetch: 1, expectContains: "500",
+  },
+  {
+    name: "No schema + no scope: keep public price (no override on basket-£0.00)",
+    state: { initial: "£99.00", api: { price: "£99.00" }, html: HTML_NO_SCHEMA },
+    expectFetch: 1, expectContains: "99",
   },
   {
     name: "Cross-origin URL → no session fetch",
     state: { initial: "£99.00", cardUrl: "https://other.test/p/x", api: { price: "£99.00" }, html: "" },
-    expectFetch: 0, expectPrice: "99",
+    expectFetch: 0, expectContains: "99",
+  },
+  {
+    name: "Sanity skip: extracted price >10x cheaper than public → keep public",
+    state: { initial: "£2,167.90", api: { price: "£2,167.90" }, html: '<meta itemprop="price" content="41.50">' },
+    expectFetch: 1, expectContains: "2,167.90",
   },
 ];
 
@@ -145,10 +137,12 @@ const cases = [
   for (const t of cases) {
     const env = makeEnv(t.state);
     new Function("var root = document; " + body)();
-    await new Promise((r) => realSetTimeout(r, 300));
+    await new Promise((r) => realSetTimeout(r, 350));
     const fetches = env.getFetches();
     const price = env.card.amt.textContent;
-    const pass = fetches === t.expectFetch && price.includes(t.expectPrice);
+    // Normalise both sides (strip commas / spaces) before comparing.
+    const norm = (s) => String(s).replace(/[\s,]/g, "");
+    const pass = fetches === t.expectFetch && norm(price).includes(norm(t.expectContains));
     if (!pass) allPass = false;
     console.log((pass ? "PASS" : "FAIL") + " · " + t.name + " | fetches=" + fetches + ' price="' + price + '"');
   }

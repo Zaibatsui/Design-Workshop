@@ -57,34 +57,44 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     `var GATE=/(log\\s*in|sign\\s*in|price\\s+on|\\bPOA\\b|contact\\s+us\\s+for\\s+(?:price|pricing|quote))/i;` +
     // numVal(s) — extract numeric portion of a price string for magnitude sanity checks.
     `function numVal(s){if(!s)return null;var m=String(s).replace(/[\\s,]/g,"").match(/(\\d+(?:\\.\\d+)?)/);return m?parseFloat(m[1]):null;}` +
+    // okP(s) — accept a candidate price only if it parses to > 0 and is
+    // not a gate phrase. Rejects "£0.00", basket-total placeholders, etc.
+    `function okP(s){if(!s)return false;if(GATE.test(String(s)))return false;var v=numVal(s);return v!==null&&v>0;}` +
     // extractP(html) — robust price extraction from a fetched product page.
     // Order of strategies (most reliable first):
-    //  1. DOMParser → scope to product container if found → meta[itemprop=price],
-    //     [itemprop=price], common price-class elements
+    //  1. Schema.org meta[itemprop="price"] or [itemprop="price"] anywhere
+    //     in the document (Nettailer + most B2B carts emit this for SEO)
     //  2. JSON-LD offers.price
-    //  3. meta tag regex (og:price / product:price)
-    //  4. First currency-prefixed number outside script/style (last resort)
-    `function extractP(h){` +
-    // 1: DOMParser-based structured extraction
+    //  3. og:price / product:price meta tags
+    //  4. Class-based extraction — ONLY within a recognised product
+    //     container, so we never grab basket-total / minicart / sidebar
+    //     accessory prices from the page chrome
+    //  5. Body-text regex (last resort), excluding basket/cart/header
+    //     regions to avoid £0.00 basket totals
+    // Every strategy validates `okP()` (>0, not gated) before returning.
+    `function extractP(h){var found=null;` +
+    // 1+2: DOMParser-based structured extraction (schema.org first)
     `try{if(typeof DOMParser!=="undefined"){var doc=new DOMParser().parseFromString(h,"text/html");` +
-      // Try to scope to the product detail container so we don't grab a sidebar accessory price.
-      `var scope=doc.querySelector('[itemtype*="Product" i]')||doc.querySelector('[typeof*="Product" i]')||doc.querySelector("#product-detail,.product-detail,.product-info,.product-main,.product-summary,.product__info,.product-page")||doc.body||doc;` +
-      // a) meta tag carrying the price as a content attribute
-      `var ms=scope.querySelector('meta[itemprop="price"],meta[property="product:price:amount"],meta[property="og:price:amount"],meta[name="price"]')||doc.querySelector('meta[itemprop="price"],meta[property="product:price:amount"],meta[property="og:price:amount"],meta[name="price"]');` +
-      `if(ms){var mc=ms.getAttribute("content");if(mc&&!GATE.test(mc)){dbg("extractP: meta itemprop=",mc);return mc;}}` +
-      // b) element with itemprop=price (content attr first, then text)
-      `var ip=scope.querySelector('[itemprop="price"]')||doc.querySelector('[itemprop="price"]');` +
-      `if(ip){var ic=ip.getAttribute("content");if(ic&&!GATE.test(ic)){dbg("extractP: itemprop element content=",ic);return ic;}var it=(ip.textContent||"").trim();if(it&&!GATE.test(it)){var im=it.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/);if(im){dbg("extractP: itemprop element text=",im[0]);return im[0];}}}` +
-      // c) common price element classes within the product scope
-      `var sels=[".price-current",".product-price",".main-price",".price-main",".price__current",".price-value",".price-now",".product__price",".price"];` +
-      `for(var si=0;si<sels.length;si++){var cp=scope.querySelector(sels[si]);if(cp){var tt=(cp.textContent||"").trim();if(tt&&!GATE.test(tt)){var cm=tt.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/);if(cm){dbg("extractP: class",sels[si],"=",cm[0]);return cm[0];}}}}` +
+      // 1a) meta with explicit price content (search whole doc — these are usually in <head>)
+      `var ms=doc.querySelectorAll('meta[itemprop="price"],meta[property="product:price:amount"],meta[property="og:price:amount"],meta[name="price"]');` +
+      `for(var mi=0;mi<ms.length;mi++){var mc=ms[mi].getAttribute("content");if(okP(mc)){dbg("extractP: meta itemprop=",mc);return mc;}}` +
+      // 1b) [itemprop="price"] element (content attr or text)
+      `var ips=doc.querySelectorAll('[itemprop="price"]');` +
+      `for(var ii=0;ii<ips.length;ii++){var ip=ips[ii];var ic=ip.getAttribute("content");if(okP(ic)){dbg("extractP: itemprop content=",ic);return ic;}var it=(ip.textContent||"").trim();if(it&&!GATE.test(it)){var im=it.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/);if(im&&okP(im[0])){dbg("extractP: itemprop text=",im[0]);return im[0];}}}` +
+      // 4) class-based — ONLY within a recognised product scope
+      `var scope=doc.querySelector('[itemtype*="Product" i]')||doc.querySelector('[typeof*="Product" i]')||doc.querySelector("#product-detail,.product-detail,.product-info,.product-main,.product-summary,.product__info,.product-page,.product-card,.product-view,#productView,.productView");` +
+      `if(scope){var sels=[".price-current",".product-price",".main-price",".price-main",".price__current",".price-value",".price-now",".product__price"];` +
+      `for(var si=0;si<sels.length;si++){var cps=scope.querySelectorAll(sels[si]);for(var ci=0;ci<cps.length;ci++){var tt=(cps[ci].textContent||"").trim();if(tt&&!GATE.test(tt)){var cm=tt.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/);if(cm&&okP(cm[0])){dbg("extractP: class",sels[si],"=",cm[0]);return cm[0];}}}}}` +
     `}}catch(e){dbg("extractP DOMParser err",e&&e.message);}` +
-    // 2: JSON-LD
-    `try{var m=h.match(/<script[^>]+application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/i);if(m){var j=JSON.parse(m[1].trim());var a=Array.isArray(j)?j:[j];for(var i=0;i<a.length;i++){var n=a[i]&&a[i].offers;if(n){var o=Array.isArray(n)?n[0]:n;if(o&&o.price&&!GATE.test(String(o.price))){dbg("extractP: JSON-LD offers.price=",o.price);return String(o.price);}}}}}catch(e){}` +
-    // 3: meta tag regex
-    `var mm=h.match(/<meta[^>]+(?:product:price:amount|og:price:amount)[^>]+content=["']([^"']+)["']/i);if(mm&&!GATE.test(mm[1])){dbg("extractP: meta regex=",mm[1]);return mm[1];}` +
-    // 4: full-text first-currency-prefixed number (last resort — may pick wrong price)
-    `var s=h.replace(/<(script|style)\\b[^>]*>[\\s\\S]*?<\\/\\1>/gi," ");mm=s.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/);if(mm){dbg("extractP: regex fallback=",mm[0]);return mm[0];}return null;}` +
+    // 2: JSON-LD offers.price (fallback if DOMParser was unavailable)
+    `try{var jm=h.match(/<script[^>]+application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/i);if(jm){var j=JSON.parse(jm[1].trim());var a=Array.isArray(j)?j:[j];for(var i=0;i<a.length;i++){var n=a[i]&&a[i].offers;if(n){var o=Array.isArray(n)?n[0]:n;if(o&&o.price&&okP(o.price)){dbg("extractP: JSON-LD offers.price=",o.price);return String(o.price);}}}}}catch(e){}` +
+    // 3: meta tag regex (raw text)
+    `var mm=h.match(/<meta[^>]+(?:product:price:amount|og:price:amount)[^>]+content=["']([^"']+)["']/i);if(mm&&okP(mm[1])){dbg("extractP: meta regex=",mm[1]);return mm[1];}` +
+    // 5: full-text first non-zero currency-prefixed number, with header/cart
+    // chrome stripped out so we don't pick basket totals like "£0.00 Excl VAT".
+    `var s=h.replace(/<(script|style|header|nav|aside)\\b[^>]*>[\\s\\S]*?<\\/\\1>/gi," ").replace(/<[^>]+class=["'][^"']*(?:basket|cart|minicart|header|navbar|topbar|toolbar)[^"']*["'][^>]*>[\\s\\S]{0,2000}?<\\/[a-z]+>/gi," ");` +
+    `var pxs=s.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/g);if(pxs){for(var pi=0;pi<pxs.length;pi++){if(okP(pxs[pi])){dbg("extractP: regex fallback=",pxs[pi]);return pxs[pi];}}}` +
+    `return null;}` +
     // trySession(card) — same-origin credentialed fetch to surface the
     // user's session price. Always runs when same-origin (no login-state
     // gate); when the host user is logged out, the response matches the
@@ -95,6 +105,7 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     `fetch(u,{credentials:"include",headers:{"Accept":"text/html"}}).then(function(r){return r.ok?r.text():null;}).then(function(h){` +
       `if(!h){dbg("trySession empty html",u);return;}` +
       `var p=extractP(h);if(!p){dbg("trySession extractP=null",u);return;}` +
+      `var pv=numVal(p);if(!pv||pv<=0){dbg("trySession reject zero/neg price",p);return;}` +
       `var fp=String(p);if(/^\\d+(?:[.,]\\d+)?$/.test(fp.trim())){fp=(CUR||"")+fp;}` +
       `var next=swapCur(fp);` +
       `var curT=String(amt.textContent||"").replace(/\\s+/g," ").trim();` +
