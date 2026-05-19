@@ -101,28 +101,37 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     // public scrape and the in-place diff check prevents flicker.
     // Sanity: if new price magnitude differs >10× from public price,
     // skip — guards against picking an accessory's price by mistake.
-    `function trySession(card){var u=card.getAttribute("data-ns-src");if(!u)return;var amt=card.querySelector(".ns-price-amount");if(!amt)return;try{var pu=new URL(u,location.href);if(pu.origin!==location.origin){dbg("trySession skip cross-origin",pu.origin);return;}}catch(e){return;}` +
+    // On settle (success or fail), removes data-ns-loading so the price
+    // becomes visible. On successful repaint, also marks data-ns-painted
+    // on the card so a later-arriving fetchOne paint is suppressed.
+    `function trySession(card){var u=card.getAttribute("data-ns-src");if(!u)return;var amt=card.querySelector(".ns-price-amount");if(!amt)return;function done(){if(amt)amt.removeAttribute("data-ns-loading");}try{var pu=new URL(u,location.href);if(pu.origin!==location.origin){dbg("trySession skip cross-origin",pu.origin);done();return;}}catch(e){done();return;}` +
     `fetch(u,{credentials:"include",headers:{"Accept":"text/html"}}).then(function(r){return r.ok?r.text():null;}).then(function(h){` +
-      `if(!h){dbg("trySession empty html",u);return;}` +
-      `var p=extractP(h);if(!p){dbg("trySession extractP=null",u);return;}` +
-      `var pv=numVal(p);if(!pv||pv<=0){dbg("trySession reject zero/neg price",p);return;}` +
+      `if(!h){dbg("trySession empty html",u);done();return;}` +
+      `var p=extractP(h);if(!p){dbg("trySession extractP=null",u);done();return;}` +
+      `var pv=numVal(p);if(!pv||pv<=0){dbg("trySession reject zero/neg price",p);done();return;}` +
       `var fp=String(p);if(/^\\d+(?:[.,]\\d+)?$/.test(fp.trim())){fp=(CUR||"")+fp;}` +
       `var next=swapCur(fp);` +
       `var curT=String(amt.textContent||"").replace(/\\s+/g," ").trim();` +
       `var nxtT=String(next).replace(/\\s+/g," ").trim();` +
-      `if(curT===nxtT){dbg("trySession unchanged",curT);return;}` +
+      `if(curT===nxtT){dbg("trySession unchanged",curT);card.setAttribute("data-ns-painted","1");done();return;}` +
       `var cv=numVal(curT),nv=numVal(nxtT);` +
-      `if(cv&&nv&&(nv/cv>10||cv/nv>10)){dbg("trySession sanity-skip cur=",cv,"new=",nv);return;}` +
+      `if(cv&&nv&&(nv/cv>10||cv/nv>10)){dbg("trySession sanity-skip cur=",cv,"new=",nv);done();return;}` +
       `dbg("trySession update",curT,"→",nxtT,"url=",u);` +
-      `amt.textContent=next;` +
-    `}).catch(function(err){dbg("trySession err",err&&err.message);});}` +
+      `amt.textContent=next;card.setAttribute("data-ns-painted","1");done();` +
+    `}).catch(function(err){dbg("trySession err",err&&err.message);done();});}` +
     // fetchOne(card, force) — main scraper hit with per-VAT cache.
-    `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(amt&&p)amt.textContent=swapCur(p);if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
+    // paint() suppresses when data-ns-painted is set on the card so a
+    // late-arriving public scrape can't overwrite a session price.
+    `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(card.getAttribute("data-ns-painted")==="1"){dbg("fetchOne paint suppressed by session");return;}if(amt&&p)amt.textContent=swapCur(p);if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
     `fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u,vat_mode:m})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));if(d.priceInc)localStorage.setItem(ckey(u,"incl"),JSON.stringify({t:now,p:d.priceInc}));if(d.priceExc)localStorage.setItem(ckey(u,"excl"),JSON.stringify({t:now,p:d.priceExc}));}catch(e){}}).catch(function(){});}` +
-    // Boot: scrape every live card now, then attempt session fetch shortly
-    // after. Watch DOM for VAT-toggle changes and re-fetch when relevant.
-    `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){dbg("boot live cards=",live.length);live.forEach(function(c){fetchOne(c,false);setTimeout(function(){trySession(c);},250);});` +
-    `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){fetchOne(c,false);setTimeout(function(){trySession(c);},250);});}` +
+    // Boot: inject a one-time style for the loading state, then for each
+    // same-origin card hide its price element until the session fetch
+    // settles. fetchOne and trySession race in parallel; trySession's
+    // result wins (suppresses fetchOne paint via data-ns-painted).
+    `try{if(!document.getElementById("ns-live-style")){var stl=document.createElement("style");stl.id="ns-live-style";stl.textContent='.ns-price-amount[data-ns-loading]{opacity:0!important;transition:opacity .18s ease-out;}';(document.head||document.documentElement).appendChild(stl);}}catch(e){}` +
+    `function startCard(c){var amt=c.querySelector(".ns-price-amount");var u=c.getAttribute("data-ns-src");var so=false;try{if(u){var pu=new URL(u,location.href);so=pu.origin===location.origin;}}catch(e){}if(so&&amt){amt.setAttribute("data-ns-loading","1");setTimeout(function(){amt.removeAttribute("data-ns-loading");},3000);}fetchOne(c,false);if(so){trySession(c);}}` +
+    `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){dbg("boot live cards=",live.length);live.forEach(startCard);` +
+    `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){c.removeAttribute("data-ns-painted");fetchOne(c,false);setTimeout(function(){trySession(c);},150);});}` +
     `try{if(typeof MutationObserver!=="undefined"){var mo=new MutationObserver(tick);mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class","data-state","data-vat","aria-pressed","aria-checked"]});}}catch(e){}` +
     `setInterval(tick,500);` +
     `}`

@@ -13,26 +13,34 @@ const { productLiveJs } = require("../productLive");
 const realSetTimeout = setTimeout;
 
 function makeEnv(state) {
+  const cardAttrs = { "data-ns-src": state.cardUrl || "https://host.test/p/widget" };
+  const amtAttrs = {};
+  const amt = {
+    textContent: state.initial,
+    setAttribute(k, v) { amtAttrs[k] = v; },
+    removeAttribute(k) { delete amtAttrs[k]; },
+    getAttribute(k) { return amtAttrs[k] || null; },
+  };
   const card = {
-    attrs: { "data-ns-src": state.cardUrl || "https://host.test/p/widget" },
-    getAttribute(k) { return this.attrs[k]; },
-    amt: { textContent: state.initial },
+    attrs: cardAttrs,
+    getAttribute(k) { return this.attrs[k] || null; },
+    setAttribute(k, v) { this.attrs[k] = v; },
+    removeAttribute(k) { delete this.attrs[k]; },
+    amt,
     querySelector(sel) { return sel === ".ns-price-amount" ? this.amt : null; },
   };
   let sessionFetches = 0;
   global.location = { href: "https://host.test/page", origin: "https://host.test" };
   global.URL = require("url").URL;
-  // Use jsdom to provide a real DOMParser. The host page itself doesn't
-  // need product markup — the snippet only inspects the FETCHED HTML.
-  const hostDom = new JSDOM("<html><body></body></html>", { url: "https://host.test/page" });
-  global.document = {
-    cookie: state.cookie || "",
-    body: { className: "" },
-    querySelector() { return null; },
-    querySelectorAll() { return [card]; },
-  };
+  // Real jsdom DOM gives us createElement / appendChild / head / DOMParser.
+  // We only override querySelectorAll on the root we pass to the snippet,
+  // so it finds our card mock instead of jsdom's empty body.
+  const hostDom = new JSDOM("<html><head></head><body></body></html>", { url: "https://host.test/page" });
+  global.document = hostDom.window.document;
   global.DOMParser = hostDom.window.DOMParser;
-  global.window = global;
+  global.window = hostDom.window;
+  // Root container the snippet receives — exposes our single card.
+  const root = { querySelectorAll() { return [card]; } };
   global.localStorage = { _s: {}, getItem(k) { return this._s[k] || null; }, setItem(k, v) { this._s[k] = v; } };
   global.MutationObserver = function () { this.observe = function () { }; };
   global.setInterval = () => { };
@@ -47,7 +55,7 @@ function makeEnv(state) {
     }
     return Promise.resolve({ ok: false });
   };
-  return { card, getFetches: () => sessionFetches };
+  return { card, root, getFetches: () => sessionFetches };
 }
 
 // HTML fixtures modelling real Nettailer-style markup.
@@ -136,15 +144,27 @@ const cases = [
   let allPass = true;
   for (const t of cases) {
     const env = makeEnv(t.state);
-    new Function("var root = document; " + body)();
-    await new Promise((r) => realSetTimeout(r, 350));
+    new Function("root", body)(env.root);
+    // Capture loading state SYNCHRONOUSLY before any microtask runs.
+    const sameOrigin = (env.card.attrs["data-ns-src"] || "").startsWith("https://host.test/");
+    const loadingMidFlight = env.card.amt.getAttribute("data-ns-loading") === "1";
+    // Wait for fetches and timers to settle.
+    await new Promise((r) => realSetTimeout(r, 400));
     const fetches = env.getFetches();
     const price = env.card.amt.textContent;
-    // Normalise both sides (strip commas / spaces) before comparing.
     const norm = (s) => String(s).replace(/[\s,]/g, "");
-    const pass = fetches === t.expectFetch && norm(price).includes(norm(t.expectContains));
+    const loadingCleared = env.card.amt.getAttribute("data-ns-loading") === null;
+    const pricePass = norm(price).includes(norm(t.expectContains));
+    const fetchPass = fetches === t.expectFetch;
+    const loadPass = (!sameOrigin || loadingMidFlight) && loadingCleared;
+    const pass = pricePass && fetchPass && loadPass;
     if (!pass) allPass = false;
-    console.log((pass ? "PASS" : "FAIL") + " · " + t.name + " | fetches=" + fetches + ' price="' + price + '"');
+    console.log(
+      (pass ? "PASS" : "FAIL") + " · " + t.name +
+      " | fetches=" + fetches + ' price="' + price + '"' +
+      " mid-flight-hidden=" + loadingMidFlight +
+      " cleared=" + loadingCleared,
+    );
   }
   process.exit(allPass ? 0 : 1);
 })();
