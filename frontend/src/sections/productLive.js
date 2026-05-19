@@ -97,13 +97,17 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     `var s=h.replace(/<(script|style|header|nav|aside)\\b[^>]*>[\\s\\S]*?<\\/\\1>/gi," ").replace(/<[^>]+class=["'][^"']*(?:basket|cart|minicart|header|navbar|topbar|toolbar)[^"']*["'][^>]*>[\\s\\S]{0,2000}?<\\/[a-z]+>/gi," ");` +
     `var pxs=s.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/g);if(pxs){for(var pi=0;pi<pxs.length;pi++){if(okP(pxs[pi])){dbg("extractP: regex fallback=",pxs[pi]);return pxs[pi];}}}` +
     `return null;}` +
+    // syncSuffix(card) — hide the VAT suffix when the amount is a gate
+    // phrase ("Log in for price" etc.), show it otherwise. Keeps the UX
+    // tidy on anonymous viewers — no awkward "Log in for price Excl VAT".
+    `function syncSuffix(card){var a=card.querySelector(".ns-price-amount");var s=card.querySelector(".ns-price-suffix");if(!a||!s)return;var t=(a.textContent||"").trim();s.style.display=GATE.test(t)?"none":"";}` +
     // harmonizeGate(root) — if ANY card in the section is showing a gate
     // phrase ("Log in for price", "Contact us for price", etc.), propagate
     // the same gate phrase to every other card that has NOT already been
     // session-painted. Keeps anonymous viewers' UX visually consistent
     // when the host gates all prices behind login. Session-painted cards
     // (logged-in customers' contract prices) are never overwritten.
-    `function harmonizeGate(){var cards=root.querySelectorAll(".ns-card[data-ns-src]");var gp=null;for(var i=0;i<cards.length;i++){var a=cards[i].querySelector(".ns-price-amount");if(!a)continue;var t=(a.textContent||"").trim();if(GATE.test(t)){gp=t;break;}}if(!gp)return;for(var j=0;j<cards.length;j++){if(cards[j].getAttribute("data-ns-painted")==="1")continue;var a2=cards[j].querySelector(".ns-price-amount");if(!a2)continue;var ct=(a2.textContent||"").trim();if(GATE.test(ct))continue;a2.textContent=gp;dbg("harmonizeGate: propagated",gp,"to card",j);}}` +
+    `function harmonizeGate(){var cards=root.querySelectorAll(".ns-card[data-ns-src]");var gp=null;for(var i=0;i<cards.length;i++){var a=cards[i].querySelector(".ns-price-amount");if(!a)continue;var t=(a.textContent||"").trim();if(GATE.test(t)){gp=t;break;}}for(var j=0;j<cards.length;j++){if(gp&&cards[j].getAttribute("data-ns-painted")!=="1"){var a2=cards[j].querySelector(".ns-price-amount");if(a2){var ct=(a2.textContent||"").trim();if(!GATE.test(ct)){a2.textContent=gp;dbg("harmonizeGate: propagated",gp,"to card",j);}}}syncSuffix(cards[j]);}}` +
     // trySession(card) — same-origin credentialed fetch to surface the
     // user's session price. Always runs when same-origin (no login-state
     // gate); when the host user is logged out, the response matches the

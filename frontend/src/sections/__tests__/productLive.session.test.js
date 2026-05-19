@@ -20,13 +20,22 @@ function makeCard(cardSpec) {
     removeAttribute(k) { delete amtAttrs[k]; },
     getAttribute(k) { return amtAttrs[k] || null; },
   };
+  const sfx = {
+    textContent: cardSpec.suffix || "Excl VAT",
+    style: {},
+  };
   const card = {
     attrs: { "data-ns-src": cardSpec.url },
     getAttribute(k) { return this.attrs[k] || null; },
     setAttribute(k, v) { this.attrs[k] = v; },
     removeAttribute(k) { delete this.attrs[k]; },
     amt,
-    querySelector(sel) { return sel === ".ns-price-amount" ? this.amt : null; },
+    sfx,
+    querySelector(sel) {
+      if (sel === ".ns-price-amount") return this.amt;
+      if (sel === ".ns-price-suffix") return this.sfx;
+      return null;
+    },
   };
   return card;
 }
@@ -157,17 +166,27 @@ const cases = [
     await new Promise((r) => realSetTimeout(r, 500));
     const fetches = env.getFetches();
     const prices = env.cards.map((c) => c.amt.textContent);
+    const sfxDisp = env.cards.map((c) => c.sfx.style.display || "");
     const norm = (s) => String(s).replace(/[\s,]/g, "");
     let pricesPass = true;
     for (let i = 0; i < t.expectPrices.length; i++) {
       if (!norm(prices[i]).includes(norm(t.expectPrices[i]))) pricesPass = false;
     }
+    // Suffix expectation: hidden when amount is a gate phrase, shown otherwise.
+    let suffixPass = true;
+    for (let i = 0; i < prices.length; i++) {
+      const isGate = /log\s*in|sign\s*in|price\s+on|\bPOA\b|contact\s+us\s+for/i.test(prices[i]);
+      const expectHidden = isGate;
+      const isHidden = sfxDisp[i] === "none";
+      if (expectHidden !== isHidden) suffixPass = false;
+    }
     const fetchPass = fetches === t.expectFetch;
-    const pass = pricesPass && fetchPass;
+    const pass = pricesPass && fetchPass && suffixPass;
     if (!pass) allPass = false;
     console.log(
       (pass ? "PASS" : "FAIL") + " · " + t.name +
-      " | fetches=" + fetches + " prices=" + JSON.stringify(prices),
+      " | fetches=" + fetches + " prices=" + JSON.stringify(prices) +
+      " suffixDisplay=" + JSON.stringify(sfxDisp),
     );
   }
   process.exit(allPass ? 0 : 1);
