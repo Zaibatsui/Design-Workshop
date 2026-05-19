@@ -6,6 +6,11 @@
 
 body {
   margin: 0;
+  /* Defence against rogue absolute-positioned decorative elements that
+     extend past the viewport (e.g. background blobs with -right-40).
+     `clip` is preferred over `hidden` so it doesn't create a scrolling
+     container — sticky positioning + internal carousel scroll still work. */
+  overflow-x: clip;
   font-family:
     "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     sans-serif;
