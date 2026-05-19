@@ -28,7 +28,9 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     `var CUR=${JSON.stringify(cur)};` +
     `function dbg(){try{if(window.NS_DEBUG)console.log.apply(console,["[ns]"].concat([].slice.call(arguments)));}catch(e){}}` +
     // swapCur(s) — replace leading currency token with CUR (if set).
-    `function swapCur(s){if(!CUR||!s)return s;return CUR+String(s).replace(/^\\s*(?:[£$€¥₹₪₺₽]+|GBP|USD|EUR|JPY|SEK|NOK|DKK|CHF|AUD|CAD|NZD|HKD|SGD|kr|zł|Kč|Ft|R\\$|AED|SAR|ZAR|INR|PLN|CZK|HUF|RUB|TRY|ILS|CNY|MXN|BRL)\\s*/i,"");}` +
+    // Skips non-price strings (no digits) so gate phrases like
+    // "Log in for price" aren't prefixed with a stray currency symbol.
+    `function swapCur(s){if(!CUR||!s)return s;if(!/\\d/.test(String(s)))return s;return CUR+String(s).replace(/^\\s*(?:[£$€¥₹₪₺₽]+|GBP|USD|EUR|JPY|SEK|NOK|DKK|CHF|AUD|CAD|NZD|HKD|SGD|kr|zł|Kč|Ft|R\\$|AED|SAR|ZAR|INR|PLN|CZK|HUF|RUB|TRY|ILS|CNY|MXN|BRL)\\s*/i,"");}` +
     // classify(text) → "incl" | "excl" | null.
     `function classify(s){if(!s)return null;var t=String(s).toLowerCase();` +
       `if(/\\binc(?:l|\\.|\\s|$)/.test(t)||/\\binkl\\b/.test(t))return"incl";` +
@@ -95,6 +97,13 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     `var s=h.replace(/<(script|style|header|nav|aside)\\b[^>]*>[\\s\\S]*?<\\/\\1>/gi," ").replace(/<[^>]+class=["'][^"']*(?:basket|cart|minicart|header|navbar|topbar|toolbar)[^"']*["'][^>]*>[\\s\\S]{0,2000}?<\\/[a-z]+>/gi," ");` +
     `var pxs=s.match(/[£$€¥₹₪₺₽]\\s?\\d[\\d,]*(?:\\.\\d{1,2})?/g);if(pxs){for(var pi=0;pi<pxs.length;pi++){if(okP(pxs[pi])){dbg("extractP: regex fallback=",pxs[pi]);return pxs[pi];}}}` +
     `return null;}` +
+    // harmonizeGate(root) — if ANY card in the section is showing a gate
+    // phrase ("Log in for price", "Contact us for price", etc.), propagate
+    // the same gate phrase to every other card that has NOT already been
+    // session-painted. Keeps anonymous viewers' UX visually consistent
+    // when the host gates all prices behind login. Session-painted cards
+    // (logged-in customers' contract prices) are never overwritten.
+    `function harmonizeGate(){var cards=root.querySelectorAll(".ns-card[data-ns-src]");var gp=null;for(var i=0;i<cards.length;i++){var a=cards[i].querySelector(".ns-price-amount");if(!a)continue;var t=(a.textContent||"").trim();if(GATE.test(t)){gp=t;break;}}if(!gp)return;for(var j=0;j<cards.length;j++){if(cards[j].getAttribute("data-ns-painted")==="1")continue;var a2=cards[j].querySelector(".ns-price-amount");if(!a2)continue;var ct=(a2.textContent||"").trim();if(GATE.test(ct))continue;a2.textContent=gp;dbg("harmonizeGate: propagated",gp,"to card",j);}}` +
     // trySession(card) — same-origin credentialed fetch to surface the
     // user's session price. Always runs when same-origin (no login-state
     // gate); when the host user is logged out, the response matches the
@@ -104,7 +113,7 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     // On settle (success or fail), removes data-ns-loading so the price
     // becomes visible. On successful repaint, also marks data-ns-painted
     // on the card so a later-arriving fetchOne paint is suppressed.
-    `function trySession(card){var u=card.getAttribute("data-ns-src");if(!u)return;var amt=card.querySelector(".ns-price-amount");if(!amt)return;function done(){if(amt)amt.removeAttribute("data-ns-loading");}try{var pu=new URL(u,location.href);if(pu.origin!==location.origin){dbg("trySession skip cross-origin",pu.origin);done();return;}}catch(e){done();return;}` +
+    `function trySession(card){var u=card.getAttribute("data-ns-src");if(!u)return;var amt=card.querySelector(".ns-price-amount");if(!amt)return;function done(){if(amt)amt.removeAttribute("data-ns-loading");harmonizeGate();}try{var pu=new URL(u,location.href);if(pu.origin!==location.origin){dbg("trySession skip cross-origin",pu.origin);done();return;}}catch(e){done();return;}` +
     `fetch(u,{credentials:"include",headers:{"Accept":"text/html"}}).then(function(r){return r.ok?r.text():null;}).then(function(h){` +
       `if(!h){dbg("trySession empty html",u);done();return;}` +
       `var p=extractP(h);if(!p){dbg("trySession extractP=null",u);done();return;}` +
@@ -122,7 +131,7 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     // fetchOne(card, force) — main scraper hit with per-VAT cache.
     // paint() suppresses when data-ns-painted is set on the card so a
     // late-arriving public scrape can't overwrite a session price.
-    `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(card.getAttribute("data-ns-painted")==="1"){dbg("fetchOne paint suppressed by session");return;}if(amt&&p)amt.textContent=swapCur(p);if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
+    `function fetchOne(card,force){var u=card.getAttribute("data-ns-src");if(!u)return;var m=vatMode();var k=ckey(u,m),now=Date.now(),amt=card.querySelector(".ns-price-amount"),sfx=card.querySelector(".ns-price-suffix");function paint(p){if(card.getAttribute("data-ns-painted")==="1"){dbg("fetchOne paint suppressed by session");return;}if(amt&&p)amt.textContent=swapCur(p);if(sfx&&m&&classify(sfx.textContent)!==null){sfx.textContent=vatLabel(m);}harmonizeGate();}if(!force){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&c.t&&now-c.t<TTL){if(c.p)paint(c.p);return;}}catch(e){}}` +
     `fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:u,vat_mode:m})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.price)return;paint(d.price);try{localStorage.setItem(k,JSON.stringify({t:now,p:d.price}));if(d.priceInc)localStorage.setItem(ckey(u,"incl"),JSON.stringify({t:now,p:d.priceInc}));if(d.priceExc)localStorage.setItem(ckey(u,"excl"),JSON.stringify({t:now,p:d.priceExc}));}catch(e){}}).catch(function(){});}` +
     // Boot: inject a one-time style for the loading state, then for each
     // same-origin card hide its price element until the session fetch
@@ -130,7 +139,7 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     // result wins (suppresses fetchOne paint via data-ns-painted).
     `try{if(!document.getElementById("ns-live-style")){var stl=document.createElement("style");stl.id="ns-live-style";stl.textContent='.ns-price-amount[data-ns-loading]{opacity:0!important;transition:opacity .18s ease-out;}';(document.head||document.documentElement).appendChild(stl);}}catch(e){}` +
     `function startCard(c){var amt=c.querySelector(".ns-price-amount");var u=c.getAttribute("data-ns-src");var so=false;try{if(u){var pu=new URL(u,location.href);so=pu.origin===location.origin;}}catch(e){}if(so&&amt){amt.setAttribute("data-ns-loading","1");setTimeout(function(){amt.removeAttribute("data-ns-loading");},3000);}fetchOne(c,false);if(so){trySession(c);}}` +
-    `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){dbg("boot live cards=",live.length);live.forEach(startCard);` +
+    `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){dbg("boot live cards=",live.length);harmonizeGate();live.forEach(startCard);` +
     `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){c.removeAttribute("data-ns-painted");fetchOne(c,false);setTimeout(function(){trySession(c);},150);});}` +
     `try{if(typeof MutationObserver!=="undefined"){var mo=new MutationObserver(tick);mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class","data-state","data-vat","aria-pressed","aria-checked"]});}}catch(e){}` +
     `setInterval(tick,500);` +
