@@ -144,9 +144,16 @@ export function productLiveJs({ cur = "", apiBase = "" } = {}) {
     `try{if(!document.getElementById("ns-live-style")){var stl=document.createElement("style");stl.id="ns-live-style";stl.textContent='.ns-price-amount[data-ns-loading]{opacity:0!important;transition:opacity .18s ease-out;}';(document.head||document.documentElement).appendChild(stl);}}catch(e){}` +
     `function startCard(c){var amt=c.querySelector(".ns-price-amount");var u=c.getAttribute("data-ns-src");var so=false;try{if(u){var pu=new URL(u,location.href);so=pu.origin===location.origin;}}catch(e){}if(so&&amt){amt.setAttribute("data-ns-loading","1");setTimeout(function(){amt.removeAttribute("data-ns-loading");},3000);}fetchOne(c,false);if(so){trySession(c);}}` +
     `var live=root.querySelectorAll(".ns-card[data-ns-src]");if(live.length&&typeof fetch==="function"){dbg("boot live cards=",live.length);harmonizeGate();live.forEach(startCard);` +
-    `var lastV=vatMode();function tick(){var v=vatMode();if(v===lastV)return;lastV=v;live.forEach(function(c){c.removeAttribute("data-ns-painted");fetchOne(c,false);setTimeout(function(){trySession(c);},150);});}` +
-    `try{if(typeof MutationObserver!=="undefined"){var mo=new MutationObserver(tick);mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class","data-state","data-vat","aria-pressed","aria-checked"]});}}catch(e){}` +
-    `setInterval(tick,500);` +
+    // VAT-toggle reactivity: re-fetch on host VAT mode change. We rely
+    // PURELY on MutationObserver (no setInterval polling) to keep idle
+    // CPU at zero. The observer is scoped narrowly:
+    //   - body class changes (some hosts toggle body.vat-incl / .vat-excl)
+    //   - the VAT switcher control's attrs (data-state / aria-pressed)
+    //   - the VAT switcher label's text changes
+    // A 200ms debounce coalesces bursts of mutations into one tick.
+    `var lastV=vatMode(),tickT=null;function tick(){var v=vatMode();if(v===lastV)return;lastV=v;dbg("VAT change → refresh");live.forEach(function(c){c.removeAttribute("data-ns-painted");fetchOne(c,false);setTimeout(function(){trySession(c);},150);});}` +
+    `function schedule(){if(tickT)return;tickT=setTimeout(function(){tickT=null;tick();},200);}` +
+    `try{if(typeof MutationObserver!=="undefined"){var mo=new MutationObserver(schedule);mo.observe(document.body,{attributes:true,attributeFilter:["class"]});var vsl=document.querySelector(".vat-switcher-label");if(vsl){mo.observe(vsl,{characterData:true,childList:true,subtree:true});}var vsw=document.querySelector(".vat-switcher");if(vsw){mo.observe(vsw,{attributes:true,attributeFilter:["class","data-state","data-vat","aria-pressed","aria-checked"]});}}}catch(e){}` +
     `}`
   );
 }
