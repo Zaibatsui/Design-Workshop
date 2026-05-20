@@ -3,12 +3,13 @@
 Cookie-based session with Authorization: Bearer fallback so automated tests
 can authenticate without the full OAuth dance.
 
-`require_admin` gates admin-only endpoints. The admin allowlist is a tiny
-hardcoded set keyed by email — kept in code so a forgotten env var can't
-silently expand admin access. To grant admin to another email, edit
-`ADMIN_EMAILS` below or extend the helper to read from `ADMIN_EMAILS`
-env var if you ever need runtime configurability.
+`require_admin` gates admin-only endpoints. The admin allowlist is read
+from the `ADMIN_EMAILS` environment variable (comma-separated) at
+import time. Keeping it env-driven means a public fork of this repo
+doesn't ship with anyone's email pre-promoted; an empty/missing var
+simply means "no admin" — never "everyone is admin".
 """
+import os
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -20,16 +21,29 @@ from db import db
 SESSION_COOKIE = "session_token"
 SESSION_TTL_DAYS = 7
 
-# Sole admin account. Future development can extend this set; we
-# deliberately keep this hardcoded rather than env-driven so a missing
-# environment variable can't accidentally promote everyone to admin.
-ADMIN_EMAILS = frozenset({"pazmaskell@gmail.com"})
+
+def _load_admin_emails() -> frozenset:
+    """Parse ADMIN_EMAILS env var into a normalised frozenset.
+
+    Accepts comma- or whitespace-separated emails (so both
+    `a@x.com,b@x.com` and `a@x.com b@x.com` work). An unset or empty
+    var yields an empty set — i.e. NO admins, which fails closed
+    rather than promoting everyone.
+    """
+    raw = os.environ.get("ADMIN_EMAILS", "").strip()
+    if not raw:
+        return frozenset()
+    parts = [p.strip().lower() for p in raw.replace(",", " ").split()]
+    return frozenset(p for p in parts if p)
+
+
+ADMIN_EMAILS = _load_admin_emails()
 
 
 def is_admin_email(email: Optional[str]) -> bool:
     if not email:
         return False
-    return email.strip().lower() in {a.lower() for a in ADMIN_EMAILS}
+    return email.strip().lower() in ADMIN_EMAILS
 
 
 class User(BaseModel):

@@ -150,7 +150,7 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 ├── backend/
 │   ├── server.py                # ~140 lines: middleware wiring, router includes
 │   ├── db.py                    # Motor client + `db` singleton
-│   ├── deps.py                  # get_current_user / require_admin / ADMIN_EMAILS
+│   ├── deps.py                  # get_current_user / require_admin / ADMIN_EMAILS env-driven allowlist
 │   ├── storage.py               # local-fs object storage (pluggable)
 │   ├── routers/
 │   │   ├── auth.py              # /api/auth/google/{login,callback,logout,me}
@@ -223,7 +223,7 @@ npm start                                  # http://localhost:3000
 
 **OAuth locally**: register `http://localhost:8001/api/auth/google/callback` as an authorised redirect URI on your Google OAuth client, then sign in via `http://localhost:3000/login`.
 
-**Admin gating**: add your Google account email to `backend/deps.py::ADMIN_EMAILS` to unlock `/brand` admin pickers and the `/admin/users` page.
+**Admin gating**: set `ADMIN_EMAILS=you@example.com` in `backend/.env` (comma-separated for multiple admins). Empty / unset means no admins — fail-closed so a forgotten env var never accidentally promotes every user.
 
 ## Production deployment
 
@@ -284,7 +284,7 @@ The XSS hardening helpers (`escHtml` / `escAttr` / `safeUrl` / `safeColor` / `nu
 
 ## Status
 
-Single-tenant per deployment. Authentication is Direct Google OAuth — every user gets their own private library. Admin-only routes (Live Demo + Spotlight pickers on `/brand`, user management at `/admin/users`) are gated by an email allowlist in `backend/deps.py::ADMIN_EMAILS`.
+Single-tenant per deployment. Authentication is Direct Google OAuth — every user gets their own private library. Admin-only routes (Live Demo + Spotlight pickers on `/brand`, user management at `/admin/users`, Tickets inbox at `/admin/tickets`) are gated by the `ADMIN_EMAILS` env var (comma-separated email allowlist).
 
 ## Licence
 
