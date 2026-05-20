@@ -51,22 +51,47 @@ const defaults = () => ({
     panelGradientFrom: "#E01839",
     panelGradientTo: "#1f2937",
     panelGradientAngle: 135,
+    // Mobile-only split-panel background overrides. When
+    // `panelBgTypeMobile` is "" the panel inherits the desktop
+    // background. Otherwise these fields drive a different look
+    // under (max-width:767px) — applied via CSS variables so the
+    // host site's responsive context (e.g. window resize) updates
+    // live without a page reload.
+    panelBgTypeMobile: "", // "" | "solid" | "gradient"
+    panelBgMobile: "",
+    panelGradientFromMobile: "",
+    panelGradientToMobile: "",
+    panelGradientAngleMobile: null,
   },
   layout: {
     height: 520,
     contentMaxWidth: 1200,
     textAlign: "left",
+    // "" = inherit the desktop alignment on mobile. When set to
+    // "center" the section root gets `.is-mobile-center` which
+    // centres every element (logo, title, subtitle, CTA, and the
+    // split-panel inner content) under (max-width:767px).
+    textAlignMobile: "",
     borderRadius: 0,
     // Split-only layout (global across all split slides for visual
     // consistency).
     imageSide: "right", // "left" | "right"
     panelRatio: 50, // 40 | 50 | 60 — % width of the panel column
+    // Vertical gap between the image and the coloured panel on
+    // mobile (split-panel slides only). Desktop stays edge-to-edge.
+    mobileImagePanelGap: 0,
   },
   settings: {
     autoplay: true,
     interval: 4000,
     pauseOnHover: true,
+    // `showArrows` is the legacy on/off toggle; we now derive
+    // visibility from `arrowsVisibility` which adds per-breakpoint
+    // control. Old sections without `arrowsVisibility` are
+    // back-compat: render-time inference treats `showArrows:false`
+    // as "never" and `showArrows:true` as "always".
     showArrows: true,
+    arrowsVisibility: "always", // "always" | "desktop" | "mobile" | "never"
     showDots: true,
   },
   fullBleed: false,
@@ -150,6 +175,31 @@ function slidePanelBackground(slide, cfg) {
   return safeColor(t.panelBg, "#1f2937");
 }
 
+// Mobile panel background override (split-only, section-level).
+// Returns the CSS background value for the panel under
+// (max-width:767px) when `panelBgTypeMobile` is set, otherwise
+// `null` (which means: inherit desktop). We intentionally do NOT
+// support per-slide mobile overrides — keeping mobile theming
+// section-wide avoids visual whiplash slide-to-slide.
+function slidePanelBackgroundMobile(_slide, cfg) {
+  const t = cfg.theme || {};
+  const type = t.panelBgTypeMobile;
+  if (type !== "solid" && type !== "gradient") return null;
+  if (type === "gradient") {
+    const angle = num(t.panelGradientAngleMobile, num(t.panelGradientAngle, 135));
+    const from = safeColor(
+      t.panelGradientFromMobile || t.panelGradientFrom,
+      "#E01839"
+    );
+    const to = safeColor(
+      t.panelGradientToMobile || t.panelGradientTo,
+      "#1f2937"
+    );
+    return `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)`;
+  }
+  return safeColor(t.panelBgMobile || t.panelBg, "#1f2937");
+}
+
 // Resolve per-slide CTA button colours. Override fields on the slide
 // take precedence; otherwise the section theme is used. Returns an
 // inline `style="..."` attribute fragment (with leading space) or "".
@@ -165,6 +215,7 @@ function splitSlideInner(slide, cfg) {
   const imageSide = (cfg.layout || {}).imageSide === "left" ? "left" : "right";
   const logo = safeUrl(slide.logo);
   const bg = safeUrl(slide.image);
+  const bgMobile = safeUrl(slide.imageMobile);
   const cta = slide.ctaText && slide.ctaText.trim();
   const link = safeUrl(slide.ctaLink || "#");
   const target = slide.openInSameTab ? "_self" : "_blank";
@@ -173,8 +224,16 @@ function splitSlideInner(slide, cfg) {
   // Panel sits on the side OPPOSITE to the image.
   const panelSide = imageSide === "left" ? "right" : "left";
   const panelBg = slidePanelBackground(slide, cfg);
+  const panelBgMobile = slidePanelBackgroundMobile(slide, cfg);
 
-  const panelHtml = `<div class="ns-panel is-side-${panelSide}" style="background:${panelBg}">
+  // Emit panel background as CSS custom properties so the section
+  // stylesheet can swap between desktop / mobile under a media
+  // query. (Inline `background:` would shadow the @media rule.)
+  const panelStyle = panelBgMobile
+    ? `--ns-pb:${panelBg};--ns-pb-m:${panelBgMobile}`
+    : `--ns-pb:${panelBg}`;
+
+  const panelHtml = `<div class="ns-panel is-side-${panelSide}" style="${panelStyle}">
     <div class="ns-panel-inner">
       ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
       ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
@@ -183,9 +242,15 @@ function splitSlideInner(slide, cfg) {
     </div>
   </div>`;
 
-  const imageHtml = `<div class="ns-image-wrap">${
-    bg ? `<img src="${escAttr(bg)}" alt="${escAttr(slide.title || "")}"/>` : ""
-  }</div>`;
+  // `<picture>` lets us serve a different image on mobile via the
+  // media query, with graceful fall-back to the desktop `<img>` when
+  // no mobile variant was uploaded.
+  const imgInner = bgMobile
+    ? `<picture><source media="(max-width:767px)" srcset="${escAttr(bgMobile)}"/><img src="${escAttr(bg)}" alt="${escAttr(slide.title || "")}"/></picture>`
+    : bg
+      ? `<img src="${escAttr(bg)}" alt="${escAttr(slide.title || "")}"/>`
+      : "";
+  const imageHtml = `<div class="ns-image-wrap">${imgInner}</div>`;
 
   return `<div class="ns-split-grid">${imageSide === "left" ? imageHtml + panelHtml : panelHtml + imageHtml}</div>`;
 }
@@ -198,6 +263,7 @@ function splitCss(cls, cfg) {
   const panelPct = ratio;
   const imagePct = 100 - ratio;
   const contentMax = num(l.contentMaxWidth, 1200);
+  const mobileGap = Math.max(0, Math.min(48, num(l.mobileImagePanelGap, 0)));
 
   const gridCols =
     imageSide === "left"
@@ -231,7 +297,7 @@ function splitCss(cls, cfg) {
 .${cls} .ns-slide.is-split .ns-overlay{display:none}
 .${cls} .ns-slide.is-split .ns-content{display:none}
 .${cls} .ns-slide.is-split .ns-split-grid{display:grid;grid-template-columns:${gridCols};width:100%;height:100%;min-height:100%;align-items:stretch}
-.${cls} .ns-slide.is-split .ns-panel{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden}
+.${cls} .ns-slide.is-split .ns-panel{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;background:var(--ns-pb)}
 .${cls} .ns-slide.is-split .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 0 12px;object-fit:contain}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-title{margin:0 0 8px}
@@ -242,7 +308,7 @@ function splitCss(cls, cfg) {
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
-@media (max-width:767px){.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;padding:24px!important}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
+@media (max-width:767px){.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr;gap:${mobileGap}px}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;padding:24px!important;background:var(--ns-pb-m, var(--ns-pb))}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
 `.trim();
 }
 
@@ -260,6 +326,22 @@ function renderSlide(cfg) {
     slide.layout || cfg.slideLayout || "standard";
   const anySplit = slides.some((sl) => slideMode(sl) === "split");
 
+  // Arrow visibility: prefer the new `arrowsVisibility` knob, fall
+  // back to the legacy `showArrows` boolean (false → never, true →
+  // always) so existing sections render identically.
+  const arrowsVisibility =
+    s.arrowsVisibility ||
+    (s.showArrows === false ? "never" : "always");
+  const textAlign =
+    l.textAlign === "right" || l.textAlign === "center" ? l.textAlign : "left";
+  const textAlignMobile =
+    l.textAlignMobile === "left" ||
+    l.textAlignMobile === "center" ||
+    l.textAlignMobile === "right"
+      ? l.textAlignMobile
+      : "";
+  const isMobileCenter = textAlignMobile === "center";
+
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
     `--ns-cta-text:${safeColor(t.ctaText, "#ffffff")}`,
@@ -268,6 +350,8 @@ function renderSlide(cfg) {
     `--ns-height:${num(l.height, 520)}px`,
     `--ns-content-max:${num(l.contentMaxWidth, 720)}px`,
     `--ns-radius:${num(l.borderRadius, 0)}px`,
+    `--ns-text-align:${textAlign}`,
+    `--ns-text-align-m:${textAlignMobile || textAlign}`,
   ].join(";");
 
   const slidesHtml = slides
@@ -276,12 +360,20 @@ function renderSlide(cfg) {
         return `<div class="ns-slide is-split">${splitSlideInner(slide, cfg)}</div>`;
       }
       const bg = safeUrl(slide.image);
+      const bgMobile = safeUrl(slide.imageMobile);
       const logo = safeUrl(slide.logo);
       const cta = slide.ctaText && slide.ctaText.trim();
       const link = safeUrl(slide.ctaLink || "#");
       const target = slide.openInSameTab ? "_self" : "_blank";
       const rel = slide.openInSameTab ? "" : ' rel="noopener noreferrer"';
-      return `<div class="ns-slide" style="background-image:url('${escAttr(bg)}')">
+      // Background image emitted as CSS custom properties so the
+      // section stylesheet can swap to a mobile-specific image
+      // under a media query (inline `background-image:` would
+      // shadow the @media rule).
+      const slideStyle = bgMobile
+        ? `--ns-bg:url('${escAttr(bg)}');--ns-bg-m:url('${escAttr(bgMobile)}')`
+        : `--ns-bg:url('${escAttr(bg)}')`;
+      return `<div class="ns-slide" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content">
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
@@ -302,18 +394,32 @@ function renderSlide(cfg) {
         .join("")}</div>`
     : "";
 
-  const arrowsHtml = s.showArrows
+  const arrowsHtml = arrowsVisibility !== "never"
     ? `<button class="ns-arrow ns-prev" type="button" data-ns-prev aria-label="Previous">‹</button>
 <button class="ns-arrow ns-next" type="button" data-ns-next aria-label="Next">›</button>`
     : "";
 
+  // Class hooks for CSS toggles. `is-arrows-desktop` hides arrows
+  // under (max-width:767px); `is-arrows-mobile` hides them above
+  // it; "always" / "never" get no class (always shown / never
+  // rendered respectively).
+  const arrowsCls =
+    arrowsVisibility === "desktop"
+      ? " is-arrows-desktop"
+      : arrowsVisibility === "mobile"
+        ? " is-arrows-mobile"
+        : "";
+  const dotsCls = s.showDots ? " has-dots" : "";
+  const mobileCenterCls = isMobileCenter ? " is-mobile-center" : "";
+
   const css = `
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius,0);color:var(--ns-title)}
-.${cls} .ns-track{display:flex;height:100%;transition:transform .6s ease;will-change:transform}
-.${cls} .ns-slide{flex:0 0 100%;height:100%;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;padding:48px 56px;position:relative}
+.${cls} .ns-track{display:flex;height:100%;transition:transform .6s ease;will-change:transform;touch-action:pan-y}
+.${cls} .ns-slide{flex:0 0 100%;height:100%;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;padding:48px 56px;position:relative}
 .${cls} .ns-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.55) 25%,rgba(0,0,0,.25) 50%,rgba(0,0,0,0) 75%);pointer-events:none}
-.${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:left}
+.${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:var(--ns-text-align,left)}
+.${cls} .ns-content[data-align="center"], .${cls} .ns-content{}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
 .${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
@@ -329,10 +435,12 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
+@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
+@media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
 
-  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}">
+  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}">
   <div class="ns-track" data-ns-track>${slidesHtml}</div>
   ${arrowsHtml}
   ${dotsHtml}
@@ -340,7 +448,7 @@ ${anySplit ? splitCss(cls, cfg) : ""}
 
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(!track)return;var total=track.children.length;if(!total)return;var current=0;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;track.style.transform="translateX(-"+(current*100)+"%)";dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}setOffset();window.addEventListener("resize",setOffset);go(0);start();`
+    `var track=root.querySelector("[data-ns-track]");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(!track)return;var total=track.children.length;if(!total)return;var current=0;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;track.style.transform="translateX(-"+(current*100)+"%)";dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}var sx=0,sy=0,st=0;root.addEventListener("touchstart",function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();stop();},{passive:true});root.addEventListener("touchend",function(e){var t=e.changedTouches[0];var dx=t.clientX-sx;var dy=t.clientY-sy;var dt=Date.now()-st;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)&&dt<800){if(dx<0)go(current+1);else go(current-1);}start();});setOffset();window.addEventListener("resize",setOffset);go(0);start();`
   );
 
   return wrapSnippet({ html, css, js });
@@ -357,6 +465,19 @@ function renderFade(cfg) {
     slide.layout || cfg.slideLayout || "standard";
   const anySplit = slides.some((sl) => slideMode(sl) === "split");
 
+  const arrowsVisibility =
+    s.arrowsVisibility ||
+    (s.showArrows === false ? "never" : "always");
+  const textAlign =
+    l.textAlign === "right" || l.textAlign === "center" ? l.textAlign : "left";
+  const textAlignMobile =
+    l.textAlignMobile === "left" ||
+    l.textAlignMobile === "center" ||
+    l.textAlignMobile === "right"
+      ? l.textAlignMobile
+      : "";
+  const isMobileCenter = textAlignMobile === "center";
+
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
     `--ns-cta-text:${safeColor(t.ctaText, "#ffffff")}`,
@@ -367,7 +488,8 @@ function renderFade(cfg) {
     `--ns-height:${num(l.height, 520)}px`,
     `--ns-content-max:${num(l.contentMaxWidth, 720)}px`,
     `--ns-radius:${num(l.borderRadius, 0)}px`,
-    `--ns-text-align:${l.textAlign === "right" || l.textAlign === "center" ? l.textAlign : "left"}`,
+    `--ns-text-align:${textAlign}`,
+    `--ns-text-align-m:${textAlignMobile || textAlign}`,
   ].join(";");
 
   const slidesHtml = slides
@@ -376,12 +498,16 @@ function renderFade(cfg) {
         return `<div class="ns-slide is-split${i === 0 ? " is-active" : ""}" data-ns-slide="${i}">${splitSlideInner(slide, cfg)}</div>`;
       }
       const bg = safeUrl(slide.image);
+      const bgMobile = safeUrl(slide.imageMobile);
       const logo = safeUrl(slide.logo);
       const cta = slide.ctaText && slide.ctaText.trim();
       const link = safeUrl(slide.ctaLink || "#");
       const target = slide.openInSameTab ? "_self" : "_blank";
       const rel = slide.openInSameTab ? "" : ' rel="noopener noreferrer"';
-      return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="background-image:url('${escAttr(bg)}')">
+      const slideStyle = bgMobile
+        ? `--ns-bg:url('${escAttr(bg)}');--ns-bg-m:url('${escAttr(bgMobile)}')`
+        : `--ns-bg:url('${escAttr(bg)}')`;
+      return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
@@ -402,15 +528,24 @@ function renderFade(cfg) {
         .join("")}</div>`
     : "";
 
-  const arrowsHtml = s.showArrows
+  const arrowsHtml = arrowsVisibility !== "never"
     ? `<button class="ns-arrow ns-prev" type="button" data-ns-prev aria-label="Previous">‹</button>
 <button class="ns-arrow ns-next" type="button" data-ns-next aria-label="Next">›</button>`
     : "";
 
+  const arrowsCls =
+    arrowsVisibility === "desktop"
+      ? " is-arrows-desktop"
+      : arrowsVisibility === "mobile"
+        ? " is-arrows-mobile"
+        : "";
+  const dotsCls = s.showDots ? " has-dots" : "";
+  const mobileCenterCls = isMobileCenter ? " is-mobile-center" : "";
+
   const css = `
 ${baseReset(cls)}
-.${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius);color:var(--ns-title);isolation:isolate}
-.${cls} .ns-slide{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;opacity:0;transition:opacity .6s ease;pointer-events:none;display:flex;align-items:center;padding:48px 56px}
+.${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius);color:var(--ns-title);isolation:isolate;touch-action:pan-y}
+.${cls} .ns-slide{position:absolute;inset:0;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;opacity:0;transition:opacity .6s ease;pointer-events:none;display:flex;align-items:center;padding:48px 56px}
 .${cls} .ns-slide.is-active{opacity:1;pointer-events:auto;z-index:1}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay);opacity:var(--ns-overlay-opacity);pointer-events:none}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);width:100%;text-align:var(--ns-text-align)}
@@ -433,10 +568,12 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
+@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
+@media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
 
-  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}">
+  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}">
 ${slidesHtml}
 ${arrowsHtml}
 ${dotsHtml}
@@ -444,7 +581,7 @@ ${dotsHtml}
 
   const js = iife(
     cls,
-    `var slides=root.querySelectorAll(".ns-slide");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");var current=0;var total=slides.length;if(!total)return;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||5000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;slides.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}setOffset();window.addEventListener("resize",setOffset);go(0);start();`
+    `var slides=root.querySelectorAll(".ns-slide");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");var current=0;var total=slides.length;if(!total)return;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||5000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;slides.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}var sx=0,sy=0,st=0;root.addEventListener("touchstart",function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();stop();},{passive:true});root.addEventListener("touchend",function(e){var t=e.changedTouches[0];var dx=t.clientX-sx;var dy=t.clientY-sy;var dt=Date.now()-st;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)&&dt<800){if(dx<0)go(current+1);else go(current-1);}start();});setOffset();window.addEventListener("resize",setOffset);go(0);start();`
   );
 
   return wrapSnippet({ html, css, js });
@@ -584,6 +721,20 @@ function FormPanel({ config, onUpdate }) {
                   value={slide.image}
                   onChange={(v) => updateSlide(slide.id, { image: v })}
                   testid={`hero-slide-image-${slide.id}`}
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Mobile image (optional)
+                </Label>
+                <p className="text-[11px] text-slate-500 mb-1.5 leading-snug">
+                  Shown under 768px. Leave blank to reuse the image above.
+                </p>
+                <ImageUpload
+                  value={slide.imageMobile}
+                  onChange={(v) => updateSlide(slide.id, { imageMobile: v })}
+                  testid={`hero-slide-image-mobile-${slide.id}`}
+                  compact
                 />
               </div>
               <div>
@@ -829,19 +980,29 @@ function FormPanel({ config, onUpdate }) {
       </Group>
 
       <Group title="Layout">
-        {isFade && (
-          <SelectField
-            label="Text alignment"
-            value={l.textAlign}
-            onChange={(v) => setLayout({ textAlign: v })}
-            options={[
-              { value: "left", label: "Left" },
-              { value: "center", label: "Center" },
-              { value: "right", label: "Right" },
-            ]}
-            testid="hero-text-align"
-          />
-        )}
+        <SelectField
+          label="Text alignment"
+          value={l.textAlign}
+          onChange={(v) => setLayout({ textAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="hero-text-align"
+        />
+        <SelectField
+          label="Mobile alignment"
+          value={l.textAlignMobile || ""}
+          onChange={(v) => setLayout({ textAlignMobile: v })}
+          options={[
+            { value: "", label: "Inherit from desktop" },
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center (all elements centred)" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="hero-text-align-mobile"
+        />
         <SliderField
           label="Height"
           value={l.height}
@@ -954,6 +1115,102 @@ function FormPanel({ config, onUpdate }) {
               testid="hero-panel-bg"
             />
           )}
+
+          {/* Mobile override — sets a different panel background under
+            * (max-width:767px). Defaults to "Inherit desktop"; choose a
+            * type to reveal the matching colour fields. Applies globally
+            * to every split slide, matching the desktop scope.
+            */}
+          <div className="pt-2 border-t border-slate-200 mt-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+              Mobile override (≤767px)
+            </p>
+            <SelectField
+              label="Mobile panel background"
+              value={t.panelBgTypeMobile || ""}
+              onChange={(v) => {
+                const patch = { panelBgTypeMobile: v };
+                if (v === "solid" && !t.panelBgMobile) {
+                  patch.panelBgMobile = t.panelBg || "#1f2937";
+                }
+                if (v === "gradient") {
+                  if (!t.panelGradientFromMobile)
+                    patch.panelGradientFromMobile =
+                      t.panelGradientFrom || "#E01839";
+                  if (!t.panelGradientToMobile)
+                    patch.panelGradientToMobile =
+                      t.panelGradientTo || "#1f2937";
+                  if (t.panelGradientAngleMobile == null)
+                    patch.panelGradientAngleMobile =
+                      t.panelGradientAngle ?? 135;
+                }
+                setTheme(patch);
+              }}
+              options={[
+                { value: "", label: "Inherit desktop" },
+                { value: "solid", label: "Solid colour" },
+                { value: "gradient", label: "Linear gradient" },
+              ]}
+              testid="hero-panel-bg-type-mobile"
+            />
+            {t.panelBgTypeMobile === "solid" && (
+              <ColorField
+                label="Mobile panel colour"
+                value={t.panelBgMobile || t.panelBg || "#1f2937"}
+                onChange={(v) => setTheme({ panelBgMobile: v })}
+                testid="hero-panel-bg-mobile"
+              />
+            )}
+            {t.panelBgTypeMobile === "gradient" && (
+              <>
+                <ColorField
+                  label="Mobile gradient from"
+                  value={
+                    t.panelGradientFromMobile ||
+                    t.panelGradientFrom ||
+                    "#E01839"
+                  }
+                  onChange={(v) =>
+                    setTheme({ panelGradientFromMobile: v })
+                  }
+                  testid="hero-panel-grad-from-mobile"
+                />
+                <ColorField
+                  label="Mobile gradient to"
+                  value={
+                    t.panelGradientToMobile || t.panelGradientTo || "#1f2937"
+                  }
+                  onChange={(v) => setTheme({ panelGradientToMobile: v })}
+                  testid="hero-panel-grad-to-mobile"
+                />
+                <SliderField
+                  label="Mobile gradient angle"
+                  value={
+                    t.panelGradientAngleMobile ??
+                    t.panelGradientAngle ??
+                    135
+                  }
+                  min={0}
+                  max={360}
+                  step={5}
+                  suffix="°"
+                  onChange={(v) =>
+                    setTheme({ panelGradientAngleMobile: v })
+                  }
+                  testid="hero-panel-grad-angle-mobile"
+                />
+              </>
+            )}
+            <SliderField
+              label="Mobile gap (image ↔ panel)"
+              value={Number(l.mobileImagePanelGap) || 0}
+              min={0}
+              max={48}
+              suffix="px"
+              onChange={(v) => setLayout({ mobileImagePanelGap: v })}
+              testid="hero-mobile-image-panel-gap"
+            />
+          </div>
         </Group>
       )}
 
@@ -991,11 +1248,22 @@ function FormPanel({ config, onUpdate }) {
             onChange={(v) => setSettings({ pauseOnHover: v })}
             testid="hero-pause-on-hover"
           />
-          <ToggleField
+          <SelectField
             label="Arrows"
-            checked={s.showArrows}
-            onChange={(v) => setSettings({ showArrows: v })}
-            testid="hero-arrows"
+            value={
+              s.arrowsVisibility ||
+              (s.showArrows === false ? "never" : "always")
+            }
+            onChange={(v) =>
+              setSettings({ arrowsVisibility: v, showArrows: v !== "never" })
+            }
+            options={[
+              { value: "always", label: "Always show" },
+              { value: "desktop", label: "Desktop only" },
+              { value: "mobile", label: "Mobile only" },
+              { value: "never", label: "Never show" },
+            ]}
+            testid="hero-arrows-visibility"
           />
           <ToggleField
             label="Dots"
