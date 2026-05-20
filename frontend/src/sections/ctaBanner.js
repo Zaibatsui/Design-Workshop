@@ -54,6 +54,7 @@ const defaults = () => ({
   accentColor: "#E01839",
   paddingY: 96,
   fullBleed: false,
+  borderRadius: 0,
   textAlign: "center", // "left" | "center"
   // Buttons — both are optional now; empty label = button is dropped.
   primaryLabel: "Get started",
@@ -154,7 +155,7 @@ const render = (cfg) => {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad,96px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
+.${cls}{padding:var(--ns-pad,96px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px;border-radius:${num(cfg.borderRadius, 0)}px;overflow:hidden}
 .${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
 .${cls} .ns-logo{display:block;max-width:${logoMaxW}px;max-height:64px;width:auto;height:auto;margin:0 0 20px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
@@ -333,6 +334,17 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="cta-full-bleed"
         />
+        {!config.fullBleed && (
+          <SliderField
+            label="Border radius"
+            value={Number(config.borderRadius) || 0}
+            min={0}
+            max={32}
+            suffix="px"
+            onChange={(v) => onUpdate({ borderRadius: v })}
+            testid="cta-border-radius"
+          />
+        )}
       </Group>
 
       <Group title="Theme">
