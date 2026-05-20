@@ -151,9 +151,19 @@ export function footerLinkHtml(cfg, align = "center") {
     align === "left" ? " ns-fl-left" : align === "right" ? " ns-fl-right" : "";
   const prefixHtml = prefix ? `<span class="ns-fl-prefix">${escHtml(prefix)} </span>` : "";
   const arrowImg = safeUrl(fl.arrowImage || "");
-  const arrowHtml = arrowImg
-    ? `<img class="ns-fl-arrow ns-fl-arrow-img" src="${escAttr(arrowImg)}" alt="" aria-hidden="true"/>`
-    : `<span class="ns-fl-arrow" aria-hidden="true">→</span>`;
+  let arrowHtml;
+  if (arrowImg) {
+    if (fl.tintArrow) {
+      // CSS-mask tint: span with background-color: currentColor masked
+      // by the image. The arrow inherits the link's accent colour.
+      const m = `url('${escAttr(arrowImg)}') no-repeat center/contain`;
+      arrowHtml = `<span class="ns-fl-arrow ns-fl-arrow-mask" style="-webkit-mask:${m};mask:${m}" aria-hidden="true"></span>`;
+    } else {
+      arrowHtml = `<img class="ns-fl-arrow ns-fl-arrow-img" src="${escAttr(arrowImg)}" alt="" aria-hidden="true"/>`;
+    }
+  } else {
+    arrowHtml = `<span class="ns-fl-arrow" aria-hidden="true">→</span>`;
+  }
   return `<p class="ns-footer-link${alignClass}">${prefixHtml}<a class="ns-fl-a" href="${escAttr(href)}"${target}><span>${escHtml(label)}</span>${arrowHtml}</a></p>`;
 }
 
@@ -181,6 +191,7 @@ export function footerLinkCss(cls, accentColor = "#E01839", prefixColor = "#6474
 .${cls} .ns-fl-a:hover,.${cls} .ns-fl-a:focus-visible{opacity:.9;transform:translateX(4px);text-decoration:none}
 .${cls} .ns-fl-arrow{display:inline-block;line-height:1}
 .${cls} .ns-fl-arrow-img{height:1em;width:auto;max-height:1.1em;object-fit:contain;vertical-align:middle}
+.${cls} .ns-fl-arrow-mask{width:1em;height:1em;background-color:currentColor;vertical-align:middle}
 `.trim();
 }
 

@@ -68,6 +68,17 @@ export default function FooterLinkEditor({
           testid={`${testidPrefix}-arrow`}
           compact
         />
+        {fl.arrowImage ? (
+          <div className="mt-2">
+            <ToggleField
+              label="Match link colour"
+              description="Tints the arrow to match the link colour (works best with single-colour PNG / SVG icons on a transparent background)."
+              checked={!!fl.tintArrow}
+              onChange={(v) => set({ tintArrow: v })}
+              testid={`${testidPrefix}-arrow-tint`}
+            />
+          </div>
+        ) : null}
       </div>
     </Group>
   );
