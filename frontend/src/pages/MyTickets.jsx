@@ -94,8 +94,7 @@ export default function MyTicketsPage() {
 
   const onDelete = async (row) => {
     const ok = window.confirm(
-      `Remove this ticket from your list?\n\n"${row.title}"\n\n` +
-        "Admins keep their own copy until they also remove it."
+      `Remove this ticket from your list?\n\n"${row.title}"`
     );
     if (!ok) return;
     setPendingId(row.id);
