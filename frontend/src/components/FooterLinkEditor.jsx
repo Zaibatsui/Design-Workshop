@@ -53,31 +53,33 @@ export default function FooterLinkEditor({
   const hasHref = (fl.href || "").trim().length > 0;
   const wouldShow = hasLabel && hasHref;
 
-  const handleTintToggle = async (next) => {
-    // Just turning it off — no inlining needed.
-    if (!next) {
-      set({ tintArrow: false });
+  const handleArrowChange = async (newUrl) => {
+    // Empty / cleared → just save.
+    if (!newUrl || !needsInlining(newUrl)) {
+      set({ arrowImage: newUrl });
       return;
     }
-    // Turning it on with a cross-origin URL → proxy through backend so
-    // CSS mask doesn't silently fail on the live snippet.
-    if (needsInlining(fl.arrowImage)) {
-      setInlining(true);
-      try {
-        const { dataUri } = await api.inlineImage(fl.arrowImage);
-        set({ tintArrow: true, arrowImage: dataUri });
-        toast.success("Arrow inlined — colour matching now works.");
-      } catch (err) {
-        const detail = (err && err.message) || "Could not inline the image.";
-        toast.error(`Couldn't inline image: ${detail.slice(0, 140)}`);
-        // Leave tint OFF — clearer than enabling a broken state.
-      } finally {
-        setInlining(false);
-      }
-      return;
+    // Any non-data URL gets inlined immediately so the snippet stays
+    // self-contained — works even if our server is offline once the
+    // customer has pasted the snippet into their host site.
+    setInlining(true);
+    try {
+      const { dataUri } = await api.inlineImage(newUrl);
+      set({ arrowImage: dataUri });
+    } catch (err) {
+      const detail = (err && err.message) || "Could not inline the image.";
+      toast.error(`Couldn't inline image: ${detail.slice(0, 140)}`);
+      // Fall back to storing the raw URL so the user isn't stuck — the
+      // snippet will still work, it just won't be server-independent.
+      set({ arrowImage: newUrl });
+    } finally {
+      setInlining(false);
     }
-    // Same-origin URL or already a data URI → no proxy needed.
-    set({ tintArrow: true });
+  };
+
+  const handleTintToggle = (next) => {
+    // Inlining is handled at upload time; the toggle is now just a flag.
+    set({ tintArrow: !!next });
   };
 
   return (
@@ -128,22 +130,10 @@ export default function FooterLinkEditor({
         </p>
         <ImageUpload
           value={fl.arrowImage || ""}
-          onChange={(v) => {
-            // Changing the image clears the inlined cache state — the new
-            // URL might need re-inlining the next time tint is toggled on.
-            set({ arrowImage: v });
-          }}
+          onChange={handleArrowChange}
           testid={`${testidPrefix}-arrow`}
           compact
         />
-        {fl.arrowImage && !fl.tintArrow && !String(fl.arrowImage).startsWith("data:") ? (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5 mt-2">
-            <strong>Heads up:</strong> the snippet will fetch this arrow image
-            from its URL at runtime. To make the snippet fully self-contained
-            (no dependency on the host server), enable <em>Match link colour</em>
-            below — it inlines the image into the snippet as a data URI.
-          </p>
-        ) : null}
         {fl.arrowImage ? (
           <div className="mt-2 flex items-center gap-2">
             <ToggleField
