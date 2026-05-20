@@ -4,13 +4,10 @@ import {
   ArrowLeft,
   Bug,
   Lightbulb,
-  Check,
   Trash2,
-  RotateCcw,
   RefreshCcw,
   Search,
   Inbox,
-  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -30,9 +27,8 @@ const fmtDate = (iso) => {
   });
 };
 
-// Status pill used in the row header. Admin still flips the underlying
-// status via the action buttons; this label mirrors the same value the
-// reporter sees in their own My Tickets list.
+// Status pill — read-only here. Admin's view exposes these via action
+// buttons; the reporter only ever sees the resulting label.
 function StatusBadge({ status }) {
   const map = {
     open: { label: "Open", cls: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -48,7 +44,7 @@ function StatusBadge({ status }) {
   const m = map[status] || map.open;
   return (
     <span
-      data-testid={`admin-ticket-status-${status}`}
+      data-testid={`ticket-status-${status}`}
       className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${m.cls}`}
     >
       {m.label}
@@ -57,24 +53,35 @@ function StatusBadge({ status }) {
 }
 
 /**
- * AdminTickets — admin-only inbox for bug reports & feature requests
- * submitted via TicketDialog. Mark complete + delete per row. Reuses
- * the same visual chrome as AdminUsers for a consistent admin shell.
+ * MyTickets — every signed-in user's view of the bugs / feature
+ * requests they themselves have filed. Mirrors AdminTickets visually
+ * but strips the admin-only Complete / Reopen / Reject buttons —
+ * status is render-only here. The Delete button soft-hides the
+ * ticket for the reporter; the backend hard-deletes once admin has
+ * also hidden it.
+ *
+ * On mount we POST /tickets/mine/seen to clear the header's
+ * notification badge, so the dot only re-appears next time admin
+ * flips a status.
  */
-export default function AdminTicketsPage() {
+export default function MyTicketsPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [pendingId, setPendingId] = useState(null);
-  const [lightbox, setLightbox] = useState(null); // image src or null
+  const [lightbox, setLightbox] = useState(null);
 
   const reload = async () => {
     setLoading(true);
     try {
-      const data = await api.listTickets();
+      const data = await api.listMyTickets();
       setRows(data);
+      // Clear the unread flag for everything we just fetched. We do
+      // this fire-and-forget — a failure here only means the badge
+      // sticks around for one more refresh, no data loss.
+      api.markMyTicketsSeen().catch(() => {});
     } catch (e) {
-      toast.error("Failed to load tickets", { description: e.message });
+      toast.error("Failed to load your tickets", { description: e.message });
     } finally {
       setLoading(false);
     }
@@ -82,44 +89,20 @@ export default function AdminTicketsPage() {
 
   useEffect(() => {
     reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const setStatus = async (row, next) => {
-    setPendingId(row.id);
-    try {
-      await api.setTicketStatus(row.id, next);
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === row.id
-            ? { ...r, status: next, updated_at: new Date().toISOString() }
-            : r
-        )
-      );
-      const labels = {
-        complete: "Marked as complete",
-        rejected: "Rejected",
-        open: "Reopened",
-      };
-      toast.success(labels[next] || "Updated");
-    } catch (e) {
-      toast.error("Update failed", { description: e.message });
-    } finally {
-      setPendingId(null);
-    }
-  };
 
   const onDelete = async (row) => {
     const ok = window.confirm(
-      `Remove this ticket from your inbox?\n\n"${row.title}"\n\n` +
-        "The reporter keeps their copy until they also remove it. " +
-        "Once both sides remove it, the ticket is permanently deleted."
+      `Remove this ticket from your list?\n\n"${row.title}"\n\n` +
+        "Admins keep their own copy until they also remove it."
     );
     if (!ok) return;
     setPendingId(row.id);
     try {
       await api.deleteTicket(row.id);
       setRows((prev) => prev.filter((r) => r.id !== row.id));
-      toast.success("Removed from your inbox");
+      toast.success("Removed from your list");
     } catch (e) {
       toast.error("Delete failed", { description: e.message });
     } finally {
@@ -132,23 +115,25 @@ export default function AdminTicketsPage() {
     ? rows.filter(
         (r) =>
           r.title.toLowerCase().includes(q) ||
-          (r.description || "").toLowerCase().includes(q) ||
-          (r.created_by_email || "").toLowerCase().includes(q) ||
-          (r.created_by_name || "").toLowerCase().includes(q)
+          (r.description || "").toLowerCase().includes(q)
       )
     : rows;
 
-  const openCount = rows.filter((r) => r.status === "open").length;
-  const completeCount = rows.filter((r) => r.status === "complete").length;
-  const rejectedCount = rows.filter((r) => r.status === "rejected").length;
+  const counts = rows.reduce(
+    (acc, r) => {
+      acc[r.status] = (acc[r.status] || 0) + 1;
+      return acc;
+    },
+    { open: 0, complete: 0, rejected: 0 }
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="admin-tickets-page">
+    <div className="min-h-screen bg-slate-50" data-testid="my-tickets-page">
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between gap-4">
           <Link
             to="/"
-            data-testid="admin-tickets-back"
+            data-testid="my-tickets-back"
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -161,9 +146,11 @@ export default function AdminTicketsPage() {
               size="sm"
               onClick={reload}
               disabled={loading}
-              data-testid="admin-tickets-refresh"
+              data-testid="my-tickets-refresh"
             >
-              <RefreshCcw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCcw
+                className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
           </div>
@@ -173,13 +160,13 @@ export default function AdminTicketsPage() {
       <main className="max-w-6xl mx-auto px-6 md:px-8 py-10">
         <div className="mb-8">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#E01839] mb-3">
-            Admin · Tickets
+            Your tickets
           </p>
           <h1 className="font-heading text-3xl font-semibold tracking-tight text-slate-900 mb-2">
             Bug reports &amp; feature requests
           </h1>
           <p className="text-sm text-slate-500">
-            {openCount} open · {completeCount} complete · {rejectedCount}{" "}
+            {counts.open} open · {counts.complete} complete · {counts.rejected}{" "}
             rejected · {rows.length} total
           </p>
         </div>
@@ -189,35 +176,40 @@ export default function AdminTicketsPage() {
           <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Search title, description, reporter…"
+            placeholder="Search title or description…"
             className="pl-9"
-            data-testid="admin-tickets-search"
+            data-testid="my-tickets-search"
           />
         </div>
 
         {loading ? (
-          <div className="text-sm text-slate-500 py-12 text-center">Loading…</div>
+          <div className="text-sm text-slate-500 py-12 text-center">
+            Loading…
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-slate-400">
+          <div
+            className="flex flex-col items-center gap-3 py-16 text-slate-400"
+            data-testid="my-tickets-empty"
+          >
             <Inbox className="w-10 h-10" />
             <p className="text-sm">
-              {rows.length === 0 ? "No tickets yet" : "No matches for your search"}
+              {rows.length === 0
+                ? "You haven't filed any tickets yet"
+                : "No matches for your search"}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {filtered.map((row) => {
-              const isComplete = row.status === "complete";
-              const isRejected = row.status === "rejected";
-              const isOpen = !isComplete && !isRejected;
               const TypeIcon = row.type === "feature" ? Lightbulb : Bug;
+              const dim = row.status !== "open";
               return (
                 <div
                   key={row.id}
-                  data-testid={`ticket-row-${row.id}`}
+                  data-testid={`my-ticket-row-${row.id}`}
                   className={`bg-white border rounded-lg p-5 transition-opacity ${
-                    !isOpen ? "opacity-60 border-slate-200" : "border-slate-200"
-                  }`}
+                    dim ? "opacity-75 border-slate-200" : "border-slate-200"
+                  } ${row.unread ? "ring-2 ring-[#E01839]/30" : ""}`}
                 >
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -234,72 +226,47 @@ export default function AdminTicketsPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3
                             className={`font-medium text-slate-900 leading-snug break-words ${
-                              isComplete ? "line-through" : ""
+                              row.status === "complete" ? "line-through" : ""
                             }`}
                           >
                             {row.title}
                           </h3>
                           <StatusBadge status={row.status} />
+                          {row.unread && (
+                            <span
+                              data-testid={`my-ticket-unread-${row.id}`}
+                              className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#E01839] text-white"
+                            >
+                              New
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-slate-500 mt-1">
-                          {row.type === "feature" ? "Feature request" : "Bug report"}
-                          {" · "}
-                          {row.created_by_name || row.created_by_email || "Unknown"}
-                          {" · "}
+                          {row.type === "feature"
+                            ? "Feature request"
+                            : "Bug report"}
+                          {" · Filed "}
                           {fmtDate(row.created_at)}
+                          {row.updated_at &&
+                            row.updated_at !== row.created_at && (
+                              <>
+                                {" · Updated "}
+                                {fmtDate(row.updated_at)}
+                              </>
+                            )}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
-                      {isOpen ? (
-                        <>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setStatus(row, "complete")}
-                            disabled={pendingId === row.id}
-                            data-testid={`ticket-complete-${row.id}`}
-                            className="text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50"
-                          >
-                            <Check className="w-3.5 h-3.5 mr-1.5" />
-                            Complete
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setStatus(row, "rejected")}
-                            disabled={pendingId === row.id}
-                            data-testid={`ticket-reject-${row.id}`}
-                            className="text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-                          >
-                            <XCircle className="w-3.5 h-3.5 mr-1.5" />
-                            Reject
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setStatus(row, "open")}
-                          disabled={pendingId === row.id}
-                          data-testid={`ticket-reopen-${row.id}`}
-                        >
-                          <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                          Reopen
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => onDelete(row)}
                         disabled={pendingId === row.id}
-                        data-testid={`ticket-delete-${row.id}`}
+                        data-testid={`my-ticket-delete-${row.id}`}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        aria-label="Remove from your inbox"
+                        aria-label="Remove from list"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -315,7 +282,7 @@ export default function AdminTicketsPage() {
                           key={i}
                           type="button"
                           onClick={() => setLightbox(src)}
-                          data-testid={`ticket-screenshot-thumb-${row.id}-${i}`}
+                          data-testid={`my-ticket-screenshot-thumb-${row.id}-${i}`}
                           className="w-24 h-24 rounded-md border border-slate-200 overflow-hidden bg-slate-50 hover:border-slate-300 transition-colors"
                           aria-label="Open screenshot"
                         >
@@ -339,7 +306,7 @@ export default function AdminTicketsPage() {
         <div
           className="fixed inset-0 bg-slate-900/85 z-50 flex items-center justify-center p-6"
           onClick={() => setLightbox(null)}
-          data-testid="ticket-lightbox"
+          data-testid="my-ticket-lightbox"
         >
           <img
             src={lightbox}

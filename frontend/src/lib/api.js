@@ -135,7 +135,9 @@ export const api = {
     }),
 
   // Tickets (bug reports & feature requests).
-  // Create: any authenticated user. List/update/delete: admin only.
+  // Create: any authenticated user. Admin list/update: admin only.
+  // Delete: caller (reporter OR admin) soft-hides; document is hard
+  // deleted from Mongo once BOTH sides have hidden it.
   createTicket: (payload) =>
     req("/tickets", { method: "POST", body: JSON.stringify(payload) }),
   listTickets: () => req("/tickets"),
@@ -147,6 +149,12 @@ export const api = {
     }),
   deleteTicket: (ticketId) =>
     req(`/tickets/${ticketId}`, { method: "DELETE" }),
+
+  // "My tickets" — any authenticated user (reporter view).
+  listMyTickets: () => req("/tickets/mine"),
+  myTicketNotifications: () => req("/tickets/mine/notifications"),
+  markMyTicketsSeen: () =>
+    req("/tickets/mine/seen", { method: "POST" }),
 
   // Inline a remote image as a data URI (CORS-safe). Used by the footer
   // link's "Match link colour" toggle so cross-origin SVGs work as CSS

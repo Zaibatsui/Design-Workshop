@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, FileStack, Palette, BookOpen, Users as UsersIcon, Inbox, MessageSquarePlus } from "lucide-react";
+import { Plus, LogOut, FileStack, Palette, BookOpen, Users as UsersIcon, Inbox, MessageSquarePlus, ClipboardList } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { api } from "@/lib/api";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
@@ -30,6 +30,9 @@ export default function Dashboard() {
   // user submits a ticket (in case they're also an admin) and whenever
   // the dialog closes.
   const [openTicketCount, setOpenTicketCount] = useState(0);
+  // My-tickets notification badge (visible to every user). Counts
+  // their own complete/rejected tickets that haven't been acked yet.
+  const [myTicketNotifCount, setMyTicketNotifCount] = useState(0);
   const refreshTicketCount = async () => {
     if (!user?.is_admin) return;
     try {
@@ -37,6 +40,15 @@ export default function Dashboard() {
       setOpenTicketCount(data?.open ?? 0);
     } catch {
       // best-effort badge; silent on failure so the dashboard isn't disturbed
+    }
+  };
+  const refreshMyTicketNotifs = async () => {
+    if (!user?.email) return;
+    try {
+      const data = await api.myTicketNotifications();
+      setMyTicketNotifCount(data?.count ?? 0);
+    } catch {
+      // best-effort; silent
     }
   };
 
@@ -58,8 +70,9 @@ export default function Dashboard() {
   // is an admin (and only then — the endpoint 401s for non-admins).
   useEffect(() => {
     refreshTicketCount();
+    refreshMyTicketNotifs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.is_admin]);
+  }, [user?.is_admin, user?.email]);
 
   const createSection = (typeId) => {
     const def = SECTIONS_BY_ID[typeId];
@@ -117,6 +130,27 @@ export default function Dashboard() {
             >
               <MessageSquarePlus className="w-4 h-4 mr-1.5" />
               Report
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/my-tickets")}
+              data-testid="open-my-tickets"
+              className="text-slate-500 hover:text-slate-900 relative"
+            >
+              <ClipboardList className="w-4 h-4 mr-1.5" />
+              My tickets
+              {myTicketNotifCount > 0 && (
+                <span
+                  data-testid="my-tickets-badge"
+                  aria-label={`${myTicketNotifCount} ticket update${
+                    myTicketNotifCount === 1 ? "" : "s"
+                  }`}
+                  className="ml-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold bg-[#E01839] text-white leading-none"
+                >
+                  {myTicketNotifCount > 99 ? "99+" : myTicketNotifCount}
+                </span>
+              )}
             </Button>
             {user?.is_admin && (
               <Button
