@@ -150,13 +150,20 @@ export function footerLinkHtml(cfg, align = "center") {
   const alignClass =
     align === "left" ? " ns-fl-left" : align === "right" ? " ns-fl-right" : "";
   const prefixHtml = prefix ? `<span class="ns-fl-prefix">${escHtml(prefix)} </span>` : "";
-  return `<p class="ns-footer-link${alignClass}">${prefixHtml}<a class="ns-fl-a" href="${escAttr(href)}"${target}><span>${escHtml(label)}</span><span class="ns-fl-arrow" aria-hidden="true">→</span></a></p>`;
+  const arrowImg = safeUrl(fl.arrowImage || "");
+  const arrowHtml = arrowImg
+    ? `<img class="ns-fl-arrow ns-fl-arrow-img" src="${escAttr(arrowImg)}" alt="" aria-hidden="true"/>`
+    : `<span class="ns-fl-arrow" aria-hidden="true">→</span>`;
+  return `<p class="ns-footer-link${alignClass}">${prefixHtml}<a class="ns-fl-a" href="${escAttr(href)}"${target}><span>${escHtml(label)}</span>${arrowHtml}</a></p>`;
 }
 
 /**
  * Footer-link CSS scoped to `cls`. Pair with `footerLinkHtml(cfg, align)`
  * inside any section that wants the affordance. Picks up the section's
  * own accent colour rather than hard-coding one.
+ *
+ * Hover behaviour: the whole link translates a few pixels in the
+ * read direction so the label and arrow move together. No underline.
  *
  * @param prefixColor optional override for the leading prefix text
  *   (defaults to slate-500 which works on light backgrounds; pass a
@@ -170,9 +177,10 @@ export function footerLinkCss(cls, accentColor = "#E01839", prefixColor = "#6474
 .${cls} .ns-footer-link.ns-fl-left{text-align:left}
 .${cls} .ns-footer-link.ns-fl-right{text-align:right}
 .${cls} .ns-fl-prefix{color:inherit;margin-right:2px}
-.${cls} .ns-fl-a{color:${accent};font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:gap .18s ease,opacity .18s ease}
-.${cls} .ns-fl-a:hover{opacity:.85;gap:10px;text-decoration:underline}
-.${cls} .ns-fl-arrow{display:inline-block;transition:transform .18s ease}
+.${cls} .ns-fl-a{color:${accent};font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:transform .18s ease,opacity .18s ease;will-change:transform}
+.${cls} .ns-fl-a:hover,.${cls} .ns-fl-a:focus-visible{opacity:.9;transform:translateX(4px);text-decoration:none}
+.${cls} .ns-fl-arrow{display:inline-block;line-height:1}
+.${cls} .ns-fl-arrow-img{height:1em;width:auto;max-height:1.1em;object-fit:contain;vertical-align:middle}
 `.trim();
 }
 
