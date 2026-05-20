@@ -27,19 +27,16 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 
-// True for any URL that points outside the editor's own origin AND isn't
-// already inlined. Same-origin uploads and data URIs don't need proxying.
+// Any URL that isn't already a data: URI needs inlining when tint is
+// enabled — *including* same-origin uploads — because the snippet runs
+// on the customer's host site (Nettailer etc), which is cross-origin to
+// our server. Without inlining, CSS mask-image would silently fail there
+// AND the snippet would depend on our server staying up to serve the
+// arrow. Inlining as data: removes both problems.
 function needsInlining(url) {
   if (!url || typeof url !== "string") return false;
   if (url.startsWith("data:")) return false;
-  // Relative URLs (e.g. /uploads/xyz.svg from our own backend) are same-origin.
-  if (url.startsWith("/")) return false;
-  try {
-    const u = new URL(url, window.location.href);
-    return u.origin !== window.location.origin;
-  } catch {
-    return false;
-  }
+  return true;
 }
 
 export default function FooterLinkEditor({
@@ -133,14 +130,20 @@ export default function FooterLinkEditor({
           value={fl.arrowImage || ""}
           onChange={(v) => {
             // Changing the image clears the inlined cache state — the new
-            // URL might be same-origin and not need inlining; or it might
-            // be a fresh cross-origin URL that needs re-inlining the next
-            // time tint is toggled on.
+            // URL might need re-inlining the next time tint is toggled on.
             set({ arrowImage: v });
           }}
           testid={`${testidPrefix}-arrow`}
           compact
         />
+        {fl.arrowImage && !fl.tintArrow && !String(fl.arrowImage).startsWith("data:") ? (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5 mt-2">
+            <strong>Heads up:</strong> the snippet will fetch this arrow image
+            from its URL at runtime. To make the snippet fully self-contained
+            (no dependency on the host server), enable <em>Match link colour</em>
+            below — it inlines the image into the snippet as a data URI.
+          </p>
+        ) : null}
         {fl.arrowImage ? (
           <div className="mt-2 flex items-center gap-2">
             <ToggleField
