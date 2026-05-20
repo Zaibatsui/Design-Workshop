@@ -147,4 +147,10 @@ export const api = {
     }),
   deleteTicket: (ticketId) =>
     req(`/tickets/${ticketId}`, { method: "DELETE" }),
+
+  // Inline a remote image as a data URI (CORS-safe). Used by the footer
+  // link's "Match link colour" toggle so cross-origin SVGs work as CSS
+  // masks. Backend validates the URL, content-type, and size.
+  inlineImage: (url) =>
+    req("/inline-image", { method: "POST", body: JSON.stringify({ url }) }),
 };
