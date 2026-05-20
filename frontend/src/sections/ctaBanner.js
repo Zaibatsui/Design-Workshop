@@ -7,6 +7,8 @@ import {
   baseReset,
   escAttr,
   escHtml,
+  footerLinkCss,
+  footerLinkHtml,
   fullBleedClass,
   makeUid,
   num,
@@ -23,6 +25,7 @@ import {
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
+import FooterLinkEditor from "@/components/FooterLinkEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
@@ -109,12 +112,14 @@ const render = (cfg) => {
     primaryBtn || secondaryBtn
       ? `<div class="ns-actions">${primaryBtn}${secondaryBtn}</div>`
       : "";
+  const flAlign = cfg.textAlign === "left" ? "left" : "center";
+  const flHtml = footerLinkHtml(cfg, flAlign);
 
   const html = `<section class="ns-cta ${cls}${fullBleedClass(cfg)}" data-ns-uid="${escAttr(
     uid
   )}"><div class="ns-inner">${logoHtml}${eyebrowHtml}<h2 class="ns-heading">${escHtml(
     cfg.heading || ""
-  )}</h2>${subHtml}${buttonsHtml}</div></section>`;
+  )}</h2>${subHtml}${buttonsHtml}${flHtml}</div></section>`;
 
   // Detect if the background is dark to pick a contrast colour for the
   // secondary button border. Heuristic: hex luminance < 128. When in
@@ -163,6 +168,7 @@ ${baseReset(cls)}
     isDarkBg ? "rgba(255,255,255,0.25)" : "rgba(15,23,42,0.2)"
   }}
 .${cls} .ns-btn-secondary:hover{border-color:${textColor}}
+${footerLinkCss(cls, accent, bodyColor)}
 @media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}}
 `.trim();
 
@@ -284,6 +290,12 @@ function FormPanel({ config, onUpdate }) {
           </>
         )}
       </Group>
+
+      <FooterLinkEditor
+        value={config.footerLink}
+        onChange={(v) => onUpdate({ footerLink: v })}
+        testidPrefix="cta-footer-link"
+      />
 
       <Group title="Layout">
         <SelectField

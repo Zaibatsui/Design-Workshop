@@ -8,6 +8,8 @@ import { Building2 } from "lucide-react";
 import {
   baseReset,
   escAttr,
+  footerLinkCss,
+  footerLinkHtml,
   fullBleedClass,
   iife,
   makeUid,
@@ -17,8 +19,10 @@ import {
   wrapSnippet,
 } from "./shared";
 import { TextField, SliderField, ToggleField } from "@/components/FormFields";
+import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
+import FooterLinkEditor from "@/components/FooterLinkEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
@@ -32,6 +36,7 @@ const defaults = () => ({
   itemGap: 24,
   paddingY: 30,
   bgColor: "#ffffff",
+  accentColor: "#E01839",
   fullBleed: true,
   greyscale: false,
   // Empty by default — users add their own logos via the editor's
@@ -90,10 +95,13 @@ ${baseReset(cls)}
 @keyframes ${animName}{to{transform:translateX(-50%)}}
 .${cls}:hover .ns-track{animation-play-state:paused}
 ${greyCss}
+${footerLinkCss(cls, safeColor(cfg.accentColor, "#E01839"))}
 `.trim();
 
+  const flHtml = footerLinkHtml(cfg, "center");
+
   const html = `<section class="ns-logos ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
-  <div class="ns-track" data-ns-track>${itemsHtml}</div>
+  <div class="ns-track" data-ns-track>${itemsHtml}</div>${flHtml}
 </section>`;
 
   // Infinite marquee pattern: ensure the base set covers the viewport,
@@ -195,6 +203,25 @@ function FormPanel({ config, onUpdate }) {
         />
         {/* eslint-disable-next-line */}
       </Group>
+      <Group title="Theme">
+        <ColorField
+          label="Background"
+          value={config.bgColor}
+          onChange={(v) => onUpdate({ bgColor: v })}
+          testid="logos-bg"
+        />
+        <ColorField
+          label="Accent (footer link)"
+          value={config.accentColor}
+          onChange={(v) => onUpdate({ accentColor: v })}
+          testid="logos-accent"
+        />
+      </Group>
+      <FooterLinkEditor
+        value={config.footerLink}
+        onChange={(v) => onUpdate({ footerLink: v })}
+        testidPrefix="logos-footer-link"
+      />
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
           Logos ({config.logos.length})

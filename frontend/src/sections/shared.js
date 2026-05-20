@@ -125,6 +125,57 @@ export function wrapSnippet({ html, css, js }) {
   return `${html}\n<style>${FONT_IMPORT}\n${css}</style>\n<script>${js}</script>`;
 }
 
+/**
+ * Footer link — small "View all →" / "Sign in to continue →" inline link
+ * shipped under section content (CTA buttons, grids of cards/logos, etc.).
+ * Always-optional: returns "" if no label or href is set, so omitting it
+ * collapses cleanly.
+ *
+ * Markup:
+ *   <p class="ns-footer-link"><span class="ns-fl-prefix">…</span>
+ *     <a class="ns-fl-a" href="…"><span>label</span>
+ *       <span aria-hidden="true">→</span></a></p>
+ *
+ * @param cfg     section config object containing `footerLink: { prefix, label, href, openInNewTab }`
+ * @param align   "left" | "center" | "right" — defaults to "center"
+ */
+export function footerLinkHtml(cfg, align = "center") {
+  const fl = cfg && cfg.footerLink;
+  if (!fl) return "";
+  const label = (fl.label || "").trim();
+  const href = safeUrl(fl.href || "");
+  if (!label || !href) return "";
+  const prefix = (fl.prefix || "").trim();
+  const target = fl.openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : "";
+  const alignClass =
+    align === "left" ? " ns-fl-left" : align === "right" ? " ns-fl-right" : "";
+  const prefixHtml = prefix ? `<span class="ns-fl-prefix">${escHtml(prefix)} </span>` : "";
+  return `<p class="ns-footer-link${alignClass}">${prefixHtml}<a class="ns-fl-a" href="${escAttr(href)}"${target}><span>${escHtml(label)}</span><span class="ns-fl-arrow" aria-hidden="true">→</span></a></p>`;
+}
+
+/**
+ * Footer-link CSS scoped to `cls`. Pair with `footerLinkHtml(cfg, align)`
+ * inside any section that wants the affordance. Picks up the section's
+ * own accent colour rather than hard-coding one.
+ *
+ * @param prefixColor optional override for the leading prefix text
+ *   (defaults to slate-500 which works on light backgrounds; pass a
+ *   lighter colour like the section's `bodyColor` for dark backgrounds).
+ */
+export function footerLinkCss(cls, accentColor = "#E01839", prefixColor = "#64748b") {
+  const accent = safeColor(accentColor, "#E01839");
+  const prefix = safeColor(prefixColor, "#64748b");
+  return `
+.${cls} .ns-footer-link{margin-top:28px;font-size:15px;line-height:1.5;text-align:center;color:${prefix}}
+.${cls} .ns-footer-link.ns-fl-left{text-align:left}
+.${cls} .ns-footer-link.ns-fl-right{text-align:right}
+.${cls} .ns-fl-prefix{color:inherit;margin-right:2px}
+.${cls} .ns-fl-a{color:${accent};font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:gap .18s ease,opacity .18s ease}
+.${cls} .ns-fl-a:hover{opacity:.85;gap:10px;text-decoration:underline}
+.${cls} .ns-fl-arrow{display:inline-block;transition:transform .18s ease}
+`.trim();
+}
+
 export function previewDoc(snippet, opts) {
   // Editor-only "LIVE" badge: every card with data-ns-src (a fetched product
   // wired up for live price refresh) gets a small ribbon in the editor preview.

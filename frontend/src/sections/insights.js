@@ -7,6 +7,8 @@ import {
   baseReset,
   escAttr,
   escHtml,
+  footerLinkCss,
+  footerLinkHtml,
   fullBleedClass,
   iife,
   makeUid,
@@ -25,6 +27,7 @@ import {
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
+import FooterLinkEditor from "@/components/FooterLinkEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
@@ -190,6 +193,7 @@ ${baseReset(cls)}
 .${cls} .ns-card:not(.is-link) .ns-cp:last-child{margin-bottom:0}
 .${cls} .ns-link{font-size:14px;font-weight:600;color:var(--ns-accent);letter-spacing:.01em}
 ${layoutCss}
+${footerLinkCss(cls, safeColor(cfg.accentColor, "#E01839"))}
 @media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-card{flex-direction:column}.${cls} .ns-icon{flex-basis:auto;width:100%;aspect-ratio:16/9}}
 `.trim();
 
@@ -200,6 +204,7 @@ ${layoutCss}
     <div class="ns-grid">
       ${cardsHtml}
     </div>
+    ${footerLinkHtml(cfg, "center")}
   </div>
 </section>`;
 
@@ -486,6 +491,11 @@ function FormPanel({ config, onUpdate }) {
           )}
         />
       </div>
+      <FooterLinkEditor
+        value={config.footerLink}
+        onChange={(v) => onUpdate({ footerLink: v })}
+        testidPrefix="insights-footer-link"
+      />
     </FormAccordion>
   );
 }
