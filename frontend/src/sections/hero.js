@@ -783,7 +783,7 @@ function FormPanel({ config, onUpdate }) {
                     label="Logo size"
                     value={Number(slide.logoMaxHeight) || 48}
                     min={20}
-                    max={250}
+                    max={150}
                     suffix="px max-height"
                     onChange={(v) => updateSlide(slide.id, { logoMaxHeight: v })}
                     testid={`hero-slide-logo-size-${slide.id}`}
