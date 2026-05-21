@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -23,6 +23,29 @@ import { useBrandKit } from "@/lib/BrandKitContext";
 import { applyBrandKit, applyFontToSnippet } from "@/lib/brandKit";
 
 const AUTOSAVE_MS = 1500;
+// Iframe-preview debounce window. While a slider is being dragged the
+// snippet regenerates on every tick; without debouncing, each tick
+// swaps the iframe's `srcDoc` and we get a brief flicker per swap.
+// 180 ms feels instant for single edits (colour picker click, text
+// input) yet collapses a full drag session into ~5 iframe swaps
+// instead of dozens. Tuned together with `AUTOSAVE_MS` so the preview
+// usually settles well before autosave fires.
+const PREVIEW_DEBOUNCE_MS = 180;
+
+/**
+ * Returns `value`, but only after it has been stable for `delayMs`.
+ * Resets the timer on every new value, so rapid bursts (slider drag)
+ * collapse into a single late update. Used to throttle iframe
+ * `srcDoc` updates without affecting form-input responsiveness.
+ */
+function useDebouncedValue(value, delayMs) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(t);
+  }, [value, delayMs]);
+  return debounced;
+}
 
 export default function Editor() {
   const { sectionId } = useParams();
@@ -217,11 +240,13 @@ export default function Editor() {
         : "",
     [def, section, brandKit]
   );
-  // Deferred snippet keeps the form panel snappy while sliders/dragging
-  // happen — the iframe only re-renders when React has idle render budget.
-  // Heavy sections (Logo Strip, Product Carousel) feel instant in the
-  // form, with the preview catching up smoothly behind them.
-  const deferredSnippet = useDeferredValue(snippet);
+  // Debounce the snippet that drives the iframe. `useDeferredValue`
+  // (what this replaces) only defers to React idle — it still flushes
+  // dozens of updates per second during slider drags, each of which
+  // swaps the iframe's `srcDoc` and produces a brief reload flicker.
+  // A true debounce collapses bursts into a single update once the
+  // user pauses for ~180 ms.
+  const debouncedSnippet = useDebouncedValue(snippet, PREVIEW_DEBOUNCE_MS);
   // Hero-preview slide lock. The hero editor dispatches
   // `ns-editor-slide-control` whenever a slide row is opened/closed.
   // We track it two ways:
@@ -246,14 +271,14 @@ export default function Editor() {
   }, []);
   const previewHtml = useMemo(
     () =>
-      previewDoc(deferredSnippet, {
+      previewDoc(debouncedSnippet, {
         withVatToggle:
           section?.type === "products" || section?.type === "productGrid",
         // Non-reactive read — keeps doc identity stable when only the
         // slide index changes (postMessage handles that case).
         heroIndex: heroIndexRef.current,
       }),
-    [deferredSnippet, section?.type]
+    [debouncedSnippet, section?.type]
   );
 
   const copySnippet = async () => {
