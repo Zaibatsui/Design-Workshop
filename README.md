@@ -12,22 +12,6 @@ Build reusable Hero blocks, Product carousels, Logo strips, Tabs, FAQs and more 
 
 ---
 
-## Preview
-
-<p align="center">
-  <img src="docs/screenshots/landing-hero.png" alt="Design Workshop — landing hero: 'Build e-commerce pages without the bloat'" width="100%" />
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/landing-features.png" alt="What it does — four feature cards plus the start of the section-types showcase" width="49%" />
-  &nbsp;
-  <img src="docs/screenshots/landing-howitworks.png" alt="How it works — three-step flow from sign-in to copy-paste shipping" width="49%" />
-</p>
-
-> The above are real screenshots of the running app at `/login`. The authenticated screens (Dashboard, Section Editor with live preview, Page Builder rail, Brand Kit, Snippet drawer) are not included here yet — see [`docs/screenshots/README.md`](docs/screenshots/README.md) for the suggested set to drop in after your first deploy.
-
----
-
 ## Why this exists
 
 Locked-down CMS section editors are fine until they aren't. You can't ship a really good Hero, your product carousel needs a hover detail their widget won't give you, and the marketing team wants brand-consistent typography across pages that the CMS template doesn't expose.
