@@ -222,11 +222,36 @@ export default function Editor() {
   // Heavy sections (Logo Strip, Product Carousel) feel instant in the
   // form, with the preview catching up smoothly behind them.
   const deferredSnippet = useDeferredValue(snippet);
+  // Hero-preview slide lock. The hero editor dispatches
+  // `ns-editor-slide-control` whenever a slide row is opened/closed.
+  // We track it two ways:
+  //   - `heroIndex` state → drives postMessage to the iframe so
+  //     clicking a different slide row navigates without a reload.
+  //   - `heroIndexRef` → read at doc-generation time so when the
+  //     snippet regenerates (slider drag etc.) the new iframe boots
+  //     directly on the locked slide. Without this the IIFE runs
+  //     `go(0); start()` and the preview flashes back to slide 0
+  //     between every slider tick.
+  const [heroIndex, setHeroIndex] = useState(null);
+  const heroIndexRef = useRef(null);
+  useEffect(() => {
+    const h = (e) => {
+      const idx = e.detail?.index;
+      const next = typeof idx === "number" ? idx : null;
+      heroIndexRef.current = next;
+      setHeroIndex(next);
+    };
+    window.addEventListener("ns-editor-slide-control", h);
+    return () => window.removeEventListener("ns-editor-slide-control", h);
+  }, []);
   const previewHtml = useMemo(
     () =>
       previewDoc(deferredSnippet, {
         withVatToggle:
           section?.type === "products" || section?.type === "productGrid",
+        // Non-reactive read — keeps doc identity stable when only the
+        // slide index changes (postMessage handles that case).
+        heroIndex: heroIndexRef.current,
       }),
     [deferredSnippet, section?.type]
   );
@@ -365,7 +390,7 @@ export default function Editor() {
             style={{ maxWidth: previewWidths[previewWidth], width: "100%" }}
             data-testid="preview-container"
           >
-            <PreviewFrame doc={previewHtml} sectionId={section.type} />
+            <PreviewFrame doc={previewHtml} sectionId={section.type} heroIndex={heroIndex} />
           </div>
 
           <SnippetDrawer snippet={snippet} onCopy={copySnippet} />
@@ -421,7 +446,7 @@ function SaveIndicator({ status, savedAt }) {
   return null;
 }
 
-function PreviewFrame({ doc, sectionId }) {
+function PreviewFrame({ doc, sectionId, heroIndex }) {
   const defaultH = previewHeightFor(sectionId);
   // Preferred height per section type, persisted across sessions so
   // the user's last drag sticks when they come back to the same kind
@@ -445,45 +470,29 @@ function PreviewFrame({ doc, sectionId }) {
     }
   }, [storageKey, defaultH]);
 
-  // Bridge `ns-editor-slide-control` window events from form panels
-  // (e.g. hero ListEditor row toggles) into the preview iframe via
-  // postMessage. The iframe's hero snippet listens for messages
-  // tagged `{ ns: "hero" }` and either jumps to a slide (numeric
-  // index) or resumes its autoplay cycle (index === null).
-  // Lives here because PreviewFrame owns the iframe ref and is the
-  // single seam where any section-specific live-control message
-  // would be plumbed in.
+  // Forward the editor's "active hero slide" lock to the iframe.
+  // Two pathways:
+  //   - Prop changes (user opens / closes a slide row) → postMessage
+  //     to navigate the running snippet without reloading the iframe.
+  //   - Iframe `onLoad` (srcDoc just refreshed) → re-emit so the
+  //     freshly-booted snippet picks up the lock. The doc itself also
+  //     bakes the current index via `window.__nsHeroIndex` so the
+  //     IIFE boots straight onto the right slide — that prevents the
+  //     "flicker back to slide 0" between slider ticks.
   const iframeRef = useRef(null);
   useEffect(() => {
-    const send = (detail) => {
-      const f = iframeRef.current;
-      if (!f || !f.contentWindow) return;
-      f.contentWindow.postMessage(
-        { ns: "hero", index: detail?.index ?? null },
-        "*"
-      );
-    };
-    const handler = (e) => send(e.detail || {});
-    window.addEventListener("ns-editor-slide-control", handler);
-    return () => window.removeEventListener("ns-editor-slide-control", handler);
-  }, []);
-  // When the iframe document changes (snippet re-render), re-emit
-  // the latest control state so the new iframe inherits the editor's
-  // current "open slide" lock instead of starting from slide 0 with
-  // autoplay on.
-  const lastIndexRef = useRef(null);
-  useEffect(() => {
-    const handler = (e) => {
-      lastIndexRef.current = e.detail?.index ?? null;
-    };
-    window.addEventListener("ns-editor-slide-control", handler);
-    return () => window.removeEventListener("ns-editor-slide-control", handler);
-  }, []);
+    const f = iframeRef.current;
+    if (!f || !f.contentWindow) return;
+    f.contentWindow.postMessage(
+      { ns: "hero", index: typeof heroIndex === "number" ? heroIndex : null },
+      "*"
+    );
+  }, [heroIndex]);
   const onIframeLoad = () => {
     const f = iframeRef.current;
     if (!f || !f.contentWindow) return;
     f.contentWindow.postMessage(
-      { ns: "hero", index: lastIndexRef.current },
+      { ns: "hero", index: typeof heroIndex === "number" ? heroIndex : null },
       "*"
     );
   };

@@ -203,6 +203,18 @@ export function previewDoc(snippet, opts) {
 .ns-card[data-ns-src]{position:relative}
 .ns-card[data-ns-src]::after{content:"LIVE";position:absolute;top:8px;left:8px;z-index:5;background:#10b981;color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 6px;border-radius:3px;line-height:1;font-family:"Poppins",sans-serif;box-shadow:0 1px 2px rgba(0,0,0,.15);pointer-events:none}
 `;
+  // Hero preview slide-lock. When the editor has a slide row open we
+  // bake the slide index into the iframe document so the snippet's
+  // IIFE boots directly on that slide (and skips autoplay) instead of
+  // running `go(0); start()` first and then jumping later via
+  // postMessage — that jump caused a visible flicker on every slider
+  // tick. Snippets copied out of the editor never get this script.
+  const heroIndex =
+    opts && typeof opts.heroIndex === "number" ? opts.heroIndex : null;
+  const heroLockJs =
+    heroIndex !== null
+      ? `<script>window.__nsHeroIndex=${heroIndex};</script>`
+      : "";
   // Editor-only VAT preview pill (Product Carousel sections / pages). Lets
   // the editor verify how the host store's VAT toggle will affect prices
   // without having to embed the snippet on a real Nettailer page. It
@@ -223,5 +235,5 @@ export function previewDoc(snippet, opts) {
   const vatToggleJs = withVat
     ? `<script>(function(){function ready(f){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",f);else f();}ready(function(){var b=document.querySelector(".dw-edit-vat-toggle button");if(!b)return;b.addEventListener("click",function(){var l=b.querySelector(".vat-switcher-label");var cur=b.getAttribute("data-state")||"excl";var nx=cur==="incl"?"excl":"incl";b.setAttribute("data-state",nx);if(l)l.textContent=nx==="incl"?"Incl VAT":"Excl VAT";});});})();</script>`
     : "";
-  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}</style></head><body>${vatToggleHtml}${snippet}${vatToggleJs}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}</body></html>`;
 }
