@@ -29,7 +29,7 @@ On the Proxmox guest (LXC container or VM):
   - `accounts.google.com` / `oauth2.googleapis.com` (Google OAuth)
   - Any external sites your `Products` sections scrape (optional)
 - A reverse proxy in front of the box (nginx-proxy-manager / Caddy / Traefik)
-  terminating TLS for `designworkshop.zaibatsui.co.uk` and forwarding to
+  terminating TLS for `your-domain.example.com` and forwarding to
   `http://<this-box>:${PUBLIC_PORT}`. Make sure it sets `X-Forwarded-Proto`
   and `X-Forwarded-Host` — the OAuth callback flow needs those.
 
@@ -65,7 +65,7 @@ your reverse proxy at it.
 
 ```nginx
 server {
-    server_name designworkshop.zaibatsui.co.uk;
+    server_name your-domain.example.com;
     listen 443 ssl http2;
     # ... your TLS bits ...
 
@@ -85,7 +85,7 @@ server {
 ### Reverse-proxy snippet (Caddy)
 
 ```
-designworkshop.zaibatsui.co.uk {
+your-domain.example.com {
     reverse_proxy <proxmox-host-ip>:8080 {
         header_up X-Forwarded-Proto https
         header_up X-Forwarded-Host  {host}
@@ -101,7 +101,7 @@ In Google Cloud Console → APIs & Services → Credentials → your existing
 OAuth 2.0 Client → **Authorized redirect URIs**, add:
 
 ```
-https://designworkshop.zaibatsui.co.uk/api/auth/google/callback
+https://your-domain.example.com/api/auth/google/callback
 ```
 
 You can keep the old preview URI alongside it.
@@ -140,8 +140,8 @@ container:
 
 ```bash
 docker compose exec backend python /app/deploy/scripts/migrate-uploads.py \
-    --source https://content-forge-1039.preview.emergentagent.com \
-    --target https://designworkshop.zaibatsui.co.uk
+    --source https://your-old-host.example.com \
+    --target https://your-domain.example.com
 ```
 
 Add `--dry-run` first if you want a report of what would change without

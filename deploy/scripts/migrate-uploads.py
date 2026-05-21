@@ -4,8 +4,8 @@
 Run this AFTER import-mongo.sh, INSIDE the new backend container:
 
     docker compose exec backend python /app/deploy/scripts/migrate-uploads.py \\
-        --source https://content-forge-1039.preview.emergentagent.com \\
-        --target https://designworkshop.zaibatsui.co.uk
+        --source https://your-old-host.example.com \\
+        --target https://your-domain.example.com
 
 What it does:
   1. Walks every section + page document in MongoDB.
@@ -76,8 +76,8 @@ def _download(source_url: str, rel_path: str) -> bytes:
 
 async def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--source", required=True, help="Old public URL, e.g. https://content-forge-1039.preview.emergentagent.com")
-    ap.add_argument("--target", required=True, help="New public URL, e.g. https://designworkshop.zaibatsui.co.uk")
+    ap.add_argument("--source", required=True, help="Old public URL, e.g. https://your-old-host.example.com")
+    ap.add_argument("--target", required=True, help="New public URL, e.g. https://your-domain.example.com")
     ap.add_argument("--dry-run", action="store_true", help="Report what would change but don't write anything")
     args = ap.parse_args()
 

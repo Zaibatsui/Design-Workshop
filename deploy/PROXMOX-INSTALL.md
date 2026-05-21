@@ -1,11 +1,11 @@
 # Proxmox install — SSH walkthrough
 
-End-to-end install of Design Workshop on a Proxmox host, via SSH, terminating at `https://designworkshop.zaibatsui.co.uk`.
+End-to-end install of Design Workshop on a Proxmox host, via SSH, terminating at `https://your-domain.example.com`.
 
 This guide assumes:
 
 - A Proxmox VE host you can `ssh root@<pve-host>` into.
-- A domain you control (`designworkshop.zaibatsui.co.uk`) with DNS pointed at whatever box your reverse proxy listens on.
+- A domain you control (`your-domain.example.com`) with DNS pointed at whatever box your reverse proxy listens on.
 - A Google OAuth 2.0 Client ID + Secret you can edit (Google Cloud Console → APIs & Services → Credentials).
 - An external reverse proxy (nginx-proxy-manager / Caddy / Traefik / nginx) already terminating TLS for the domain. If you don't have one yet, [§9](#9-reverse-proxy-snippets) has a Caddy and an NPM example.
 
@@ -25,7 +25,7 @@ PVE host
         └── frontend (nginx + built React bundle, exposes :8080 to LXC)
 ```
 
-Your reverse proxy points `https://designworkshop.zaibatsui.co.uk` at `<lxc-ip>:8080`.
+Your reverse proxy points `https://your-domain.example.com` at `<lxc-ip>:8080`.
 
 ---
 
@@ -151,7 +151,7 @@ cp deploy/.env.example deploy/.env
 Edit it with your values (`vi deploy/.env`):
 
 ```bash
-PUBLIC_URL=https://designworkshop.zaibatsui.co.uk
+PUBLIC_URL=https://your-domain.example.com
 PUBLIC_PORT=8080
 DB_NAME=design_workshop
 APP_NAME=modular-pages
@@ -178,7 +178,7 @@ grep -E '^[A-Z_]+=' deploy/.env
 In another tab — **Google Cloud Console → APIs & Services → Credentials → your existing OAuth 2.0 Client ID → Authorized redirect URIs**, click **Add URI** and paste:
 
 ```
-https://designworkshop.zaibatsui.co.uk/api/auth/google/callback
+https://your-domain.example.com/api/auth/google/callback
 ```
 
 Hit **Save**. Leave the existing preview URI alone — you can keep both.
@@ -220,7 +220,7 @@ curl -i http://<lxc-ip>:8080/api/auth/me        # expect 401 (no session) — pr
 
 ## 8. Wire up your reverse proxy
 
-You need to terminate TLS for `designworkshop.zaibatsui.co.uk` and forward to `http://<lxc-ip>:8080` while passing `X-Forwarded-Proto` and `X-Forwarded-Host`.
+You need to terminate TLS for `your-domain.example.com` and forward to `http://<lxc-ip>:8080` while passing `X-Forwarded-Proto` and `X-Forwarded-Host`.
 
 Pick whichever you already run.
 
@@ -229,7 +229,7 @@ Pick whichever you already run.
 #### Caddy (the cheat code)
 
 ```caddyfile
-designworkshop.zaibatsui.co.uk {
+your-domain.example.com {
     reverse_proxy <lxc-ip>:8080 {
         header_up X-Forwarded-Proto https
         header_up X-Forwarded-Host  {host}
@@ -244,10 +244,10 @@ Caddy provisions the LE cert automatically. Reload (`systemctl reload caddy`).
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name designworkshop.zaibatsui.co.uk;
+    server_name your-domain.example.com;
 
-    ssl_certificate     /etc/letsencrypt/live/designworkshop.zaibatsui.co.uk/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/designworkshop.zaibatsui.co.uk/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/your-domain.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.example.com/privkey.pem;
 
     client_max_body_size 12M;
 
@@ -263,17 +263,17 @@ server {
 }
 server {
     listen 80;
-    server_name designworkshop.zaibatsui.co.uk;
+    server_name your-domain.example.com;
     return 301 https://$host$request_uri;
 }
 ```
 
-`certbot --nginx -d designworkshop.zaibatsui.co.uk` to mint the cert.
+`certbot --nginx -d your-domain.example.com` to mint the cert.
 
 #### Nginx Proxy Manager (UI)
 
 1. **Hosts → Proxy Hosts → Add Proxy Host**
-2. Domain Names: `designworkshop.zaibatsui.co.uk`
+2. Domain Names: `your-domain.example.com`
 3. Forward Hostname/IP: `<lxc-ip>`
 4. Forward Port: `8080`
 5. **Custom Locations** → leave empty.
@@ -294,7 +294,7 @@ If you'd rather have Traefik discover the stack directly, add this to `frontend:
 ```yaml
     labels:
       - traefik.enable=true
-      - traefik.http.routers.dw.rule=Host(`designworkshop.zaibatsui.co.uk`)
+      - traefik.http.routers.dw.rule=Host(`your-domain.example.com`)
       - traefik.http.routers.dw.entrypoints=websecure
       - traefik.http.routers.dw.tls.certresolver=le
       - traefik.http.services.dw.loadbalancer.server.port=80
@@ -307,13 +307,13 @@ If you'd rather have Traefik discover the stack directly, add this to `frontend:
 From your workstation:
 
 ```bash
-curl -sI https://designworkshop.zaibatsui.co.uk/             # 200, served by nginx
-curl -sI https://designworkshop.zaibatsui.co.uk/api/auth/me  # 401, served by uvicorn through nginx
+curl -sI https://your-domain.example.com/             # 200, served by nginx
+curl -sI https://your-domain.example.com/api/auth/me  # 401, served by uvicorn through nginx
 ```
 
 Then in a real browser:
 
-1. Open `https://designworkshop.zaibatsui.co.uk/login`.
+1. Open `https://your-domain.example.com/login`.
 2. Click **Sign in with Google**.
 3. Land back on the dashboard, signed in, library empty.
 
@@ -360,8 +360,8 @@ While the preview is **still up** (its Emergent storage is the source-of-truth f
 ```bash
 docker compose exec backend \
   python /app/deploy/scripts/migrate-uploads.py \
-    --source https://content-forge-1039.preview.emergentagent.com \
-    --target https://designworkshop.zaibatsui.co.uk
+    --source https://your-old-host.example.com \
+    --target https://your-domain.example.com
 ```
 
 Add `--dry-run` to see what would change first.
@@ -450,4 +450,4 @@ chmod +x /usr/local/bin/dw-update
 - **Healthchecks / restart-on-failure** — add `healthcheck:` blocks pointing at `/api/` (backend) and `/` (frontend) if you want compose to restart sick containers.
 - **Automated nightly backups** — `cron` + `export-mongo.sh` + `tar` on the uploads volume gets you 95% of the way. Or add a `backup` service to the compose file with a `mongodump --archive` loop on a schedule.
 
-You're done. Bookmark `https://designworkshop.zaibatsui.co.uk/guide` — that's the in-app reference.
+You're done. Bookmark `https://your-domain.example.com/guide` — that's the in-app reference.
