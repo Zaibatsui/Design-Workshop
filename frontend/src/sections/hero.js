@@ -236,7 +236,7 @@ function splitSlideInner(slide, cfg) {
 
   const panelHtml = `<div class="ns-panel is-side-${panelSide}" style="${panelStyle}">
     <div class="ns-panel-inner">
-      ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
+      ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}
       ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
       ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
       ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
@@ -377,7 +377,7 @@ function renderSlide(cfg) {
       return `<div class="ns-slide" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content">
-        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
+        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
@@ -511,7 +511,7 @@ function renderFade(cfg) {
       return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
-        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(slide.logoMaxHeight, 48)}px"/>` : ""}
+        ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}
         ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
