@@ -238,5 +238,79 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Test: __nsHeroIndex slide-lock applies BEFORE paint via jsdom ─────
+// The Editor preview iframe bakes `window.__nsHeroIndex=N` into the
+// document head. The hero IIFE must read it and apply the active-slide
+// class synchronously when its <script> tag is parsed (i.e. before
+// jsdom returns control after document construction). If we instead
+// wait for DOMContentLoaded the user sees slide 0 flash between paint
+// and our boot — that was the source of the slider-drag flicker.
+{
+  const { JSDOM } = require("jsdom");
+
+  // Build a minimal previewDoc-style document with bake script in head.
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.slides.push(
+    { id: "b", title: "Slide 2", subtitle: "", image: "", logo: "", ctaText: "", ctaLink: "#" },
+    { id: "c", title: "Slide 3", subtitle: "", image: "", logo: "", ctaText: "", ctaLink: "#" }
+  );
+  const snippet = hero.render(cfg);
+  const doc = `<!doctype html><html><head><script>window.__nsHeroIndex=2;</script></head><body>${snippet}</body></html>`;
+  const dom = new JSDOM(doc, { runScripts: "dangerously" });
+  // After JSDOM construction, all sync scripts have run. The active
+  // slide must already be index 2 — NOT index 0.
+  const slides = dom.window.document.querySelectorAll(".ns-slide");
+  const activeIdx = Array.from(slides).findIndex((el) =>
+    el.classList.contains("is-active")
+  );
+  expect(
+    "Fade transition: __nsHeroIndex=2 applies is-active to slide 2 synchronously",
+    activeIdx === 2,
+    `actual activeIdx=${activeIdx} (slide count=${slides.length})`
+  );
+}
+
+// Same test for the slide (track) transition — the IIFE uses
+// `track.style.transform` instead of the is-active class.
+{
+  const { JSDOM } = require("jsdom");
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides.push(
+    { id: "b", title: "Slide 2", subtitle: "", image: "", logo: "", ctaText: "", ctaLink: "#" },
+    { id: "c", title: "Slide 3", subtitle: "", image: "", logo: "", ctaText: "", ctaLink: "#" }
+  );
+  const snippet = hero.render(cfg);
+  const doc = `<!doctype html><html><head><script>window.__nsHeroIndex=2;</script></head><body>${snippet}</body></html>`;
+  const dom = new JSDOM(doc, { runScripts: "dangerously" });
+  const track = dom.window.document.querySelector("[data-ns-track]");
+  const tx = (track && track.style.transform) || "";
+  expect(
+    "Slide transition: __nsHeroIndex=2 sets track transform to -200% synchronously",
+    /translateX\(-200%\)/.test(tx),
+    `actual transform="${tx}"`
+  );
+}
+
+// And the default case: no __nsHeroIndex → boots on slide 0 + autoplay.
+{
+  const { JSDOM } = require("jsdom");
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.slides.push(
+    { id: "b", title: "Slide 2", subtitle: "", image: "", logo: "", ctaText: "", ctaLink: "#" }
+  );
+  const snippet = hero.render(cfg);
+  const doc = `<!doctype html><html><head></head><body>${snippet}</body></html>`;
+  const dom = new JSDOM(doc, { runScripts: "dangerously" });
+  const slides = dom.window.document.querySelectorAll(".ns-slide");
+  const activeIdx = Array.from(slides).findIndex((el) =>
+    el.classList.contains("is-active")
+  );
+  expect(
+    "No __nsHeroIndex → defaults to slide 0",
+    activeIdx === 0,
+    `actual activeIdx=${activeIdx}`
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

@@ -114,11 +114,20 @@ export function fullBleedClass(cfg) {
  * arrows/dots/autoplay. JS properties don't survive serialisation, so the
  * script will always re-run on a fresh page load.
  *
+ * Bootstrap strategy: try to init synchronously the moment the script
+ * tag runs. Since the snippet emits `<section>…</section><style>…</style>
+ * <script>iife</script>`, the section DOM exists by the time the script
+ * executes, and a synchronous init means the very first paint reflects
+ * any state set inside the body (e.g. hero slide-lock applied to
+ * `.is-active` classes). If the section isn't in the DOM yet (e.g. a
+ * snippet injected via fragment elsewhere), fall back to
+ * `DOMContentLoaded` so we still catch the late-mounted nodes.
+ *
  * @param scopeClass e.g. "ns-hero-slide-abc123"
  * @param body JS body that uses `root` to refer to the section element.
  */
 export function iife(scopeClass, body) {
-  return `(function(){var SEL=".${scopeClass}";function init(root){if(root.__nsInit)return;root.__nsInit=true;root.removeAttribute("data-ns-init");${body}}function boot(){document.querySelectorAll(SEL).forEach(init);}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot);}else{boot();}})();`;
+  return `(function(){var SEL=".${scopeClass}";function init(root){if(root.__nsInit)return;root.__nsInit=true;root.removeAttribute("data-ns-init");${body}}function boot(){var els=document.querySelectorAll(SEL);if(!els.length)return false;els.forEach(init);return true;}if(!boot()){document.addEventListener("DOMContentLoaded",boot);}})();`;
 }
 
 export function wrapSnippet({ html, css, js }) {
