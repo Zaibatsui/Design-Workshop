@@ -205,7 +205,7 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 .${cls} .ns-image img{width:100%;border-radius:6px;display:block}
 .${cls} .ns-image-link{display:block;line-height:0;transition:transform .15s ease,filter .15s ease}
 .${cls} .ns-image-link:hover{transform:translateY(-1px);filter:brightness(1.03)}
-@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr;gap:24px}.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}.${cls} .ns-heading{font-size:24px;margin:0 0 12px}.${cls} .ns-ctas{flex-direction:column;align-items:stretch}.${cls} .ns-btn{width:100%}}
+@media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr;gap:24px}.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}.${cls} .ns-heading{margin:0 0 12px}.${cls} .ns-ctas{flex-direction:column;align-items:stretch}.${cls} .ns-btn{width:100%}}
 `.trim();
 
   const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
