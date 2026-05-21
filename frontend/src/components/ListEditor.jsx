@@ -12,6 +12,14 @@ import { Button } from "@/components/ui/button";
  * start editing it immediately instead of scrolling down and hunting
  * for the new (collapsed) row. Reorder / remove operations don't
  * trigger this behaviour.
+ *
+ * Props:
+ *   - `defaultOpenFirst` (bool, default true): opens the first row on
+ *     mount. Set to false for editors where the user should pick which
+ *     row to edit (hero slides — preview should track the open row).
+ *   - `onOpenChange(id|null)`: optional callback fired whenever the
+ *     active row changes. Lets parents synchronise other UI (e.g.
+ *     hero live-preview slide index) with the editor state.
  */
 export default function ListEditor({
   items,
@@ -22,8 +30,12 @@ export default function ListEditor({
   renderForm,
   addLabel = "Add item",
   testidPrefix = "list",
+  defaultOpenFirst = true,
+  onOpenChange,
 }) {
-  const [openId, setOpenId] = useState(items[0]?.id || null);
+  const [openId, setOpenId] = useState(
+    defaultOpenFirst ? items[0]?.id || null : null
+  );
   const prevLen = useRef(items.length);
   const rowRefs = useRef({});
 
@@ -45,6 +57,29 @@ export default function ListEditor({
     }
     prevLen.current = items.length;
   }, [items]);
+
+  // Notify parents (e.g. hero editor) when the active row changes so
+  // they can drive the live preview to the matching slide and pause
+  // autoplay while a row is being edited.
+  const onOpenChangeRef = useRef(onOpenChange);
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange;
+  });
+  useEffect(() => {
+    if (typeof onOpenChangeRef.current === "function") {
+      onOpenChangeRef.current(openId);
+    }
+  }, [openId]);
+  // Reset the parent's "active row" tracker when this editor unmounts
+  // (e.g. the user collapses the surrounding accordion group) — without
+  // this, the parent would stay locked to the last-opened row.
+  useEffect(() => {
+    return () => {
+      if (typeof onOpenChangeRef.current === "function") {
+        onOpenChangeRef.current(null);
+      }
+    };
+  }, []);
 
   return (
     <div className="space-y-2">

@@ -445,6 +445,49 @@ function PreviewFrame({ doc, sectionId }) {
     }
   }, [storageKey, defaultH]);
 
+  // Bridge `ns-editor-slide-control` window events from form panels
+  // (e.g. hero ListEditor row toggles) into the preview iframe via
+  // postMessage. The iframe's hero snippet listens for messages
+  // tagged `{ ns: "hero" }` and either jumps to a slide (numeric
+  // index) or resumes its autoplay cycle (index === null).
+  // Lives here because PreviewFrame owns the iframe ref and is the
+  // single seam where any section-specific live-control message
+  // would be plumbed in.
+  const iframeRef = useRef(null);
+  useEffect(() => {
+    const send = (detail) => {
+      const f = iframeRef.current;
+      if (!f || !f.contentWindow) return;
+      f.contentWindow.postMessage(
+        { ns: "hero", index: detail?.index ?? null },
+        "*"
+      );
+    };
+    const handler = (e) => send(e.detail || {});
+    window.addEventListener("ns-editor-slide-control", handler);
+    return () => window.removeEventListener("ns-editor-slide-control", handler);
+  }, []);
+  // When the iframe document changes (snippet re-render), re-emit
+  // the latest control state so the new iframe inherits the editor's
+  // current "open slide" lock instead of starting from slide 0 with
+  // autoplay on.
+  const lastIndexRef = useRef(null);
+  useEffect(() => {
+    const handler = (e) => {
+      lastIndexRef.current = e.detail?.index ?? null;
+    };
+    window.addEventListener("ns-editor-slide-control", handler);
+    return () => window.removeEventListener("ns-editor-slide-control", handler);
+  }, []);
+  const onIframeLoad = () => {
+    const f = iframeRef.current;
+    if (!f || !f.contentWindow) return;
+    f.contentWindow.postMessage(
+      { ns: "hero", index: lastIndexRef.current },
+      "*"
+    );
+  };
+
   const drag = useRef(null);
   const onPointerDown = (e) => {
     e.preventDefault();
@@ -480,6 +523,8 @@ function PreviewFrame({ doc, sectionId }) {
     <div className="relative">
       <iframe
         key={sectionId}
+        ref={iframeRef}
+        onLoad={onIframeLoad}
         data-testid="preview-iframe"
         title="Live preview"
         srcDoc={doc}

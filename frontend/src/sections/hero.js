@@ -2,6 +2,7 @@
  * Hero Carousel — single unified hero with transition switch (slide / fade).
  * Replaces the old hero-slide.js and hero-fade.js.
  */
+import { useEffect, useState } from "react";
 import { GalleryHorizontalEnd } from "lucide-react";
 import {
   baseReset,
@@ -448,7 +449,7 @@ ${anySplit ? splitCss(cls, cfg) : ""}
 
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(!track)return;var total=track.children.length;if(!total)return;var current=0;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;track.style.transform="translateX(-"+(current*100)+"%)";dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}var sx=0,sy=0,st=0;root.addEventListener("touchstart",function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();stop();},{passive:true});root.addEventListener("touchend",function(e){var t=e.changedTouches[0];var dx=t.clientX-sx;var dy=t.clientY-sy;var dt=Date.now()-st;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)&&dt<800){if(dx<0)go(current+1);else go(current-1);}start();});setOffset();window.addEventListener("resize",setOffset);go(0);start();`
+    `var track=root.querySelector("[data-ns-track]");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(!track)return;var total=track.children.length;if(!total)return;var current=0;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;track.style.transform="translateX(-"+(current*100)+"%)";dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}var sx=0,sy=0,st=0;root.addEventListener("touchstart",function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();stop();},{passive:true});root.addEventListener("touchend",function(e){var t=e.changedTouches[0];var dx=t.clientX-sx;var dy=t.clientY-sy;var dt=Date.now()-st;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)&&dt<800){if(dx<0)go(current+1);else go(current-1);}start();});window.addEventListener("message",function(e){var d=e&&e.data;if(!d||typeof d!=="object"||d.ns!=="hero")return;if(typeof d.index==="number"){stop();go(d.index);}else{start();}});setOffset();window.addEventListener("resize",setOffset);go(0);start();`
   );
 
   return wrapSnippet({ html, css, js });
@@ -581,7 +582,7 @@ ${dotsHtml}
 
   const js = iife(
     cls,
-    `var slides=root.querySelectorAll(".ns-slide");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");var current=0;var total=slides.length;if(!total)return;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||5000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;slides.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}var sx=0,sy=0,st=0;root.addEventListener("touchstart",function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();stop();},{passive:true});root.addEventListener("touchend",function(e){var t=e.changedTouches[0];var dx=t.clientX-sx;var dy=t.clientY-sy;var dt=Date.now()-st;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)&&dt<800){if(dx<0)go(current+1);else go(current-1);}start();});setOffset();window.addEventListener("resize",setOffset);go(0);start();`
+    `var slides=root.querySelectorAll(".ns-slide");var dots=root.querySelectorAll(".ns-dot");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");var current=0;var total=slides.length;if(!total)return;var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||5000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function go(i){current=(i+total)%total;slides.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});dots.forEach(function(el,idx){el.classList.toggle("is-active",idx===current);});}function start(){if(!ap||total<2)return;stop();timer=setInterval(function(){go(current+1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}function setOffset(){if(!root.classList.contains("is-full")||!root.parentElement)return;var p=root.parentElement;var pr=p.getBoundingClientRect();var pad=parseFloat(getComputedStyle(p).paddingLeft)||0;var off=pr.left+pad;root.style.setProperty("--ns-fb-offset",(off>0?off:0)+"px");}if(prev)prev.addEventListener("click",function(){go(current-1);start();});if(next)next.addEventListener("click",function(){go(current+1);start();});dots.forEach(function(el,idx){el.addEventListener("click",function(){go(idx);start();});});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}var sx=0,sy=0,st=0;root.addEventListener("touchstart",function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();stop();},{passive:true});root.addEventListener("touchend",function(e){var t=e.changedTouches[0];var dx=t.clientX-sx;var dy=t.clientY-sy;var dt=Date.now()-st;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)&&dt<800){if(dx<0)go(current+1);else go(current-1);}start();});window.addEventListener("message",function(e){var d=e&&e.data;if(!d||typeof d!=="object"||d.ns!=="hero")return;if(typeof d.index==="number"){stop();go(d.index);}else{start();}});setOffset();window.addEventListener("resize",setOffset);go(0);start();`
   );
 
   return wrapSnippet({ html, css, js });
@@ -598,6 +599,25 @@ function FormPanel({ config, onUpdate }) {
   const setTheme = (p) => onUpdate({ theme: { ...t, ...p } });
   const setLayout = (p) => onUpdate({ layout: { ...l, ...p } });
   const setSettings = (p) => onUpdate({ settings: { ...s, ...p } });
+
+  // Track which slide row is currently expanded in the ListEditor so
+  // the live preview can lock onto that slide (and pause autoplay)
+  // while the user is editing it. A `null` openSlideId means no row
+  // is being edited — the preview resumes its normal autoplay cycle.
+  const [openSlideId, setOpenSlideId] = useState(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const idx = openSlideId
+      ? config.slides.findIndex((x) => x.id === openSlideId)
+      : -1;
+    // Broadcast to PreviewFrame which forwards to the iframe via
+    // postMessage. -1 / no match means "resume autoplay".
+    window.dispatchEvent(
+      new CustomEvent("ns-editor-slide-control", {
+        detail: { index: idx >= 0 ? idx : null },
+      })
+    );
+  }, [openSlideId, config.slides]);
 
   const addSlide = () => {
     onUpdate({
@@ -671,7 +691,7 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title={`Slides (${config.slides.length})`}>
+      <Group title={`Slides (${config.slides.length})`} value="slides">
         <ListEditor
           items={config.slides}
           onAdd={addSlide}
@@ -679,6 +699,8 @@ function FormPanel({ config, onUpdate }) {
           onMove={moveSlide}
           addLabel="Add slide"
           testidPrefix="hero-slide"
+          defaultOpenFirst={false}
+          onOpenChange={setOpenSlideId}
           renderRow={(slide, i) => (
             <div className="flex items-center gap-2">
               <div className="w-10 h-7 rounded-sm bg-slate-100 flex-shrink-0 overflow-hidden">
