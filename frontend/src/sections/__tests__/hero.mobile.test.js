@@ -381,5 +381,57 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Mobile layout overrides ──────────────────────────────────────────
+// `layout.mobileLayoutOverride` toggle gates the *Mobile fields. When
+// off (default), the renderer emits no `--ns-*-m` layout var
+// assignments and the @media fallback keeps the desktop value live.
+// When on, only fields with non-null values are emitted.
+{
+  const cfg = baseCfg();
+  const code = hero.render(cfg);
+  expect(
+    "Layout: override off → no --ns-height-m / --ns-content-max-m / --ns-radius-m emitted",
+    !/--ns-height-m:[^,)]/.test(code) &&
+      !/--ns-content-max-m:[^,)]/.test(code) &&
+      !/--ns-radius-m:[^,)]/.test(code)
+  );
+  // The @media rule still references them as fallbacks — that's
+  // what makes "inherit desktop" work — so the bare identifier IS
+  // expected in the output:
+  expect(
+    "Layout: media query references --ns-height-m as fallback",
+    /var\(--ns-height-m, var\(--ns-height\)\)/.test(code)
+  );
+}
+{
+  const cfg = baseCfg();
+  cfg.layout.mobileLayoutOverride = true;
+  cfg.layout.heightMobile = 360;
+  cfg.layout.contentMaxWidthMobile = 480;
+  const code = hero.render(cfg);
+  expect(
+    "Layout: override on with values → emits --ns-height-m:360px",
+    /--ns-height-m:360px/.test(code) &&
+      /--ns-content-max-m:480px/.test(code)
+  );
+  expect(
+    "Layout: override on, radiusMobile null → --ns-radius-m NOT emitted (inherits desktop)",
+    !/--ns-radius-m:[^,)]/.test(code)
+  );
+}
+{
+  // Even with override on, blank string fields inherit (same null
+  // semantics) — guards against e.g. cleared sliders sending "".
+  const cfg = baseCfg();
+  cfg.layout.mobileLayoutOverride = true;
+  cfg.layout.heightMobile = "";
+  cfg.layout.borderRadiusMobile = 12;
+  const code = hero.render(cfg);
+  expect(
+    'Layout: heightMobile="" → not emitted (inherits)',
+    !/--ns-height-m:[^,)]/.test(code) && /--ns-radius-m:12px/.test(code)
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

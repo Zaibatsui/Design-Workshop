@@ -99,6 +99,17 @@ const defaults = () => ({
     // split-panel inner content) under (max-width:767px).
     textAlignMobile: "",
     borderRadius: 0,
+    // Mobile layout overrides. The toggle gates visibility AND CSS
+    // emission: when `mobileLayoutOverride` is false (default),
+    // mobile inherits every desktop value verbatim and none of the
+    // *Mobile fields below are used by the renderer. Flip the toggle
+    // and individual fields can be edited; any field left `null`
+    // still inherits its desktop counterpart so users can override
+    // just height (for example) without re-setting the rest.
+    mobileLayoutOverride: false,
+    heightMobile: null,
+    contentMaxWidthMobile: null,
+    borderRadiusMobile: null,
     // Split-only layout (global across all split slides for visual
     // consistency).
     imageSide: "right", // "left" | "right"
@@ -324,6 +335,32 @@ function resolveOverlayMobile(theme, transition) {
   return { bg: desktop.bg, opacity: opacityM };
 }
 
+// Mobile layout overrides. When `layout.mobileLayoutOverride` is on,
+// we emit `--ns-*-m` custom properties for any per-axis override the
+// user has dialled in. Returns an array of CSS-variable assignments
+// (each a string like "--ns-height-m:480px"); empty array means no
+// mobile vars to emit, so the @media rule's `var(--*, var(--*))`
+// fallback keeps the desktop value live.
+function mobileLayoutVars(layout) {
+  const l = layout || {};
+  if (!l.mobileLayoutOverride) return [];
+  const out = [];
+  if (l.heightMobile != null && l.heightMobile !== "") {
+    out.push(`--ns-height-m:${num(l.heightMobile, num(l.height, 520))}px`);
+  }
+  if (l.contentMaxWidthMobile != null && l.contentMaxWidthMobile !== "") {
+    out.push(
+      `--ns-content-max-m:${num(l.contentMaxWidthMobile, num(l.contentMaxWidth, 1200))}px`
+    );
+  }
+  if (l.borderRadiusMobile != null && l.borderRadiusMobile !== "") {
+    out.push(
+      `--ns-radius-m:${num(l.borderRadiusMobile, num(l.borderRadius, 0))}px`
+    );
+  }
+  return out;
+}
+
 function splitSlideInner(slide, cfg) {
   const imageSide = (cfg.layout || {}).imageSide === "left" ? "left" : "right";
   const logo = safeUrl(slide.logo);
@@ -461,6 +498,7 @@ function renderSlide(cfg) {
   // rule without re-rendering the snippet.
   const overlayDesktop = resolveOverlay(t, "slide");
   const overlayMobile = resolveOverlayMobile(t, "slide");
+  const mobileLayout = mobileLayoutVars(l);
 
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
@@ -477,6 +515,7 @@ function renderSlide(cfg) {
     overlayMobile
       ? `--ns-overlay-bg-m:${overlayMobile.bg};--ns-overlay-op-m:${overlayMobile.opacity}`
       : "",
+    ...mobileLayout,
   ]
     .filter(Boolean)
     .join(";");
@@ -562,7 +601,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
-@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
+@media (max-width:767px){.${cls}{height:var(--ns-height-m, var(--ns-height));border-radius:var(--ns-radius-m, var(--ns-radius))}.${cls} .ns-content{max-width:var(--ns-content-max-m, var(--ns-content-max))}.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
 @media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
@@ -610,6 +649,7 @@ function renderFade(cfg) {
   // `overlayColor` × `overlayOpacity`).
   const overlayDesktop = resolveOverlay(t, "fade");
   const overlayMobile = resolveOverlayMobile(t, "fade");
+  const mobileLayout = mobileLayoutVars(l);
 
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
@@ -626,6 +666,7 @@ function renderFade(cfg) {
     `--ns-radius:${num(l.borderRadius, 0)}px`,
     `--ns-text-align:${textAlign}`,
     `--ns-text-align-m:${textAlignMobile || textAlign}`,
+    ...mobileLayout,
   ]
     .filter(Boolean)
     .join(";");
@@ -706,7 +747,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
-@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
+@media (max-width:767px){.${cls}{height:var(--ns-height-m, var(--ns-height));border-radius:var(--ns-radius-m, var(--ns-radius))}.${cls} .ns-content{max-width:var(--ns-content-max-m, var(--ns-content-max))}.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
 @media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
@@ -876,6 +917,139 @@ function OverlayControlsMobile({ theme, setTheme }) {
           onChange={(v) => setTheme({ overlayOpacityMobile: v / 100 })}
           testid="hero-overlay-opacity-mobile"
         />
+      )}
+    </>
+  );
+}
+
+/**
+ * Layout form controls — viewport-specific siblings, parallel to
+ * the OverlayControls pair. Desktop renders the existing knobs;
+ * Mobile shows an "Override desktop layout" toggle (defaults OFF
+ * = inherit everything). When the toggle flips on, per-axis
+ * sliders + an alignment dropdown appear; each axis still falls
+ * back to the desktop value if its mobile field is left blank.
+ */
+function LayoutControlsDesktop({ layout, setLayout }) {
+  return (
+    <>
+      <SelectField
+        label="Text alignment"
+        value={layout.textAlign}
+        onChange={(v) => setLayout({ textAlign: v })}
+        options={[
+          { value: "left", label: "Left" },
+          { value: "center", label: "Center" },
+          { value: "right", label: "Right" },
+        ]}
+        testid="hero-text-align"
+      />
+      <SliderField
+        label="Height"
+        value={layout.height}
+        min={150}
+        max={800}
+        step={10}
+        suffix="px"
+        onChange={(v) => setLayout({ height: v })}
+        testid="hero-height"
+      />
+      <SliderField
+        label="Content max width"
+        value={layout.contentMaxWidth}
+        min={320}
+        max={1440}
+        step={10}
+        suffix="px"
+        onChange={(v) => setLayout({ contentMaxWidth: v })}
+        testid="hero-content-max"
+      />
+      {!layout.fullBleed && (
+        <SliderField
+          label="Border radius"
+          value={layout.borderRadius}
+          min={0}
+          max={32}
+          suffix="px"
+          onChange={(v) => setLayout({ borderRadius: v })}
+          testid="hero-radius"
+        />
+      )}
+    </>
+  );
+}
+
+function LayoutControlsMobile({ layout, setLayout }) {
+  const overriding = !!layout.mobileLayoutOverride;
+  return (
+    <>
+      <ToggleField
+        label="Override desktop layout"
+        description="Off = mobile inherits every desktop value. Switch on to dial in mobile-specific overrides."
+        checked={overriding}
+        onChange={(v) => setLayout({ mobileLayoutOverride: v })}
+        testid="hero-mobile-layout-override"
+      />
+      {overriding && (
+        <>
+          <SelectField
+            label="Mobile alignment"
+            value={layout.textAlignMobile || ""}
+            onChange={(v) => setLayout({ textAlignMobile: v })}
+            options={[
+              { value: "", label: "Inherit from desktop" },
+              { value: "left", label: "Left" },
+              { value: "center", label: "Center (all elements centred)" },
+              { value: "right", label: "Right" },
+            ]}
+            testid="hero-text-align-mobile"
+          />
+          <SliderField
+            label="Mobile height"
+            value={
+              layout.heightMobile == null || layout.heightMobile === ""
+                ? layout.height
+                : Number(layout.heightMobile)
+            }
+            min={150}
+            max={800}
+            step={10}
+            suffix="px"
+            onChange={(v) => setLayout({ heightMobile: v })}
+            testid="hero-height-mobile"
+          />
+          <SliderField
+            label="Mobile content max width"
+            value={
+              layout.contentMaxWidthMobile == null ||
+              layout.contentMaxWidthMobile === ""
+                ? layout.contentMaxWidth
+                : Number(layout.contentMaxWidthMobile)
+            }
+            min={280}
+            max={1024}
+            step={10}
+            suffix="px"
+            onChange={(v) => setLayout({ contentMaxWidthMobile: v })}
+            testid="hero-content-max-mobile"
+          />
+          {!layout.fullBleed && (
+            <SliderField
+              label="Mobile border radius"
+              value={
+                layout.borderRadiusMobile == null ||
+                layout.borderRadiusMobile === ""
+                  ? layout.borderRadius
+                  : Number(layout.borderRadiusMobile)
+              }
+              min={0}
+              max={32}
+              suffix="px"
+              onChange={(v) => setLayout({ borderRadiusMobile: v })}
+              testid="hero-radius-mobile"
+            />
+          )}
+        </>
       )}
     </>
   );
@@ -1280,59 +1454,10 @@ function FormPanel({ config, onUpdate, previewMode }) {
       </Group>
 
       <Group title="Layout">
-        <SelectField
-          label="Text alignment"
-          value={l.textAlign}
-          onChange={(v) => setLayout({ textAlign: v })}
-          options={[
-            { value: "left", label: "Left" },
-            { value: "center", label: "Center" },
-            { value: "right", label: "Right" },
-          ]}
-          testid="hero-text-align"
-        />
-        <SelectField
-          label="Mobile alignment"
-          value={l.textAlignMobile || ""}
-          onChange={(v) => setLayout({ textAlignMobile: v })}
-          options={[
-            { value: "", label: "Inherit from desktop" },
-            { value: "left", label: "Left" },
-            { value: "center", label: "Center (all elements centred)" },
-            { value: "right", label: "Right" },
-          ]}
-          testid="hero-text-align-mobile"
-        />
-        <SliderField
-          label="Height"
-          value={l.height}
-          min={150}
-          max={800}
-          step={10}
-          suffix="px"
-          onChange={(v) => setLayout({ height: v })}
-          testid="hero-height"
-        />
-        <SliderField
-          label="Content max width"
-          value={l.contentMaxWidth}
-          min={320}
-          max={1440}
-          step={10}
-          suffix="px"
-          onChange={(v) => setLayout({ contentMaxWidth: v })}
-          testid="hero-content-max"
-        />
-        {!l.fullBleed && (
-          <SliderField
-            label="Border radius"
-            value={l.borderRadius}
-            min={0}
-            max={32}
-            suffix="px"
-            onChange={(v) => setLayout({ borderRadius: v })}
-            testid="hero-radius"
-          />
+        {previewMode === "mobile" ? (
+          <LayoutControlsMobile layout={l} setLayout={setLayout} />
+        ) : (
+          <LayoutControlsDesktop layout={l} setLayout={setLayout} />
         )}
       </Group>
 
