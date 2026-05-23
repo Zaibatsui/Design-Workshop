@@ -212,29 +212,52 @@ function slidePanelBackground(slide, cfg) {
   return safeColor(t.panelBg, "#1f2937");
 }
 
-// Mobile panel background override (split-only, section-level).
-// Returns the CSS background value for the panel under
-// (max-width:767px) when `panelBgTypeMobile` is set, otherwise
-// `null` (which means: inherit desktop). We intentionally do NOT
-// support per-slide mobile overrides — keeping mobile theming
-// section-wide avoids visual whiplash slide-to-slide.
-function slidePanelBackgroundMobile(_slide, cfg) {
+// Mobile panel background override (split-only). Returns the CSS
+// background value for the panel under (max-width:767px) when
+// either the slide or the section has `panelBgTypeMobile` set,
+// otherwise `null` (= inherit desktop). Per-slide values win over
+// section values; missing per-slide colour fields fall back to the
+// slide's desktop colours, then to the section's mobile colours,
+// then to section desktop. This is the same nesting pattern used
+// for desktop panel BG and overlay overrides.
+function slidePanelBackgroundMobile(slide, cfg) {
   const t = cfg.theme || {};
-  const type = t.panelBgTypeMobile;
+  // Slide overrides come first so a single slide can be "different
+  // on mobile" without touching the section default.
+  const useSlide = !!slide && !!slide.panelBgTypeMobile;
+  const type = useSlide ? slide.panelBgTypeMobile : t.panelBgTypeMobile;
   if (type !== "solid" && type !== "gradient") return null;
   if (type === "gradient") {
-    const angle = num(t.panelGradientAngleMobile, num(t.panelGradientAngle, 135));
+    const angle = num(
+      useSlide ? slide.panelGradientAngleMobile : t.panelGradientAngleMobile,
+      num(
+        useSlide ? slide.panelGradientAngle : t.panelGradientAngle,
+        135
+      )
+    );
     const from = safeColor(
-      t.panelGradientFromMobile || t.panelGradientFrom,
+      (useSlide && slide.panelGradientFromMobile) ||
+        t.panelGradientFromMobile ||
+        (useSlide && slide.panelGradientFrom) ||
+        t.panelGradientFrom,
       "#E01839"
     );
     const to = safeColor(
-      t.panelGradientToMobile || t.panelGradientTo,
+      (useSlide && slide.panelGradientToMobile) ||
+        t.panelGradientToMobile ||
+        (useSlide && slide.panelGradientTo) ||
+        t.panelGradientTo,
       "#1f2937"
     );
     return `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)`;
   }
-  return safeColor(t.panelBgMobile || t.panelBg, "#1f2937");
+  return safeColor(
+    (useSlide && slide.panelBgMobile) ||
+      t.panelBgMobile ||
+      (useSlide && slide.panelBg) ||
+      t.panelBg,
+    "#1f2937"
+  );
 }
 
 // Resolve per-slide CTA button colours. Override fields on the slide
@@ -359,6 +382,84 @@ function mobileLayoutVars(layout) {
     );
   }
   return out;
+}
+
+// Per-slide overlay merge — each non-split slide may override any
+// subset of the section's overlay fields. The merged "theme" reuses
+// `resolveOverlay` / `resolveOverlayMobile` so per-slide and section
+// overlays share one resolver (no behaviour drift). A `null` or
+// empty per-slide field falls back to the section value.
+//
+// We split the merge across the desktop / mobile field groups so
+// users can override e.g. just the mobile gradient on one slide
+// without touching its desktop overlay.
+function mergedThemeForSlide(slide, theme) {
+  const merged = { ...theme };
+  const pick = (k) => {
+    if (slide[k] !== undefined && slide[k] !== null && slide[k] !== "") {
+      merged[k] = slide[k];
+    }
+  };
+  // Desktop overlay axes
+  pick("overlayType");
+  pick("overlayColor");
+  pick("overlayOpacity");
+  pick("overlayGradientFrom");
+  pick("overlayGradientTo");
+  pick("overlayGradientAngle");
+  // Mobile overlay axes
+  pick("overlayTypeMobile");
+  pick("overlayColorMobile");
+  pick("overlayOpacityMobile");
+  pick("overlayGradientFromMobile");
+  pick("overlayGradientToMobile");
+  pick("overlayGradientAngleMobile");
+  return merged;
+}
+
+/**
+ * Returns the per-slide overlay CSS-variable assignments for the
+ * slide's root `<div class="ns-slide ...">` style attribute.
+ *
+ * We only emit assignments where the slide overrides the section
+ * default — slides that fully inherit ship zero overlay vars so
+ * the section root's `--ns-overlay-bg` etc. cascade in unchanged.
+ * This keeps the snippet output minimal AND means the editor's
+ * `.ns-overlay` element keeps its single section-level definition.
+ *
+ * Split slides skip the overlay entirely (their `.ns-overlay` is
+ * `display:none`) so we early-return for them.
+ */
+function slideOverlayStyle(slide, cfg, transition) {
+  if (slide.layout === "split") return "";
+  const sectionDesktop = resolveOverlay(cfg.theme, transition);
+  const sectionMobile = resolveOverlayMobile(cfg.theme, transition);
+  const merged = mergedThemeForSlide(slide, cfg.theme || {});
+  const slideDesktop = resolveOverlay(merged, transition);
+  const slideMobile = resolveOverlayMobile(merged, transition);
+  const parts = [];
+  if (
+    slideDesktop.bg !== sectionDesktop.bg ||
+    slideDesktop.opacity !== sectionDesktop.opacity
+  ) {
+    parts.push(`--ns-overlay-bg:${slideDesktop.bg}`);
+    parts.push(`--ns-overlay-op:${slideDesktop.opacity}`);
+  }
+  // Mobile-only emission. Either slide or section may have a mobile
+  // override; we emit when the resulting mobile overlay differs from
+  // the section's resolved mobile (or, if section has no mobile, we
+  // emit when slide introduces one).
+  const sM = sectionMobile;
+  const slM = slideMobile;
+  const mobileChanged =
+    (slM && !sM) ||
+    (!slM && sM) ||
+    (slM && sM && (slM.bg !== sM.bg || slM.opacity !== sM.opacity));
+  if (mobileChanged && slM) {
+    parts.push(`--ns-overlay-bg-m:${slM.bg}`);
+    parts.push(`--ns-overlay-op-m:${slM.opacity}`);
+  }
+  return parts.join(";");
 }
 
 // Per-slide split-layout resolution. Each split slide may override
@@ -590,9 +691,15 @@ function renderSlide(cfg) {
       // section stylesheet can swap to a mobile-specific image
       // under a media query (inline `background-image:` would
       // shadow the @media rule).
-      const slideStyle = bgMobile
-        ? `--ns-bg:url('${escAttr(bg)}');--ns-bg-m:url('${escAttr(bgMobile)}')`
-        : `--ns-bg:url('${escAttr(bg)}')`;
+      const overlayStyle = slideOverlayStyle(slide, cfg, "slide");
+      const slideStyle = [
+        bgMobile
+          ? `--ns-bg:url('${escAttr(bg)}');--ns-bg-m:url('${escAttr(bgMobile)}')`
+          : `--ns-bg:url('${escAttr(bg)}')`,
+        overlayStyle,
+      ]
+        .filter(Boolean)
+        .join(";");
       return `<div class="ns-slide" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content">
@@ -738,9 +845,15 @@ function renderFade(cfg) {
       const link = safeUrl(slide.ctaLink || "#");
       const target = slide.openInSameTab ? "_self" : "_blank";
       const rel = slide.openInSameTab ? "" : ' rel="noopener noreferrer"';
-      const slideStyle = bgMobile
-        ? `--ns-bg:url('${escAttr(bg)}');--ns-bg-m:url('${escAttr(bgMobile)}')`
-        : `--ns-bg:url('${escAttr(bg)}')`;
+      const overlayStyle = slideOverlayStyle(slide, cfg, "fade");
+      const slideStyle = [
+        bgMobile
+          ? `--ns-bg:url('${escAttr(bg)}');--ns-bg-m:url('${escAttr(bgMobile)}')`
+          : `--ns-bg:url('${escAttr(bg)}')`,
+        overlayStyle,
+      ]
+        .filter(Boolean)
+        .join(";");
       return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
@@ -971,6 +1084,188 @@ function OverlayControlsMobile({ theme, setTheme }) {
           suffix="%"
           onChange={(v) => setTheme({ overlayOpacityMobile: v / 100 })}
           testid="hero-overlay-opacity-mobile"
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * Slide-scoped overlay controls. Mirror the section variants but
+ * write to slide-level fields (`slide.overlay*`). Missing fields
+ * fall back to the section default via the rendering pipeline's
+ * `mergedThemeForSlide` — so the visible defaults shown in the
+ * fields are the section's effective values, and the user can
+ * override any single axis without disturbing the rest.
+ *
+ * `inheritOption` adds a "Use section default" choice to the type
+ * dropdown so a slide that diverged can be reset to inherit again
+ * by clearing the field (`overlayType: ""`).
+ */
+function SlideOverlayControlsDesktop({ slide, sectionTheme, setSlide }) {
+  // "" = inherit section's overlayType for this slide
+  const slideType = slide.overlayType || "";
+  // Visible "from" for fields uses slide value OR section default
+  // so the user sees what's actually rendering.
+  const eff = (k, fallback) =>
+    slide[k] !== undefined && slide[k] !== null && slide[k] !== ""
+      ? slide[k]
+      : sectionTheme[k] !== undefined
+        ? sectionTheme[k]
+        : fallback;
+  const opacityPct = Math.round(
+    (Number(slide.overlayOpacity) ||
+      Number(sectionTheme.overlayOpacity) ||
+      0.5) * 100
+  );
+  return (
+    <>
+      <SelectField
+        label="Overlay style (this slide)"
+        value={slideType || "__inherit"}
+        onChange={(v) =>
+          setSlide({ overlayType: v === "__inherit" ? "" : v })
+        }
+        options={[
+          { value: "__inherit", label: "Use section default" },
+          { value: "default", label: "Default (keep current look)" },
+          { value: "solid", label: "Solid colour" },
+          { value: "gradient", label: "Linear gradient" },
+        ]}
+        testid={`hero-slide-overlay-type-${slide.id}`}
+      />
+      {slideType === "solid" && (
+        <ColorField
+          label="Overlay colour"
+          value={eff("overlayColor", "#000000")}
+          onChange={(v) => setSlide({ overlayColor: v })}
+          testid={`hero-slide-overlay-color-${slide.id}`}
+        />
+      )}
+      {slideType === "gradient" && (
+        <>
+          <ColorField
+            label="From colour"
+            value={eff("overlayGradientFrom", "#000000")}
+            onChange={(v) => setSlide({ overlayGradientFrom: v })}
+            testid={`hero-slide-overlay-from-${slide.id}`}
+          />
+          <ColorField
+            label="To colour"
+            value={eff("overlayGradientTo", "rgba(0,0,0,0)")}
+            onChange={(v) => setSlide({ overlayGradientTo: v })}
+            testid={`hero-slide-overlay-to-${slide.id}`}
+          />
+          <SliderField
+            label="Angle"
+            value={Number(eff("overlayGradientAngle", 90))}
+            min={0}
+            max={360}
+            suffix="°"
+            onChange={(v) => setSlide({ overlayGradientAngle: v })}
+            testid={`hero-slide-overlay-angle-${slide.id}`}
+          />
+        </>
+      )}
+      {slideType && slideType !== "default" && (
+        <SliderField
+          label="Opacity"
+          value={opacityPct}
+          min={0}
+          max={100}
+          suffix="%"
+          onChange={(v) => setSlide({ overlayOpacity: v / 100 })}
+          testid={`hero-slide-overlay-opacity-${slide.id}`}
+        />
+      )}
+    </>
+  );
+}
+
+function SlideOverlayControlsMobile({ slide, sectionTheme, setSlide }) {
+  const slideTypeM = slide.overlayTypeMobile || "";
+  const eff = (k, fallback) =>
+    slide[k] !== undefined && slide[k] !== null && slide[k] !== ""
+      ? slide[k]
+      : sectionTheme[k] !== undefined
+        ? sectionTheme[k]
+        : fallback;
+  const opacityM =
+    slide.overlayOpacityMobile != null && slide.overlayOpacityMobile !== ""
+      ? Number(slide.overlayOpacityMobile)
+      : Number(slide.overlayOpacity) ||
+        Number(sectionTheme.overlayOpacityMobile) ||
+        Number(sectionTheme.overlayOpacity) ||
+        0.5;
+  return (
+    <>
+      <SelectField
+        label="Mobile overlay style (this slide)"
+        value={slideTypeM || "__inherit"}
+        onChange={(v) =>
+          setSlide({ overlayTypeMobile: v === "__inherit" ? "" : v })
+        }
+        options={[
+          { value: "__inherit", label: "Use section default" },
+          { value: "default", label: "Default (keep desktop visuals)" },
+          { value: "solid", label: "Solid colour" },
+          { value: "gradient", label: "Linear gradient" },
+        ]}
+        testid={`hero-slide-overlay-type-m-${slide.id}`}
+      />
+      {slideTypeM === "solid" && (
+        <ColorField
+          label="Mobile overlay colour"
+          value={eff("overlayColorMobile", eff("overlayColor", "#000000"))}
+          onChange={(v) => setSlide({ overlayColorMobile: v })}
+          testid={`hero-slide-overlay-color-m-${slide.id}`}
+        />
+      )}
+      {slideTypeM === "gradient" && (
+        <>
+          <ColorField
+            label="Mobile from colour"
+            value={eff(
+              "overlayGradientFromMobile",
+              eff("overlayGradientFrom", "#000000")
+            )}
+            onChange={(v) => setSlide({ overlayGradientFromMobile: v })}
+            testid={`hero-slide-overlay-from-m-${slide.id}`}
+          />
+          <ColorField
+            label="Mobile to colour"
+            value={eff(
+              "overlayGradientToMobile",
+              eff("overlayGradientTo", "rgba(0,0,0,0)")
+            )}
+            onChange={(v) => setSlide({ overlayGradientToMobile: v })}
+            testid={`hero-slide-overlay-to-m-${slide.id}`}
+          />
+          <SliderField
+            label="Mobile angle"
+            value={Number(
+              eff(
+                "overlayGradientAngleMobile",
+                eff("overlayGradientAngle", 90)
+              )
+            )}
+            min={0}
+            max={360}
+            suffix="°"
+            onChange={(v) => setSlide({ overlayGradientAngleMobile: v })}
+            testid={`hero-slide-overlay-angle-m-${slide.id}`}
+          />
+        </>
+      )}
+      {slideTypeM && (
+        <SliderField
+          label="Mobile opacity"
+          value={Math.round(opacityM * 100)}
+          min={0}
+          max={100}
+          suffix="%"
+          onChange={(v) => setSlide({ overlayOpacityMobile: v / 100 })}
+          testid={`hero-slide-overlay-opacity-m-${slide.id}`}
         />
       )}
     </>
@@ -1572,28 +1867,153 @@ function FormPanel({ config, onUpdate, previewMode }) {
                       />
                     </>
                   )}
+                  {/* Mobile override for this slide's panel BG.
+                    * "Inherit" means: under (max-width:767px) fall
+                    * back to the section's mobile panel BG, and if
+                    * none, the slide's desktop panel BG. Setting a
+                    * type here gives this slide a distinct mobile
+                    * look. */}
+                  <div className="pt-2 border-t border-slate-200 mt-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                      Mobile panel BG (≤767px)
+                    </p>
+                    <SelectField
+                      label="Mobile panel background"
+                      value={slide.panelBgTypeMobile || ""}
+                      onChange={(v) => {
+                        const patch = { panelBgTypeMobile: v };
+                        // Seed colour fields from the slide's desktop
+                        // values so the user sees a sensible starting
+                        // point instead of empty inputs.
+                        if (v === "solid" && !slide.panelBgMobile) {
+                          patch.panelBgMobile =
+                            slide.panelBg || t.panelBg || "#1f2937";
+                        }
+                        if (v === "gradient") {
+                          if (!slide.panelGradientFromMobile)
+                            patch.panelGradientFromMobile =
+                              slide.panelGradientFrom ||
+                              t.panelGradientFrom ||
+                              "#E01839";
+                          if (!slide.panelGradientToMobile)
+                            patch.panelGradientToMobile =
+                              slide.panelGradientTo ||
+                              t.panelGradientTo ||
+                              "#1f2937";
+                          if (slide.panelGradientAngleMobile == null)
+                            patch.panelGradientAngleMobile =
+                              slide.panelGradientAngle ??
+                              t.panelGradientAngle ??
+                              135;
+                        }
+                        updateSlide(slide.id, patch);
+                      }}
+                      options={[
+                        { value: "", label: "Inherit (section / desktop)" },
+                        { value: "solid", label: "Solid colour" },
+                        { value: "gradient", label: "Linear gradient" },
+                      ]}
+                      testid={`hero-slide-panel-bg-type-m-${slide.id}`}
+                    />
+                    {slide.panelBgTypeMobile === "solid" && (
+                      <ColorField
+                        label="Mobile panel colour"
+                        value={
+                          slide.panelBgMobile ||
+                          slide.panelBg ||
+                          t.panelBg ||
+                          "#1f2937"
+                        }
+                        onChange={(v) =>
+                          updateSlide(slide.id, { panelBgMobile: v })
+                        }
+                        testid={`hero-slide-panel-bg-m-${slide.id}`}
+                      />
+                    )}
+                    {slide.panelBgTypeMobile === "gradient" && (
+                      <>
+                        <ColorField
+                          label="Mobile gradient from"
+                          value={
+                            slide.panelGradientFromMobile ||
+                            slide.panelGradientFrom ||
+                            t.panelGradientFrom ||
+                            "#E01839"
+                          }
+                          onChange={(v) =>
+                            updateSlide(slide.id, {
+                              panelGradientFromMobile: v,
+                            })
+                          }
+                          testid={`hero-slide-panel-grad-from-m-${slide.id}`}
+                        />
+                        <ColorField
+                          label="Mobile gradient to"
+                          value={
+                            slide.panelGradientToMobile ||
+                            slide.panelGradientTo ||
+                            t.panelGradientTo ||
+                            "#1f2937"
+                          }
+                          onChange={(v) =>
+                            updateSlide(slide.id, {
+                              panelGradientToMobile: v,
+                            })
+                          }
+                          testid={`hero-slide-panel-grad-to-m-${slide.id}`}
+                        />
+                        <SliderField
+                          label="Mobile gradient angle"
+                          value={
+                            slide.panelGradientAngleMobile ??
+                            slide.panelGradientAngle ??
+                            t.panelGradientAngle ??
+                            135
+                          }
+                          min={0}
+                          max={360}
+                          step={5}
+                          suffix="°"
+                          onChange={(v) =>
+                            updateSlide(slide.id, {
+                              panelGradientAngleMobile: v,
+                            })
+                          }
+                          testid={`hero-slide-panel-grad-angle-m-${slide.id}`}
+                        />
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
-              {/* Standard-layout overlay — full-image slides darken the
-                * image with an overlay layer. The controls live here
-                * inside the slide form (rather than at section level)
-                * so users find them while editing the slide. Values
-                * still apply globally to every standard slide for
-                * visual consistency; the hint makes that explicit. */}
+              {/* Per-slide overlay. Each non-split slide can override
+                * its overlay; fields left blank fall back to the
+                * section default via `mergedThemeForSlide` in the
+                * renderer. Viewport-aware: mobile preview surfaces
+                * the mobile override sub-form. */}
               {slideMode(slide) !== "split" && (
                 <div className="pt-2 border-t border-slate-200 mt-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
-                    Overlay
+                    Overlay (this slide)
                   </p>
                   <p className="text-[11px] text-slate-500 mb-2 leading-snug">
-                    Applies to every full-image slide. Switch viewport to
-                    mobile to edit mobile-specific overrides.
+                    Leave style at <strong>Use section default</strong> to
+                    inherit the section's overlay. Override here to give
+                    this slide a different tint or gradient.
                   </p>
                   {previewMode === "mobile" ? (
-                    <OverlayControlsMobile theme={t} setTheme={setTheme} />
+                    <SlideOverlayControlsMobile
+                      slide={slide}
+                      sectionTheme={t}
+                      setSlide={(patch) => updateSlide(slide.id, patch)}
+                    />
                   ) : (
-                    <OverlayControlsDesktop theme={t} setTheme={setTheme} />
+                    <SlideOverlayControlsDesktop
+                      slide={slide}
+                      sectionTheme={t}
+                      setSlide={(patch) => updateSlide(slide.id, patch)}
+                    />
                   )}
                 </div>
               )}

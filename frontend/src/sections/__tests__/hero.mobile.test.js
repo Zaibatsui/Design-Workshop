@@ -473,5 +473,54 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Per-slide overlay overrides (Stage 2) ────────────────────────────
+{
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.slides[0].overlayType = "solid";
+  cfg.slides[0].overlayColor = "#ff0000";
+  cfg.slides[0].overlayOpacity = 0.8;
+  const code = hero.render(cfg);
+  expect(
+    "Slide overlay override → --ns-overlay-bg / --ns-overlay-op on slide root",
+    /class="ns-slide[^"]*"[^>]*style="[^"]*--ns-overlay-bg:#ff0000;--ns-overlay-op:0\.8/.test(
+      code
+    )
+  );
+}
+{
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.theme.overlayType = "solid";
+  cfg.theme.overlayColor = "#000000";
+  const code = hero.render(cfg);
+  expect(
+    "No slide overlay override → no --ns-overlay-bg on slide root",
+    !/class="ns-slide[^"]*"[^>]*style="[^"]*--ns-overlay-bg/.test(code)
+  );
+}
+{
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides[0].layout = "split";
+  cfg.slides[0].overlayType = "solid";
+  cfg.slides[0].overlayColor = "#ff0000";
+  const code = hero.render(cfg);
+  expect(
+    "Split slide ignores overlay override (no emission)",
+    !/class="ns-slide is-split[^"]*"[^>]*style="[^"]*--ns-overlay-bg/.test(code)
+  );
+}
+{
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.slides[0].overlayTypeMobile = "solid";
+  cfg.slides[0].overlayColorMobile = "#0000ff";
+  cfg.slides[0].overlayOpacityMobile = 0.4;
+  const code = hero.render(cfg);
+  expect(
+    "Slide mobile-only overlay → --ns-overlay-bg-m on slide root",
+    /class="ns-slide[^"]*"[^>]*style="[^"]*--ns-overlay-bg-m:#0000ff/.test(
+      code
+    )
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
