@@ -284,11 +284,14 @@ export default function UserGuide() {
             </P>
             <P>
               The settings panel is grouped into <strong>collapsible
-              sections</strong> — usually <em>Content</em>, <em>Layout</em>,
-              <em> Colours</em> and <em>Buttons</em> (plus <em>Carousel</em>
-              {" "}where it makes sense). Click a heading to open that
-              group; the others tuck themselves away so the panel never
-              feels overwhelming.
+              sections</strong>. Most sections expose a <em>Header</em>
+              group for copy and a single <em>Defaults</em> group that
+              bundles layout (padding, alignment, widths, sizes) and
+              theme (colours, backgrounds) in one place. Hero is
+              richer: <em>Section / Carousel</em>, <em>Slide defaults</em>,
+              and <em>Slides</em> for per-slide overrides. Click a
+              heading to open that group; the others tuck themselves
+              away so the panel never feels overwhelming.
             </P>
             <Bullets
               items={[
@@ -325,7 +328,7 @@ export default function UserGuide() {
               blocks with live price scraping and a universal VAT toggle.
             </P>
             <Grid>
-              <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour overrides and an optional split slide layout (full-bleed image + container-aligned text)." />
+              <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour and layout overrides, an optional split slide layout (full-bleed image + container-aligned text), and mobile-specific overrides for overlay, gradients and alignment so the small-screen view never inherits a desktop-only look you didn't want." />
               <SectionCard Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use." />
               <SectionCard Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
               <SectionCard Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
@@ -391,11 +394,16 @@ export default function UserGuide() {
             </P>
             <Bullets
               items={[
-                <><strong>Primary colour</strong> — accents, links, hover borders.</>,
-                <><strong>Text colour</strong> — body copy + headings.</>,
+                <><strong>Primary colour</strong> — accents, links, hover borders. The universal fallback whenever a role-specific colour is left blank.</>,
+                <><strong>Secondary colour</strong> — dark panel / banner backgrounds (Welcome overlay, CTA Banner, Split Banner panel).</>,
+                <><strong>Text colour</strong> — headings.</>,
+                <><strong>Body colour</strong> — paragraph copy.</>,
                 <><strong>Background colour</strong> — section backgrounds.</>,
-                <><strong>Heading font</strong> — pick from 12 curated Google fonts, or "Inherit from site".</>,
-                <><strong>Body font</strong> — same picker.</>,
+                <><strong>Link / Button / Accent</strong> — role-specific overrides. Leave blank to inherit primary.</>,
+                <><strong>Eyebrow text + colour</strong> — the small uppercase label above headings. Empty eyebrow text → hidden everywhere.</>,
+                <><strong>Logo (dark and light variants)</strong> — auto-seeded into Hero slides, Welcome banner and Split Banner when those sections are first created.</>,
+                <><strong>Button radius</strong> — global pill / rounded / sharp control. Drives every CTA across every section for visual consistency.</>,
+                <><strong>Heading font</strong> + <strong>Body font</strong> — pick from 12 curated Google fonts, or "Inherit from site".</>,
               ]}
             />
             <P>
@@ -521,6 +529,8 @@ export default function UserGuide() {
                 <>The Testimonials carousel <strong>pauses on hover</strong> so readers can finish a quote — and respects <Code>prefers-reduced-motion</Code> for accessibility.</>,
                 <>Set a testimonial's rating to <strong>0</strong> to hide its stars individually, or toggle "Show star ratings" off to hide them across the whole block.</>,
                 <>The Grid section starts with neutral sample photos — swap each cell's image for your own via the editor's image picker.</>,
+                <>Toggle the preview between <strong>Desktop</strong> and <strong>Mobile</strong> in the editor's preview header — Hero exposes mobile-specific overlay, gradient and alignment overrides that only appear when the preview is in mobile mode.</>,
+                <>Hit <strong>"Report a bug"</strong> or <strong>"Request a feature"</strong> in the sidebar or page footer to file a ticket directly — admins can mark it Complete, Reject, or reopen it, and you'll see a red badge in the dashboard header when there's an update on your tickets.</>,
               ]}
             />
           </Section>
@@ -553,7 +563,7 @@ export default function UserGuide() {
           </Section>
 
           <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-3">
-            <span>Last updated: 2026-02-25 ·</span>
+            <span>Last updated: 2026-02-23 ·</span>
             <span>Want a feature documented?</span>
             <Button
               type="button"

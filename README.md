@@ -53,11 +53,11 @@ Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to
 
 ### Brand Kit
 
-Single source of truth for primary / secondary / text / background colours, heading + body fonts (12 curated Google fonts or "Inherit from site"), and a default eyebrow text + colour. One click re-skins every existing section without touching their content. "Inherit from site" ships the snippet without a font import — the host page's typography wins.
+Single source of truth for **colours** (primary, secondary, text, body, background + per-role overrides for link / button / accent and eyebrow), **brand logos** (dark + light, auto-seeded into Hero / Welcome / Split Banner), **typography** (heading + body fonts from 12 curated Google fonts, or "Inherit from site"), and a global **button radius** (sharp ↔ pill) that propagates to every CTA across every section. One click re-skins every existing section in your library without touching their content. "Inherit from site" ships snippets without a font import so the host page's typography wins.
 
 ### Compact editor UI
 
-Every section editor groups its controls into Shadcn accordions (Content · Layout · Colours · Buttons · Carousel · etc.). Long sections collapse to one screenful — no more endless vertical scroll to reach the colour pickers.
+Every section editor uses Shadcn accordions. Most sections expose just two groups — **Header** (copy) and a single **Defaults** group that bundles layout (padding, alignment, widths, sizes) and theme (colours, backgrounds) in one place. Hero is richer with **Section / Carousel · Slide defaults · Slides** for per-slide overrides. Long sections still collapse to one screenful — no more endless vertical scroll to reach the colour pickers.
 
 ### Live previews everywhere
 

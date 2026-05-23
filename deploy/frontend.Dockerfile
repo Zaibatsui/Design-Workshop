@@ -14,7 +14,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 # REACT_APP_BACKEND_URL must be the public origin the browser will hit
-# (e.g. https://designworkshop.zaibatsui.co.uk). Same-origin in production
+# (e.g. https://your-domain.example.com). Same-origin in production
 # means /api/* on the same host as the SPA — see deploy/nginx.conf.
 ARG REACT_APP_BACKEND_URL
 ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
