@@ -1608,26 +1608,35 @@ function FormPanel({ config, onUpdate, previewMode }) {
                 <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   {slide.layout === "split" ? "Image" : "Background"}
                 </Label>
+                {previewMode === "mobile" && (
+                  <p className="text-[11px] text-slate-500 mb-1.5 leading-snug">
+                    Shown on mobile when no mobile-specific image is set
+                    below — acts as the fallback so this slide always has
+                    an image.
+                  </p>
+                )}
                 <ImageUpload
                   value={slide.image}
                   onChange={(v) => updateSlide(slide.id, { image: v })}
                   testid={`hero-slide-image-${slide.id}`}
                 />
               </div>
-              <div>
-                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Mobile image (optional)
-                </Label>
-                <p className="text-[11px] text-slate-500 mb-1.5 leading-snug">
-                  Shown under 768px. Leave blank to reuse the image above.
-                </p>
-                <ImageUpload
-                  value={slide.imageMobile}
-                  onChange={(v) => updateSlide(slide.id, { imageMobile: v })}
-                  testid={`hero-slide-image-mobile-${slide.id}`}
-                  compact
-                />
-              </div>
+              {previewMode === "mobile" && (
+                <div>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Mobile image (optional)
+                  </Label>
+                  <p className="text-[11px] text-slate-500 mb-1.5 leading-snug">
+                    Shown under 768px. Leave blank to reuse the image above.
+                  </p>
+                  <ImageUpload
+                    value={slide.imageMobile}
+                    onChange={(v) => updateSlide(slide.id, { imageMobile: v })}
+                    testid={`hero-slide-image-mobile-${slide.id}`}
+                    compact
+                  />
+                </div>
+              )}
               <div>
                 <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Logo (optional)
