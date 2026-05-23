@@ -59,7 +59,13 @@ export function SliderField({
   disabled,
 }) {
   return (
-    <div className={disabled ? "opacity-50 pointer-events-none" : ""}>
+    // SliderField root gets a small `pb-1.5` so the visible rail
+    // doesn't sit flush against the next field's label. Other field
+    // types end with a 40-ish-px-tall input — the rail is only ~16px
+    // so without this padding the FormGroup's `space-y-3` reads
+    // visually as a tight squeeze (see screenshot regression where
+    // 3 consecutive sliders bunched up).
+    <div className={(disabled ? "opacity-50 pointer-events-none" : "") + " pb-1.5"}>
       <div className="flex justify-between mb-2">
         <Label className={labelCls}>{label}</Label>
         <span className="text-xs text-slate-500">
