@@ -312,5 +312,74 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Overlay model tests ──────────────────────────────────────────────
+// Hero gained per-viewport overlay controls (solid / gradient / default).
+// These verify the right CSS variables are emitted for each mode and
+// transition, including the legacy default look (no controls set).
+{
+  // Slide transition + overlayType=default → legacy left-to-right
+  // dark gradient at full opacity.
+  const cfg = baseCfg({ transition: "slide" });
+  const code = hero.render(cfg);
+  expect(
+    "Slide+default → legacy gradient applied via --ns-overlay-bg",
+    /--ns-overlay-bg:linear-gradient\(90deg,rgba\(0,0,0,\.75\) 0%/.test(code) &&
+      /--ns-overlay-op:1/.test(code)
+  );
+}
+{
+  // Solid overlay applies overlayColor at overlayOpacity.
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.theme.overlayType = "solid";
+  cfg.theme.overlayColor = "#123456";
+  cfg.theme.overlayOpacity = 0.6;
+  const code = hero.render(cfg);
+  expect(
+    "Solid overlay → --ns-overlay-bg:#123456 + --ns-overlay-op:0.6",
+    /--ns-overlay-bg:#123456/.test(code) && /--ns-overlay-op:0\.6/.test(code)
+  );
+}
+{
+  // Gradient overlay uses linear-gradient(angle, from, to).
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.theme.overlayType = "gradient";
+  cfg.theme.overlayGradientFrom = "#ff0000";
+  cfg.theme.overlayGradientTo = "#00ff00";
+  cfg.theme.overlayGradientAngle = 45;
+  cfg.theme.overlayOpacity = 0.8;
+  const code = hero.render(cfg);
+  expect(
+    "Gradient overlay → linear-gradient(45deg,#ff0000 0%,#00ff00 100%)",
+    /--ns-overlay-bg:linear-gradient\(45deg, #ff0000 0%, #00ff00 100%\)/.test(code) &&
+      /--ns-overlay-op:0\.8/.test(code)
+  );
+}
+{
+  // Mobile override emits the -m suffixed vars; desktop vars stay.
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.theme.overlayTypeMobile = "solid";
+  cfg.theme.overlayColorMobile = "#abcdef";
+  cfg.theme.overlayOpacityMobile = 0.3;
+  const code = hero.render(cfg);
+  expect(
+    "Mobile solid override → --ns-overlay-bg-m + --ns-overlay-op-m emitted",
+    /--ns-overlay-bg-m:#abcdef/.test(code) &&
+      /--ns-overlay-op-m:0\.3/.test(code)
+  );
+}
+{
+  // No mobile override → no -m custom-property *assignments* (the
+  // @media rule still references `var(--ns-overlay-bg-m, …)` as a
+  // fallback lookup, so we have to check for the colon-assignment
+  // form specifically — not just the identifier).
+  const cfg = baseCfg({ transition: "slide" });
+  const code = hero.render(cfg);
+  expect(
+    "No mobile override → no --ns-overlay-bg-m assignment emitted",
+    !/--ns-overlay-bg-m:[^,)]/.test(code) &&
+      !/--ns-overlay-op-m:[^,)]/.test(code)
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

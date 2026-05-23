@@ -41,6 +41,31 @@ const defaults = () => ({
     subtitleColor: "#f1f5f9",
     overlayColor: "#000000",
     overlayOpacity: 0.4,
+    // Overlay model. `overlayType` controls the shaded layer behind
+    // slide copy:
+    //   "default"  — keep the legacy look (slide transition: hard-
+    //                coded left-to-right dark gradient; fade: solid
+    //                `overlayColor` × `overlayOpacity`). Preserves the
+    //                look of every pre-overlay-controls section.
+    //   "solid"    — uniform `overlayColor` at `overlayOpacity`.
+    //   "gradient" — linear gradient between `overlayGradientFrom`
+    //                and `overlayGradientTo` at `overlayGradientAngle`,
+    //                tinted to `overlayOpacity`.
+    overlayType: "default",
+    overlayGradientFrom: "#000000",
+    overlayGradientTo: "rgba(0,0,0,0)",
+    overlayGradientAngle: 90,
+    // Mobile overlay overrides. `overlayTypeMobile` "" inherits the
+    // desktop overlay verbatim; any other value swaps the overlay
+    // under (max-width:767px). Each field falls back to its desktop
+    // counterpart if blank, so users can override just opacity (for
+    // example) without re-setting colours.
+    overlayTypeMobile: "",
+    overlayColorMobile: "",
+    overlayOpacityMobile: null,
+    overlayGradientFromMobile: "",
+    overlayGradientToMobile: "",
+    overlayGradientAngleMobile: null,
     // Split-only fields (applied to every slide that opts into the
     // "split" layout — see slide.layout). Theme is global so a single
     // carousel doesn't visually flicker between two different brand
@@ -212,6 +237,93 @@ function slideCtaStyle(slide, cfg) {
   return ` style="background:${bg};color:${fg}"`;
 }
 
+// ──────────────────────────────────────────────────────────────────────
+// Overlay resolver. Returns { bg, opacity } for the dark shaded layer
+// behind slide copy.
+//
+//   type "default"  — preserves the look the section had before the
+//                     overlay controls existed:
+//                       • slide transition → hard-coded
+//                         left-to-right dark gradient at full opacity
+//                       • fade transition  → solid `overlayColor` at
+//                         `overlayOpacity`
+//   type "solid"    — uniform `overlayColor` at `overlayOpacity`.
+//   type "gradient" — linear gradient between `gradientFrom` and
+//                     `gradientTo` at `angle`, tinted to `opacity`.
+//
+// `transition` is "slide" or "fade" — only matters for "default" so
+// each transition picks its legacy look.
+// ──────────────────────────────────────────────────────────────────────
+function resolveOverlay(theme, transition) {
+  const t = theme || {};
+  const type = t.overlayType || "default";
+  const opacity = num(t.overlayOpacity, 0.5);
+  if (type === "gradient") {
+    const angle = num(t.overlayGradientAngle, 90);
+    const from = safeColor(t.overlayGradientFrom || "#000000", "#000000");
+    const to = safeColor(t.overlayGradientTo || "rgba(0,0,0,0)", "#000000");
+    return {
+      bg: `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)`,
+      opacity,
+    };
+  }
+  if (type === "solid") {
+    return { bg: safeColor(t.overlayColor || "#000000", "#000000"), opacity };
+  }
+  // "default" — transition-aware legacy look.
+  if (transition === "slide") {
+    return {
+      bg:
+        "linear-gradient(90deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.55) 25%,rgba(0,0,0,.25) 50%,rgba(0,0,0,0) 75%)",
+      opacity: 1,
+    };
+  }
+  return { bg: safeColor(t.overlayColor || "#000000", "#000000"), opacity };
+}
+
+// Mobile overlay override. Returns `{ bg, opacity }` (each may be null
+// to inherit the desktop value), or `null` when no mobile-specific
+// overlay is configured. Empty-string colour fields and `null`/empty
+// numerics fall back to the desktop equivalent so users can override
+// just one axis (e.g. opacity-only) without re-entering colours.
+function resolveOverlayMobile(theme, transition) {
+  const t = theme || {};
+  const typeM = t.overlayTypeMobile;
+  if (!typeM) return null;
+  const desktop = resolveOverlay(t, transition);
+  const opacityM =
+    t.overlayOpacityMobile == null || t.overlayOpacityMobile === ""
+      ? desktop.opacity
+      : num(t.overlayOpacityMobile, desktop.opacity);
+  if (typeM === "gradient") {
+    const angle = num(
+      t.overlayGradientAngleMobile == null ? t.overlayGradientAngle : t.overlayGradientAngleMobile,
+      90
+    );
+    const from = safeColor(
+      t.overlayGradientFromMobile || t.overlayGradientFrom || "#000000",
+      "#000000"
+    );
+    const to = safeColor(
+      t.overlayGradientToMobile || t.overlayGradientTo || "rgba(0,0,0,0)",
+      "#000000"
+    );
+    return {
+      bg: `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)`,
+      opacity: opacityM,
+    };
+  }
+  if (typeM === "solid") {
+    return {
+      bg: safeColor(t.overlayColorMobile || t.overlayColor || "#000000", "#000000"),
+      opacity: opacityM,
+    };
+  }
+  // typeM === "default" → same resolution as desktop, but lets the
+  // user keep mobile opacity distinct.
+  return { bg: desktop.bg, opacity: opacityM };
+}
+
 function splitSlideInner(slide, cfg) {
   const imageSide = (cfg.layout || {}).imageSide === "left" ? "left" : "right";
   const logo = safeUrl(slide.logo);
@@ -343,6 +455,13 @@ function renderSlide(cfg) {
       : "";
   const isMobileCenter = textAlignMobile === "center";
 
+  // Resolve the desktop & mobile overlays (helper handles the legacy
+  // "default" look). The mobile variant is emitted as separate CSS
+  // custom properties so we can swap it under a @media (max-width:767px)
+  // rule without re-rendering the snippet.
+  const overlayDesktop = resolveOverlay(t, "slide");
+  const overlayMobile = resolveOverlayMobile(t, "slide");
+
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
     `--ns-cta-text:${safeColor(t.ctaText, "#ffffff")}`,
@@ -353,7 +472,14 @@ function renderSlide(cfg) {
     `--ns-radius:${num(l.borderRadius, 0)}px`,
     `--ns-text-align:${textAlign}`,
     `--ns-text-align-m:${textAlignMobile || textAlign}`,
-  ].join(";");
+    `--ns-overlay-bg:${overlayDesktop.bg}`,
+    `--ns-overlay-op:${overlayDesktop.opacity}`,
+    overlayMobile
+      ? `--ns-overlay-bg-m:${overlayMobile.bg};--ns-overlay-op-m:${overlayMobile.opacity}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(";");
 
   const slidesHtml = slides
     .map((slide) => {
@@ -418,7 +544,7 @@ ${baseReset(cls)}
 .${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius,0);color:var(--ns-title)}
 .${cls} .ns-track{display:flex;height:100%;transition:transform .6s ease;will-change:transform;touch-action:pan-y}
 .${cls} .ns-slide{flex:0 0 100%;height:100%;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;padding:48px 56px;position:relative}
-.${cls} .ns-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.55) 25%,rgba(0,0,0,.25) 50%,rgba(0,0,0,0) 75%);pointer-events:none}
+.${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay-bg);opacity:var(--ns-overlay-op,1);pointer-events:none}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:var(--ns-text-align,left)}
 .${cls} .ns-content[data-align="center"], .${cls} .ns-content{}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
@@ -436,7 +562,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
-@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
+@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
 @media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
@@ -479,19 +605,30 @@ function renderFade(cfg) {
       : "";
   const isMobileCenter = textAlignMobile === "center";
 
+  // Same overlay resolver used by renderSlide — passing "fade" so the
+  // "default" overlayType keeps the legacy fade behaviour (solid
+  // `overlayColor` × `overlayOpacity`).
+  const overlayDesktop = resolveOverlay(t, "fade");
+  const overlayMobile = resolveOverlayMobile(t, "fade");
+
   const styleVars = [
     `--ns-cta-bg:${safeColor(t.ctaBg, "#E01839")}`,
     `--ns-cta-text:${safeColor(t.ctaText, "#ffffff")}`,
     `--ns-title:${safeColor(t.titleColor, "#ffffff")}`,
     `--ns-subtitle:${safeColor(t.subtitleColor, "#ffffff")}`,
-    `--ns-overlay:${safeColor(t.overlayColor, "#000000")}`,
-    `--ns-overlay-opacity:${num(t.overlayOpacity, 0.5)}`,
+    `--ns-overlay-bg:${overlayDesktop.bg}`,
+    `--ns-overlay-op:${overlayDesktop.opacity}`,
+    overlayMobile
+      ? `--ns-overlay-bg-m:${overlayMobile.bg};--ns-overlay-op-m:${overlayMobile.opacity}`
+      : "",
     `--ns-height:${num(l.height, 520)}px`,
     `--ns-content-max:${num(l.contentMaxWidth, 720)}px`,
     `--ns-radius:${num(l.borderRadius, 0)}px`,
     `--ns-text-align:${textAlign}`,
     `--ns-text-align-m:${textAlignMobile || textAlign}`,
-  ].join(";");
+  ]
+    .filter(Boolean)
+    .join(";");
 
   const slidesHtml = slides
     .map((slide, i) => {
@@ -548,7 +685,7 @@ ${baseReset(cls)}
 .${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius);color:var(--ns-title);isolation:isolate;touch-action:pan-y}
 .${cls} .ns-slide{position:absolute;inset:0;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;opacity:0;transition:opacity .6s ease;pointer-events:none;display:flex;align-items:center;padding:48px 56px}
 .${cls} .ns-slide.is-active{opacity:1;pointer-events:auto;z-index:1}
-.${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay);opacity:var(--ns-overlay-opacity);pointer-events:none}
+.${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay-bg);opacity:var(--ns-overlay-op,1);pointer-events:none}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);width:100%;text-align:var(--ns-text-align)}
 .${cls} .ns-content[data-align="center"]{margin-left:auto;margin-right:auto}
 .${cls} .ns-content[data-align="right"]{margin-left:auto}
@@ -569,7 +706,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
 .${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 56px);padding-right:calc(var(--ns-fb-offset, 0px) + 56px)}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:calc(var(--ns-fb-offset, 0px) + 24px);padding-right:calc(var(--ns-fb-offset, 0px) + 24px)}}
-@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
+@media (max-width:767px){.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
 @media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
@@ -592,7 +729,159 @@ function render(cfg) {
   return cfg.transition === "fade" ? renderFade(cfg) : renderSlide(cfg);
 }
 
-function FormPanel({ config, onUpdate }) {
+// Overlay form controls. Two sibling components — Desktop and Mobile —
+// render the same fields but bind to different theme keys. Whichever
+// one renders is decided by the parent FormPanel based on the user's
+// current preview viewport (`previewMode` prop). The split avoids one
+// big conditional and keeps the testid namespace distinct.
+function OverlayControlsDesktop({ theme, setTheme }) {
+  const type = theme.overlayType || "default";
+  return (
+    <>
+      <SelectField
+        label="Overlay style"
+        value={type}
+        onChange={(v) => setTheme({ overlayType: v })}
+        options={[
+          { value: "default", label: "Default (keep current look)" },
+          { value: "solid", label: "Solid colour" },
+          { value: "gradient", label: "Linear gradient" },
+        ]}
+        testid="hero-overlay-type"
+      />
+      {type === "solid" && (
+        <ColorField
+          label="Overlay colour"
+          value={theme.overlayColor || "#000000"}
+          onChange={(v) => setTheme({ overlayColor: v })}
+          testid="hero-overlay-color"
+        />
+      )}
+      {type === "gradient" && (
+        <>
+          <ColorField
+            label="From colour"
+            value={theme.overlayGradientFrom || "#000000"}
+            onChange={(v) => setTheme({ overlayGradientFrom: v })}
+            testid="hero-overlay-from"
+          />
+          <ColorField
+            label="To colour"
+            value={theme.overlayGradientTo || "rgba(0,0,0,0)"}
+            onChange={(v) => setTheme({ overlayGradientTo: v })}
+            testid="hero-overlay-to"
+          />
+          <SliderField
+            label="Angle"
+            value={Number(theme.overlayGradientAngle) || 90}
+            min={0}
+            max={360}
+            suffix="°"
+            onChange={(v) => setTheme({ overlayGradientAngle: v })}
+            testid="hero-overlay-angle"
+          />
+        </>
+      )}
+      {type !== "default" && (
+        <SliderField
+          label="Opacity"
+          value={Math.round((Number(theme.overlayOpacity) || 0.5) * 100)}
+          min={0}
+          max={100}
+          suffix="%"
+          onChange={(v) => setTheme({ overlayOpacity: v / 100 })}
+          testid="hero-overlay-opacity"
+        />
+      )}
+    </>
+  );
+}
+
+function OverlayControlsMobile({ theme, setTheme }) {
+  // "" means "inherit desktop". Treat as the on-screen default until
+  // the user opts into a mobile override.
+  const typeM = theme.overlayTypeMobile || "";
+  const opacityM =
+    theme.overlayOpacityMobile == null || theme.overlayOpacityMobile === ""
+      ? Number(theme.overlayOpacity) || 0.5
+      : Number(theme.overlayOpacityMobile);
+  return (
+    <>
+      <SelectField
+        label="Mobile overlay style"
+        value={typeM || "inherit"}
+        onChange={(v) => setTheme({ overlayTypeMobile: v === "inherit" ? "" : v })}
+        options={[
+          { value: "inherit", label: "Inherit from desktop" },
+          { value: "default", label: "Default (keep desktop visuals)" },
+          { value: "solid", label: "Solid colour" },
+          { value: "gradient", label: "Linear gradient" },
+        ]}
+        testid="hero-overlay-type-mobile"
+      />
+      {typeM === "solid" && (
+        <ColorField
+          label="Mobile overlay colour"
+          value={theme.overlayColorMobile || theme.overlayColor || "#000000"}
+          onChange={(v) => setTheme({ overlayColorMobile: v })}
+          testid="hero-overlay-color-mobile"
+        />
+      )}
+      {typeM === "gradient" && (
+        <>
+          <ColorField
+            label="Mobile from colour"
+            value={
+              theme.overlayGradientFromMobile ||
+              theme.overlayGradientFrom ||
+              "#000000"
+            }
+            onChange={(v) => setTheme({ overlayGradientFromMobile: v })}
+            testid="hero-overlay-from-mobile"
+          />
+          <ColorField
+            label="Mobile to colour"
+            value={
+              theme.overlayGradientToMobile ||
+              theme.overlayGradientTo ||
+              "rgba(0,0,0,0)"
+            }
+            onChange={(v) => setTheme({ overlayGradientToMobile: v })}
+            testid="hero-overlay-to-mobile"
+          />
+          <SliderField
+            label="Mobile angle"
+            value={
+              Number(
+                theme.overlayGradientAngleMobile == null
+                  ? theme.overlayGradientAngle
+                  : theme.overlayGradientAngleMobile
+              ) || 90
+            }
+            min={0}
+            max={360}
+            suffix="°"
+            onChange={(v) => setTheme({ overlayGradientAngleMobile: v })}
+            testid="hero-overlay-angle-mobile"
+          />
+        </>
+      )}
+      {typeM && (
+        <SliderField
+          label="Mobile opacity"
+          value={Math.round(opacityM * 100)}
+          min={0}
+          max={100}
+          suffix="%"
+          onChange={(v) => setTheme({ overlayOpacityMobile: v / 100 })}
+          testid="hero-overlay-opacity-mobile"
+        />
+      )}
+    </>
+  );
+}
+
+function FormPanel({ config, onUpdate, previewMode }) {
   const t = config.theme;
   const l = config.layout;
   const s = config.settings;
@@ -980,24 +1269,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => setTheme({ ctaText: v })}
           testid="hero-cta-text"
         />
-        {isFade && (
-          <>
-            <ColorField
-              label="Overlay color"
-              value={t.overlayColor}
-              onChange={(v) => setTheme({ overlayColor: v })}
-              testid="hero-overlay-color"
-            />
-            <SliderField
-              label="Overlay opacity"
-              value={Math.round(t.overlayOpacity * 100)}
-              min={0}
-              max={100}
-              suffix="%"
-              onChange={(v) => setTheme({ overlayOpacity: v / 100 })}
-              testid="hero-overlay-opacity"
-            />
-          </>
+      </Group>
+
+      <Group title="Overlay" value="overlay">
+        {previewMode === "mobile" ? (
+          <OverlayControlsMobile theme={t} setTheme={setTheme} />
+        ) : (
+          <OverlayControlsDesktop theme={t} setTheme={setTheme} />
         )}
       </Group>
 

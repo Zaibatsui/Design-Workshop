@@ -368,7 +368,11 @@ export default function Editor() {
         </div>
 
         <div className="px-4 py-5">
-          <def.FormPanel config={section.config} onUpdate={updateConfig} />
+          <def.FormPanel
+            config={section.config}
+            onUpdate={updateConfig}
+            previewMode={previewWidth}
+          />
         </div>
       </aside>
 
@@ -410,6 +414,10 @@ export default function Editor() {
         </div>
 
         <div className="flex-1 overflow-auto p-6 bg-slate-50">
+          <ViewportBanner
+            previewWidth={previewWidth}
+            hasViewportControls={section.type === "hero"}
+          />
           <div
             className="mx-auto bg-white rounded-md border border-slate-200 overflow-hidden transition-all duration-300"
             style={{ maxWidth: previewWidths[previewWidth], width: "100%" }}
@@ -423,6 +431,45 @@ export default function Editor() {
       </main>
 
       <Toaster richColors position="top-center" />
+    </div>
+  );
+}
+
+/**
+ * Slim contextual strip above the preview iframe telling the user
+ * which viewport they're previewing, and — for sections that have
+ * viewport-specific form controls (e.g. the hero overlay) — hinting
+ * that the form panel is showing those matching controls. Renders as
+ * a centred pill so it sits naturally above the constrained-width
+ * preview-container, matching the iframe's left/right margins.
+ */
+function ViewportBanner({ previewWidth, hasViewportControls }) {
+  const label =
+    previewWidth === "mobile"
+      ? "Mobile view"
+      : previewWidth === "tablet"
+        ? "Tablet view"
+        : "Desktop view";
+  const detail = hasViewportControls
+    ? previewWidth === "mobile"
+      ? "Mobile-specific form controls are active in the panel on the left."
+      : "Desktop / tablet form controls are active. Switch viewport to edit mobile-specific overrides."
+    : "Switch viewport to preview how this section will render.";
+  const dotColor =
+    previewWidth === "mobile"
+      ? "bg-amber-500"
+      : previewWidth === "tablet"
+        ? "bg-sky-500"
+        : "bg-emerald-500";
+  return (
+    <div
+      data-testid={`viewport-banner-${previewWidth}`}
+      className="mx-auto mb-3 max-w-[640px] flex items-center justify-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-[11px] leading-tight"
+    >
+      <span className={`inline-block w-1.5 h-1.5 rounded-full ${dotColor}`} />
+      <span className="font-semibold text-slate-700">{label}</span>
+      <span className="text-slate-500">·</span>
+      <span className="text-slate-500">{detail}</span>
     </div>
   );
 }
