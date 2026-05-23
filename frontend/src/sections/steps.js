@@ -156,7 +156,7 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title="Layout">
+      <Group title="Defaults" value="defaults">
         <SelectField
           label="Direction"
           value={config.layout}
@@ -223,9 +223,9 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="steps-full-bleed"
         />
-      </Group>
-
-      <Group title="Theme">
+        <div className="pt-3 mt-1 border-t border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
+        </div>
         <ColorField
           label="Background"
           value={config.bgColor}

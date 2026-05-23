@@ -242,7 +242,7 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title="Layout">
+      <Group title="Defaults" value="defaults">
         <ToggleField
           label="Make wide"
           description="Stretch background to full viewport width"
@@ -269,9 +269,9 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="welcome-heading-size"
         />
-      </Group>
-
-      <Group title="Theme">
+        <div className="pt-3 mt-1 border-t border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
+        </div>
         <div>
           <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Background image

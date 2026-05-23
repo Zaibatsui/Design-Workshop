@@ -327,7 +327,7 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title="Layout">
+      <Group title="Defaults" value="defaults">
         <SelectField
           label="Columns"
           value={config.columns}
@@ -396,9 +396,9 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="products-heading-size"
         />
-      </Group>
-
-      <Group title="Theme">
+        <div className="pt-3 mt-1 border-t border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
+        </div>
         <ColorField
           label="Eyebrow color"
           value={config.eyebrowColor || config.priceColor}
