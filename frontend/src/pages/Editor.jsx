@@ -12,6 +12,10 @@ import {
   ArrowLeft,
   Check,
   Loader2,
+  Play,
+  Pause,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
@@ -247,24 +251,40 @@ export default function Editor() {
   // A true debounce collapses bursts into a single update once the
   // user pauses for ~180 ms.
   const debouncedSnippet = useDebouncedValue(snippet, PREVIEW_DEBOUNCE_MS);
-  // Hero-preview slide lock. The hero editor dispatches
-  // `ns-editor-slide-control` whenever a slide row is opened/closed.
-  // We track it two ways:
-  //   - `heroIndex` state → drives postMessage to the iframe so
-  //     clicking a different slide row navigates without a reload.
-  //   - `heroIndexRef` → read at doc-generation time so when the
-  //     snippet regenerates (slider drag etc.) the new iframe boots
-  //     directly on the locked slide. Without this the IIFE runs
-  //     `go(0); start()` and the preview flashes back to slide 0
-  //     between every slider tick.
+  // Hero-preview slide lock. Two ways it gets set:
+  //   1. Auto: a slide row in the form panel is opened → we lock to
+  //      that index. Closing the row used to clear the lock, which
+  //      meant any non-slide edit (theme, layout, overlay) snapped
+  //      the preview back to slide 1 — frustrating when fine-tuning
+  //      settings against a specific slide. The lock is now sticky:
+  //      it persists until the user explicitly toggles "Resume
+  //      autoplay" via the preview toolbar.
+  //   2. Manual: the preview toolbar button toggles between
+  //      "Resume autoplay" (sets to null) and "Lock to slide N"
+  //      (sets to a chosen index); the user can also nudge ±1 with
+  //      the Prev / Next buttons while locked.
+  // The state drives two paths into the iframe:
+  //   - postMessage on change (no reload, fast).
+  //   - `heroIndexRef` is read inside the `previewHtml` useMemo so
+  //     iframe reloads (snippet regen) boot directly on the locked
+  //     slide instead of flashing slide 0 between renders.
   const [heroIndex, setHeroIndex] = useState(null);
   const heroIndexRef = useRef(null);
+  const updateHeroIndex = (next) => {
+    heroIndexRef.current = next;
+    setHeroIndex(next);
+  };
   useEffect(() => {
     const h = (e) => {
       const idx = e.detail?.index;
-      const next = typeof idx === "number" ? idx : null;
-      heroIndexRef.current = next;
-      setHeroIndex(next);
+      // Slide-row OPEN (numeric index) → adopt as the lock.
+      // Slide-row CLOSE (index === null) → ignore; the lock stays
+      // where the user last had it. This is the key behaviour
+      // change from earlier sessions.
+      if (typeof idx === "number") {
+        heroIndexRef.current = idx;
+        setHeroIndex(idx);
+      }
     };
     window.addEventListener("ns-editor-slide-control", h);
     return () => window.removeEventListener("ns-editor-slide-control", h);
@@ -399,6 +419,13 @@ export default function Editor() {
                 </button>
               ))}
             </div>
+            {section.type === "hero" && (
+              <HeroPreviewToggle
+                heroIndex={heroIndex}
+                setHeroIndex={updateHeroIndex}
+                slideCount={section.config.slides?.length || 0}
+              />
+            )}
           </div>
           <div className="flex items-center gap-3">
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
@@ -431,6 +458,86 @@ export default function Editor() {
       </main>
 
       <Toaster richColors position="top-center" />
+    </div>
+  );
+}
+
+/**
+ * Hero-only preview toolbar group: toggles autoplay vs. locked-slide
+ * mode, plus prev/next nudges + slide indicator while locked.
+ *
+ *   - `heroIndex === null`   → autoplay (carousel cycles in iframe).
+ *     Button reads "Pause on slide 1" and clicking it locks to 0.
+ *   - `heroIndex === number` → preview is pinned to that slide; the
+ *     button reads "▶ Autoplay" and clicking restores cycling.
+ *     Prev / Next nudge the lock by ±1 modulo slideCount.
+ *
+ * Why this exists: opening a slide row already auto-locks the preview
+ * (see Editor's `ns-editor-slide-control` listener), but the user
+ * also wants to keep that lock while editing Theme / Overlay / Layout
+ * — i.e. *not* have closing the slide row release the lock. This
+ * toolbar makes the auto-acquired lock visible and gives a clear
+ * exit ("▶ Autoplay") so the binding is no longer surprising.
+ */
+function HeroPreviewToggle({ heroIndex, setHeroIndex, slideCount }) {
+  if (slideCount <= 0) return null;
+  const locked = typeof heroIndex === "number";
+  const safe = locked ? Math.max(0, Math.min(slideCount - 1, heroIndex)) : 0;
+  const next = () => setHeroIndex((safe + 1) % slideCount);
+  const prev = () => setHeroIndex((safe - 1 + slideCount) % slideCount);
+  return (
+    <div className="flex items-center gap-1.5 bg-slate-100 rounded-md p-0.5">
+      <button
+        type="button"
+        data-testid="hero-preview-toggle"
+        onClick={() => setHeroIndex(locked ? null : 0)}
+        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+          locked
+            ? "text-slate-500 hover:text-slate-700"
+            : "bg-white text-slate-900 shadow-sm"
+        }`}
+        title={locked ? "Resume autoplay" : "Lock to current slide"}
+      >
+        {locked ? (
+          <>
+            <Play className="w-3 h-3" /> Autoplay
+          </>
+        ) : (
+          <>
+            <Pause className="w-3 h-3" /> Lock
+          </>
+        )}
+      </button>
+      {locked && (
+        <div className="flex items-center gap-0.5 px-1">
+          <button
+            type="button"
+            data-testid="hero-preview-prev"
+            onClick={prev}
+            disabled={slideCount < 2}
+            className="p-1 rounded hover:bg-white text-slate-500 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent"
+            title="Previous slide"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <span
+            className="text-[11px] font-mono text-slate-600 tabular-nums px-1 min-w-[34px] text-center"
+            data-testid="hero-preview-indicator"
+          >
+            {safe + 1}/{slideCount}
+          </span>
+          <button
+            type="button"
+            data-testid="hero-preview-next"
+            onClick={next}
+            disabled={slideCount < 2}
+            className="p-1 rounded hover:bg-white text-slate-500 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent"
+            title="Next slide"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
