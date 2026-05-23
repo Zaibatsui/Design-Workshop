@@ -141,7 +141,7 @@ function FormPanel({ config, onUpdate }) {
 
   return (
     <FormAccordion sectionType="logos">
-      <Group title="Settings">
+      <Group title="Defaults" value="defaults">
         <ToggleField
           label="Make wide"
           description="Stretch strip to full viewport width"
@@ -201,9 +201,9 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ paddingY: v })}
           testid="logos-pad"
         />
-        {/* eslint-disable-next-line */}
-      </Group>
-      <Group title="Theme">
+        <div className="pt-3 mt-1 border-t border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
+        </div>
         <ColorField
           label="Background"
           value={config.bgColor}

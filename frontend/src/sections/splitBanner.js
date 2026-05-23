@@ -283,7 +283,7 @@ function FormPanel({ config, onUpdate }) {
         ) : null}
       </Group>
 
-      <Group title="Layout">
+      <Group title="Defaults" value="defaults">
         <ToggleField
           label="Page header"
           description="Treat this Split Banner as the page's main headline"
@@ -359,9 +359,9 @@ function FormPanel({ config, onUpdate }) {
             testid="split-border-radius"
           />
         )}
-      </Group>
-
-      <Group title="Panel background">
+        <div className="pt-3 mt-1 border-t border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Panel background</p>
+        </div>
         <SelectField
           label="Background style"
           value={config.panelBgType || "gradient"}
@@ -405,9 +405,9 @@ function FormPanel({ config, onUpdate }) {
             testid="split-panel-bg"
           />
         )}
-      </Group>
-
-      <Group title="Text & button colours">
+        <div className="pt-3 mt-1 border-t border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Text & button colours</p>
+        </div>
         <ColorField
           label="Eyebrow colour"
           value={config.eyebrowColor}

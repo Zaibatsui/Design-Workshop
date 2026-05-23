@@ -254,44 +254,7 @@ function FormPanel({ config, onUpdate }) {
 
   return (
     <FormAccordion sectionType="tabs">
-      <Group title="Theme">
-        <ToggleField
-          label="Make wide"
-          description="Stretch background to full viewport width"
-          checked={config.fullBleed}
-          onChange={(v) => onUpdate({ fullBleed: v })}
-          testid="tabs-full-bleed"
-        />
-        <ColorField
-          label="Background"
-          value={config.bgColor}
-          onChange={(v) => onUpdate({ bgColor: v })}
-          testid="tabs-bg"
-        />
-        <ColorField
-          label="Accent (active tab + heading)"
-          value={config.accentColor}
-          onChange={(v) => onUpdate({ accentColor: v })}
-          testid="tabs-accent"
-        />
-        <ColorField
-          label="Body text"
-          value={config.bodyColor}
-          onChange={(v) => onUpdate({ bodyColor: v })}
-          testid="tabs-body"
-        />
-        <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
-          min={20}
-          max={120}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="tabs-pad"
-        />
-      </Group>
-
-      <Group title="Layout">
+      <Group title="Defaults" value="defaults">
         <SelectField
           label="Tab alignment"
           value={config.tabsAlign || "left"}
@@ -321,6 +284,43 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="tabs-heading-size"
+        />
+        <SliderField
+          label="Vertical padding"
+          value={config.paddingY}
+          min={20}
+          max={120}
+          suffix="px"
+          onChange={(v) => onUpdate({ paddingY: v })}
+          testid="tabs-pad"
+        />
+        <ToggleField
+          label="Make wide"
+          description="Stretch background to full viewport width"
+          checked={config.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="tabs-full-bleed"
+        />
+        <div className="pt-3 mt-1 border-t border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
+        </div>
+        <ColorField
+          label="Background"
+          value={config.bgColor}
+          onChange={(v) => onUpdate({ bgColor: v })}
+          testid="tabs-bg"
+        />
+        <ColorField
+          label="Accent (active tab + heading)"
+          value={config.accentColor}
+          onChange={(v) => onUpdate({ accentColor: v })}
+          testid="tabs-accent"
+        />
+        <ColorField
+          label="Body text"
+          value={config.bodyColor}
+          onChange={(v) => onUpdate({ bodyColor: v })}
+          testid="tabs-body"
         />
       </Group>
 
