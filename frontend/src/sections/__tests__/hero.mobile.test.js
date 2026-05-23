@@ -200,14 +200,54 @@ function baseCfg(overrides = {}) {
 }
 
 // ─── Test 6: mobile image-panel gap (split) ──────────────────────────
+// The section-level `mobileImagePanelGap` still flows through as the
+// fallback inside the @media rule's `var(--ns-mig, <gap>px)` syntax —
+// per-slide overrides set `--ns-mig` on the slide root.
 {
   const cfg = baseCfg({ transition: "slide" });
   cfg.slides[0].layout = "split";
   cfg.layout.mobileImagePanelGap = 16;
   const code = hero.render(cfg);
   expect(
-    "Mobile gap=16px shows up in grid-template-columns:1fr;gap:16px",
-    code.includes("grid-template-columns:1fr;gap:16px")
+    "Section mobile gap=16px shows up as @media fallback var(--ns-mig, 16px)",
+    code.includes("gap:var(--ns-mig, 16px)")
+  );
+}
+{
+  // Per-slide override emits --ns-mig on the slide root.
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides[0].layout = "split";
+  cfg.slides[0].mobileImagePanelGap = 24;
+  cfg.layout.mobileImagePanelGap = 0;
+  const code = hero.render(cfg);
+  expect(
+    "Per-slide mobileImagePanelGap=24 → --ns-mig:24px in slide root style",
+    /class="ns-slide is-split[^"]*"[^>]*style="[^"]*--ns-mig:24px/.test(code)
+  );
+}
+{
+  // Per-slide imageSide + panelRatio emit --ns-grid-cols on slide root.
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides[0].layout = "split";
+  cfg.slides[0].imageSide = "left";
+  cfg.slides[0].panelRatio = 60;
+  cfg.layout.imageSide = "right";
+  cfg.layout.panelRatio = 50;
+  const code = hero.render(cfg);
+  expect(
+    "Per-slide imageSide=left + panelRatio=60 → --ns-grid-cols:40% 60%",
+    /--ns-grid-cols:40% 60%/.test(code)
+  );
+}
+{
+  // No per-slide override → no --ns-grid-cols on slide root (inherits
+  // section default from CSS rule's var fallback).
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides[0].layout = "split";
+  const code = hero.render(cfg);
+  expect(
+    "No per-slide split override → --ns-grid-cols NOT emitted on slide root",
+    !/class="ns-slide is-split[^"]*"[^>]*style="[^"]*--ns-grid-cols/.test(code)
   );
 }
 

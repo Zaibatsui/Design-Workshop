@@ -361,8 +361,61 @@ function mobileLayoutVars(layout) {
   return out;
 }
 
+// Per-slide split-layout resolution. Each split slide may override
+// `imageSide` (left/right), `panelRatio` (30..70 → panel column %)
+// and `mobileImagePanelGap` (0..48 px gap between image and panel
+// on mobile). Missing per-slide values fall back to the section-
+// level layout. Returns the resolved triplet — used both by
+// `splitSlideInner` for DOM ordering and by `splitSlideRootStyle`
+// for the inline `--ns-grid-cols` / `--ns-mig` CSS variables.
+function resolveSlideSplit(slide, cfg) {
+  const l = cfg.layout || {};
+  const sectionImageSide = l.imageSide === "left" ? "left" : "right";
+  const sectionRatio = Math.max(30, Math.min(70, num(l.panelRatio, 50)));
+  const sectionGap = Math.max(0, Math.min(48, num(l.mobileImagePanelGap, 0)));
+  const imageSide = slide.imageSide
+    ? slide.imageSide === "left"
+      ? "left"
+      : "right"
+    : sectionImageSide;
+  const ratio =
+    slide.panelRatio != null && slide.panelRatio !== ""
+      ? Math.max(30, Math.min(70, num(slide.panelRatio, sectionRatio)))
+      : sectionRatio;
+  const gap =
+    slide.mobileImagePanelGap != null && slide.mobileImagePanelGap !== ""
+      ? Math.max(0, Math.min(48, num(slide.mobileImagePanelGap, sectionGap)))
+      : sectionGap;
+  return { imageSide, ratio, gap, sectionImageSide, sectionRatio, sectionGap };
+}
+
+// Returns the inline `style="..."` payload for a split slide's root
+// `<div class="ns-slide is-split">`. We only emit overrides when the
+// resolved value differs from the section default — the section CSS
+// uses `var(--ns-grid-cols, <section default>)` etc. so inherited
+// values automatically pick up the section setting without bloating
+// every slide's style attribute.
+function splitSlideRootStyle(slide, cfg) {
+  const s = resolveSlideSplit(slide, cfg);
+  const parts = [];
+  if (s.imageSide !== s.sectionImageSide || s.ratio !== s.sectionRatio) {
+    const panelPct = s.ratio;
+    const imagePct = 100 - s.ratio;
+    const cols =
+      s.imageSide === "left"
+        ? `${imagePct}% ${panelPct}%`
+        : `${panelPct}% ${imagePct}%`;
+    parts.push(`--ns-grid-cols:${cols}`);
+  }
+  if (s.gap !== s.sectionGap) {
+    parts.push(`--ns-mig:${s.gap}px`);
+  }
+  return parts.join(";");
+}
+
 function splitSlideInner(slide, cfg) {
-  const imageSide = (cfg.layout || {}).imageSide === "left" ? "left" : "right";
+  const split = resolveSlideSplit(slide, cfg);
+  const imageSide = split.imageSide;
   const logo = safeUrl(slide.logo);
   const bg = safeUrl(slide.image);
   const bgMobile = safeUrl(slide.imageMobile);
@@ -446,7 +499,7 @@ function splitCss(cls, cfg) {
 .${cls} .ns-slide.is-split{padding:0;background:none;align-items:stretch;display:flex}
 .${cls} .ns-slide.is-split .ns-overlay{display:none}
 .${cls} .ns-slide.is-split .ns-content{display:none}
-.${cls} .ns-slide.is-split .ns-split-grid{display:grid;grid-template-columns:${gridCols};width:100%;height:100%;min-height:100%;align-items:stretch}
+.${cls} .ns-slide.is-split .ns-split-grid{display:grid;grid-template-columns:var(--ns-grid-cols, ${gridCols});width:100%;height:100%;min-height:100%;align-items:stretch}
 .${cls} .ns-slide.is-split .ns-panel{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;background:var(--ns-pb)}
 .${cls} .ns-slide.is-split .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 0 12px;object-fit:contain}
@@ -458,7 +511,7 @@ function splitCss(cls, cfg) {
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
-@media (max-width:767px){.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr;gap:${mobileGap}px}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;padding:24px!important;background:var(--ns-pb-m, var(--ns-pb))}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
+@media (max-width:767px){.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr;gap:var(--ns-mig, ${mobileGap}px)}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;padding:24px!important;background:var(--ns-pb-m, var(--ns-pb))}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
 `.trim();
 }
 
@@ -523,7 +576,8 @@ function renderSlide(cfg) {
   const slidesHtml = slides
     .map((slide) => {
       if (slideMode(slide) === "split") {
-        return `<div class="ns-slide is-split">${splitSlideInner(slide, cfg)}</div>`;
+        const splitStyle = splitSlideRootStyle(slide, cfg);
+        return `<div class="ns-slide is-split"${splitStyle ? ` style="${splitStyle}"` : ""}>${splitSlideInner(slide, cfg)}</div>`;
       }
       const bg = safeUrl(slide.image);
       const bgMobile = safeUrl(slide.imageMobile);
@@ -674,7 +728,8 @@ function renderFade(cfg) {
   const slidesHtml = slides
     .map((slide, i) => {
       if (slideMode(slide) === "split") {
-        return `<div class="ns-slide is-split${i === 0 ? " is-active" : ""}" data-ns-slide="${i}">${splitSlideInner(slide, cfg)}</div>`;
+        const splitStyle = splitSlideRootStyle(slide, cfg);
+        return `<div class="ns-slide is-split${i === 0 ? " is-active" : ""}" data-ns-slide="${i}"${splitStyle ? ` style="${splitStyle}"` : ""}>${splitSlideInner(slide, cfg)}</div>`;
       }
       const bg = safeUrl(slide.image);
       const bgMobile = safeUrl(slide.imageMobile);
@@ -1116,12 +1171,9 @@ function FormPanel({ config, onUpdate, previewMode }) {
     });
 
   const isFade = config.transition === "fade";
-  // "Any slide split" controls visibility of the global split-only
-  // theme + layout controls (panel colours, imageSide, panelRatio).
   // Per-slide layout selection lives inside each slide's form so a
   // single carousel can mix standard + split slides.
   const slideMode = (s) => s.layout || config.slideLayout || "standard";
-  const anySplit = (config.slides || []).some((s) => slideMode(s) === "split");
 
   return (
     <FormAccordion sectionType="hero">
@@ -1389,6 +1441,57 @@ function FormPanel({ config, onUpdate, previewMode }) {
               {slideMode(slide) === "split" && (
                 <div className="pt-2 border-t border-slate-200 mt-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                    Split panel layout (this slide)
+                  </p>
+                  <SelectField
+                    label="Image side"
+                    value={slide.imageSide || l.imageSide || "right"}
+                    onChange={(v) => updateSlide(slide.id, { imageSide: v })}
+                    options={[
+                      { value: "right", label: "Image right of text" },
+                      { value: "left", label: "Image left of text" },
+                    ]}
+                    testid={`hero-slide-image-side-${slide.id}`}
+                  />
+                  <SelectField
+                    label="Panel width"
+                    value={String(
+                      slide.panelRatio != null && slide.panelRatio !== ""
+                        ? slide.panelRatio
+                        : l.panelRatio || 50
+                    )}
+                    onChange={(v) =>
+                      updateSlide(slide.id, { panelRatio: Number(v) })
+                    }
+                    options={[
+                      { value: "40", label: "40% — image dominant" },
+                      { value: "50", label: "50% — balanced" },
+                      { value: "60", label: "60% — text dominant" },
+                    ]}
+                    testid={`hero-slide-panel-ratio-${slide.id}`}
+                  />
+                  <SliderField
+                    label="Mobile gap (image ↔ panel)"
+                    value={
+                      slide.mobileImagePanelGap != null &&
+                      slide.mobileImagePanelGap !== ""
+                        ? Number(slide.mobileImagePanelGap)
+                        : Number(l.mobileImagePanelGap) || 0
+                    }
+                    min={0}
+                    max={48}
+                    suffix="px"
+                    onChange={(v) =>
+                      updateSlide(slide.id, { mobileImagePanelGap: v })
+                    }
+                    testid={`hero-slide-mobile-gap-${slide.id}`}
+                  />
+                </div>
+              )}
+
+              {slideMode(slide) === "split" && (
+                <div className="pt-2 border-t border-slate-200 mt-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
                     Panel design override (this slide only)
                   </p>
                   <p className="text-[11px] text-slate-500 mb-2 leading-snug">
@@ -1543,183 +1646,12 @@ function FormPanel({ config, onUpdate, previewMode }) {
         </div>
       </Group>
 
-      {/* Split panel design — only rendered when at least one slide is
-        * marked "split". Groups the 6 controls that ONLY affect split
-        * slides so they're not mistaken for global hero settings. The
-        * settings still apply globally to every split slide (rather
-        * than per-slide) for visual consistency across the carousel.
-        */}
-      {anySplit && (
-        <Group title="Split panel design">
-          <p
-            className="text-xs text-slate-500 -mt-1 mb-1 leading-snug"
-            data-testid="hero-split-panel-help"
-          >
-            Applies to every slide set to <strong>Split panel</strong>{" "}
-            layout. Standard slides ignore these settings.
-          </p>
-          <SelectField
-            label="Image side"
-            value={l.imageSide || "right"}
-            onChange={(v) => setLayout({ imageSide: v })}
-            options={[
-              { value: "right", label: "Image right of text" },
-              { value: "left", label: "Image left of text" },
-            ]}
-            testid="hero-image-side"
-          />
-          <SelectField
-            label="Panel width"
-            value={String(l.panelRatio || 50)}
-            onChange={(v) => setLayout({ panelRatio: Number(v) })}
-            options={[
-              { value: "40", label: "40% — image dominant" },
-              { value: "50", label: "50% — balanced" },
-              { value: "60", label: "60% — text dominant" },
-            ]}
-            testid="hero-panel-ratio"
-          />
-          <SelectField
-            label="Panel background"
-            value={t.panelBgType || "solid"}
-            onChange={(v) => setTheme({ panelBgType: v })}
-            options={[
-              { value: "solid", label: "Solid colour" },
-              { value: "gradient", label: "Linear gradient" },
-            ]}
-            testid="hero-panel-bg-type"
-          />
-          {(t.panelBgType || "solid") === "gradient" ? (
-            <>
-              <ColorField
-                label="Gradient from"
-                value={t.panelGradientFrom}
-                onChange={(v) => setTheme({ panelGradientFrom: v })}
-                testid="hero-panel-grad-from"
-              />
-              <ColorField
-                label="Gradient to"
-                value={t.panelGradientTo}
-                onChange={(v) => setTheme({ panelGradientTo: v })}
-                testid="hero-panel-grad-to"
-              />
-              <SliderField
-                label="Gradient angle"
-                value={t.panelGradientAngle ?? 135}
-                min={0}
-                max={360}
-                step={5}
-                suffix="°"
-                onChange={(v) => setTheme({ panelGradientAngle: v })}
-                testid="hero-panel-grad-angle"
-              />
-            </>
-          ) : (
-            <ColorField
-              label="Panel colour"
-              value={t.panelBg}
-              onChange={(v) => setTheme({ panelBg: v })}
-              testid="hero-panel-bg"
-            />
-          )}
-
-          {/* Mobile override — sets a different panel background under
-            * (max-width:767px). Defaults to "Inherit desktop"; choose a
-            * type to reveal the matching colour fields. Applies globally
-            * to every split slide, matching the desktop scope.
-            */}
-          <div className="pt-2 border-t border-slate-200 mt-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
-              Mobile override (≤767px)
-            </p>
-            <SelectField
-              label="Mobile panel background"
-              value={t.panelBgTypeMobile || ""}
-              onChange={(v) => {
-                const patch = { panelBgTypeMobile: v };
-                if (v === "solid" && !t.panelBgMobile) {
-                  patch.panelBgMobile = t.panelBg || "#1f2937";
-                }
-                if (v === "gradient") {
-                  if (!t.panelGradientFromMobile)
-                    patch.panelGradientFromMobile =
-                      t.panelGradientFrom || "#E01839";
-                  if (!t.panelGradientToMobile)
-                    patch.panelGradientToMobile =
-                      t.panelGradientTo || "#1f2937";
-                  if (t.panelGradientAngleMobile == null)
-                    patch.panelGradientAngleMobile =
-                      t.panelGradientAngle ?? 135;
-                }
-                setTheme(patch);
-              }}
-              options={[
-                { value: "", label: "Inherit desktop" },
-                { value: "solid", label: "Solid colour" },
-                { value: "gradient", label: "Linear gradient" },
-              ]}
-              testid="hero-panel-bg-type-mobile"
-            />
-            {t.panelBgTypeMobile === "solid" && (
-              <ColorField
-                label="Mobile panel colour"
-                value={t.panelBgMobile || t.panelBg || "#1f2937"}
-                onChange={(v) => setTheme({ panelBgMobile: v })}
-                testid="hero-panel-bg-mobile"
-              />
-            )}
-            {t.panelBgTypeMobile === "gradient" && (
-              <>
-                <ColorField
-                  label="Mobile gradient from"
-                  value={
-                    t.panelGradientFromMobile ||
-                    t.panelGradientFrom ||
-                    "#E01839"
-                  }
-                  onChange={(v) =>
-                    setTheme({ panelGradientFromMobile: v })
-                  }
-                  testid="hero-panel-grad-from-mobile"
-                />
-                <ColorField
-                  label="Mobile gradient to"
-                  value={
-                    t.panelGradientToMobile || t.panelGradientTo || "#1f2937"
-                  }
-                  onChange={(v) => setTheme({ panelGradientToMobile: v })}
-                  testid="hero-panel-grad-to-mobile"
-                />
-                <SliderField
-                  label="Mobile gradient angle"
-                  value={
-                    t.panelGradientAngleMobile ??
-                    t.panelGradientAngle ??
-                    135
-                  }
-                  min={0}
-                  max={360}
-                  step={5}
-                  suffix="°"
-                  onChange={(v) =>
-                    setTheme({ panelGradientAngleMobile: v })
-                  }
-                  testid="hero-panel-grad-angle-mobile"
-                />
-              </>
-            )}
-            <SliderField
-              label="Mobile gap (image ↔ panel)"
-              value={Number(l.mobileImagePanelGap) || 0}
-              min={0}
-              max={48}
-              suffix="px"
-              onChange={(v) => setLayout({ mobileImagePanelGap: v })}
-              testid="hero-mobile-image-panel-gap"
-            />
-          </div>
-        </Group>
-      )}
+      {/* Section-wide "Split panel design" group was retired in favour
+        * of per-slide controls. The renderer still reads
+        * `cfg.layout.imageSide / panelRatio / mobileImagePanelGap` and
+        * `cfg.theme.panelBgType*` as defaults if individual slides
+        * don't override — so legacy saved sections render identically.
+        * Editing now happens inside each split slide's own form. */}
 
       {/* Carousel controls were merged into "Section / Carousel" at
         * the top of the form. This bottom slot is intentionally empty;
