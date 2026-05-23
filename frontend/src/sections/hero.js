@@ -1125,7 +1125,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
 
   return (
     <FormAccordion sectionType="hero">
-      <Group title="Section">
+      <Group title="Section / Carousel" value="section-carousel">
         <SelectField
           label="Transition"
           value={config.transition}
@@ -1152,6 +1152,65 @@ function FormPanel({ config, onUpdate, previewMode }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="hero-full-bleed"
         />
+        {config.slides.length > 1 && (
+          <div className="pt-2 border-t border-slate-200 mt-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+              Carousel behaviour
+            </p>
+            <p
+              className="text-[11px] text-slate-500 mb-2 leading-snug"
+              data-testid="hero-carousel-help"
+            >
+              Applies to the slideshow as a whole — not to individual slides.
+            </p>
+            <ToggleField
+              label="Autoplay"
+              checked={s.autoplay}
+              onChange={(v) => setSettings({ autoplay: v })}
+              testid="hero-autoplay"
+            />
+            <SliderField
+              label="Interval"
+              value={s.interval}
+              min={2000}
+              max={12000}
+              step={500}
+              suffix="ms"
+              onChange={(v) => setSettings({ interval: v })}
+              testid="hero-interval"
+              disabled={!s.autoplay}
+            />
+            <ToggleField
+              label="Pause on hover"
+              checked={s.pauseOnHover !== false}
+              onChange={(v) => setSettings({ pauseOnHover: v })}
+              testid="hero-pause-on-hover"
+            />
+            <SelectField
+              label="Arrows"
+              value={
+                s.arrowsVisibility ||
+                (s.showArrows === false ? "never" : "always")
+              }
+              onChange={(v) =>
+                setSettings({ arrowsVisibility: v, showArrows: v !== "never" })
+              }
+              options={[
+                { value: "always", label: "Always show" },
+                { value: "desktop", label: "Desktop only" },
+                { value: "mobile", label: "Mobile only" },
+                { value: "never", label: "Never show" },
+              ]}
+              testid="hero-arrows-visibility"
+            />
+            <ToggleField
+              label="Dots"
+              checked={s.showDots}
+              onChange={(v) => setSettings({ showDots: v })}
+              testid="hero-dots"
+            />
+          </div>
+        )}
       </Group>
 
       <Group title={`Slides (${config.slides.length})`} value="slides">
@@ -1336,8 +1395,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
                     Leave at "Inherit" to use the section's "Split panel
                     design" defaults. Pick a type here to override just
                     this slide's panel.
-                  </p>
-                  <SelectField
+                  </p>                  <SelectField
                     label="Background type"
                     value={slide.panelBgType || ""}
                     onChange={(v) => {
@@ -1413,12 +1471,42 @@ function FormPanel({ config, onUpdate, previewMode }) {
                   )}
                 </div>
               )}
+
+              {/* Standard-layout overlay — full-image slides darken the
+                * image with an overlay layer. The controls live here
+                * inside the slide form (rather than at section level)
+                * so users find them while editing the slide. Values
+                * still apply globally to every standard slide for
+                * visual consistency; the hint makes that explicit. */}
+              {slideMode(slide) !== "split" && (
+                <div className="pt-2 border-t border-slate-200 mt-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                    Overlay
+                  </p>
+                  <p className="text-[11px] text-slate-500 mb-2 leading-snug">
+                    Applies to every full-image slide. Switch viewport to
+                    mobile to edit mobile-specific overrides.
+                  </p>
+                  {previewMode === "mobile" ? (
+                    <OverlayControlsMobile theme={t} setTheme={setTheme} />
+                  ) : (
+                    <OverlayControlsDesktop theme={t} setTheme={setTheme} />
+                  )}
+                </div>
+              )}
             </>
           )}
         />
       </Group>
 
-      <Group title="Theme">
+      <Group title="Slide defaults" value="slide-defaults">
+        <p
+          className="text-xs text-slate-500 -mt-1 mb-1 leading-snug"
+          data-testid="hero-slide-defaults-help"
+        >
+          These values apply to every slide as a baseline. Many can be
+          overridden inside an individual slide.
+        </p>
         <ColorField
           label="Title color"
           value={t.titleColor}
@@ -1443,22 +1531,16 @@ function FormPanel({ config, onUpdate, previewMode }) {
           onChange={(v) => setTheme({ ctaText: v })}
           testid="hero-cta-text"
         />
-      </Group>
-
-      <Group title="Overlay" value="overlay">
-        {previewMode === "mobile" ? (
-          <OverlayControlsMobile theme={t} setTheme={setTheme} />
-        ) : (
-          <OverlayControlsDesktop theme={t} setTheme={setTheme} />
-        )}
-      </Group>
-
-      <Group title="Layout">
-        {previewMode === "mobile" ? (
-          <LayoutControlsMobile layout={l} setLayout={setLayout} />
-        ) : (
-          <LayoutControlsDesktop layout={l} setLayout={setLayout} />
-        )}
+        <div className="pt-2 border-t border-slate-200 mt-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+            Layout
+          </p>
+          {previewMode === "mobile" ? (
+            <LayoutControlsMobile layout={l} setLayout={setLayout} />
+          ) : (
+            <LayoutControlsDesktop layout={l} setLayout={setLayout} />
+          )}
+        </div>
       </Group>
 
       {/* Split panel design — only rendered when at least one slide is
@@ -1639,65 +1721,10 @@ function FormPanel({ config, onUpdate, previewMode }) {
         </Group>
       )}
 
-      {/* Carousel controls — only relevant with 2+ slides. Single-slide
-        * heroes never auto-advance and have nothing to flip between, so
-        * the autoplay / arrows / dots controls would just be noise. */}
-      {config.slides.length > 1 && (
-        <Group title="Carousel">
-          <p
-            className="text-xs text-slate-500 -mt-1 mb-1 leading-snug"
-            data-testid="hero-carousel-help"
-          >
-            Applies to the slideshow as a whole — not to individual slides.
-          </p>
-          <ToggleField
-            label="Autoplay"
-            checked={s.autoplay}
-            onChange={(v) => setSettings({ autoplay: v })}
-            testid="hero-autoplay"
-          />
-          <SliderField
-            label="Interval"
-            value={s.interval}
-            min={2000}
-            max={12000}
-            step={500}
-            suffix="ms"
-            onChange={(v) => setSettings({ interval: v })}
-            testid="hero-interval"
-            disabled={!s.autoplay}
-          />
-          <ToggleField
-            label="Pause on hover"
-            checked={s.pauseOnHover !== false}
-            onChange={(v) => setSettings({ pauseOnHover: v })}
-            testid="hero-pause-on-hover"
-          />
-          <SelectField
-            label="Arrows"
-            value={
-              s.arrowsVisibility ||
-              (s.showArrows === false ? "never" : "always")
-            }
-            onChange={(v) =>
-              setSettings({ arrowsVisibility: v, showArrows: v !== "never" })
-            }
-            options={[
-              { value: "always", label: "Always show" },
-              { value: "desktop", label: "Desktop only" },
-              { value: "mobile", label: "Mobile only" },
-              { value: "never", label: "Never show" },
-            ]}
-            testid="hero-arrows-visibility"
-          />
-          <ToggleField
-            label="Dots"
-            checked={s.showDots}
-            onChange={(v) => setSettings({ showDots: v })}
-            testid="hero-dots"
-          />
-        </Group>
-      )}
+      {/* Carousel controls were merged into "Section / Carousel" at
+        * the top of the form. This bottom slot is intentionally empty;
+        * left as a comment so reviewers see the intent rather than
+        * wondering where the carousel group went. */}
     </FormAccordion>
   );
 }
