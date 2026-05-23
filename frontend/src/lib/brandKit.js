@@ -153,6 +153,7 @@ const FIELD_MAP = {
     bodyColor: b.body_color,
     background: b.background_color,
     primaryColor: pick(b, "button_color"),
+    buttonRadius: b.button_radius ?? 8,
     font: b.heading_font,
   }),
   products: (cfg, b) => ({
@@ -282,6 +283,7 @@ const FIELD_MAP = {
     subtitleColor: b.background_color,
     ctaBg: pick(b, "button_color"),
     ctaTextColor: b.background_color,
+    buttonRadius: b.button_radius ?? 8,
     font: b.heading_font,
   }),
 };
