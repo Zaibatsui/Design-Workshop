@@ -29,7 +29,7 @@ export function TextField({ label, value, onChange, placeholder, testid }) {
   );
 }
 
-export function TextAreaField({ label, value, onChange, rows = 2, testid }) {
+export function TextAreaField({ label, value, onChange, rows = 2, testid, hint }) {
   return (
     <div>
       <Label className={labelCls}>{label}</Label>
@@ -40,6 +40,9 @@ export function TextAreaField({ label, value, onChange, rows = 2, testid }) {
         rows={rows}
         className="mt-1.5 resize-none"
       />
+      {hint && (
+        <p className="text-[11px] text-slate-500 mt-1 leading-snug">{hint}</p>
+      )}
     </div>
   );
 }

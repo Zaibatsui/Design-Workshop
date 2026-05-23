@@ -123,7 +123,7 @@ ${baseReset(cls)}
 .${cls} .ns-inner{max-width:var(--ns-max);margin:0 auto;text-align:var(--ns-align)}
 .${cls} .ns-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color)}
 .${cls} .ns-h{margin:0 0 14px;font-size:var(--ns-size);font-weight:var(--ns-weight);line-height:1.3;color:var(--ns-h-color)}
-.${cls} .ns-p{margin:0 0 24px;font-size:16px;line-height:1.55;color:var(--ns-b-color)}
+.${cls} .ns-p{margin:0 0 24px;font-size:16px;line-height:1.55;color:var(--ns-b-color);white-space:pre-line}
 .${cls} .ns-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:var(--ns-btn-justify,center)}
 .${cls}[style*="--ns-align:left"] .ns-btns,.${cls} .ns-inner[style*="text-align:left"] .ns-btns{justify-content:flex-start}
 .${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:${num(cfg.buttonRadius, 8)}px;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:.01em;transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease;border:1px solid transparent}
@@ -167,7 +167,8 @@ function FormPanel({ config, onUpdate }) {
           label="Body (optional)"
           value={config.body}
           onChange={(v) => onUpdate({ body: v })}
-          rows={3}
+          rows={4}
+          hint="Press Enter for a line break, blank line for a paragraph gap."
           testid="content-body"
         />
       </Group>
