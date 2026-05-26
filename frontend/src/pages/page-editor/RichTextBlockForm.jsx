@@ -77,16 +77,6 @@ function LayoutFields({ cfg, setCfg }) {
         Layout
       </h3>
       <SliderField
-        label="Max width"
-        value={cfg.maxWidth ?? 1200}
-        min={480}
-        max={1200}
-        step={20}
-        unit="px"
-        onChange={(v) => setCfg({ maxWidth: v })}
-        testid="rt-maxwidth"
-      />
-      <SliderField
         label="Vertical padding"
         value={cfg.padY ?? 48}
         min={0}
