@@ -5,10 +5,10 @@
  */
 import ColorField from "@/components/ColorField";
 import {
-  SliderField,
   SelectField,
   ToggleField,
 } from "@/components/FormFields";
+import PaddingFields from "@/components/PaddingFields";
 import RichTextEditor from "@/components/RichTextEditor";
 
 export default function RichTextBlockForm({ block, onUpdate }) {
@@ -76,15 +76,13 @@ function LayoutFields({ cfg, setCfg }) {
       <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
         Layout
       </h3>
-      <SliderField
-        label="Vertical padding"
-        value={cfg.padY ?? 48}
+      <PaddingFields
+        config={{ ...cfg, paddingY: cfg.paddingY ?? cfg.padY }}
+        onUpdate={setCfg}
+        defaultValue={48}
         min={0}
         max={160}
-        step={4}
-        unit="px"
-        onChange={(v) => setCfg({ padY: v })}
-        testid="rt-pady"
+        testidPrefix="rt"
       />
       <SelectField
         label="Alignment"

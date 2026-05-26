@@ -5,13 +5,13 @@
  * Kept intentionally separate from registry.js SECTIONS: rich text is only a
  * block type inside Pages (not a standalone library section).
  */
-import { FONT_IMPORT, baseReset, escHtml, fullBleedClass, makeUid, wrapSnippet } from "./shared";
+import { FONT_IMPORT, baseReset, escHtml, fullBleedClass, makeUid, padTopOf, padBotOf, wrapSnippet } from "./shared";
 
 const ID = "richtext";
 
 const defaults = () => ({
   html: "<h2>New section</h2><p>Write something compelling.</p>",
-  padY: 48, // px vertical padding
+  padY: 48, // px legacy single-value padding (still read as fallback)
   bg: "#ffffff",
   fg: "#1f2937",
   accent: "#E01839",
@@ -22,7 +22,6 @@ const defaults = () => ({
 function render(cfg = {}) {
   const {
     html = "",
-    padY = 48,
     bg = "#ffffff",
     fg = "#1f2937",
     accent = "#E01839",
@@ -31,10 +30,16 @@ function render(cfg = {}) {
   } = cfg;
   const uid = cfg.uid || makeUid();
   const cls = `ns-richtext-${uid}`;
+  // Resolve top/bottom padding through paddingTop → paddingY → padY → 48.
+  // The legacy `padY` field stays read-only here for blocks created before
+  // the top/bottom sliders shipped.
+  const padCfg = { ...cfg, paddingY: cfg.paddingY ?? cfg.padY };
+  const padTop = padTopOf(padCfg, 48);
+  const padBot = padBotOf(padCfg, 48);
 
   const css = `
 ${baseReset(cls)}
-.${cls}{background:${bg};color:${fg};padding:${Number(padY) || 0}px 20px}
+.${cls}{background:${bg};color:${fg};padding:${padTop}px 20px ${padBot}px}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
 .${cls} h2{font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.2;margin:24px 0 14px}
