@@ -34,8 +34,8 @@ function render(cfg = {}) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{background:${bg};color:${fg};padding:${Number(padY) || 0}px 24px}
-.${cls}-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
+.${cls}{background:${bg};color:${fg};padding:${Number(padY) || 0}px 20px}
+.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
 .${cls} h2{font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.2;margin:24px 0 14px}
 .${cls} h3{font-size:18px;font-weight:600;letter-spacing:0;line-height:1.3;margin:18px 0 10px}
@@ -48,8 +48,8 @@ ${baseReset(cls)}
 .${cls} ul{list-style:disc!important}
 .${cls} ol{list-style:decimal!important}
 .${cls} li{margin:0 0 6px;line-height:1.6}
-.${cls} > :first-child,.${cls}-inner > :first-child{margin-top:0}
-.${cls} > :last-child,.${cls}-inner > :last-child{margin-bottom:0}
+.${cls} .ns-inner > :first-child{margin-top:0}
+.${cls} .ns-inner > :last-child{margin-bottom:0}
 `.trim();
 
   // Richtext html is stored verbatim — users can embed <script>, <iframe>,
@@ -58,7 +58,7 @@ ${baseReset(cls)}
   // entirely we fall back to an empty string.
   const safe = String(html || "");
 
-  const htmlOut = `<section class="${cls}${fullBleedClass(cfg)}"><div class="${cls}-inner">${safe}</div></section>`;
+  const htmlOut = `<section class="${cls}${fullBleedClass(cfg)}"><div class="ns-inner">${safe}</div></section>`;
   return wrapSnippet({ html: htmlOut, css, js: "" });
 }
 
