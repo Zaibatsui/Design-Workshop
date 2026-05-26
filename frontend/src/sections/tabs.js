@@ -55,6 +55,8 @@ const defaults = () => ({
   accentColor: "#E01839",
   bodyColor: "#333333",
   paddingY: 60,
+  paddingTop: 60,
+  paddingBottom: 60,
   fullBleed: false,
   // Tab-row horizontal alignment: "left" | "center" | "right".
   tabsAlign: "left",

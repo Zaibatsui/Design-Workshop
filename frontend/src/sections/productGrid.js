@@ -65,6 +65,8 @@ const defaults = () => ({
   hoverBorder: "#E01839",
   columns: 4,
   paddingY: 60,
+  paddingTop: 60,
+  paddingBottom: 60,
   fullBleed: false,
   textAlign: "left",
   currencyOverride: "",

@@ -38,6 +38,8 @@ const defaults = () => ({
   itemWidth: 140,
   itemGap: 24,
   paddingY: 30,
+  paddingTop: 30,
+  paddingBottom: 30,
   bgColor: "#ffffff",
   accentColor: "#E01839",
   fullBleed: true,

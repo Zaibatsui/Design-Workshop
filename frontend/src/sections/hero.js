@@ -12,6 +12,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -29,6 +31,7 @@ import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "hero";
 
 const defaults = () => ({
@@ -91,6 +94,9 @@ const defaults = () => ({
   },
   layout: {
     height: 520,
+    // Outer spacing (external whitespace above/below this section)
+    paddingTop: 0,
+    paddingBottom: 0,
     contentMaxWidth: 1200,
     textAlign: "left",
     // "" = inherit the desktop alignment on mobile. When set to
@@ -935,7 +941,11 @@ ${dotsHtml}
 }
 
 function render(cfg) {
-  return cfg.transition === "fade" ? renderFade(cfg) : renderSlide(cfg);
+  const inner = cfg.transition === "fade" ? renderFade(cfg) : renderSlide(cfg);
+  const padTop = padTopOf(cfg.layout || {}, 0);
+  const padBot = padBotOf(cfg.layout || {}, 0);
+  if (!padTop && !padBot) return inner;
+  return `<div style="padding-top:${padTop}px;padding-bottom:${padBot}px">${inner}</div>`;
 }
 
 // Overlay form controls. Two sibling components — Desktop and Mobile —
@@ -1325,6 +1335,14 @@ function LayoutControlsDesktop({ layout, setLayout }) {
           testid="hero-radius"
         />
       )}
+      <PaddingFields
+        config={layout}
+        onUpdate={setLayout}
+        defaultValue={0}
+        min={0}
+        max={160}
+        testidPrefix="hero"
+      />
     </>
   );
 }

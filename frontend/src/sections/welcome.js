@@ -22,6 +22,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -38,6 +40,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "welcome";
 
 const POSITION_OPTIONS = [
@@ -91,6 +94,9 @@ const defaults = () => ({
   // Layout / theme
   height: 320,
   fullBleed: false,
+  // Outer spacing (external whitespace above/below this section)
+  paddingTop: 0,
+  paddingBottom: 0,
   image:
     "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600&auto=format&fit=crop",
   overlayColor: "#0f172a",
@@ -205,7 +211,11 @@ ${baseReset(cls)}
 </section>`;
 
   const js = iife(cls, `/* static */`);
-  return wrapSnippet({ html, css, js });
+  const out = wrapSnippet({ html, css, js });
+  const padTop = padTopOf(cfg, 0);
+  const padBot = padBotOf(cfg, 0);
+  if (!padTop && !padBot) return out;
+  return `<div style="padding-top:${padTop}px;padding-bottom:${padBot}px">${out}</div>`;
 }
 
 function FormPanel({ config, onUpdate }) {
@@ -268,6 +278,14 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="welcome-heading-size"
+        />
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={0}
+          min={0}
+          max={160}
+          testidPrefix="welcome"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>

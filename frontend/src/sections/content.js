@@ -46,6 +46,8 @@ const defaults = () => ({
   textAlign: "center",
   background: "#ffffff",
   paddingY: 60,
+  paddingTop: 60,
+  paddingBottom: 60,
   maxWidth: 1200,
   primaryColor: "#E01839",
   buttons: [],

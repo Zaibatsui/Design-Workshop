@@ -27,6 +27,8 @@ import {
   fullBleedClass,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -43,6 +45,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "split-banner";
 
 const defaults = () => ({
@@ -68,6 +71,9 @@ const defaults = () => ({
   height: 420, // px — min-height of the banner
   contentMaxWidth: 1200, // matches the host site's content gutter
   fullBleed: false,
+  // Outer spacing (external whitespace above/below this section)
+  paddingTop: 0,
+  paddingBottom: 0,
   // Outer border radius — rounds both the panel and image corners
   // together (the section already has overflow:hidden). Disabled when
   // fullBleed because the banner runs edge-to-edge.
@@ -181,7 +187,11 @@ ${baseReset(cls)}
 @media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;height:auto;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:220px;height:220px}.${cls} .ns-panel{order:2;padding:32px 24px!important;height:auto}.${cls} .ns-panel-inner{max-width:none;margin:0!important}}
 `.trim();
 
-  return wrapSnippet({ html, css, js: "" });
+  const out = wrapSnippet({ html, css, js: "" });
+  const padTop = padTopOf(cfg, 0);
+  const padBot = padBotOf(cfg, 0);
+  if (!padTop && !padBot) return out;
+  return `<div style="padding-top:${padTop}px;padding-bottom:${padBot}px">${out}</div>`;
 }
 
 function FormPanel({ config, onUpdate }) {
@@ -321,6 +331,14 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ height: v })}
           testid="split-height"
+        />
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={0}
+          min={0}
+          max={160}
+          testidPrefix="split"
         />
         <SliderField
           label="Content max width"

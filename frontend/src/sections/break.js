@@ -10,6 +10,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -20,6 +22,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "break";
 
 const defaults = () => ({
@@ -31,6 +34,9 @@ const defaults = () => ({
   eyebrowColor: "#ffffff",
   fontSize: 34,
   height: 280,
+  // Outer spacing (external whitespace above/below this section)
+  paddingTop: 0,
+  paddingBottom: 0,
   // Background style — "image" is the classic Break Banner (photo +
   // overlay), "solid" / "gradient" produce on-brand colour-only
   // dividers. Image-mode keeps the existing overlay controls; the
@@ -101,7 +107,11 @@ ${baseReset(cls)}
 </section>`;
 
   const js = iife(cls, `/* static */`);
-  return wrapSnippet({ html, css, js });
+  const out = wrapSnippet({ html, css, js });
+  const padTop = padTopOf(cfg, 0);
+  const padBot = padBotOf(cfg, 0);
+  if (!padTop && !padBot) return out;
+  return `<div style="padding-top:${padTop}px;padding-bottom:${padBot}px">${out}</div>`;
 }
 
 function FormPanel({ config, onUpdate }) {
@@ -149,6 +159,14 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ height: v })}
           testid="break-h"
+        />
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={0}
+          min={0}
+          max={160}
+          testidPrefix="break"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>

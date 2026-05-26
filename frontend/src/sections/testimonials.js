@@ -59,6 +59,8 @@ const defaults = () => ({
   cardWidth: 340,
   cardGap: 24,
   paddingY: 72,
+  paddingTop: 72,
+  paddingBottom: 72,
   showRatings: true,
   fullBleed: true,
   items: [

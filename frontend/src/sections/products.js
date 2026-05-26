@@ -69,6 +69,8 @@ const defaults = () => ({
   autoplayInterval: 4000,
   pauseOnHover: true,
   paddingY: 60,
+  paddingTop: 60,
+  paddingBottom: 60,
   fullBleed: false,
   // Heading + eyebrow alignment across the section width.
   // "left" | "center" | "right" — defaults to left so new sections

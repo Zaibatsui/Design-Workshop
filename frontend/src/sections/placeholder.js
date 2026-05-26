@@ -61,6 +61,8 @@ const defaults = () => ({
   bgColor: "#fafafa",
   borderRadius: 6,
   paddingY: 60,
+  paddingTop: 60,
+  paddingBottom: 60,
   gap: 20,
   fullBleed: false,
   items: SEED_IMAGES.map(seedItem),

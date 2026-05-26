@@ -72,6 +72,8 @@ const defaults = () => ({
   cardHeadingColor: "#1f1f1f",
   columns: 2,
   paddingY: 60,
+  paddingTop: 60,
+  paddingBottom: 60,
   fullBleed: false,
   // Heading + eyebrow alignment across the section width.
   // "left" | "center" | "right" — defaults to left so new sections

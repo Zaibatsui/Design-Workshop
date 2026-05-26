@@ -49,6 +49,8 @@ const STUBS = new Set([
   "@/components/ColorField",
   "@/components/ImageUpload",
   "@/components/ListEditor",
+  "@/components/PaddingFields",
+  "@/components/FooterLinkEditor",
   "@/components/ui/label",
   "@/components/FormGroup",
   "lucide-react",

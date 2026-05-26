@@ -56,6 +56,8 @@ const defaults = () => ({
   bodyColor: "#cbd5e1",
   accentColor: "#E01839",
   paddingY: 96,
+  paddingTop: 96,
+  paddingBottom: 96,
   fullBleed: false,
   borderRadius: 0,
   textAlign: "center", // "left" | "center"

@@ -53,6 +53,8 @@ const defaults = () => ({
   bodyColor: "#475569",
   accentColor: "#E01839",
   paddingY: 80,
+  paddingTop: 80,
+  paddingBottom: 80,
   fullBleed: false,
   // Behaviour
   singleOpen: false, // close siblings when opening

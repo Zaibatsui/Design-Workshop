@@ -59,6 +59,8 @@ const defaults = () => ({
   bodyColor: "#64748b",
   accentColor: "#E01839",
   paddingY: 80,
+  paddingTop: 80,
+  paddingBottom: 80,
   fullBleed: false,
   // Layout
   columns: 4, // 2 | 3 | 4

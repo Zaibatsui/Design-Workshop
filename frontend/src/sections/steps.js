@@ -47,6 +47,8 @@ const defaults = () => ({
   bodyColor: "#64748b",
   accentColor: "#E01839",
   paddingY: 80,
+  paddingTop: 80,
+  paddingBottom: 80,
   fullBleed: false,
   // Layout
   layout: "horizontal", // "horizontal" | "vertical"
