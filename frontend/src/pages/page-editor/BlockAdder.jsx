@@ -3,9 +3,10 @@
  * Offers three sources: a fresh section type, a snapshot from the user's
  * library sections, or a rich-text block.
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Layers, Type } from "lucide-react";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
+import { computeBadges } from "@/lib/sectionBadges";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 
 export default function BlockAdder({
@@ -78,17 +79,37 @@ export default function BlockAdder({
 }
 
 function NewSectionGrid({ onPick }) {
+  // Compute badges once per mount — the dates are static config, not
+  // user state, so memoising at the component level is enough.
+  const badges = useMemo(() => computeBadges(SECTIONS), []);
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
       {SECTIONS.map((s) => {
         const Icon = s.icon;
+        const badge = badges[s.id];
         return (
           <button
             key={s.id}
             data-testid={`adder-new-${s.id}`}
             onClick={() => onPick(s.id)}
-            className="text-left p-4 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+            className="relative text-left p-4 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
           >
+            {badge === "new" && (
+              <span
+                data-testid={`adder-badge-new-${s.id}`}
+                className="absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-emerald-500 text-white"
+              >
+                New
+              </span>
+            )}
+            {badge === "updated" && (
+              <span
+                data-testid={`adder-badge-updated-${s.id}`}
+                className="absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-amber-500 text-white"
+              >
+                Updated
+              </span>
+            )}
             <Icon className="w-5 h-5 text-[#E01839] mb-2" />
             <p className="text-sm font-medium text-slate-900">{s.name}</p>
             <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">

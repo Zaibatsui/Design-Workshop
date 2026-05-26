@@ -17,6 +17,12 @@ import { welcome } from "./welcome";
 import { splitBanner } from "./splitBanner";
 import { featuredCard } from "./featuredCard";
 import { trustStrip } from "./trustStrip";
+import { metaFor } from "./sectionMeta";
+
+// Attach `addedOn` / `updatedOn` metadata to each section so the
+// Add-Section picker can compute NEW / UPDATED badges automatically.
+// Single source of truth: `sectionMeta.js`.
+const withMeta = (s) => ({ ...s, ...metaFor(s.id) });
 
 export const SECTIONS = [
   hero,
@@ -38,7 +44,7 @@ export const SECTIONS = [
   logos,
   breakBanner,
   tabs,
-];
+].map(withMeta);
 
 export const SECTIONS_BY_ID = Object.fromEntries(
   SECTIONS.map((s) => [s.id, s])

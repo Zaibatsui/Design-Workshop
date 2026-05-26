@@ -258,6 +258,104 @@ export const PAGE_TEMPLATES = [
       section("products"),
     ],
   },
+  {
+    id: "service-landing",
+    name: "Service landing",
+    description:
+      "Problem → solution → trust → process → CTA. A complete B2B service narrative built from Featured Card, Split Banner and Trust Strip.",
+    icon: Sparkles,
+    blocks: [
+      // 1 — Problem hero. Photo background + glass card with 3 pain points.
+      section("featured-card", {
+        eyebrow: "THE CHALLENGE",
+        heading: "IT problems slowing your team down?",
+        accentHeading: "slowing your team down?",
+        subheading:
+          "Most businesses lose hours every week to avoidable IT friction. Here's what's usually behind it.",
+        cardPosition: "cl",
+        height: 600,
+        overlayOpacity: 0.45,
+        points: [
+          { id: makeUid(), icon: "clock", title: "Slow response times", body: "Tickets that drag on for days while productivity stalls." },
+          { id: makeUid(), icon: "shield", title: "Security blind spots", body: "Gaps in coverage that put data and compliance at risk." },
+          { id: makeUid(), icon: "chart", title: "Unpredictable costs", body: "Surprise invoices and unclear roadmaps that make budgeting impossible." },
+        ],
+        showCta: false,
+      }),
+
+      // 2 — Solution split banner with feature-points mode enabled.
+      section("split-banner", {
+        eyebrow: "OUR SOLUTION",
+        heading: "Proactive IT support that pays for itself.",
+        subheading:
+          "We handle the day-to-day so your team can focus on the work that actually moves the business forward.",
+        imageSide: "left",
+        height: 480,
+        showPoints: true,
+        points: [
+          { id: makeUid(), icon: "zap", title: "Same-day response", body: "Direct line to a senior engineer — no ticket queues." },
+          { id: makeUid(), icon: "lock", title: "Built-in security", body: "Patching, monitoring and backups included as standard." },
+          { id: makeUid(), icon: "check", title: "Fixed monthly fee", body: "One predictable invoice. No surprises, no scope creep." },
+        ],
+        ctaText: "See pricing",
+        ctaLink: "#",
+      }),
+
+      // 3 — Trust strip with 4 credibility callouts.
+      section("trust-strip", {
+        columns: 4,
+        items: [
+          { id: makeUid(), icon: "shield", title: "Established & reliable", body: "20+ years supporting UK businesses." },
+          { id: makeUid(), icon: "users", title: "Trusted by hundreds", body: "Long-term partners across sectors." },
+          { id: makeUid(), icon: "star", title: "5-star service", body: "Consistent feedback from happy customers." },
+          { id: makeUid(), icon: "clock", title: "Always available", body: "24/7 support when you need it most." },
+        ],
+      }),
+
+      // 4 — Process featured card on a photo. Three steps with icons.
+      section("featured-card", {
+        eyebrow: "HOW IT WORKS",
+        heading: "A three-step path to a quieter inbox.",
+        accentHeading: "quieter inbox.",
+        subheading:
+          "From the first call to a fully managed environment, here's how we work with you.",
+        cardPosition: "cr",
+        height: 600,
+        overlayOpacity: 0.4,
+        image:
+          "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600&auto=format&fit=crop",
+        points: [
+          { id: makeUid(), icon: "rocket", title: "1. Discovery call", body: "We learn how your team works and where the friction lives." },
+          { id: makeUid(), icon: "palette", title: "2. Tailored plan", body: "A clear roadmap with timelines, fixed costs and quick wins." },
+          { id: makeUid(), icon: "check", title: "3. Ongoing partnership", body: "We become your IT team — proactively, not just when things break." },
+        ],
+        showCta: false,
+      }),
+
+      // 5 — Final CTA featured card with 3 benefits + button.
+      section("featured-card", {
+        eyebrow: "READY TO GET STARTED?",
+        heading: "Let's give your team an IT setup they actually like.",
+        accentHeading: "actually like.",
+        subheading:
+          "Book a free 30-minute call. No commitment, no sales pressure — just a chat about what would make the biggest difference.",
+        cardPosition: "cc",
+        height: 560,
+        overlayOpacity: 0.55,
+        cardMaxWidth: 640,
+        image:
+          "https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1600&auto=format&fit=crop",
+        points: [
+          { id: makeUid(), icon: "zap", title: "Fast onboarding", body: "Up and running in days, not months." },
+          { id: makeUid(), icon: "users", title: "Senior engineers only", body: "No first-line outsourcing — you talk to someone who can fix it." },
+          { id: makeUid(), icon: "shield", title: "Risk-free trial", body: "30-day handshake. If it's not a fit, we part as friends." },
+        ],
+        ctaLabel: "Book a call",
+        ctaUrl: "#",
+        showCta: true,
+      }),
+    ],
+  },
 ];
 
 export const PAGE_TEMPLATES_BY_ID = Object.fromEntries(

@@ -2,9 +2,10 @@
  * Shared dashboard UI pieces — pagination, empty state, card scaling hooks.
  * Kept here so SectionsTab and PagesTab stay lean and consistent.
  */
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Plus, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { computeBadges } from "@/lib/sectionBadges";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 
 // Internal iframe canvas width — every preview renders at this fixed virtual
@@ -378,13 +379,15 @@ export function SectionPicker({ sections, onPick, onClose }) {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
               {proSections.map((s) => {
                 const Icon = s.icon;
+                const badge = badges[s.id];
                 return (
                   <button
                     key={s.id}
                     data-testid={`picker-${s.id}`}
                     onClick={() => onPick(s.id)}
-                    className="text-left p-3 rounded-lg border-2 border-[#E01839]/30 bg-[#E01839]/[0.02] hover:border-[#E01839] hover:bg-[#E01839]/[0.06] transition-colors"
+                    className="relative text-left p-3 rounded-lg border-2 border-[#E01839]/30 bg-[#E01839]/[0.02] hover:border-[#E01839] hover:bg-[#E01839]/[0.06] transition-colors"
                   >
+                    <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
                     <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
                     <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
                     <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
@@ -407,13 +410,15 @@ export function SectionPicker({ sections, onPick, onClose }) {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
               {regularSections.map((s) => {
                 const Icon = s.icon;
+                const badge = badges[s.id];
                 return (
                   <button
                     key={s.id}
                     data-testid={`picker-${s.id}`}
                     onClick={() => onPick(s.id)}
-                    className="text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+                    className="relative text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
                   >
+                    <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
                     <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
                     <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
                     <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
@@ -427,5 +432,25 @@ export function SectionPicker({ sections, onPick, onClose }) {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * SectionBadge — auto-rendered NEW / UPDATED chip in the section picker.
+ * Reads from `computeBadges()` upstream; renders nothing when the kind
+ * is null so unbadged cards look exactly as before.
+ */
+function SectionBadge({ kind, testid }) {
+  if (kind !== "new" && kind !== "updated") return null;
+  const isNew = kind === "new";
+  return (
+    <span
+      data-testid={testid}
+      className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm shadow-sm ${
+        isNew ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"
+      }`}
+    >
+      {isNew ? "New" : "Updated"}
+    </span>
   );
 }

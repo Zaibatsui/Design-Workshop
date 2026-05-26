@@ -65,7 +65,7 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "test:snippets": "node src/sections/__tests__/productLive.session.test.js && node src/sections/__tests__/hero.mobile.test.js && node src/sections/__tests__/section-schema.test.js"
+    "test:snippets": "node src/sections/__tests__/productLive.session.test.js && node src/sections/__tests__/hero.mobile.test.js && node src/sections/__tests__/section-schema.test.js && node --input-type=commonjs src/lib/__tests__/sectionBadges.test.js"
   },
   "browserslist": {
     "production": [
