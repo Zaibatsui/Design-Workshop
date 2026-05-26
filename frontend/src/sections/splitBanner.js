@@ -33,6 +33,7 @@ import {
   safeUrl,
   wrapSnippet,
 } from "./shared";
+import { ICON_OPTIONS, svgIcon } from "./iconLib";
 import {
   TextField,
   TextAreaField,
@@ -42,6 +43,7 @@ import {
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
+import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
@@ -62,6 +64,12 @@ const defaults = () => ({
   ctaText: "",
   ctaLink: "#",
   ctaOpenInSameTab: false,
+  // Feature points — optional list of icon/title/body rows shown
+  // between the subheading and CTA. Empty by default so existing
+  // Split Banners stay identical until the user enables them.
+  showPoints: false,
+  points: [],
+  pointIconColor: "",
   image:
     "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=1600&auto=format&fit=crop",
   imageAlt: "",
@@ -134,12 +142,30 @@ function render(cfg) {
       ? `${imagePct}% ${panelPct}%`
       : `${panelPct}% ${imagePct}%`;
 
+  const pointsHtml =
+    cfg.showPoints && Array.isArray(cfg.points) && cfg.points.length > 0
+      ? `<ul class="ns-points">${cfg.points
+          .filter((p) => p && (p.title || p.body))
+          .map(
+            (p) => `
+    <li class="ns-pt">
+      <span class="ns-pt-icon" aria-hidden="true">${svgIcon(p.icon || "check", 20)}</span>
+      <div class="ns-pt-text">
+        ${p.title ? `<h3 class="ns-pt-title">${escHtml(p.title)}</h3>` : ""}
+        ${p.body ? `<p class="ns-pt-body">${escHtml(p.body)}</p>` : ""}
+      </div>
+    </li>`
+          )
+          .join("")}</ul>`
+      : "";
+
   const panelHtml = `<div class="ns-panel is-side-${imageSide === "left" ? "right" : "left"}">
   <div class="ns-panel-inner">
     ${logoUrl ? `<img class="ns-logo" src="${escAttr(logoUrl)}" alt="${escAttr(cfg.logoAlt || "")}"${cfg.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     ${cfg.heading ? `<h2 class="ns-title">${escHtml(cfg.heading)}</h2>` : ""}
     ${cfg.subheading ? `<p class="ns-subtitle">${escHtml(cfg.subheading)}</p>` : ""}
+    ${pointsHtml}
     ${cta ? `<a class="ns-cta" href="${escAttr(ctaHref)}" target="${ctaTarget}"${ctaRel}>${escHtml(cta)}</a>` : ""}
   </div>
 </div>`;
@@ -177,6 +203,13 @@ ${baseReset(cls)}
 .${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
 .${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.${cls} .ns-points{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:12px}
+.${cls} .ns-pt{display:flex;gap:12px;align-items:flex-start}
+.${cls} .ns-pt-icon{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;color:${safeColor(cfg.pointIconColor || cfg.ctaBg, "#E01839")};background:color-mix(in srgb, ${safeColor(cfg.pointIconColor || cfg.ctaBg, "#E01839")} 14%, transparent)}
+.${cls} .ns-pt-icon svg{width:20px;height:20px}
+.${cls} .ns-pt-text{min-width:0}
+.${cls} .ns-pt-title{margin:0 0 2px;font-size:14px;font-weight:600;color:${safeColor(cfg.titleColor, "#ffffff")};line-height:1.3}
+.${cls} .ns-pt-body{margin:0;font-size:13px;line-height:1.55;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.85)")}}
 .${cls} .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden;height:100%}
 .${cls} .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls}:not(.is-full) .ns-grid{max-width:${contentMax}px;margin:0 auto}
@@ -291,6 +324,96 @@ function FormPanel({ config, onUpdate }) {
             />
           </>
         ) : null}
+      </Group>
+
+      <Group title={`Feature points${(config.points || []).length ? ` (${config.points.length})` : ""}`} value="points">
+        <ToggleField
+          label="Show feature points"
+          description="Optional list of icon + title + body rows inside the panel, between the subheading and the button."
+          checked={!!config.showPoints}
+          onChange={(v) => onUpdate({ showPoints: v })}
+          testid="split-show-points"
+        />
+        {config.showPoints && (
+          <>
+            <ColorField
+              label="Icon colour"
+              value={config.pointIconColor || config.ctaBg || "#E01839"}
+              onChange={(v) => onUpdate({ pointIconColor: v })}
+              testid="split-point-icon-color"
+            />
+            <ListEditor
+              items={config.points || []}
+              onReorder={(items) => onUpdate({ points: items })}
+              onRemove={(id) =>
+                onUpdate({ points: (config.points || []).filter((p) => p.id !== id) })
+              }
+              onAdd={() =>
+                onUpdate({
+                  points: [
+                    ...(config.points || []),
+                    {
+                      id: makeUid(),
+                      icon: "check",
+                      title: "Feature title",
+                      body: "Short supporting line.",
+                    },
+                  ],
+                })
+              }
+              itemLabel={(p) => p.title || "Untitled point"}
+              addLabel="Add feature point"
+              testid="split-points"
+              renderRow={(p) => (
+                <div className="text-xs font-medium text-slate-700 truncate">
+                  {p.title || "Untitled point"}
+                </div>
+              )}
+              renderForm={(p) => (
+                <>
+                  <SelectField
+                    label="Icon"
+                    value={p.icon || "check"}
+                    onChange={(v) =>
+                      onUpdate({
+                        points: (config.points || []).map((it) =>
+                          it.id === p.id ? { ...it, icon: v } : it
+                        ),
+                      })
+                    }
+                    options={ICON_OPTIONS}
+                    testid={`split-point-icon-${p.id}`}
+                  />
+                  <TextField
+                    label="Title"
+                    value={p.title || ""}
+                    onChange={(v) =>
+                      onUpdate({
+                        points: (config.points || []).map((it) =>
+                          it.id === p.id ? { ...it, title: v } : it
+                        ),
+                      })
+                    }
+                    testid={`split-point-title-${p.id}`}
+                  />
+                  <TextAreaField
+                    label="Body"
+                    value={p.body || ""}
+                    rows={2}
+                    onChange={(v) =>
+                      onUpdate({
+                        points: (config.points || []).map((it) =>
+                          it.id === p.id ? { ...it, body: v } : it
+                        ),
+                      })
+                    }
+                    testid={`split-point-body-${p.id}`}
+                  />
+                </>
+              )}
+            />
+          </>
+        )}
       </Group>
 
       <Group title="Defaults" value="defaults">

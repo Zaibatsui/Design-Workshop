@@ -286,6 +286,29 @@ const FIELD_MAP = {
     buttonRadius: b.button_radius ?? 8,
     font: b.heading_font,
   }),
+  "featured-card": (cfg, b) => ({
+    ...cfg,
+    // Card sits on a light surface in front of a photo — keep text dark
+    // (text_color) on a near-white card background, with the accent
+    // driving the eyebrow, icon tint and headline highlight phrase.
+    textColor: b.text_color,
+    bodyColor: b.body_color,
+    accentColor: pick(b, "accent_color"),
+    cardBg: b.background_color,
+    ctaBg: pick(b, "button_color"),
+    ctaTextColor: b.background_color,
+    overlayColor: b.text_color,
+    buttonRadius: b.button_radius ?? 8,
+    font: b.heading_font,
+  }),
+  "trust-strip": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    textColor: b.text_color,
+    bodyColor: b.body_color,
+    accentColor: pick(b, "accent_color"),
+    font: b.heading_font,
+  }),
 };
 
 /**

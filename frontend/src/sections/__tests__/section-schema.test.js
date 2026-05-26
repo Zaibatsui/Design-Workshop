@@ -77,6 +77,7 @@ const SPACING_REQUIRED = [
   "ctaBanner",
   "faq",
   "featureGrid",
+  "featuredCard",
   "hero",
   "insights",
   "logos",
@@ -88,6 +89,7 @@ const SPACING_REQUIRED = [
   "steps",
   "tabs",
   "testimonials",
+  "trustStrip",
   "welcome",
 ];
 

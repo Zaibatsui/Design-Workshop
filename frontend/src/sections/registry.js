@@ -15,10 +15,13 @@ import { ctaBanner } from "./ctaBanner";
 import { testimonials } from "./testimonials";
 import { welcome } from "./welcome";
 import { splitBanner } from "./splitBanner";
+import { featuredCard } from "./featuredCard";
+import { trustStrip } from "./trustStrip";
 
 export const SECTIONS = [
   hero,
   splitBanner,
+  featuredCard,
   welcome,
   content,
   products,
@@ -26,6 +29,7 @@ export const SECTIONS = [
   resources,
   insights,
   featureGrid,
+  trustStrip,
   steps,
   testimonials,
   faq,
