@@ -348,6 +348,7 @@ export function SectionPicker({ sections, onPick, onClose }) {
   const PRO_IDS = new Set(["products", "productGrid"]);
   const proSections = sections.filter((s) => PRO_IDS.has(s.id));
   const regularSections = sections.filter((s) => !PRO_IDS.has(s.id));
+  const badges = computeBadges(sections);
   return (
     <div
       className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 flex items-center justify-center p-4 sm:p-6"
