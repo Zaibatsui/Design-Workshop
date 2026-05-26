@@ -76,6 +76,41 @@ function expect(label, cond, extra = "") {
   expect("a, b, c claim the 3 UPDATED slots", out.a === "updated" && out.b === "updated" && out.c === "updated");
 }
 
+// --- 3b. NEW trumps UPDATED across the entire 14-day window
+// Mirrors the Featured-Card / Trust-Strip workflow: a recently-added
+// section may receive follow-up improvements within its 14-day NEW
+// window — it must keep its NEW badge the whole time, not flip to
+// UPDATED. Once the window expires it may then qualify for UPDATED.
+{
+  // Day 0: shipped + first whatsNew set
+  const day0 = computeBadges(
+    [{ id: "fc", addedOn: daysAgo(0), updatedOn: daysAgo(0) }],
+    NOW
+  );
+  expect("freshly-shipped section is NEW", day0.fc === "new");
+
+  // Day 7: bumped updatedOn mid-window
+  const day7 = computeBadges(
+    [{ id: "fc", addedOn: daysAgo(7), updatedOn: daysAgo(0) }],
+    NOW
+  );
+  expect("NEW section with bumped updatedOn at day 7 is still NEW (not UPDATED)", day7.fc === "new");
+
+  // Day 14 edge: still NEW
+  const day14 = computeBadges(
+    [{ id: "fc", addedOn: daysAgo(14), updatedOn: daysAgo(2) }],
+    NOW
+  );
+  expect("NEW section on the 14-day edge with recent update is still NEW", day14.fc === "new");
+
+  // Day 15: NEW expires — but only earns UPDATED if its updatedOn lands in the top-3 globally
+  const day15Solo = computeBadges(
+    [{ id: "fc", addedOn: daysAgo(15), updatedOn: daysAgo(2) }],
+    NOW
+  );
+  expect("after NEW expires, recent updates qualify for UPDATED", day15Solo.fc === "updated");
+}
+
 // --- 4. Auto-rotation: introduce a newer update, oldest UPDATED falls off
 {
   const before = [

@@ -13,6 +13,13 @@
  *     `updatedOn` to today and update `whatsNew` to describe the change
  *     in plain language.
  *
+ * NEW trumps UPDATED. A section within its 14-day NEW window keeps the
+ * NEW badge even if its `updatedOn` is bumped (a follow-up improvement
+ * on a brand-new section is still part of "what's new" — not yet
+ * "what's changed"). Once the 14-day window expires the section may
+ * then qualify for an UPDATED badge if its last `updatedOn` lands in
+ * the 3 most-recent updates across the whole library.
+ *
  * Anything older than the NEW window (14 days) silently loses its
  * NEW badge. Anything outside the top-3 most-recent `updatedOn` dates
  * silently loses its UPDATED badge. No manual unflagging needed.

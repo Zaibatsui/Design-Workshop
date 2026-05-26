@@ -70,11 +70,18 @@ function buildEntries() {
 /**
  * Returns the most recent date across all entries (used to decide
  * whether to show the unread-dot indicator on the trigger button).
+ *
+ * Takes max(addedOn, updatedOn) per entry so a NEW section whose
+ * `whatsNew` note gets bumped mid-window still re-lights the dot
+ * for users who already opened the drawer.
  */
 function mostRecentDate(entries) {
   if (!entries.length) return null;
   return entries.reduce((acc, e) => {
-    const d = new Date(e.kind === "new" ? e.addedOn : e.updatedOn);
+    const added = e.addedOn ? new Date(e.addedOn) : null;
+    const updated = e.updatedOn ? new Date(e.updatedOn) : null;
+    const d = !added ? updated : !updated ? added : added > updated ? added : updated;
+    if (!d) return acc;
     return !acc || d > acc ? d : acc;
   }, null);
 }
