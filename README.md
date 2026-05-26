@@ -22,14 +22,15 @@ The output is **strictly inert** — scoped CSS classes (one unique class per in
 
 ## Features
 
-### Section library — 18 composable section types
+### Section library — 20 composable section types
 
 Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Product Carousel and Product Grid are **Pro / Nettailer-aware** blocks with live-scraped pricing, a universal VAT toggle and gated-pricing fallback.
 
 | Block | What it does |
 |---|---|
 | **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Per-slide colour overrides and optional `split` slide layout (full-bleed image + container-aligned text). |
-| **Split Banner** | Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter-weight cousin of Hero for non-carousel use. |
+| **Split Banner** | Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter-weight cousin of Hero for non-carousel use. Optional feature-points list inside the panel. |
+| **Featured Card** | Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions. |
 | **Welcome** | Post-login banner with positionable heading, customer logo and account-manager card. Each block snaps to one of nine grid positions so one section serves many brands. |
 | **Content** | Heading + body + buttons. The all-purpose marquee block. |
 | **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image, with overlay-badge extraction. Universal VAT toggle: snippet watches the host site's VAT switcher and live-flips between inc-VAT and ex-VAT prices, mirroring whatever label convention the host uses (`Inc VAT`, `Inkl. moms`, `TTC`, …). |
@@ -37,6 +38,7 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 | **Insights Grid** | Editorial 2–3 column card grid for articles & case studies. Per-card layouts (image-left, image-top, image-right), accent border toggle, configurable image width. |
 | **Resource Carousel** | Tag-tinted card carousel — blog posts, guides, downloads. |
 | **Feature Grid** | 2–4 column value-prop cards with icon, title, body. Outlined / tinted / solid card styles, plus an image-card variant (`image-top` / `image-left`). |
+| **Trust Strip** | Compact 2–5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — perfect for "20+ years", "ISO 27001 certified", "5-star service" rows. |
 | **Steps** | Numbered process strip. Horizontal or vertical, big editorial numerals or compact inline. |
 | **Testimonials** | Auto-scrolling quote carousel with avatars + 0–5 star ratings. Pauses on hover, respects `prefers-reduced-motion`. |
 | **FAQ** | Collapsible Q+A accordion. Native `<details>` / `<summary>` for zero-JS accessibility. |
@@ -49,7 +51,7 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 
 ### Hybrid Page Builder
 
-Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder. Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Eight page templates ship out of the box (Landing, Product detail, Category hub, About us, Pricing, Blog post, Brand page, plus Blank).
+Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder. Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Nine page templates ship out of the box (Landing, Product detail, Category hub, About us, Pricing, Blog post, Brand page, Service landing, plus Blank).
 
 ### Brand Kit
 
@@ -58,6 +60,12 @@ Single source of truth for **colours** (primary, secondary, text, body, backgrou
 ### Compact editor UI
 
 Every section editor uses Shadcn accordions. Most sections expose just two groups — **Header** (copy) and a single **Defaults** group that bundles layout (padding, alignment, widths, sizes) and theme (colours, backgrounds) in one place. Hero is richer with **Section / Carousel · Slide defaults · Slides** for per-slide overrides. Long sections still collapse to one screenful — no more endless vertical scroll to reach the colour pickers.
+
+### Automatic NEW / UPDATED badges + What's-new drawer
+
+Both the section picker and the page-template picker render small **NEW** and **UPDATED** chips automatically, driven by `addedOn` / `updatedOn` dates in `sections/sectionMeta.js` and `sections/pageTemplateMeta.js`. NEW lasts 14 days from `addedOn`; UPDATED rotates through the 3 most-recent updates and auto-rotates the oldest off. NEW trumps UPDATED — a still-new block keeps its NEW chip even if it gets follow-up improvements within the window.
+
+A dashboard-header **"What's new"** sheet lists every currently-badged section and template alongside a plain-English note describing what shipped or what changed. An unread-dot indicator on the trigger button stays lit until the user opens the sheet, and re-lights whenever any badged date is bumped.
 
 ### Live previews everywhere
 
@@ -158,7 +166,7 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 │   │   ├── pages/page-editor/   # PageRail, BlockEditorDrawer, SaveIndicator
 │   │   ├── components/          # FormFields, ImageUpload, ListEditor, ErrorBoundary
 │   │   ├── components/ui/       # Shadcn primitives
-│   │   ├── sections/            # registry.js + 18 section modules + iconLib + shared helpers
+│   │   ├── sections/            # registry.js + 19 section modules + iconLib + shared helpers + sectionMeta / pageTemplateMeta
 │   │   ├── lib/                 # api client, BrandKitContext, brand colours
 │   │   └── auth/                # AuthContext + startLogin
 │   └── package.json

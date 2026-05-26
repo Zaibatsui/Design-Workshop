@@ -14,6 +14,8 @@ import {
   HelpCircle,
   Megaphone,
   Sparkles,
+  Shield,
+  Star,
   Quote,
   Zap,
 } from "lucide-react";
@@ -36,12 +38,14 @@ const PRO_SECTIONS = [
 
 const SECTIONS = [
   { Icon: Layers, name: "Hero", desc: "Slide or fade carousel with full-bleed background media, headline, subtitle and CTA. Per-slide colour overrides and an optional split layout that puts the image on one side and the copy on the other." },
-  { Icon: LayoutPanelLeft, name: "Split Banner", desc: "Full-bleed image with container-aligned heading, subtitle and buttons floating over it. Static, non-carousel, ideal for landing-page headers or campaign rows." },
+  { Icon: LayoutPanelLeft, name: "Split Banner", desc: "Full-bleed image with container-aligned heading, subtitle and buttons floating over it. Static, non-carousel, ideal for landing-page headers or campaign rows. Optional feature-points list inside the panel." },
+  { Icon: Star, name: "Featured Card", desc: "Full-bleed photo background with a translucent glass card holding eyebrow, headline, subheading, feature points and an optional CTA. Card sits in one of nine grid positions for flexible composition." },
   { Icon: Sparkles, name: "Welcome", desc: "Post-login greeter with a movable header, customer logo and an account-manager card. Each block sits in one of nine grid positions so one section fits many brands." },
   { Icon: AlignLeft, name: "Content", desc: "Heading, body copy and one or two buttons. The all-purpose marquee block for sales messages, intros and announcements." },
   { Icon: LayoutGrid, name: "Insights Grid", desc: "Editorial 2 or 3 column grid for articles, case studies and mixed-media stories. Per-card image position (left, top or right), accent border toggle and configurable image width." },
   { Icon: BookOpen, name: "Resources", desc: "Tag-tinted card carousel for blog posts, guides and downloadable assets. Optional autoplay, pause-on-hover and per-card open-in-same-tab control." },
   { Icon: Sparkles, name: "Feature Grid", desc: "2 to 4 column value-prop cards with icon, title and body. Outlined, tinted or solid card styles plus an image-card variant (image-top or image-left)." },
+  { Icon: Shield, name: "Trust Strip", desc: "Compact 2 to 5 column row of icon + title + 1-line credibility callouts. Flat by design so it counterweights heavier sections — perfect for '20+ years', 'ISO 27001 certified', '5-star service' bands." },
   { Icon: ListOrdered, name: "Steps", desc: "Numbered process strip with big editorial numerals or compact inline numbers. Horizontal or vertical stack with optional hairline dividers between steps." },
   { Icon: Quote, name: "Testimonials", desc: "Auto-scrolling quote carousel with star ratings and avatars. Pauses on hover, supports per-quote source links and configurable scroll speed." },
   { Icon: HelpCircle, name: "FAQ", desc: "Collapsible question-and-answer accordion built with native HTML details / summary — zero JS, fully keyboard-accessible out of the box." },
@@ -70,7 +74,7 @@ export default function SectionsShowcase() {
             Section types in the box
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Eighteen composable building blocks. Every page is one snippet.
+            Twenty composable building blocks. Every page is one snippet.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them

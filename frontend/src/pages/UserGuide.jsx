@@ -24,7 +24,9 @@ import {
   Quote,
   Rocket,
   Save,
+  Shield,
   Sparkles,
+  Star,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import TicketDialog from "@/components/TicketDialog";
@@ -320,7 +322,7 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships seventeen reusable section types plus a
+              Design Workshop ships nineteen reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
               where applicable. Two of them — <strong>Product Carousel</strong>
@@ -329,7 +331,8 @@ export default function UserGuide() {
             </P>
             <Grid>
               <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour and layout overrides, an optional split slide layout (full-bleed image + container-aligned text), and mobile-specific overrides for overlay, gradients and alignment so the small-screen view never inherits a desktop-only look you didn't want." />
-              <SectionCard Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use." />
+              <SectionCard Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use. Optional feature-points list inside the panel for showing several benefits at once." />
+              <SectionCard Icon={Star} name="Featured Card" desc="Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions." />
               <SectionCard Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
               <SectionCard Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
               <SectionCard Icon={Boxes} name="Product Carousel" desc="Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
@@ -337,6 +340,7 @@ export default function UserGuide() {
               <SectionCard Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." />
               <SectionCard Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
               <SectionCard Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />
+              <SectionCard Icon={Shield} name="Trust Strip" desc="Compact 2-5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — great for credibility marks like '20+ years' or 'ISO 27001 certified'." />
               <SectionCard Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
               <SectionCard Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." />
               <SectionCard Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." />
@@ -347,6 +351,14 @@ export default function UserGuide() {
               <SectionCard Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
               <SectionCard Icon={PenLine} name="Rich text" desc="Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections." />
             </Grid>
+            <Note>
+              The section picker automatically tags brand-new blocks with a
+              green <strong>NEW</strong> chip for their first 14 days, and the
+              three most-recently improved blocks with an amber{" "}
+              <strong>UPDATED</strong> chip. Click <strong>"What's new"</strong>{" "}
+              in the dashboard header for plain-English notes describing each
+              one. The notes cover page templates too.
+            </Note>
           </Section>
 
           <Section id="page-builder" Icon={FileStack} title="Hybrid page builder">
@@ -498,14 +510,16 @@ export default function UserGuide() {
 
           <Section id="templates" Icon={BookMarked} title="Page templates">
             <P>
-              When you create a new page, the template picker offers eight
+              When you create a new page, the template picker offers nine
               starting points: <strong>Landing</strong>,{" "}
               <strong>Product detail</strong>, <strong>Category hub</strong>,
               <strong> About us</strong>, <strong>Pricing</strong>,{" "}
-              <strong>Blog post</strong>, <strong>Brand page</strong>, plus
-              <strong> Blank</strong>. Each one pre-stacks a coherent block
-              order with realistic placeholder content, all themed by your
-              Brand Kit.
+              <strong>Blog post</strong>, <strong>Brand page</strong>,{" "}
+              <strong>Service landing</strong>, plus <strong>Blank</strong>.
+              Each one pre-stacks a coherent block order with realistic
+              placeholder content, all themed by your Brand Kit. New and
+              recently-improved templates wear the same NEW / UPDATED chips
+              as sections.
             </P>
             <P>
               You can also <strong>save any page as a custom template</strong>{" "}
@@ -526,6 +540,7 @@ export default function UserGuide() {
                 <>The "Recently edited" strip at the top jumps you straight back to your last 5 active items.</>,
                 <>The Logo Strip <strong>greyscale-until-hover</strong> toggle pairs with the existing scroll-pause-on-hover for a polished marquee.</>,
                 <>Each Logo Strip image accepts an optional <strong>link</strong> — the rendered <Code>{"<a>"}</Code> opens in a new tab.</>,
+                <>Click <strong>"What's new"</strong> in the dashboard header for a plain-English changelog of recently shipped sections and page templates. The dot on the button lights up when there's something new since you last looked.</>,
                 <>The Testimonials carousel <strong>pauses on hover</strong> so readers can finish a quote — and respects <Code>prefers-reduced-motion</Code> for accessibility.</>,
                 <>Set a testimonial's rating to <strong>0</strong> to hide its stars individually, or toggle "Show star ratings" off to hide them across the whole block.</>,
                 <>The Grid section starts with neutral sample photos — swap each cell's image for your own via the editor's image picker.</>,
@@ -563,7 +578,7 @@ export default function UserGuide() {
           </Section>
 
           <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-3">
-            <span>Last updated: 2026-02-23 ·</span>
+            <span>Last updated: 2026-05-26 ·</span>
             <span>Want a feature documented?</span>
             <Button
               type="button"
