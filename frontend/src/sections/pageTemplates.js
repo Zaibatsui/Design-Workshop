@@ -23,6 +23,7 @@ import {
 import { SECTIONS_BY_ID } from "./registry";
 import { richtext } from "./richtext";
 import { makeUid } from "./shared";
+import { templateMetaFor } from "./pageTemplateMeta";
 
 const section = (id, overrides = {}) => ({
   type: "section",
@@ -357,6 +358,14 @@ export const PAGE_TEMPLATES = [
     ],
   },
 ];
+
+// Attach `addedOn` / `updatedOn` / `whatsNew` metadata so the picker
+// and the What's New drawer can compute NEW / UPDATED badges
+// automatically. Single source of truth: `pageTemplateMeta.js`.
+const withMeta = (t) => ({ ...t, ...templateMetaFor(t.id) });
+for (let i = 0; i < PAGE_TEMPLATES.length; i++) {
+  PAGE_TEMPLATES[i] = withMeta(PAGE_TEMPLATES[i]);
+}
 
 export const PAGE_TEMPLATES_BY_ID = Object.fromEntries(
   PAGE_TEMPLATES.map((t) => [t.id, t])

@@ -441,7 +441,7 @@ export function SectionPicker({ sections, onPick, onClose }) {
  * Reads from `computeBadges()` upstream; renders nothing when the kind
  * is null so unbadged cards look exactly as before.
  */
-function SectionBadge({ kind, testid }) {
+export function SectionBadge({ kind, testid }) {
   if (kind !== "new" && kind !== "updated") return null;
   const isNew = kind === "new";
   return (

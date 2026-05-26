@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { SECTIONS } from "@/sections/registry";
+import { PAGE_TEMPLATES } from "@/sections/pageTemplates";
 import { computeBadges } from "@/lib/sectionBadges";
 
 const LS_KEY = "ns.whatsNew.lastSeenAt";
@@ -44,13 +45,15 @@ function writeLastSeen(d) {
 }
 
 /**
- * Returns the list of sections with badges + their friendly notes,
+ * Returns the list of items with badges + their friendly notes,
  * filtered to entries that actually have a `whatsNew` string. Sorted
- * with NEW first, then UPDATED by recency.
+ * with NEW first, then UPDATED by recency. Reusable across sections
+ * and page templates — both data sources expose the same shape.
  */
-function buildEntries() {
-  const badges = computeBadges(SECTIONS);
-  return SECTIONS.filter((s) => badges[s.id] && s.whatsNew)
+function buildEntries(items) {
+  const badges = computeBadges(items);
+  return items
+    .filter((s) => badges[s.id] && s.whatsNew)
     .map((s) => ({
       id: s.id,
       name: s.name,
@@ -91,10 +94,15 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
   const [lastSeen, setLastSeen] = useState(() => readLastSeen());
   // Recompute the entries lazily and memoise — the dataset only changes
   // on full reload because the dates are static config.
-  const entries = useMemo(() => buildEntries(), []);
-  const latest = useMemo(() => mostRecentDate(entries), [entries]);
+  const sectionEntries = useMemo(() => buildEntries(SECTIONS), []);
+  const templateEntries = useMemo(() => buildEntries(PAGE_TEMPLATES), []);
+  const allEntries = useMemo(
+    () => [...sectionEntries, ...templateEntries],
+    [sectionEntries, templateEntries]
+  );
+  const latest = useMemo(() => mostRecentDate(allEntries), [allEntries]);
   const hasUnread =
-    entries.length > 0 && (!lastSeen || (latest && latest > lastSeen));
+    allEntries.length > 0 && (!lastSeen || (latest && latest > lastSeen));
 
   // Mark everything as seen the moment the drawer opens — the user is
   // looking at the content right now.
@@ -107,7 +115,7 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
   }, [open]);
 
   // Don't render the button if there's nothing to announce.
-  if (entries.length === 0) return null;
+  if (allEntries.length === 0) return null;
 
   return (
     <>
@@ -141,49 +149,77 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
               What's new
             </SheetTitle>
             <SheetDescription>
-              Recent additions and improvements to your section library.
+              Recent additions and improvements to your library.
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 space-y-4">
-            {entries.map((e) => {
-              const Icon = e.icon;
-              const isNew = e.kind === "new";
-              return (
-                <div
-                  key={e.id}
-                  data-testid={`whats-new-entry-${e.id}`}
-                  className="flex gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex-shrink-0 w-9 h-9 rounded-md bg-slate-100 flex items-center justify-center">
-                    {Icon ? <Icon className="w-4 h-4 text-slate-700" /> : null}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-semibold text-slate-900 truncate">
-                        {e.name}
-                      </h3>
-                      <span
-                        className={`px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ${
-                          isNew
-                            ? "bg-emerald-500 text-white"
-                            : "bg-amber-500 text-white"
-                        }`}
-                      >
-                        {isNew ? "New" : "Updated"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      {e.note}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {sectionEntries.length > 0 && (
+            <EntryGroup
+              title="Sections"
+              entries={sectionEntries}
+              testidPrefix="whats-new-entry"
+            />
+          )}
+          {templateEntries.length > 0 && (
+            <EntryGroup
+              title="Page templates"
+              entries={templateEntries}
+              testidPrefix="whats-new-template-entry"
+            />
+          )}
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+/**
+ * Renders a labelled list of WhatsNew entries — used for both the
+ * Sections band and the Page templates band inside the drawer.
+ */
+function EntryGroup({ title, entries, testidPrefix }) {
+  return (
+    <div className="mt-6">
+      <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 mb-2">
+        {title}
+      </h4>
+      <div className="space-y-3">
+        {entries.map((e) => {
+          const Icon = e.icon;
+          const isNew = e.kind === "new";
+          return (
+            <div
+              key={e.id}
+              data-testid={`${testidPrefix}-${e.id}`}
+              className="flex gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex-shrink-0 w-9 h-9 rounded-md bg-slate-100 flex items-center justify-center">
+                {Icon ? <Icon className="w-4 h-4 text-slate-700" /> : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-sm font-semibold text-slate-900 truncate">
+                    {e.name}
+                  </h3>
+                  <span
+                    className={`px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ${
+                      isNew
+                        ? "bg-emerald-500 text-white"
+                        : "bg-amber-500 text-white"
+                    }`}
+                  >
+                    {isNew ? "New" : "Updated"}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {e.note}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

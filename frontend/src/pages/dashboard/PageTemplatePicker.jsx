@@ -3,16 +3,21 @@
  * Offers built-in templates (blank, landing, product-detail, category-hub,
  * about-us, pricing, blog-post) and the user's saved custom templates.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { FileText, Trash2, User } from "lucide-react";
 import { PAGE_TEMPLATES } from "@/sections/pageTemplates";
+import { computeBadges } from "@/lib/sectionBadges";
+import { SectionBadge } from "@/pages/dashboard/common";
 import { api } from "@/lib/api";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 
 export default function PageTemplatePicker({ onPick, onClose }) {
   const [customTemplates, setCustomTemplates] = useState([]);
   const [customLoading, setCustomLoading] = useState(true);
+  // Same NEW / UPDATED badging the section picker uses — driven by the
+  // dates in `pageTemplateMeta.js` (merged into PAGE_TEMPLATES on import).
+  const badges = useMemo(() => computeBadges(PAGE_TEMPLATES), []);
   useEscapeKey(onClose);
 
   useEffect(() => {
@@ -69,13 +74,15 @@ export default function PageTemplatePicker({ onPick, onClose }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {PAGE_TEMPLATES.map((t) => {
             const Icon = t.icon;
+            const badge = badges[t.id];
             return (
               <button
                 key={t.id}
                 data-testid={`template-${t.id}`}
                 onClick={() => onPick(t)}
-                className="text-left p-5 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+                className="relative text-left p-5 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
               >
+                <SectionBadge kind={badge} testid={`template-badge-${t.id}`} />
                 <div className="flex items-center gap-2 mb-2">
                   <Icon className="w-5 h-5 text-[#E01839]" />
                   <span className="text-sm font-medium text-slate-900">
