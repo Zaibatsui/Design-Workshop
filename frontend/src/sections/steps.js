@@ -10,6 +10,8 @@ import {
   fullBleedClass,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   wrapSnippet,
 } from "./shared";
@@ -25,6 +27,7 @@ import ColorField from "@/components/ColorField";
 import ListEditor from "@/components/ListEditor";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "steps";
 
 const sampleStep = (i) => ({
@@ -96,11 +99,12 @@ const render = (cfg) => {
   const accent = safeColor(cfg.accentColor, "#E01839");
   const bodyColor = safeColor(cfg.bodyColor, "#64748b");
   const align = cfg.textAlign === "center" ? "center" : "left";
-  const padY = num(cfg.paddingY, 80);
+  const padTop = padTopOf(cfg, 80);
+  const padBot = padBotOf(cfg, 80);
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad,80px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
+.${cls}{padding:${padTop}px 20px ${padBot}px;background:${bg};color:${textColor}}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align}}
 .${cls} .ns-head{margin-bottom:40px}
 .${cls} .ns-head-inner{max-width:720px;${align === "center" ? "margin:0 auto;" : ""}}
@@ -199,15 +203,6 @@ function FormPanel({ config, onUpdate }) {
           testid="steps-text-align"
         />
         <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
-          min={20}
-          max={140}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="steps-pad"
-        />
-        <SliderField
           label="Heading size"
           value={Number(config.headingSize) || 32}
           min={20}
@@ -215,6 +210,13 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="steps-heading-size"
+        />
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={80}
+          max={140}
+          testidPrefix="steps"
         />
         <ToggleField
           label="Make wide"

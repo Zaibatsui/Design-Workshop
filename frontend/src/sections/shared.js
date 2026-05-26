@@ -71,6 +71,21 @@ export const num = (v, fallback = 0) => {
 };
 
 /**
+ * Resolve a section's top / bottom outer padding (in px) from a config
+ * object that may carry the modern `paddingTop` / `paddingBottom` fields,
+ * the legacy single `paddingY` field, or neither. Falls back through:
+ *   paddingTop  → paddingY → fallback
+ *   paddingBot  → paddingY → fallback
+ * Lets new top/bottom sliders coexist with older saved sections that
+ * only stored the single `paddingY` value, with zero migration cost.
+ */
+export const padTopOf = (cfg, fallback = 80) =>
+  num(cfg && cfg.paddingTop != null && cfg.paddingTop !== "" ? cfg.paddingTop : cfg && cfg.paddingY, fallback);
+export const padBotOf = (cfg, fallback = 80) =>
+  num(cfg && cfg.paddingBottom != null && cfg.paddingBottom !== "" ? cfg.paddingBottom : cfg && cfg.paddingY, fallback);
+
+
+/**
  * Base reset scoped to a section root. Prevents host site bleed
  * (margins, padding, text-indent, list-style, default colors, alignment).
  *

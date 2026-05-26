@@ -11,6 +11,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -25,6 +27,7 @@ import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
+import PaddingFields from "@/components/PaddingFields";
 
 const ID = "placeholder";
 
@@ -77,7 +80,7 @@ function render(cfg) {
     `--ns-h:${num(cfg.itemHeight, 200)}px`,
     `--ns-bg:${safeColor(cfg.bgColor, "#f1f5f9")}`,
     `--ns-r:${num(cfg.borderRadius, 8)}px`,
-    `--ns-pad:${num(cfg.paddingY, 30)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 30)}px;--ns-pad-b:${padBotOf(cfg, 30)}px`,
     `--ns-gap:${num(cfg.gap, 16)}px`,
   ].join(";");
 
@@ -108,7 +111,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
+.${cls}{padding:var(--ns-pad-t) 20px var(--ns-pad-b);width:100%;background:#fff}
 .${cls} .ns-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);grid-auto-rows:var(--ns-h);gap:var(--ns-gap)}
 .${cls} .ns-cell{height:var(--ns-h);border-radius:var(--ns-r);overflow:hidden;display:block;background:var(--ns-bg)}
 .${cls} .ns-cell img{width:100%;height:100%;object-fit:cover;display:block}
@@ -216,14 +219,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ borderRadius: v })}
           testid="placeholder-radius"
         />
-        <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={60}
           min={10}
           max={120}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="placeholder-pad"
+          testidPrefix="placeholder"
         />
         <ColorField
           label="Empty cell colour"

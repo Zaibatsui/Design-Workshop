@@ -14,6 +14,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -26,6 +28,7 @@ import FooterLinkEditor from "@/components/FooterLinkEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "logos";
 
 const defaults = () => ({
@@ -54,7 +57,7 @@ function render(cfg) {
     `--ns-h:${num(cfg.itemHeight, 50)}px`,
     `--ns-w:${num(cfg.itemWidth, 140)}px`,
     `--ns-gap:${num(cfg.itemGap, 24)}px`,
-    `--ns-pad:${num(cfg.paddingY, 30)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 30)}px;--ns-pad-b:${padBotOf(cfg, 30)}px`,
     `--ns-bg:${safeColor(cfg.bgColor, "#ffffff")}`,
   ].join(";");
 
@@ -87,7 +90,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad) 0;width:100%;background:var(--ns-bg);overflow:hidden}
+.${cls}{padding:var(--ns-pad-t) 0 var(--ns-pad-b);width:100%;background:var(--ns-bg);overflow:hidden}
 .${cls} .ns-track{display:flex;width:max-content;animation:${animName} var(--ns-speed) linear infinite;will-change:transform}
 .${cls} .ns-item{flex:0 0 auto;width:var(--ns-w);display:flex;justify-content:center;align-items:center;margin:0 calc(var(--ns-gap) / 2)}
 .${cls} .ns-item img{height:var(--ns-h);width:auto;object-fit:contain}
@@ -192,14 +195,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ itemGap: v })}
           testid="logos-gap"
         />
-        <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={30}
           min={0}
           max={80}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="logos-pad"
+          testidPrefix="logos"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>

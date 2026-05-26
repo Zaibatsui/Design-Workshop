@@ -12,6 +12,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -29,6 +31,7 @@ import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "testimonials";
 
 const sampleCard = (quote, name, role, rating = 5) => ({
@@ -107,7 +110,7 @@ function render(cfg) {
     `--ns-speed:${num(cfg.speedSeconds, 50)}s`,
     `--ns-card-w:${num(cfg.cardWidth, 340)}px`,
     `--ns-gap:${num(cfg.cardGap, 24)}px`,
-    `--ns-pad:${num(cfg.paddingY, 72)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 72)}px;--ns-pad-b:${padBotOf(cfg, 72)}px`,
     `--ns-heading-size:${num(cfg.headingSize, 32)}px`,
   ].join(";");
 
@@ -159,7 +162,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad) 0;width:100%;background:var(--ns-bg);overflow:hidden}
+.${cls}{padding:var(--ns-pad-t) 0 var(--ns-pad-b);width:100%;background:var(--ns-bg);overflow:hidden}
 .${cls} .ns-head-wrap{max-width:1200px;margin:0 auto;padding:0 20px;text-align:${align}}
 .${cls} .ns-head{margin-bottom:40px}
 .${cls} .ns-head-inner{max-width:720px;${headInnerAlign}}
@@ -308,14 +311,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ cardGap: v })}
           testid="testi-card-gap"
         />
-        <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={72}
           min={0}
           max={160}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="testi-pad"
+          testidPrefix="testi"
         />
         <SliderField
           label="Heading size"

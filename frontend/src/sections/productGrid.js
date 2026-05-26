@@ -15,6 +15,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -34,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const API_BASE = process.env.REACT_APP_BACKEND_URL;
 
 const ID = "productGrid";
@@ -109,7 +112,7 @@ function render(cfg) {
     `--ns-price-color:${safeColor(cfg.priceColor, "#E01839")}`,
     `--ns-hover-border:${safeColor(cfg.hoverBorder, "#E01839")}`,
     `--ns-heading-size:${num(cfg.headingSize, 32)}px`,
-    `--ns-pad:${num(cfg.paddingY, 60)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px`,
     `--ns-cols:${cols}`,
     `--ns-gap:${gap}px`,
   ].join(";");
@@ -152,7 +155,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad) 20px;width:100%;background:#fff}
+.${cls}{padding:var(--ns-pad-t) 20px var(--ns-pad-b);width:100%;background:#fff}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto;position:relative;text-align:${align}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 10px}
 .${cls} .ns-h{font-size:var(--ns-heading-size,32px);font-weight:600;color:var(--ns-title-color);margin:0 0 28px}
@@ -315,14 +318,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="pgrid-full-bleed"
         />
-        <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={60}
           min={20}
           max={120}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="pgrid-pad"
+          testidPrefix="pgrid"
         />
         <SliderField
           label="Heading size"

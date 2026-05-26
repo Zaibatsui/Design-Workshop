@@ -10,6 +10,8 @@ import {
   iife,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -21,6 +23,7 @@ import ListEditor from "@/components/ListEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "tabs";
 
 const sampleTab = (label, heading, body, image) => ({
@@ -87,7 +90,7 @@ function render(cfg) {
     `--ns-bg:${safeColor(cfg.bgColor, "#ffffff")}`,
     `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
     `--ns-body:${safeColor(cfg.bodyColor, "#1f2937")}`,
-    `--ns-pad:${num(cfg.paddingY, 60)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px`,
     `--ns-heading-size:${num(cfg.headingSize, 30)}px`,
   ].join(";");
 
@@ -183,7 +186,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad) 20px;width:100%;background:var(--ns-bg)}
+.${cls}{padding:var(--ns-pad-t) 20px var(--ns-pad-b);width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto}
 .${cls} .ns-tabs-row{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap;justify-content:${tabsAlign}}
 .${cls} .ns-tab{border:1px solid #e4e4e7;background:#fff;color:var(--ns-accent);padding:12px 18px;border-radius:6px;font-weight:600;font-size:14px;transition:background .15s ease,color .15s ease}
@@ -285,14 +288,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="tabs-heading-size"
         />
-        <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={60}
           min={20}
           max={120}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="tabs-pad"
+          testidPrefix="tabs"
         />
         <ToggleField
           label="Make wide"

@@ -12,6 +12,8 @@ import {
   fullBleedClass,
   makeUid,
   num,
+  padTopOf,
+  padBotOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -29,6 +31,7 @@ import FooterLinkEditor from "@/components/FooterLinkEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
+import PaddingFields from "@/components/PaddingFields";
 const ID = "cta-banner";
 
 const defaults = () => ({
@@ -150,12 +153,13 @@ const render = (cfg) => {
   const accent = safeColor(cfg.accentColor, "#E01839");
   const bodyColor = safeColor(cfg.bodyColor, "rgba(255,255,255,0.7)");
   const align = cfg.textAlign === "left" ? "left" : "center";
-  const padY = num(cfg.paddingY, 96);
+  const padTop = padTopOf(cfg, 96);
+  const padBot = padBotOf(cfg, 96);
   const logoMaxW = num(cfg.logoMaxWidth, 150);
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad,96px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px;border-radius:${num(cfg.borderRadius, 0)}px;overflow:hidden}
+.${cls}{padding:${padTop}px 20px ${padBot}px;background:${bg};color:${textColor};border-radius:${num(cfg.borderRadius, 0)}px;overflow:hidden}
 .${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
 .${cls} .ns-logo{display:block;max-width:${logoMaxW}px;max-height:64px;width:auto;height:auto;margin:0 0 20px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
@@ -310,15 +314,6 @@ function FormPanel({ config, onUpdate }) {
           testid="cta-text-align"
         />
         <SliderField
-          label="Vertical padding"
-          value={config.paddingY}
-          min={40}
-          max={160}
-          suffix="px"
-          onChange={(v) => onUpdate({ paddingY: v })}
-          testid="cta-pad"
-        />
-        <SliderField
           label="Heading size"
           value={Number(config.headingSize) || 36}
           min={20}
@@ -326,6 +321,14 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="cta-heading-size"
+        />
+        <PaddingFields
+          config={config}
+          onUpdate={onUpdate}
+          defaultValue={96}
+          min={40}
+          max={160}
+          testidPrefix="cta"
         />
         <ToggleField
           label="Make wide"
