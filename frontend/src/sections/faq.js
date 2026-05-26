@@ -101,8 +101,8 @@ const render = (cfg) => {
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad,80px) 20px;background:${bg};color:${textColor};--ns-pad:${padY}px}
-.${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
-.${cls} .ns-head{margin-bottom:40px}
+.${cls} .ns-inner{max-width:760px;margin:0 auto}
+.${cls} .ns-head{margin-bottom:40px;text-align:${align}}
 .${cls} .ns-head-inner{${align === "center" ? "max-width:560px;margin:0 auto;" : ""}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
 .${cls} .ns-heading{font-size:${num(cfg.headingSize, 32)}px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
