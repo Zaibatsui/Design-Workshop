@@ -70,16 +70,16 @@ export const SECTION_META = {
       "Rich text now lines up with the rest of the page automatically — no more wonky alignment when you change the screen size.",
   },
 
-  // 2026-02-26 — new arrivals
+  // 2026-05-26 — new arrivals
   "featured-card": {
-    addedOn: "2026-02-26",
-    updatedOn: "2026-02-26",
+    addedOn: "2026-05-26",
+    updatedOn: "2026-05-26",
     whatsNew:
       "A new section: a big photo background with a clean card holding your headline, supporting points and an optional button. Perfect for hero intros, process steps and final calls to action.",
   },
   "trust-strip": {
-    addedOn: "2026-02-26",
-    updatedOn: "2026-02-26",
+    addedOn: "2026-05-26",
+    updatedOn: "2026-05-26",
     whatsNew:
       "A new compact row of icons and one-line callouts. Ideal for credibility marks like '20+ years' or '5-star service' between heavier sections.",
   },
