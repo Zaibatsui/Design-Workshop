@@ -2,11 +2,16 @@
  * SECTION_META — per-section "added on" / "updated on" dates that drive
  * the automated NEW / UPDATED badges in the Add-Section picker.
  *
+ * Each entry may also carry a `whatsNew` string — a short, plain-English
+ * note shown in the "What's new" drawer in the dashboard header.
+ *
  * Maintenance contract (followed by the agent on each deploy):
- *   • Adding a new section → add a row with `addedOn` set to today.
- *     `updatedOn` should equal `addedOn` on day one.
+ *   • Adding a new section → add a row with `addedOn` set to today and
+ *     a `whatsNew` line that reads naturally to a non-technical user
+ *     (focus on what they can DO with it, not how it was built).
  *   • Making a user-visible improvement to an existing section → bump
- *     `updatedOn` to today.
+ *     `updatedOn` to today and update `whatsNew` to describe the change
+ *     in plain language.
  *
  * Anything older than the NEW window (14 days) silently loses its
  * NEW badge. Anything outside the top-3 most-recent `updatedOn` dates
@@ -19,8 +24,18 @@ const LAUNCH = "2025-09-01";
 
 export const SECTION_META = {
   // Pre-existing library — launched together.
-  hero: { addedOn: LAUNCH, updatedOn: "2026-02-19" }, // mobile overrides + wide-mode align
-  "split-banner": { addedOn: LAUNCH, updatedOn: "2026-02-26" }, // feature-points mode
+  hero: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-02-19",
+    whatsNew:
+      "Hero now has separate desktop and mobile controls — set different gradients, alignment and arrows for each screen size without one breaking the other.",
+  },
+  "split-banner": {
+    addedOn: LAUNCH,
+    updatedOn: "2026-02-26",
+    whatsNew:
+      "You can now add a list of icon + title + body points inside the text panel. Great for showing several benefits at once instead of just one CTA.",
+  },
   welcome: { addedOn: LAUNCH, updatedOn: LAUNCH },
   content: { addedOn: LAUNCH, updatedOn: LAUNCH },
   products: { addedOn: LAUNCH, updatedOn: LAUNCH },
@@ -30,17 +45,37 @@ export const SECTION_META = {
   "feature-grid": { addedOn: LAUNCH, updatedOn: LAUNCH },
   steps: { addedOn: LAUNCH, updatedOn: LAUNCH },
   testimonials: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  faq: { addedOn: LAUNCH, updatedOn: "2026-02-23" }, // header-alignment scope fix
+  faq: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-02-23",
+    whatsNew:
+      "Centering the header no longer pushes your answers off to the middle of the page. Title and answers behave independently now.",
+  },
   "cta-banner": { addedOn: LAUNCH, updatedOn: LAUNCH },
   placeholder: { addedOn: LAUNCH, updatedOn: LAUNCH },
   logos: { addedOn: LAUNCH, updatedOn: LAUNCH },
   break: { addedOn: LAUNCH, updatedOn: LAUNCH },
   tabs: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  richtext: { addedOn: LAUNCH, updatedOn: "2026-02-25" }, // alignment + max-width fix
+  richtext: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-02-25",
+    whatsNew:
+      "Rich text now lines up with the rest of the page automatically — no more wonky alignment when you change the screen size.",
+  },
 
   // 2026-02-26 — new arrivals
-  "featured-card": { addedOn: "2026-02-26", updatedOn: "2026-02-26" },
-  "trust-strip": { addedOn: "2026-02-26", updatedOn: "2026-02-26" },
+  "featured-card": {
+    addedOn: "2026-02-26",
+    updatedOn: "2026-02-26",
+    whatsNew:
+      "A new section: a big photo background with a clean card holding your headline, supporting points and an optional button. Perfect for hero intros, process steps and final calls to action.",
+  },
+  "trust-strip": {
+    addedOn: "2026-02-26",
+    updatedOn: "2026-02-26",
+    whatsNew:
+      "A new compact row of icons and one-line callouts. Ideal for credibility marks like '20+ years' or '5-star service' between heavier sections.",
+  },
 };
 
 /** Default metadata used when a section ID isn't in SECTION_META. */

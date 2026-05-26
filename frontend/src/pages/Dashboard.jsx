@@ -14,6 +14,7 @@ import RecentStrip from "./dashboard/RecentStrip";
 import { SectionPicker, Tabs } from "./dashboard/common";
 import PageTemplatePicker from "./dashboard/PageTemplatePicker";
 import TicketDialog from "@/components/TicketDialog";
+import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -111,6 +112,7 @@ export default function Dashboard() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <WhatsNewTrigger />
             <Button
               variant="ghost"
               size="sm"
