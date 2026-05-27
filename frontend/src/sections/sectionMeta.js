@@ -82,7 +82,7 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",
     whatsNew:
-      "Two new toggles above the Layout group: 'Use override styles and colours from the HTML' lets your pasted markup's inline styles and <style> blocks win over the section's defaults, and 'Underline links' lets you switch off the default link underline.",
+      "Visual editor now has an inline link panel — add web or email links, set a per-link colour, and turn the underline off on any single link from the toolbar. Click an existing link in the editor to re-open the panel and tweak it. HTML source mode still has its 'Use override styles' and 'Underline links' switches for raw HTML paste-throughs.",
   },
 
   // 2026-05-26 — new arrivals
