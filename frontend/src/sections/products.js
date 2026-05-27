@@ -11,6 +11,7 @@ import {
   escHtml,
   fullBleedClass,
   iife,
+  infiniteScrollJs,
   makeUid,
   num,
   padTopOf,
@@ -222,7 +223,7 @@ ${baseReset(cls)}
 
   const js = iife(
     cls,
-    `var track=root.querySelector("[data-ns-track]");var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");if(track){var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;function step(dir){var c=track.querySelector(".ns-card");if(!c)return;var amt=c.offsetWidth+18;var max=track.scrollWidth-track.clientWidth;var sl=track.scrollLeft;if(dir>0&&sl>=max-5){track.scrollTo({left:0,behavior:"smooth"});}else if(dir<0&&sl<=5){track.scrollTo({left:max,behavior:"smooth"});}else{track.scrollBy({left:dir*amt,behavior:"smooth"});}}function start(){if(!ap)return;stop();timer=setInterval(function(){step(1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}if(prev)prev.addEventListener("click",function(){step(-1);start();});if(next)next.addEventListener("click",function(){step(1);start();});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}start();}${liveJs}`
+    `${infiniteScrollJs()}${liveJs}`
   );
 
   return wrapSnippet({ html, css, js });

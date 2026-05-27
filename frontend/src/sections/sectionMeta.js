@@ -49,7 +49,7 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",
     whatsNew:
-      "The optional corner-badge upload is now tucked behind a small disclosure with clearer wording — no more mistaking it for the main product photo.",
+      "Product Carousel now scrolls continuously — both with the arrows and on mobile swipe. No more rewind back to the start when you reach the end. The corner-badge upload also lives behind a clearer toggle so it's not mistaken for the main product photo.",
   },
   "product-grid": {
     addedOn: LAUNCH,
@@ -61,7 +61,7 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",
     whatsNew:
-      "Card content alignment is now configurable from the Header group, with a per-card override toggle for one-off cards that should align differently from the rest.",
+      "Resources Carousel now loops continuously — both with the arrows and on mobile swipe. New per-card content alignment override means one card can sit centred while the rest stay left-aligned.",
   },
   insights: { addedOn: LAUNCH, updatedOn: LAUNCH },
   "feature-grid": { addedOn: LAUNCH, updatedOn: LAUNCH },

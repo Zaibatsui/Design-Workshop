@@ -152,6 +152,36 @@ export function iife(scopeClass, body) {
   return `(function(){var SEL=".${scopeClass}";function init(root){if(root.__nsInit)return;root.__nsInit=true;root.removeAttribute("data-ns-init");${body}}function boot(){var els=document.querySelectorAll(SEL);if(!els.length)return false;els.forEach(init);return true;}if(!boot()){document.addEventListener("DOMContentLoaded",boot);}})();`;
 }
 
+/**
+ * infiniteScrollJs — drop-in JS string for any flex/overflow-x carousel
+ * track with arrow buttons. Provides:
+ *   • Seamless infinite loop via clone-and-jump: clones the first N and
+ *     last N cards, jumps `scrollLeft` silently across the boundary so
+ *     the user never sees the "rewind" sweep when reaching either end.
+ *   • Forward-only autoplay (interval driven by `data-ns-autoplay` +
+ *     `data-ns-interval` on root); paused on hover when `data-ns-poh`
+ *     isn't "0".
+ *   • IntersectionObserver — autoplay stops when the section scrolls
+ *     out of viewport (saves battery on mobile).
+ *   • Resize handling — realigns to the nearest real card.
+ *   • `prefers-reduced-motion` — falls back to instant scrolls.
+ *
+ * Assumes the DOM shape:
+ *   <root class="…">
+ *     [data-ns-prev] · [data-ns-next]      ← arrow buttons (optional)
+ *     <track data-ns-track>
+ *       <.ns-card>·…·                       ← real cards
+ *     </track>
+ *   </root>
+ *
+ * Designed to be spliced into an existing `iife(scopeClass, body)` so
+ * that `root` is already in scope. Don't include the (function(){…})()
+ * wrapper.
+ */
+export function infiniteScrollJs() {
+  return `var track=root.querySelector("[data-ns-track]");if(!track)return;var prev=root.querySelector("[data-ns-prev]");var next=root.querySelector("[data-ns-next]");var ap=root.getAttribute("data-ns-autoplay")==="1";var interval=parseInt(root.getAttribute("data-ns-interval"),10)||4000;var poh=root.getAttribute("data-ns-poh")!=="0";var timer=null;var isVis=true;var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;var smooth=reduced?"auto":"smooth";var realCards=Array.prototype.slice.call(track.querySelectorAll(".ns-card"));var nReal=realCards.length;function gapPx(){return parseInt(getComputedStyle(track).gap,10)||18;}function cardStep(){var c=track.querySelector(".ns-card");return c?c.offsetWidth+gapPx():0;}function removeClones(){var cs=track.querySelectorAll("[data-ns-clone]");for(var i=0;i<cs.length;i++)cs[i].parentNode.removeChild(cs[i]);}function addClones(){if(nReal<2)return;removeClones();var N=Math.min(nReal,4);var fp=document.createDocumentFragment();var fq=document.createDocumentFragment();for(var i=nReal-N;i<nReal;i++){var c=realCards[i].cloneNode(true);c.setAttribute("data-ns-clone","pre");c.removeAttribute("id");c.removeAttribute("data-ns-src");fp.appendChild(c);}for(var j=0;j<N;j++){var c2=realCards[j].cloneNode(true);c2.setAttribute("data-ns-clone","post");c2.removeAttribute("id");c2.removeAttribute("data-ns-src");fq.appendChild(c2);}track.insertBefore(fp,track.firstChild);track.appendChild(fq);}function syncStart(){var f=track.querySelector(".ns-card:not([data-ns-clone])");if(!f)return;track.style.scrollBehavior="auto";track.scrollLeft=f.offsetLeft;void track.offsetWidth;track.style.scrollBehavior=smooth;}function go(dir){var amt=cardStep();if(!amt)return;track.scrollBy({left:dir*amt,behavior:smooth});}function maybeWrap(){if(nReal<2)return;var fr=track.querySelector(".ns-card:not([data-ns-clone])");if(!fr)return;var fpst=track.querySelector('.ns-card[data-ns-clone="post"]');if(!fpst)return;var d=fpst.offsetLeft-fr.offsetLeft;var sl=track.scrollLeft;if(sl>=fpst.offsetLeft-2){track.style.scrollBehavior="auto";track.scrollLeft=sl-d;void track.offsetWidth;track.style.scrollBehavior=smooth;}else if(sl<fr.offsetLeft-2){track.style.scrollBehavior="auto";track.scrollLeft=sl+d;void track.offsetWidth;track.style.scrollBehavior=smooth;}}var st;track.addEventListener("scroll",function(){clearTimeout(st);st=setTimeout(maybeWrap,120);},{passive:true});function start(){if(!ap||nReal<2)return;stop();timer=setInterval(function(){if(isVis)go(1);},interval);}function stop(){if(timer){clearInterval(timer);timer=null;}}if(prev)prev.addEventListener("click",function(){go(-1);start();});if(next)next.addEventListener("click",function(){go(1);start();});if(poh){root.addEventListener("mouseenter",stop);root.addEventListener("mouseleave",start);}if(typeof IntersectionObserver==="function"){var io=new IntersectionObserver(function(es){isVis=!!(es[0]&&es[0].isIntersecting);if(!isVis)stop();else start();});io.observe(root);}var rsT;window.addEventListener("resize",function(){clearTimeout(rsT);rsT=setTimeout(function(){var f=track.querySelector(".ns-card:not([data-ns-clone])");if(!f)return;track.style.scrollBehavior="auto";track.scrollLeft=f.offsetLeft;void track.offsetWidth;track.style.scrollBehavior=smooth;},200);});addClones();requestAnimationFrame(function(){syncStart();start();});`;
+}
+
 export function wrapSnippet({ html, css, js }) {
   return `${html}\n<style>${FONT_IMPORT}\n${css}</style>\n<script>${js}</script>`;
 }
