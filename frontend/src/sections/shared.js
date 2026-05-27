@@ -266,5 +266,14 @@ export function previewDoc(snippet, opts) {
   const vatToggleJs = withVat
     ? `<script>(function(){function ready(f){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",f);else f();}ready(function(){var b=document.querySelector(".dw-edit-vat-toggle button");if(!b)return;b.addEventListener("click",function(){var l=b.querySelector(".vat-switcher-label");var cur=b.getAttribute("data-state")||"excl";var nx=cur==="incl"?"excl":"incl";b.setAttribute("data-state",nx);if(l)l.textContent=nx==="incl"?"Incl VAT":"Excl VAT";});});})();</script>`
     : "";
-  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}</body></html>`;
+  // Editor-only scroll + open-<details> restoration. Every time the form
+  // changes the iframe's srcdoc is replaced, which re-loads the document
+  // and (without this) snaps the view back to the top + collapses every
+  // FAQ accordion. We persist scroll position + the indices of every
+  // open <details> into `window.name`, which is one of the few things
+  // that survives an iframe srcdoc swap in the same iframe element. On
+  // each reload we read the state back and re-apply it before the user
+  // notices a flicker. Exported snippets never receive this script.
+  const stateRestoreJs = `<script>(function(){function r(f){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",f);else f();}r(function(){var st={};try{st=JSON.parse(window.name||"{}")||{};}catch(e){}var ds=document.querySelectorAll("details");if(Array.isArray(st.od))st.od.forEach(function(i){if(ds[i])ds[i].open=true;});if(typeof st.sy==="number"){var y=st.sy;requestAnimationFrame(function(){window.scrollTo(0,y);requestAnimationFrame(function(){window.scrollTo(0,y);});});}function save(){try{var od=[];document.querySelectorAll("details").forEach(function(d,i){if(d.open)od.push(i);});window.name=JSON.stringify({sy:window.scrollY||window.pageYOffset||0,od:od});}catch(e){}}var t=false;window.addEventListener("scroll",function(){if(t)return;t=true;requestAnimationFrame(function(){save();t=false;});},{passive:true});document.addEventListener("toggle",function(e){if(e.target&&e.target.tagName==="DETAILS")save();},true);});})();</script>`;
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}${stateRestoreJs}</body></html>`;
 }
