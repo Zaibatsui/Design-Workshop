@@ -33,9 +33,9 @@ export const SECTION_META = {
   // Pre-existing library — launched together.
   hero: {
     addedOn: LAUNCH,
-    updatedOn: "2026-02-19",
+    updatedOn: "2026-02-27",
     whatsNew:
-      "Hero now has separate desktop and mobile controls — set different gradients, alignment and arrows for each screen size without one breaking the other.",
+      "Hero in slide mode now loops continuously — clicking next on the last slide flows straight to the first one with no rewind, and prev on the first slide flips straight to the last. Earlier mobile-specific controls (separate gradients, alignment, arrows) remain.",
   },
   "split-banner": {
     addedOn: LAUNCH,
@@ -47,19 +47,19 @@ export const SECTION_META = {
   content: { addedOn: LAUNCH, updatedOn: LAUNCH },
   products: {
     addedOn: LAUNCH,
-    updatedOn: "2026-05-26",
+    updatedOn: "2026-02-27",
     whatsNew:
-      "Product Carousel now scrolls continuously — both with the arrows and on mobile swipe. No more rewind back to the start when you reach the end. The corner-badge upload also lives behind a clearer toggle so it's not mistaken for the main product photo.",
+      "Product Carousel now scrolls continuously in BOTH directions — the right-arrow infinite-loop bug is fixed, swipe-on-mobile loops too, and the carousel no longer drifts out of alignment after several full ring traversals. The corner-badge upload lives behind a clearer toggle so it's never mistaken for the main product photo.",
   },
   "product-grid": {
     addedOn: LAUNCH,
-    updatedOn: "2026-05-26",
+    updatedOn: "2026-02-26",
     whatsNew:
       "The optional corner-badge upload is now tucked behind a small disclosure with clearer wording — no more mistaking it for the main product photo.",
   },
   resources: {
     addedOn: LAUNCH,
-    updatedOn: "2026-05-26",
+    updatedOn: "2026-02-26",
     whatsNew:
       "Resources Carousel now loops continuously — both with the arrows and on mobile swipe. New per-card content alignment override means one card can sit centred while the rest stay left-aligned.",
   },
@@ -69,9 +69,9 @@ export const SECTION_META = {
   testimonials: { addedOn: LAUNCH, updatedOn: LAUNCH },
   faq: {
     addedOn: LAUNCH,
-    updatedOn: "2026-05-26",
+    updatedOn: "2026-02-27",
     whatsNew:
-      "FAQ answers now have a rich-text toolbar with bold, italics, lists and an inline link editor. Add web or email links, pick a per-link colour, and toggle the underline off — all from the answer's own toolbar.",
+      "Links inside FAQ answers now auto-resolve to full URLs even if you type 'example.com' without the https:// — they used to be appended to the host page's address and break. New per-link 'Open in a new tab' toggle so you can pick whether each link opens in the same window or a fresh tab. Rich-text toolbar still has bold / italics / lists and the inline link editor with colour and underline controls.",
   },
   "cta-banner": { addedOn: LAUNCH, updatedOn: LAUNCH },
   placeholder: { addedOn: LAUNCH, updatedOn: LAUNCH },
@@ -80,21 +80,21 @@ export const SECTION_META = {
   tabs: { addedOn: LAUNCH, updatedOn: LAUNCH },
   richtext: {
     addedOn: LAUNCH,
-    updatedOn: "2026-05-26",
+    updatedOn: "2026-02-26",
     whatsNew:
-      "Visual editor now has an inline link panel — add web or email links, set a per-link colour, and turn the underline off on any single link from the toolbar. Click an existing link in the editor to re-open the panel and tweak it. HTML source mode still has its 'Use override styles' and 'Underline links' switches for raw HTML paste-throughs.",
+      "Visual editor now has an inline link panel — add web or email links, set a per-link colour, and turn the underline off on any single link from the toolbar. Click an existing link to re-open the panel and tweak it. Scheme-less URLs like 'example.com' are auto-resolved to 'https://example.com' so links never get appended to the host page. New per-link 'Open in a new tab' toggle.",
   },
 
-  // 2026-05-26 — new arrivals
+  // 2026-02-19 — new arrivals from the previous fork
   "featured-card": {
-    addedOn: "2026-05-26",
-    updatedOn: "2026-05-26",
+    addedOn: "2026-02-19",
+    updatedOn: "2026-02-19",
     whatsNew:
       "A new section: a big photo background with a clean card holding your headline, supporting points and an optional button. Perfect for hero intros, process steps and final calls to action.",
   },
   "trust-strip": {
-    addedOn: "2026-05-26",
-    updatedOn: "2026-05-26",
+    addedOn: "2026-02-19",
+    updatedOn: "2026-02-19",
     whatsNew:
       "A new compact row of icons and one-line callouts. Ideal for credibility marks like '20+ years' or '5-star service' between heavier sections.",
   },
@@ -102,7 +102,7 @@ export const SECTION_META = {
     addedOn: "2026-02-27",
     updatedOn: "2026-02-27",
     whatsNew:
-      "A new 'us vs them' comparison table. Three columns — feature labels, your offering with ticks, and a generic competitor column with crosses. Great for B2B pitches and pricing pages where you want shoppers to choose you at a glance.",
+      "A new 'us vs them' comparison table. Three columns — feature labels, your offering with ticks, and a generic competitor column with crosses. Brand-logo header, highlight your column with a tinted background and accent border, and a closing line + CTA underneath. High-converting B2B pattern.",
   },
 };
 

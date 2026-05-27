@@ -39,10 +39,10 @@ export const PAGE_TEMPLATE_META = {
       "Pre-fills a brand page in one click — split banner, use-case cards, tech tabs, product carousel and a brand statement. Great for a vendor landing.",
   },
 
-  // 2026-05-26 — Service landing template (new section stack)
+  // 2026-02-19 — Service landing template (new section stack)
   "service-landing": {
-    addedOn: "2026-05-26",
-    updatedOn: "2026-05-26",
+    addedOn: "2026-02-19",
+    updatedOn: "2026-02-19",
     whatsNew:
       "A new template for service-led pages: problem → solution → trust → process → CTA. Pre-fills the new Featured Card and Trust Strip sections.",
   },

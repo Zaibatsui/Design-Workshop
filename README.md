@@ -22,32 +22,33 @@ The output is **strictly inert** — scoped CSS classes (one unique class per in
 
 ## Features
 
-### Section library — 20 composable section types
+### Section library — 21 composable section types
 
 Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Product Carousel and Product Grid are **Pro / Nettailer-aware** blocks with live-scraped pricing, a universal VAT toggle and gated-pricing fallback.
 
 | Block | What it does |
 |---|---|
-| **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Per-slide colour overrides and optional `split` slide layout (full-bleed image + container-aligned text). |
+| **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Slide mode loops continuously — clicking next on the last slide flows straight to the first without a rewind. Per-slide colour overrides and an optional `split` layout (full-bleed image + container-aligned text). Mobile-specific overrides for gradients, alignment and arrows so the small-screen view isn't dictated by desktop. |
 | **Split Banner** | Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter-weight cousin of Hero for non-carousel use. Optional feature-points list inside the panel. |
 | **Featured Card** | Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions. |
 | **Welcome** | Post-login banner with positionable heading, customer logo and account-manager card. Each block snaps to one of nine grid positions so one section serves many brands. |
 | **Content** | Heading + body + buttons. The all-purpose marquee block. |
-| **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image, with overlay-badge extraction. Universal VAT toggle: snippet watches the host site's VAT switcher and live-flips between inc-VAT and ex-VAT prices, mirroring whatever label convention the host uses (`Inc VAT`, `Inkl. moms`, `TTC`, …). |
+| **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Infinite-loop in both directions (clone-and-jump scrolling — no rewind, no drift). Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image, with overlay-badge extraction. Universal VAT toggle: snippet watches the host site's VAT switcher and live-flips between inc-VAT and ex-VAT prices, mirroring whatever label convention the host uses (`Inc VAT`, `Inkl. moms`, `TTC`, …). |
 | **Product Grid** | Same product cards as the Carousel, laid out as a static grid (2–6 per row, wraps to multiple rows). Shares the live-price refresh + universal VAT toggle + gated-pricing fallback via the `productLive.js` helper. |
 | **Insights Grid** | Editorial 2–3 column card grid for articles & case studies. Per-card layouts (image-left, image-top, image-right), accent border toggle, configurable image width. |
-| **Resource Carousel** | Tag-tinted card carousel — blog posts, guides, downloads. |
+| **Resource Carousel** | Tag-tinted card carousel — blog posts, guides, downloads. Infinite-loop scrolling in both directions, per-card content alignment override (one card centred, the rest left-aligned). |
 | **Feature Grid** | 2–4 column value-prop cards with icon, title, body. Outlined / tinted / solid card styles, plus an image-card variant (`image-top` / `image-left`). |
 | **Trust Strip** | Compact 2–5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — perfect for "20+ years", "ISO 27001 certified", "5-star service" rows. |
+| **Comparison Table** | Three-column "us vs them" matrix. Feature rows with ticks on your column and crosses on the competitor's. Brand-logo header on your column, accent tint + border to draw the eye, closing line + CTA below. High-converting B2B pattern, mobile-collapses to a card-per-row layout. |
 | **Steps** | Numbered process strip. Horizontal or vertical, big editorial numerals or compact inline. |
 | **Testimonials** | Auto-scrolling quote carousel with avatars + 0–5 star ratings. Pauses on hover, respects `prefers-reduced-motion`. |
-| **FAQ** | Collapsible Q+A accordion. Native `<details>` / `<summary>` for zero-JS accessibility. |
+| **FAQ** | Collapsible Q+A accordion. Native `<details>` / `<summary>` for zero-JS accessibility. Rich-text answer editor with inline link panel — web or email, per-link colour, per-link underline toggle and per-link "Open in a new tab" choice. Scheme-less URLs like `example.com` auto-resolve to `https://example.com` so links never break inside an embedded snippet. |
 | **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides. |
 | **Logo Strip** | Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle. |
 | **Break Banner** | Full-bleed parallax break with overlaid heading. Use it to chapter long pages. |
 | **Tabs** | Tabbed content panel with a side image. Configurable tab alignment and image position. Optional per-tab image link (open in new or same tab). |
 | **Grid** | 2×2 / 2×3 image grid with optional links per cell. |
-| **Rich text** | Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections. |
+| **Rich text** | Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections. Inline link panel with per-link colour, underline toggle and "Open in a new tab" choice; scheme-less URLs auto-resolve to `https://`. |
 
 ### Hybrid Page Builder
 
@@ -70,6 +71,10 @@ A dashboard-header **"What's new"** sheet lists every currently-badged section a
 ### Live previews everywhere
 
 Every section editor and the page editor render the **actual exported snippet** inside a sandboxed iframe. The section preview frame is drag-resizable per section type and persists your preference in `localStorage`. The dashboard masonry deferred-renders cards so only visible thumbnails run their snippet JS.
+
+Hover any tile in the section picker, page-editor `+ Add block` flow, in-app User Guide, or the public landing page and a **live preview popover** mounts inline — a 480 × 270 thumbnail of the rendered section, scaled from native desktop width so responsive breakpoints fire correctly. When you're logged in the preview is overlaid with your **Brand Kit** so the thumbnail reflects your own palette and fonts; on the unauth landing page the preview uses the section's defaults.
+
+Admins can pick any saved library section as the **global hover-preview source** for its section type via a checkbox in the Editor sidebar. The override beats both the static defaults and the per-user brand-kit overlay so every visitor sees the same curated thumbnail. State is stored in `app_settings.preview_overrides` and served via the public `GET /api/public/preview-overrides` endpoint.
 
 ### Marketing landing page · admin-curated demos
 
