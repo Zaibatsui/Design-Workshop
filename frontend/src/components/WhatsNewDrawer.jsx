@@ -7,9 +7,14 @@
  * metadata via the registry) plus the `whatsNew` notes added in
  * `sections/sectionMeta.js`.
  *
- * Persists a "last seen" timestamp in localStorage so the trigger
- * button can show a small red dot when there's something the user
- * hasn't acknowledged yet.
+ * Tracks "seen" state PER USER and PER ENTRY SIGNATURE. A signature is
+ * `<id>:<updatedOn||addedOn>` so every individual addition or bump is
+ * its own dismissable thing. Two consequences:
+ *   • Different users on the same browser get independent unread state
+ *     (key is namespaced by the logged-in email).
+ *   • Every time we ship a new entry — or bump `updatedOn` on an
+ *     existing one — the dot re-lights for every user who hasn't
+ *     clicked through that specific version yet.
  */
 import { useEffect, useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
@@ -24,24 +29,39 @@ import { Button } from "@/components/ui/button";
 import { SECTIONS } from "@/sections/registry";
 import { PAGE_TEMPLATES } from "@/sections/pageTemplates";
 import { computeBadges } from "@/lib/sectionBadges";
+import { useAuth } from "@/auth/AuthContext";
 
-const LS_KEY = "ns.whatsNew.lastSeenAt";
+const LS_PREFIX = "ns.whatsNew.seen:";
 
-function readLastSeen() {
+function readSeen(userKey) {
+  if (!userKey) return new Set();
   try {
-    const v = localStorage.getItem(LS_KEY);
-    return v ? new Date(v) : null;
+    const raw = localStorage.getItem(LS_PREFIX + userKey);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? new Set(arr) : new Set();
   } catch {
-    return null;
+    return new Set();
   }
 }
 
-function writeLastSeen(d) {
+function writeSeen(userKey, set) {
+  if (!userKey) return;
   try {
-    localStorage.setItem(LS_KEY, d.toISOString());
+    localStorage.setItem(LS_PREFIX + userKey, JSON.stringify(Array.from(set)));
   } catch {
     // localStorage disabled in private mode — fall back to in-memory only
   }
+}
+
+/**
+ * Signature for an entry — uniquely identifies a *version* of the
+ * entry. Bumping `updatedOn` changes the signature, which is what
+ * makes the dot re-light when we ship an improvement.
+ */
+function entrySig(e) {
+  const v = e.updatedOn || e.addedOn || "0";
+  return `${e.id}:${v}`;
 }
 
 /**
@@ -71,27 +91,30 @@ function buildEntries(items) {
 }
 
 /**
- * Returns the most recent date across all entries (used to decide
- * whether to show the unread-dot indicator on the trigger button).
- *
- * Takes max(addedOn, updatedOn) per entry so a NEW section whose
- * `whatsNew` note gets bumped mid-window still re-lights the dot
- * for users who already opened the drawer.
+ * Returns the set of entry signatures currently shown — i.e. every
+ * entry that has a NEW or UPDATED badge AND a whatsNew note. The
+ * unread-dot fires when this set contains anything not already in
+ * the user's "seen" set.
  */
-function mostRecentDate(entries) {
-  if (!entries.length) return null;
-  return entries.reduce((acc, e) => {
-    const added = e.addedOn ? new Date(e.addedOn) : null;
-    const updated = e.updatedOn ? new Date(e.updatedOn) : null;
-    const d = !added ? updated : !updated ? added : added > updated ? added : updated;
-    if (!d) return acc;
-    return !acc || d > acc ? d : acc;
-  }, null);
+function currentSignatures(entries) {
+  return new Set(entries.map(entrySig));
 }
 
 export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
   const [open, setOpen] = useState(false);
-  const [lastSeen, setLastSeen] = useState(() => readLastSeen());
+  const { user } = useAuth() || {};
+  // Per-user storage key — falls back to "anonymous" on the rare
+  // logged-out paths that mount this trigger (e.g. shared previews).
+  const userKey = (user && (user.email || user.id)) || "anonymous";
+  const [seen, setSeen] = useState(() => readSeen(userKey));
+
+  // When the logged-in identity changes (different user signs in on
+  // the same browser, or initial /api/auth/me resolves), reload the
+  // matching seen-set so each user's notification state is independent.
+  useEffect(() => {
+    setSeen(readSeen(userKey));
+  }, [userKey]);
+
   // Recompute the entries lazily and memoise — the dataset only changes
   // on full reload because the dates are static config.
   const sectionEntries = useMemo(() => buildEntries(SECTIONS), []);
@@ -100,19 +123,30 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
     () => [...sectionEntries, ...templateEntries],
     [sectionEntries, templateEntries]
   );
-  const latest = useMemo(() => mostRecentDate(allEntries), [allEntries]);
-  const hasUnread =
-    allEntries.length > 0 && (!lastSeen || (latest && latest > lastSeen));
+  const currentSigs = useMemo(() => currentSignatures(allEntries), [allEntries]);
+  // Unread = any currently-shown signature the user hasn't acknowledged.
+  const hasUnread = useMemo(() => {
+    for (const sig of currentSigs) {
+      if (!seen.has(sig)) return true;
+    }
+    return false;
+  }, [currentSigs, seen]);
 
-  // Mark everything as seen the moment the drawer opens — the user is
-  // looking at the content right now.
+  // Mark every currently-shown entry as seen the moment the drawer
+  // opens. Future updates (new entries or `updatedOn` bumps) will
+  // produce signatures not in this set, re-lighting the dot.
   useEffect(() => {
     if (open) {
-      const now = new Date();
-      writeLastSeen(now);
-      setLastSeen(now);
+      const next = new Set(seen);
+      for (const sig of currentSigs) next.add(sig);
+      writeSeen(userKey, next);
+      setSeen(next);
     }
-  }, [open]);
+    // We intentionally don't include `seen` in deps — we read it
+    // through the closure, write the merged set, and seed React state
+    // with the same merged set so subsequent opens see the latest.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, userKey]);
 
   // Don't render the button if there's nothing to announce.
   if (allEntries.length === 0) return null;
