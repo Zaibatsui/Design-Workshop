@@ -269,7 +269,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
 
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-200 bg-slate-50 flex-wrap">
+      <div className="flex items-center gap-0 px-1.5 py-1.5 border-b border-slate-200 bg-slate-50 flex-wrap">
         {enabled.has("h1") && (
           <ToolbarButton
             active={editor.isActive("heading", { level: 1 })}
@@ -277,7 +277,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="H1"
             testid="rt-h1"
           >
-            <Heading1 className="w-4 h-4" />
+            <Heading1 className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {enabled.has("h2") && (
@@ -287,7 +287,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="H2"
             testid="rt-h2"
           >
-            <Heading2 className="w-4 h-4" />
+            <Heading2 className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {enabled.has("h3") && (
@@ -297,7 +297,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="H3"
             testid="rt-h3"
           >
-            <Heading3 className="w-4 h-4" />
+            <Heading3 className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {(enabled.has("h1") || enabled.has("h2") || enabled.has("h3")) && <Divider />}
@@ -308,7 +308,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="Bold"
             testid="rt-bold"
           >
-            <Bold className="w-4 h-4" />
+            <Bold className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {enabled.has("italic") && (
@@ -318,7 +318,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="Italic"
             testid="rt-italic"
           >
-            <Italic className="w-4 h-4" />
+            <Italic className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {(enabled.has("bold") || enabled.has("italic")) && <Divider />}
@@ -329,7 +329,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="Bullet list"
             testid="rt-ul"
           >
-            <List className="w-4 h-4" />
+            <List className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {enabled.has("ol") && (
@@ -339,7 +339,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="Numbered list"
             testid="rt-ol"
           >
-            <ListOrdered className="w-4 h-4" />
+            <ListOrdered className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {(enabled.has("ul") || enabled.has("ol")) && enabled.has("link") && <Divider />}
@@ -350,7 +350,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="Link"
             testid="rt-link"
           >
-            <LinkIcon className="w-4 h-4" />
+            <LinkIcon className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {/* Remove / underline-toggle only surface while the user is
@@ -363,7 +363,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label="Remove link"
             testid="rt-unlink"
           >
-            <Link2Off className="w-4 h-4" />
+            <Link2Off className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
         {enabled.has("link") && linkPanel.open && onLink && (
@@ -373,7 +373,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             label={noUnderline ? "Underline this link" : "Remove underline from this link"}
             testid="rt-link-underline"
           >
-            <UnderlineIcon className="w-4 h-4" />
+            <UnderlineIcon className="w-3.5 h-3.5" />
           </ToolbarButton>
         )}
       </div>
@@ -587,7 +587,7 @@ function ToolbarButton({ active, onClick, label, testid, children }) {
       onClick={onClick}
       title={label}
       aria-label={label}
-      className={`p-1.5 rounded text-slate-600 hover:bg-slate-100 transition-colors ${
+      className={`p-1 rounded text-slate-600 hover:bg-slate-100 transition-colors ${
         active ? "bg-slate-200 text-slate-900" : ""
       }`}
     >
@@ -597,5 +597,5 @@ function ToolbarButton({ active, onClick, label, testid, children }) {
 }
 
 function Divider() {
-  return <span className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />;
+  return <span className="w-px h-4 bg-slate-200 mx-0.5" aria-hidden="true" />;
 }
