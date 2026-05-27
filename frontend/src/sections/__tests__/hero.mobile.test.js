@@ -327,8 +327,8 @@ function baseCfg(overrides = {}) {
   const track = dom.window.document.querySelector("[data-ns-track]");
   const tx = (track && track.style.transform) || "";
   expect(
-    "Slide transition: __nsHeroIndex=2 sets track transform to -200% synchronously",
-    /translateX\(-200%\)/.test(tx),
+    "Slide transition: __nsHeroIndex=2 sets track transform to -300% (real slide 2 at clone-offset index 3)",
+    /translateX\(-300%\)/.test(tx),
     `actual transform="${tx}"`
   );
 }
