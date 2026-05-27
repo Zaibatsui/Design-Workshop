@@ -26,6 +26,9 @@
  */
 import { useState, useRef, useEffect, useMemo, cloneElement, Children } from "react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
+import { useBrandKit } from "@/lib/BrandKitContext";
+import { usePreviewOverrides } from "@/lib/PreviewOverridesContext";
+import { applyBrandKit, DEFAULT_BRAND_KIT } from "@/lib/brandKit";
 
 const NATIVE_W = 1280;
 const NATIVE_H = 720;
@@ -34,32 +37,72 @@ const THUMB_H = 270;
 const SCALE = THUMB_W / NATIVE_W; // 0.375
 const HOVER_DELAY_MS = 220;
 
-// Render-string cache. Each section's defaults are static config so
-// the resulting HTML string is identical across mounts.
+// Render-string cache keyed by (sectionId, overrideSig, brandKitSig).
+// `overrideSig` flips when an admin re-curates the preview, busting
+// the cache for that single section without nuking everything else.
 const HTML_CACHE = new Map();
 
-function renderHtmlFor(sectionId) {
-  if (HTML_CACHE.has(sectionId)) return HTML_CACHE.get(sectionId);
+function brandKitSig(kit) {
+  // Cheap, stable signature — only the keys we care about for snippet
+  // rendering. Keeps the cache key small and avoids stringifying noise.
+  if (!kit) return "default";
+  return [
+    kit.primary_color, kit.secondary_color, kit.text_color,
+    kit.body_color, kit.background_color,
+    kit.heading_font, kit.body_font,
+    kit.accent_color, kit.eyebrow_color, kit.link_color,
+  ].join("|");
+}
+
+function buildSrcDoc(html) {
+  // Lock the body to native width so the snippet's responsive
+  // breakpoints fire at the same place the editor would show.
+  return (
+    `<!doctype html><html><head><meta charset="utf-8"/>` +
+    `<style>html,body{margin:0;padding:0;background:#fff;` +
+    `width:${NATIVE_W}px;overflow:hidden;` +
+    `font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}</style>` +
+    `</head><body>${html}</body></html>`
+  );
+}
+
+/**
+ * Computes the HTML to render for a section preview.
+ *
+ * Resolution order:
+ *   1. Admin override exists for the section type → render the
+ *      override's full config (admin's curated version is the truth;
+ *      brand kit is NOT applied on top — the admin chose the
+ *      colours).
+ *   2. Brand kit available → render `defaults() ⨉ brand kit` so the
+ *      dashboard preview reflects the current user's palette/fonts.
+ *   3. Otherwise → plain `defaults()`. Used for the public landing
+ *      page where no brand kit is in context.
+ */
+function renderHtmlFor(sectionId, override, brandKit) {
+  const cacheKey = `${sectionId}::${override ? override.section_id : "_"}::${brandKitSig(brandKit)}`;
+  if (HTML_CACHE.has(cacheKey)) return HTML_CACHE.get(cacheKey);
   const section = SECTIONS_BY_ID[sectionId];
   if (!section || typeof section.render !== "function") {
-    HTML_CACHE.set(sectionId, "");
+    HTML_CACHE.set(cacheKey, "");
     return "";
   }
   try {
-    const defaults = section.defaults ? section.defaults() : {};
-    const html = section.render(defaults) || "";
-    // Lock the body to native width so the snippet's responsive
-    // breakpoints fire at the same place the editor would show.
-    const wrapped =
-      `<!doctype html><html><head><meta charset="utf-8"/>` +
-      `<style>html,body{margin:0;padding:0;background:#fff;` +
-      `width:${NATIVE_W}px;overflow:hidden;` +
-      `font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}</style>` +
-      `</head><body>${html}</body></html>`;
-    HTML_CACHE.set(sectionId, wrapped);
+    let config;
+    if (override && override.config) {
+      config = override.config;
+    } else {
+      const base = section.defaults ? section.defaults() : {};
+      config = brandKit
+        ? applyBrandKit(sectionId, base, brandKit)
+        : base;
+    }
+    const html = section.render(config) || "";
+    const wrapped = buildSrcDoc(html);
+    HTML_CACHE.set(cacheKey, wrapped);
     return wrapped;
   } catch {
-    HTML_CACHE.set(sectionId, "");
+    HTML_CACHE.set(cacheKey, "");
     return "";
   }
 }
@@ -75,12 +118,28 @@ export default function SectionPreviewPopover({
   const [mounted, setMounted] = useState(false); // gates the iframe
   const [pos, setPos] = useState({ top: 0, left: 0, flipped: false });
   const timerRef = useRef(null);
+  const { brandKit, loaded: brandKitLoaded } = useBrandKit();
+  const { overrides } = usePreviewOverrides();
+
+  // The override (if any) is keyed by section TYPE, not by the
+  // library-section instance id. SECTIONS_BY_ID maps `sectionId →
+  // section def` where the def's id IS the type. So lookup is direct.
+  const override = sectionId ? overrides[sectionId] : null;
+  // Only overlay brand kit on top of defaults when:
+  //  - the user actually has a brand kit (i.e. we're inside the
+  //    authenticated app, not the public landing page); and
+  //  - there's no admin override (admin's choice supersedes brand
+  //    kit so the curated preview never gets re-tinted).
+  const effectiveBrandKit =
+    !override && brandKitLoaded && brandKit && brandKit !== DEFAULT_BRAND_KIT
+      ? brandKit
+      : null;
 
   // Pre-compute the cached HTML so the iframe srcdoc swap is instant
   // on first open. `useMemo` because the section id rarely changes.
   const html = useMemo(
-    () => (disabled || !sectionId ? "" : renderHtmlFor(sectionId)),
-    [sectionId, disabled]
+    () => (disabled || !sectionId ? "" : renderHtmlFor(sectionId, override, effectiveBrandKit)),
+    [sectionId, disabled, override, effectiveBrandKit]
   );
 
   // Cleanup any pending timer on unmount so we don't open a popover

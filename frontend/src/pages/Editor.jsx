@@ -25,6 +25,9 @@ import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { useBrandKit } from "@/lib/BrandKitContext";
 import { applyBrandKit, applyFontToSnippet } from "@/lib/brandKit";
+import { useAuth } from "@/auth/AuthContext";
+import { usePreviewOverrides } from "@/lib/PreviewOverridesContext";
+import { Eye } from "lucide-react";
 
 const AUTOSAVE_MS = 1500;
 // Iframe-preview debounce window. While a slider is being dragged the
@@ -393,6 +396,7 @@ export default function Editor() {
             onUpdate={updateConfig}
             previewMode={previewWidth}
           />
+          <AdminPreviewOverrideToggle section={section} />
         </div>
       </aside>
 
@@ -785,3 +789,113 @@ function SnippetDrawer({ snippet, onCopy }) {
     </div>
   );
 }
+
+/**
+ * Admin-only sidebar toggle: "Use this section as the global hover
+ * preview for {type}". When ticked, every visitor (logged-in or
+ * anonymous) sees this section's snippet — instead of the section
+ * type's static `defaults()` — when they hover the corresponding tile
+ * in the picker, user guide and landing page.
+ *
+ * Hidden for non-admins and for in-memory drafts (no section_id yet).
+ * The toggle is optimistic: we flip the UI immediately and reconcile
+ * with the server response. If the call fails we revert and toast.
+ */
+function AdminPreviewOverrideToggle({ section }) {
+  const { user } = useAuth() || {};
+  const { refresh: refreshOverrides } = usePreviewOverrides();
+  const [isCurrent, setIsCurrent] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // Only admins see this control.
+  const visible = !!(user && user.is_admin) && !!(section && section.section_id);
+
+  // Fetch admin overrides once the toggle becomes relevant so we know
+  // whether THIS section is the current preview for its type.
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    api
+      .getAdminPreviewOverrides()
+      .then((rows) => {
+        if (cancelled) return;
+        const match = (rows || []).find(
+          (r) => r.section_type === section.type
+        );
+        setIsCurrent(!!(match && match.section_id === section.section_id));
+      })
+      .catch(() => {
+        if (!cancelled) setIsCurrent(false);
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, section?.type, section?.section_id]);
+
+  if (!visible) return null;
+
+  const toggle = async () => {
+    if (busy) return;
+    setBusy(true);
+    const next = !isCurrent;
+    setIsCurrent(next); // optimistic
+    try {
+      await api.setPreviewOverride(
+        section.type,
+        next ? section.section_id : null
+      );
+      // Bust the public-overrides cache so every other open tab picks
+      // up the new state on its next mount.
+      refreshOverrides();
+      toast.success(
+        next
+          ? "Set as the global hover preview"
+          : "Cleared — hovers will use the section's defaults again"
+      );
+    } catch (e) {
+      setIsCurrent(!next); // revert
+      toast.error(
+        e?.body?.detail || "Could not update the preview override"
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div
+      className="mt-6 pt-5 border-t border-slate-200"
+      data-testid="admin-preview-override"
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2">
+        <Eye className="w-3 h-3" />
+        Admin · hover preview
+      </p>
+      <label className="flex items-start gap-2.5 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={isCurrent}
+          disabled={!loaded || busy}
+          onChange={toggle}
+          data-testid="admin-preview-override-checkbox"
+          className="mt-0.5 w-4 h-4 rounded border-slate-300 accent-[#E01839] cursor-pointer disabled:cursor-wait"
+        />
+        <span className="text-[13px] leading-snug text-slate-700">
+          Use this section as the hover-preview thumbnail for every{" "}
+          <strong>{SECTIONS_BY_ID[section.type]?.name || section.type}</strong>{" "}
+          tile across the dashboard, user guide and public landing page.
+        </span>
+      </label>
+      {isCurrent && loaded && (
+        <p className="mt-2 text-[11px] text-emerald-600 font-medium">
+          ✓ This section is the current preview for {SECTIONS_BY_ID[section.type]?.name || section.type}
+        </p>
+      )}
+    </div>
+  );
+}
+

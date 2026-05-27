@@ -161,4 +161,16 @@ export const api = {
   // masks. Backend validates the URL, content-type, and size.
   inlineImage: (url) =>
     req("/inline-image", { method: "POST", body: JSON.stringify({ url }) }),
+
+  // Hover-preview overrides — admin-curated mappings of section_type → live
+  // section config used to render the hover thumbnail across the picker,
+  // user guide and landing page. Public endpoint is unauth so the marketing
+  // page can resolve overrides too.
+  getPublicPreviewOverrides: () => req("/public/preview-overrides"),
+  getAdminPreviewOverrides: () => req("/admin/preview-overrides"),
+  setPreviewOverride: (sectionType, sectionId) =>
+    req(`/admin/preview-overrides/${encodeURIComponent(sectionType)}`, {
+      method: "PUT",
+      body: JSON.stringify({ section_id: sectionId }),
+    }),
 };

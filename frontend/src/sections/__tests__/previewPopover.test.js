@@ -58,7 +58,13 @@ const popoverSrc = fs.readFileSync(
 expect("popover imports SECTIONS_BY_ID from registry",
   /from "@\/sections\/registry"/.test(popoverSrc));
 expect("popover caches rendered HTML",
-  /HTML_CACHE/.test(popoverSrc) && /\.has\(sectionId\)/.test(popoverSrc));
+  /HTML_CACHE/.test(popoverSrc) && /\.has\(cacheKey\)/.test(popoverSrc));
+expect("popover cache key includes section id, override, and brand kit signature",
+  /\$\{sectionId\}::\$\{override [^}]*\}::\$\{brandKitSig/.test(popoverSrc));
+expect("popover overlays brand kit on defaults when no override is set",
+  /applyBrandKit\(sectionId/.test(popoverSrc));
+expect("popover prefers override config over defaults",
+  /override\.config/.test(popoverSrc));
 expect("popover lazy-mounts the iframe (gated by mounted state)",
   /setMounted\(true\)/.test(popoverSrc));
 expect("popover hover delay is non-trivial (>= 150ms)",

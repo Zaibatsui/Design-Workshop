@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import "@/App.css";
 import { AuthProvider } from "@/auth/AuthContext";
 import { BrandKitProvider } from "@/lib/BrandKitContext";
+import { PreviewOverridesProvider } from "@/lib/PreviewOverridesContext";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -89,7 +90,8 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <BrandKitProvider>
-            <Routes>
+            <PreviewOverridesProvider>
+              <Routes>
               <Route path="/login" element={<Login />} />
               <Route
                 path="/"
@@ -156,6 +158,7 @@ function App() {
                 }
               />
             </Routes>
+            </PreviewOverridesProvider>
           </BrandKitProvider>
         </AuthProvider>
       </BrowserRouter>

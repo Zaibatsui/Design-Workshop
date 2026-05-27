@@ -27,6 +27,7 @@ from routers import auth as auth_router  # noqa: E402
 from routers import brand_kit as brand_kit_router  # noqa: E402
 from routers import landing_demo as landing_demo_router  # noqa: E402
 from routers import landing_spotlights as landing_spotlights_router  # noqa: E402
+from routers import preview_overrides as preview_overrides_router  # noqa: E402
 from routers import image_library as image_library_router  # noqa: E402
 from routers import inline_image as inline_image_router  # noqa: E402
 from routers import page_templates as page_templates_router  # noqa: E402
@@ -120,6 +121,8 @@ api_router.include_router(landing_demo_router.admin_router)
 api_router.include_router(landing_demo_router.public_router)
 api_router.include_router(landing_spotlights_router.admin_router)
 api_router.include_router(landing_spotlights_router.public_router)
+api_router.include_router(preview_overrides_router.admin_router)
+api_router.include_router(preview_overrides_router.public_router)
 api_router.include_router(image_library_router.router)
 api_router.include_router(inline_image_router.router)
 api_router.include_router(admin_router.router)
