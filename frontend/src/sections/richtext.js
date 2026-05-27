@@ -20,11 +20,11 @@ const defaults = () => ({
   // Link style controls. Defaults preserve the original "branded + underlined"
   // behaviour so existing blocks keep rendering identically.
   underlineLinks: true,
-  // "auto"   → use the `accent` colour for links (current default behaviour)
-  // "inherit" → links inherit surrounding text colour (good for raw-HTML
-  //             paste-throughs that don't want the section to recolour their
-  //             links).
-  linkColorMode: "auto",
+  // When false, the section's default colours + link decoration are forced
+  // (using !important) so any inline `style="..."` on pasted HTML is
+  // overridden by the platform defaults. Default true → pasted inline
+  // styles win, matching the natural CSS cascade.
+  respectInlineStyles: true,
 });
 
 function render(cfg = {}) {
@@ -36,7 +36,7 @@ function render(cfg = {}) {
     align = "left",
     fullBleed = false,
     underlineLinks = true,
-    linkColorMode = "auto",
+    respectInlineStyles = true,
   } = cfg;
   const uid = cfg.uid || makeUid();
   const cls = `ns-richtext-${uid}`;
@@ -47,17 +47,18 @@ function render(cfg = {}) {
   const padTop = padTopOf(padCfg, 48);
   const padBot = padBotOf(padCfg, 48);
 
-  // Link styling — pasted HTML with inline `style="…"` always wins because
-  // these rules carry no !important. The two switches just change the
-  // *default* look for links that don't bring their own styles.
-  const linkColor = linkColorMode === "inherit" ? "inherit" : accent;
+  // !important is appended on the relevant declarations only when the user
+  // chose to ignore inline styles. With the default (respect) the cascade
+  // does the right thing — pasted `style="…"` overrides the section
+  // defaults naturally.
+  const bang = respectInlineStyles ? "" : " !important";
   const linkDecoration = underlineLinks
-    ? "text-decoration:underline;text-underline-offset:2px"
-    : "text-decoration:none";
+    ? `text-decoration:underline${bang};text-underline-offset:2px`
+    : `text-decoration:none${bang}`;
 
   const css = `
 ${baseReset(cls)}
-.${cls}{background:${bg};color:${fg};padding:${padTop}px 20px ${padBot}px}
+.${cls}{background:${bg};color:${fg}${bang};padding:${padTop}px 20px ${padBot}px}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
 .${cls} h2{font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.2;margin:24px 0 14px}
@@ -65,7 +66,7 @@ ${baseReset(cls)}
 .${cls} p{font-size:16px;line-height:1.65;margin:0 0 14px}
 .${cls} strong{font-weight:600}
 .${cls} em{font-style:italic}
-.${cls} a{color:${linkColor};${linkDecoration}}
+.${cls} a{color:${accent}${bang};${linkDecoration}}
 .${cls} a:hover{opacity:.8}
 .${cls} ul,.${cls} ol{margin:0 0 14px 0;padding-left:22px${align === "center" ? ";text-align:left;display:inline-block" : ""}}
 .${cls} ul{list-style:disc!important}

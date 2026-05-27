@@ -77,7 +77,7 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",
     whatsNew:
-      "Pasted HTML keeps its inline link styling, and a new 'Underline links' toggle plus 'Link colour' picker let you turn the default underline + brand colour off when your pasted markup already styles its own links.",
+      "Two new toggles sit above the Layout group: one to let inline styles and colours from your pasted HTML win, and one to turn off the link underline. Pasted-link styling now also survives the Visual editor.",
   },
 
   // 2026-05-26 — new arrivals

@@ -45,8 +45,30 @@ export default function RichTextBlockForm({ block, onUpdate }) {
           onChange={(html) => setCfg({ html })}
         />
       )}
+      <LinkFields cfg={cfg} setCfg={setCfg} />
       <LayoutFields cfg={cfg} setCfg={setCfg} />
       <ColorFields cfg={cfg} setCfg={setCfg} />
+    </div>
+  );
+}
+
+function LinkFields({ cfg, setCfg }) {
+  return (
+    <div className="space-y-3 pt-2 border-t border-slate-100">
+      <ToggleField
+        label="Use override styles and colours from the HTML"
+        description="When on, any inline style or colour in your pasted HTML wins over the section's defaults. Turn off to force this section's colours and link style on every element."
+        checked={cfg.respectInlineStyles !== false}
+        onChange={(v) => setCfg({ respectInlineStyles: v })}
+        testid="rt-respect-inline-styles"
+      />
+      <ToggleField
+        label="Underline links"
+        description="Off keeps links the same colour as your text with no underline — useful when you've pasted HTML that already styles its own links."
+        checked={cfg.underlineLinks !== false}
+        onChange={(v) => setCfg({ underlineLinks: v })}
+        testid="rt-underline-links"
+      />
     </div>
   );
 }
@@ -127,23 +149,6 @@ function ColorFields({ cfg, setCfg }) {
         value={cfg.accent || "#E01839"}
         onChange={(v) => setCfg({ accent: v })}
         testid="rt-accent"
-      />
-      <SelectField
-        label="Link colour"
-        value={cfg.linkColorMode || "auto"}
-        onChange={(v) => setCfg({ linkColorMode: v })}
-        options={[
-          { value: "auto", label: "Use accent colour" },
-          { value: "inherit", label: "Inherit text colour" },
-        ]}
-        testid="rt-link-color-mode"
-      />
-      <ToggleField
-        label="Underline links"
-        description="Off keeps links the same colour as your text with no underline — useful when you've pasted HTML that already styles its own links."
-        checked={cfg.underlineLinks !== false}
-        onChange={(v) => setCfg({ underlineLinks: v })}
-        testid="rt-underline-links"
       />
     </div>
   );
