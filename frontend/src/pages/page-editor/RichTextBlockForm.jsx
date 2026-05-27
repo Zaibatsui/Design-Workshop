@@ -45,7 +45,7 @@ export default function RichTextBlockForm({ block, onUpdate }) {
           onChange={(html) => setCfg({ html })}
         />
       )}
-      <LinkFields cfg={cfg} setCfg={setCfg} />
+      {mode === "source" && <LinkFields cfg={cfg} setCfg={setCfg} />}
       <LayoutFields cfg={cfg} setCfg={setCfg} />
       <ColorFields cfg={cfg} setCfg={setCfg} />
     </div>
