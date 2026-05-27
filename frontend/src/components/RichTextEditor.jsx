@@ -117,7 +117,28 @@ function buildHref(form) {
     const tail = qs.toString();
     return `mailto:${e}${tail ? `?${tail}` : ""}`;
   }
-  return (form.url || "").trim();
+  return normalizeWebUrl(form.url || "");
+}
+
+/**
+ * Coerce a user-supplied web URL into a fully-qualified one. Without
+ * this, typing `example.com` (or pasting any scheme-less URL) saves
+ * a relative href that the browser resolves *against the embedded
+ * snippet's host page*, sending visitors to e.g.
+ * `host-site.com/example.com` instead of the external destination.
+ *
+ * Rules:
+ *   - empty → empty (caller treats as cancel)
+ *   - already has a scheme (http://, https://, mailto:, tel:, ftp:) → keep
+ *   - starts with `/`, `#`, `?` → keep (intentional relative / anchor)
+ *   - everything else → prepend `https://`
+ */
+function normalizeWebUrl(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return s; // already has a scheme
+  if (/^[/#?]/.test(s)) return s;               // intentional relative/anchor
+  return `https://${s}`;
 }
 
 const EMPTY_FORM = {
@@ -127,6 +148,9 @@ const EMPTY_FORM = {
   subject: "",
   body: "",
   color: "",
+  // Default ON — matches previous global `target=_blank` behaviour so
+  // existing user expectations are preserved. Toggleable per-link.
+  openInNewTab: true,
 };
 
 /**
@@ -211,6 +235,11 @@ export default function RichTextEditor({ html, onChange, tools }) {
     const parsed = parseHref(existing) || { ...EMPTY_FORM };
     // Carry over any inline color the active link already has.
     parsed.color = pickColorFromStyle(attrs.style);
+    // Existing link → derive openInNewTab from its target attr. New
+    // link (no attrs) → default to true (matches the prior global
+    // `target=_blank` behaviour so users don't get surprised).
+    parsed.openInNewTab =
+      attrs.target === "_self" ? false : true;
     setLinkPanel({ open: true, form: parsed });
   };
   // Expose to the editor's handleClick closure.
@@ -230,12 +259,18 @@ export default function RichTextEditor({ html, onChange, tools }) {
     // tweak the colour.
     const existingStyle = editor.getAttributes("link").style || "";
     const nextStyle = setColorInStyle(existingStyle, linkPanel.form.color);
+    const newTab = linkPanel.form.openInNewTab !== false;
+    const target = newTab ? "_blank" : "_self";
+    // `noopener noreferrer` only matters for `_blank` (security hardening
+    // against tabnabbing). For `_self` we drop them so the rendered <a>
+    // tag stays clean and the user's choice round-trips faithfully.
+    const rel = newTab ? "noopener noreferrer" : null;
     editor
       .chain()
       .focus()
       .extendMarkRange("link")
       .setLink({ href })
-      .updateAttributes("link", { style: nextStyle })
+      .updateAttributes("link", { style: nextStyle, target, rel })
       .run();
     closeLinkPanel();
   };
@@ -485,6 +520,20 @@ function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
           onChange={(v) => setForm({ color: v })}
           testidPrefix="rt-link-color"
         />
+
+        <label
+          className="flex items-center gap-2 cursor-pointer select-none"
+          data-testid="rt-link-newtab-label"
+        >
+          <input
+            data-testid="rt-link-newtab"
+            type="checkbox"
+            checked={form.openInNewTab !== false}
+            onChange={(e) => setForm({ openInNewTab: e.target.checked })}
+            className="w-4 h-4 rounded border-slate-300 accent-[#E01839] cursor-pointer"
+          />
+          <span className="text-sm text-slate-700">Open in a new tab</span>
+        </label>
 
         <button
           type="button"
