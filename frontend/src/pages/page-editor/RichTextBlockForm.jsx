@@ -57,7 +57,7 @@ function LinkFields({ cfg, setCfg }) {
     <div className="space-y-3 pt-2 border-t border-slate-100">
       <ToggleField
         label="Use override styles and colours from the HTML"
-        description="When on, any inline style or colour in your pasted HTML wins over the section's defaults. Turn off to force this section's colours and link style on every element."
+        description="When on, any colour or style your pasted HTML brings (inline attributes or a <style> block) wins over the section's defaults. Turn off to force this section's colours and link style on every element."
         checked={cfg.respectInlineStyles !== false}
         onChange={(v) => setCfg({ respectInlineStyles: v })}
         testid="rt-respect-inline-styles"

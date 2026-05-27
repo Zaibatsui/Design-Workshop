@@ -77,7 +77,7 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",
     whatsNew:
-      "Two new toggles sit above the Layout group: one to let inline styles and colours from your pasted HTML win, and one to turn off the link underline. Pasted-link styling now also survives the Visual editor.",
+      "Two new toggles above the Layout group: 'Use override styles and colours from the HTML' lets your pasted markup's inline styles and <style> blocks win over the section's defaults, and 'Underline links' lets you switch off the default link underline.",
   },
 
   // 2026-05-26 — new arrivals

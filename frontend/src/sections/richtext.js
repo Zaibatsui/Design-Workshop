@@ -48,17 +48,26 @@ function render(cfg = {}) {
   const padBot = padBotOf(padCfg, 48);
 
   // !important is appended on the relevant declarations only when the user
-  // chose to ignore inline styles. With the default (respect) the cascade
-  // does the right thing — pasted `style="…"` overrides the section
-  // defaults naturally.
+  // chose to ignore inline styles. With the default (respect) we additionally
+  // wrap our selectors in :where() so they carry zero specificity — that
+  // way any rule the user pastes (inline OR via a <style> block) wins
+  // automatically, regardless of source order.
   const bang = respectInlineStyles ? "" : " !important";
+  // Selector wrapper — :where() zeroes specificity. Used only on the
+  // user-visible style rules (colour, link decoration); structural rules
+  // like padding / max-width keep their normal specificity so they aren't
+  // accidentally overridden by generic pasted resets.
+  const w = respectInlineStyles
+    ? (sel) => `:where(${sel})`
+    : (sel) => sel;
   const linkDecoration = underlineLinks
     ? `text-decoration:underline${bang};text-underline-offset:2px`
     : `text-decoration:none${bang}`;
 
   const css = `
 ${baseReset(cls)}
-.${cls}{background:${bg};color:${fg}${bang};padding:${padTop}px 20px ${padBot}px}
+.${cls}{background:${bg};padding:${padTop}px 20px ${padBot}px}
+${w(`.${cls}`)}{color:${fg}${bang}}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
 .${cls} h2{font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.2;margin:24px 0 14px}
@@ -66,8 +75,8 @@ ${baseReset(cls)}
 .${cls} p{font-size:16px;line-height:1.65;margin:0 0 14px}
 .${cls} strong{font-weight:600}
 .${cls} em{font-style:italic}
-.${cls} a{color:${accent}${bang};${linkDecoration}}
-.${cls} a:hover{opacity:.8}
+${w(`.${cls} a`)}{color:${accent}${bang};${linkDecoration}}
+${w(`.${cls} a:hover`)}{opacity:.8}
 .${cls} ul,.${cls} ol{margin:0 0 14px 0;padding-left:22px${align === "center" ? ";text-align:left;display:inline-block" : ""}}
 .${cls} ul{list-style:disc!important}
 .${cls} ol{list-style:decimal!important}
