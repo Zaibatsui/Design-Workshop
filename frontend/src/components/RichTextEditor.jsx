@@ -31,8 +31,18 @@ const StyledLink = Link.extend({
   },
 });
 
-/** Minimal tiptap WYSIWYG — h1/h2/h3, p, b, i, ul/ol, links. */
-export default function RichTextEditor({ html, onChange }) {
+/**
+ * Minimal tiptap WYSIWYG — h1/h2/h3, p, b, i, ul/ol, links.
+ *
+ * `tools` lets a caller subset the toolbar buttons. Defaults to the full
+ * set; pass e.g. `["bold","italic","ul","ol","link"]` for a compact
+ * inline editor (used in FAQ answers).
+ */
+export default function RichTextEditor({ html, onChange, tools }) {
+  const enabled =
+    tools && tools.length
+      ? new Set(tools)
+      : new Set(["h1", "h2", "h3", "bold", "italic", "ul", "ol", "link"]);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -79,88 +89,104 @@ export default function RichTextEditor({ html, onChange }) {
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
       <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-200 bg-slate-50 flex-wrap">
-        <ToolbarButton
-          active={editor.isActive("heading", { level: 1 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          label="H1"
-          testid="rt-h1"
-        >
-          <Heading1 className="w-4 h-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          active={editor.isActive("heading", { level: 2 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          label="H2"
-          testid="rt-h2"
-        >
-          <Heading2 className="w-4 h-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          active={editor.isActive("heading", { level: 3 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          label="H3"
-          testid="rt-h3"
-        >
-          <Heading3 className="w-4 h-4" />
-        </ToolbarButton>
-        <Divider />
-        <ToolbarButton
-          active={editor.isActive("bold")}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          label="Bold"
-          testid="rt-bold"
-        >
-          <Bold className="w-4 h-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          active={editor.isActive("italic")}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          label="Italic"
-          testid="rt-italic"
-        >
-          <Italic className="w-4 h-4" />
-        </ToolbarButton>
-        <Divider />
-        <ToolbarButton
-          active={editor.isActive("bulletList")}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          label="Bullet list"
-          testid="rt-ul"
-        >
-          <List className="w-4 h-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          active={editor.isActive("orderedList")}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          label="Numbered list"
-          testid="rt-ol"
-        >
-          <ListOrdered className="w-4 h-4" />
-        </ToolbarButton>
-        <Divider />
-        <ToolbarButton
-          active={editor.isActive("link")}
-          onClick={() => {
-            const previous = editor.getAttributes("link").href || "";
-            const url = window.prompt("URL", previous);
-            if (url === null) return;
-            if (url === "") {
-              editor.chain().focus().extendMarkRange("link").unsetLink().run();
-              return;
-            }
-            editor
-              .chain()
-              .focus()
-              .extendMarkRange("link")
-              .setLink({ href: url })
-              .run();
-          }}
-          label="Link"
-          testid="rt-link"
-        >
-          <LinkIcon className="w-4 h-4" />
-        </ToolbarButton>
-        {editor.isActive("link") && (
+        {enabled.has("h1") && (
+          <ToolbarButton
+            active={editor.isActive("heading", { level: 1 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            label="H1"
+            testid="rt-h1"
+          >
+            <Heading1 className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {enabled.has("h2") && (
+          <ToolbarButton
+            active={editor.isActive("heading", { level: 2 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            label="H2"
+            testid="rt-h2"
+          >
+            <Heading2 className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {enabled.has("h3") && (
+          <ToolbarButton
+            active={editor.isActive("heading", { level: 3 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            label="H3"
+            testid="rt-h3"
+          >
+            <Heading3 className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {(enabled.has("h1") || enabled.has("h2") || enabled.has("h3")) && <Divider />}
+        {enabled.has("bold") && (
+          <ToolbarButton
+            active={editor.isActive("bold")}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            label="Bold"
+            testid="rt-bold"
+          >
+            <Bold className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {enabled.has("italic") && (
+          <ToolbarButton
+            active={editor.isActive("italic")}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            label="Italic"
+            testid="rt-italic"
+          >
+            <Italic className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {(enabled.has("bold") || enabled.has("italic")) && <Divider />}
+        {enabled.has("ul") && (
+          <ToolbarButton
+            active={editor.isActive("bulletList")}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            label="Bullet list"
+            testid="rt-ul"
+          >
+            <List className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {enabled.has("ol") && (
+          <ToolbarButton
+            active={editor.isActive("orderedList")}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            label="Numbered list"
+            testid="rt-ol"
+          >
+            <ListOrdered className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {(enabled.has("ul") || enabled.has("ol")) && enabled.has("link") && <Divider />}
+        {enabled.has("link") && (
+          <ToolbarButton
+            active={editor.isActive("link")}
+            onClick={() => {
+              const previous = editor.getAttributes("link").href || "";
+              const url = window.prompt("URL", previous);
+              if (url === null) return;
+              if (url === "") {
+                editor.chain().focus().extendMarkRange("link").unsetLink().run();
+                return;
+              }
+              editor
+                .chain()
+                .focus()
+                .extendMarkRange("link")
+                .setLink({ href: url })
+                .run();
+            }}
+            label="Link"
+            testid="rt-link"
+          >
+            <LinkIcon className="w-4 h-4" />
+          </ToolbarButton>
+        )}
+        {enabled.has("link") && editor.isActive("link") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().unsetLink().run()}
             label="Remove link"

@@ -27,6 +27,8 @@ import {
 } from "@/components/FormFields";
 import ColorField from "@/components/ColorField";
 import ListEditor from "@/components/ListEditor";
+import RichTextEditor from "@/components/RichTextEditor";
+import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 import PaddingFields from "@/components/PaddingFields";
@@ -39,8 +41,10 @@ const sampleItem = (i) => ({
     "Is the code I generate mine?",
     "Will the snippets slow my site down?",
   ][i % 3],
+  // Answers are HTML. Plain-text answers saved before this section gained
+  // a rich-text editor still render fine — see `coerceAnswerHtml()`.
   answer:
-    "Short, factual answer that addresses the question directly without marketing fluff. Two or three sentences max.",
+    "<p>Short, factual answer that addresses the question directly without marketing fluff. Two or three sentences max.</p>",
 });
 
 const defaults = () => ({
@@ -60,8 +64,34 @@ const defaults = () => ({
   singleOpen: false, // close siblings when opening
   divider: "hairline", // "hairline" | "none"
   textAlign: "left",
+  // Inline-link styling inside the answer body. Underlines on by default
+  // for predictable readability; flip off in the Defaults group to drop
+  // the underline. Colour is always the section accent — pasted/inline
+  // `style="color:…"` still wins because we don't use !important here.
+  underlineLinks: true,
   items: [sampleItem(0), sampleItem(1), sampleItem(2)],
 });
+
+/**
+ * Coerces a stored answer into safe HTML for rendering / Tiptap loading.
+ *  - Plain-text legacy answers: escape, newline-split into paragraphs.
+ *  - HTML answers (new): pass through; we trust our own editor's output.
+ *
+ * No external sanitiser dep — content is authored by signed-in editors
+ * targeting their own pages, identical trust model to the Rich Text block.
+ */
+function coerceAnswerHtml(answer) {
+  const s = String(answer || "");
+  if (!s.trim()) return "";
+  // Heuristic: anything that looks like a tag is treated as HTML.
+  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(s);
+  if (looksLikeHtml) return s;
+  // Plain text → paragraphs split on blank lines, soft line breaks on \n.
+  return s
+    .split(/\n{2,}/)
+    .map((para) => `<p>${escHtml(para).replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+}
 
 const render = (cfg) => {
   const uid = cfg.uid || makeUid();
@@ -72,8 +102,8 @@ const render = (cfg) => {
       (it) =>
         `<details class="ns-item"><summary class="ns-q"><span class="ns-q-text">${escHtml(
           it.question || ""
-        )}</span><span class="ns-q-mark" aria-hidden="true"></span></summary><div class="ns-a">${escHtml(
-          it.answer || ""
+        )}</span><span class="ns-q-mark" aria-hidden="true"></span></summary><div class="ns-a">${coerceAnswerHtml(
+          it.answer
         )}</div></details>`
     )
     .join("");
@@ -125,6 +155,16 @@ ${dividerCss}
 .${cls} .ns-q-mark::after{top:0;bottom:0;left:6px;width:2px}
 .${cls} .ns-item[open] .ns-q-mark::after{transform:scaleY(0)}
 .${cls} .ns-a{padding:0 0 22px;font-size:14px;line-height:1.7;color:${bodyColor};max-width:680px}
+.${cls} .ns-a p{margin:0 0 10px}
+.${cls} .ns-a p:last-child{margin-bottom:0}
+.${cls} .ns-a strong{font-weight:600}
+.${cls} .ns-a em{font-style:italic}
+.${cls} .ns-a ul,.${cls} .ns-a ol{margin:0 0 10px;padding-left:20px}
+.${cls} .ns-a ul{list-style:disc!important}
+.${cls} .ns-a ol{list-style:decimal!important}
+.${cls} .ns-a li{margin:0 0 4px}
+.${cls} .ns-a a{color:${accent};${cfg.underlineLinks === false ? "text-decoration:none" : "text-decoration:underline;text-underline-offset:2px"}}
+.${cls} .ns-a a:hover{opacity:.85}
 @media (max-width:640px){.${cls} .ns-q{font-size:15px}}
 `.trim();
 
@@ -211,6 +251,13 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="faq-heading-size"
         />
+        <ToggleField
+          label="Underline links in answers"
+          description="Off keeps links the same colour as the answer text with no underline. Inline link colours pasted into the answer are always respected."
+          checked={config.underlineLinks !== false}
+          onChange={(v) => onUpdate({ underlineLinks: v })}
+          testid="faq-underline-links"
+        />
         <PaddingFields
           config={config}
           onUpdate={onUpdate}
@@ -276,12 +323,20 @@ function FormPanel({ config, onUpdate }) {
                 onChange={(v) => updateItem(it.id, { question: v })}
                 testid={`faq-q-${it.id}`}
               />
-              <TextAreaField
-                label="Answer"
-                value={it.answer}
-                onChange={(v) => updateItem(it.id, { answer: v })}
-                testid={`faq-a-${it.id}`}
-              />
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-slate-700">
+                  Answer
+                </Label>
+                <RichTextEditor
+                  html={coerceAnswerHtml(it.answer)}
+                  onChange={(v) => updateItem(it.id, { answer: v })}
+                  tools={["bold", "italic", "ul", "ol", "link"]}
+                />
+                <p className="text-[11px] text-slate-500">
+                  Select text and use the toolbar to add links, bold or italics.
+                  Links inherit the section's accent colour by default.
+                </p>
+              </div>
             </>
           )}
         />

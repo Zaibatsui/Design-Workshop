@@ -69,9 +69,9 @@ export const SECTION_META = {
   testimonials: { addedOn: LAUNCH, updatedOn: LAUNCH },
   faq: {
     addedOn: LAUNCH,
-    updatedOn: "2026-02-23",
+    updatedOn: "2026-05-26",
     whatsNew:
-      "Centering the header no longer pushes your answers off to the middle of the page. Title and answers behave independently now.",
+      "FAQ answers now support inline rich text — add bold, italics, lists and links inside an answer with a compact toolbar. Links pick up the section's accent colour, with a toggle to switch the default underline off.",
   },
   "cta-banner": { addedOn: LAUNCH, updatedOn: LAUNCH },
   placeholder: { addedOn: LAUNCH, updatedOn: LAUNCH },
