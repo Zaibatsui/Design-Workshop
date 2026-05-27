@@ -98,6 +98,12 @@ export const SECTION_META = {
     whatsNew:
       "A new compact row of icons and one-line callouts. Ideal for credibility marks like '20+ years' or '5-star service' between heavier sections.",
   },
+  "comparison-table": {
+    addedOn: "2026-02-27",
+    updatedOn: "2026-02-27",
+    whatsNew:
+      "A new 'us vs them' comparison table. Three columns — feature labels, your offering with ticks, and a generic competitor column with crosses. Great for B2B pitches and pricing pages where you want shoppers to choose you at a glance.",
+  },
 };
 
 /** Default metadata used when a section ID isn't in SECTION_META. */

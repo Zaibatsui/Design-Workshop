@@ -17,6 +17,7 @@ import { welcome } from "./welcome";
 import { splitBanner } from "./splitBanner";
 import { featuredCard } from "./featuredCard";
 import { trustStrip } from "./trustStrip";
+import { comparisonTable } from "./comparisonTable";
 import { metaFor } from "./sectionMeta";
 
 // Attach `addedOn` / `updatedOn` metadata to each section so the
@@ -36,6 +37,7 @@ export const SECTIONS = [
   insights,
   featureGrid,
   trustStrip,
+  comparisonTable,
   steps,
   testimonials,
   faq,

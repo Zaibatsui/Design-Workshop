@@ -309,6 +309,15 @@ const FIELD_MAP = {
     accentColor: pick(b, "accent_color"),
     font: b.heading_font,
   }),
+  "comparison-table": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    titleColor: b.text_color,
+    bodyColor: b.body_color,
+    eyebrowColor: b.eyebrow_color || b.accent_color || b.primary_color,
+    accentColor: pick(b, "accent_color"),
+    font: b.heading_font,
+  }),
 };
 
 /**
