@@ -65,7 +65,7 @@ function render(cfg = {}) {
     : `text-decoration:none${bang}`;
 
   const css = `
-${baseReset(cls)}
+${baseReset(cls, { lowSpecificity: respectInlineStyles })}
 .${cls}{background:${bg};padding:${padTop}px 20px ${padBot}px}
 ${w(`.${cls}`)}{color:${fg}${bang}}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}

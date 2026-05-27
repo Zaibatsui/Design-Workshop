@@ -97,14 +97,21 @@ export const padBotOf = (cfg, fallback = 80) =>
  * selectors of equal/higher specificity (and comes later) so it still
  * wins over this reset.
  */
-export function baseReset(cls) {
+export function baseReset(cls, opts = {}) {
+  // Selector wrapper. When `lowSpecificity` is true, wraps the link- and
+  // colour-bearing rules in :where() so user-pasted CSS (e.g. inside a
+  // richtext block) can override them with even a single class selector.
+  // Structural protections (box-sizing, !important padding/text-indent
+  // bleed-guards) keep their full specificity in either mode.
+  const w = opts.lowSpecificity ? (s) => `:where(${s})` : (s) => s;
   return `
 .${cls},.${cls} *,.${cls} *::before,.${cls} *::after{box-sizing:border-box}
-.${cls}{font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif!important;line-height:1.5;-webkit-font-smoothing:antialiased;color:#1f2937;text-align:left}
+.${cls}{font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif!important;line-height:1.5;-webkit-font-smoothing:antialiased;text-align:left}
+${w(`.${cls}`)}{color:#1f2937}
 .${cls} h1,.${cls} h2,.${cls} h3,.${cls} h4,.${cls} h5,.${cls} h6{margin:0;padding:0!important;text-indent:0!important;text-transform:none!important;font-style:normal;letter-spacing:normal;text-align:inherit!important;font-family:inherit}
 .${cls} p,.${cls} a,.${cls} ul,.${cls} ol,.${cls} li,.${cls} span,.${cls} div{margin:0;padding:0;text-indent:0!important;text-transform:none;font-style:normal;letter-spacing:normal}
 .${cls} ul,.${cls} ol{list-style:none!important}
-.${cls} a{color:inherit;text-decoration:none}
+${w(`.${cls} a`)}{color:inherit;text-decoration:none}
 .${cls} button{font-family:inherit;cursor:pointer;background:none;border:0;padding:0;margin:0;color:inherit;text-align:inherit}
 .${cls} img{max-width:100%;display:block;border:0}
 .${cls}.is-full{position:relative;width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
