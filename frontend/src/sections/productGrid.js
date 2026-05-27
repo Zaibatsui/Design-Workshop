@@ -515,37 +515,39 @@ function FormPanel({ config, onUpdate }) {
                 }
                 testid={`pgrid-same-tab-${p.id}`}
               />
-              <details
-                className="group rounded-md border border-slate-200 bg-slate-50/50 [&[open]]:bg-white [&[open]]:border-slate-300"
-                open={Boolean(p.overlay)}
-                data-testid={`pgrid-overlay-disclosure-${p.id}`}
-              >
-                <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-slate-700 flex items-center justify-between hover:text-slate-900">
-                  <span className="flex items-center gap-1.5">
-                    <span className="text-slate-400 group-open:rotate-90 transition-transform inline-block w-3 text-center">›</span>
-                    Add a corner badge
-                    <span className="text-slate-400 font-normal">(optional)</span>
-                  </span>
-                  {p.overlay && (
-                    <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600">
-                      Set
-                    </span>
-                  )}
-                </summary>
-                <div className="px-3 pb-3 pt-1 space-y-3 border-t border-slate-200">
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    <strong className="text-slate-700">Not the product photo.</strong>{" "}
-                    A small graphic — like a "Best seller" or "In stock" sticker —
-                    layered in a corner of the card. To change the product
-                    photo itself, use the <strong>Image</strong> field at the
-                    top of this product.
-                  </p>
-                  <ImageUpload
-                    value={p.overlay}
-                    onChange={(v) => updateProduct(p.id, { overlay: v })}
-                    testid={`pgrid-overlay-${p.id}`}
-                    compact
-                  />
+              <ToggleField
+                label="Add corner badge"
+                description='A small graphic in a corner of the card (e.g. "Best seller", "Sale"). Not the product photo — use the Image field above for that.'
+                checked={Boolean(p.overlay) || Boolean(p.showOverlay)}
+                onChange={(v) =>
+                  updateProduct(
+                    p.id,
+                    v
+                      ? { showOverlay: true }
+                      : {
+                          showOverlay: false,
+                          overlay: "",
+                          overlayAlt: "",
+                          overlayPosition: "top-left",
+                          overlaySize: 38,
+                        }
+                  )
+                }
+                testid={`pgrid-overlay-toggle-${p.id}`}
+              />
+              {(Boolean(p.overlay) || Boolean(p.showOverlay)) && (
+                <div className="pl-4 border-l-2 border-slate-200 space-y-3">
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Badge image
+                    </Label>
+                    <ImageUpload
+                      value={p.overlay}
+                      onChange={(v) => updateProduct(p.id, { overlay: v })}
+                      testid={`pgrid-overlay-${p.id}`}
+                      compact
+                    />
+                  </div>
                   {p.overlay ? (
                     <>
                       <TextField
@@ -580,25 +582,10 @@ function FormPanel({ config, onUpdate }) {
                         }
                         testid={`pgrid-overlay-size-${p.id}`}
                       />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateProduct(p.id, {
-                            overlay: "",
-                            overlayAlt: "",
-                            overlayPosition: "top-left",
-                            overlaySize: 38,
-                          })
-                        }
-                        data-testid={`pgrid-overlay-remove-${p.id}`}
-                        className="text-xs text-slate-500 hover:text-red-600 underline underline-offset-2"
-                      >
-                        Remove badge
-                      </button>
                     </>
                   ) : null}
                 </div>
-              </details>
+              )}
             </>
           )}
         />
