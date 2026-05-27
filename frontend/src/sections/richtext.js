@@ -17,6 +17,14 @@ const defaults = () => ({
   accent: "#E01839",
   align: "left", // left | center
   fullBleed: false,
+  // Link style controls. Defaults preserve the original "branded + underlined"
+  // behaviour so existing blocks keep rendering identically.
+  underlineLinks: true,
+  // "auto"   → use the `accent` colour for links (current default behaviour)
+  // "inherit" → links inherit surrounding text colour (good for raw-HTML
+  //             paste-throughs that don't want the section to recolour their
+  //             links).
+  linkColorMode: "auto",
 });
 
 function render(cfg = {}) {
@@ -27,6 +35,8 @@ function render(cfg = {}) {
     accent = "#E01839",
     align = "left",
     fullBleed = false,
+    underlineLinks = true,
+    linkColorMode = "auto",
   } = cfg;
   const uid = cfg.uid || makeUid();
   const cls = `ns-richtext-${uid}`;
@@ -36,6 +46,14 @@ function render(cfg = {}) {
   const padCfg = { ...cfg, paddingY: cfg.paddingY ?? cfg.padY };
   const padTop = padTopOf(padCfg, 48);
   const padBot = padBotOf(padCfg, 48);
+
+  // Link styling — pasted HTML with inline `style="…"` always wins because
+  // these rules carry no !important. The two switches just change the
+  // *default* look for links that don't bring their own styles.
+  const linkColor = linkColorMode === "inherit" ? "inherit" : accent;
+  const linkDecoration = underlineLinks
+    ? "text-decoration:underline;text-underline-offset:2px"
+    : "text-decoration:none";
 
   const css = `
 ${baseReset(cls)}
@@ -47,7 +65,7 @@ ${baseReset(cls)}
 .${cls} p{font-size:16px;line-height:1.65;margin:0 0 14px}
 .${cls} strong{font-weight:600}
 .${cls} em{font-style:italic}
-.${cls} a{color:${accent};text-decoration:underline;text-underline-offset:2px}
+.${cls} a{color:${linkColor};${linkDecoration}}
 .${cls} a:hover{opacity:.8}
 .${cls} ul,.${cls} ol{margin:0 0 14px 0;padding-left:22px${align === "center" ? ";text-align:left;display:inline-block" : ""}}
 .${cls} ul{list-style:disc!important}

@@ -128,6 +128,23 @@ function ColorFields({ cfg, setCfg }) {
         onChange={(v) => setCfg({ accent: v })}
         testid="rt-accent"
       />
+      <SelectField
+        label="Link colour"
+        value={cfg.linkColorMode || "auto"}
+        onChange={(v) => setCfg({ linkColorMode: v })}
+        options={[
+          { value: "auto", label: "Use accent colour" },
+          { value: "inherit", label: "Inherit text colour" },
+        ]}
+        testid="rt-link-color-mode"
+      />
+      <ToggleField
+        label="Underline links"
+        description="Off keeps links the same colour as your text with no underline — useful when you've pasted HTML that already styles its own links."
+        checked={cfg.underlineLinks !== false}
+        onChange={(v) => setCfg({ underlineLinks: v })}
+        testid="rt-underline-links"
+      />
     </div>
   );
 }

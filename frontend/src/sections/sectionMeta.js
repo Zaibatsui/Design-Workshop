@@ -75,9 +75,9 @@ export const SECTION_META = {
   tabs: { addedOn: LAUNCH, updatedOn: LAUNCH },
   richtext: {
     addedOn: LAUNCH,
-    updatedOn: "2026-02-25",
+    updatedOn: "2026-05-26",
     whatsNew:
-      "Rich text now lines up with the rest of the page automatically — no more wonky alignment when you change the screen size.",
+      "Pasted HTML keeps its inline link styling, and a new 'Underline links' toggle plus 'Link colour' picker let you turn the default underline + brand colour off when your pasted markup already styles its own links.",
   },
 
   // 2026-05-26 — new arrivals

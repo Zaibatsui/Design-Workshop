@@ -14,6 +14,23 @@ import {
   Link2Off,
 } from "lucide-react";
 
+// Link extension extended to preserve any inline `style` attribute that the
+// user pastes in. Tiptap's default Link only persists `href`, `target` and
+// `rel` — pasted `<a style="color:#000;text-decoration:none">` would lose its
+// styling on round-trip, which surprises users pasting CMS-ready HTML.
+const StyledLink = Link.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("style"),
+        renderHTML: (attrs) => (attrs.style ? { style: attrs.style } : {}),
+      },
+    };
+  },
+});
+
 /** Minimal tiptap WYSIWYG — h1/h2/h3, p, b, i, ul/ol, links. */
 export default function RichTextEditor({ html, onChange }) {
   const editor = useEditor({
@@ -24,7 +41,7 @@ export default function RichTextEditor({ html, onChange }) {
         blockquote: false,
         horizontalRule: false,
       }),
-      Link.configure({
+      StyledLink.configure({
         openOnClick: false,
         autolink: true,
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
