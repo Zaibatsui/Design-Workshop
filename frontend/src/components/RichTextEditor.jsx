@@ -1,7 +1,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bold,
   Italic,
@@ -148,6 +148,10 @@ export default function RichTextEditor({ html, onChange, tools }) {
       : new Set(["h1", "h2", "h3", "bold", "italic", "ul", "ol", "link"]);
 
   const [linkPanel, setLinkPanel] = useState({ open: false, form: EMPTY_FORM });
+  // Ref-bridge so the editor's handleClick (created inside useEditor and
+  // therefore not re-bound on each render) can reach the latest
+  // openLinkPanel callback. Without this we'd close over a stale function.
+  const openLinkPanelRef = useRef(null);
 
   const editor = useEditor({
     extensions: [
@@ -173,6 +177,21 @@ export default function RichTextEditor({ html, onChange, tools }) {
           "dw-rt-content prose prose-sm max-w-none focus:outline-none min-h-[120px] px-4 py-3 text-slate-900",
         "data-testid": "richtext-editor",
       },
+      // Clicks on a link inside the editor open our inline link panel
+      // (instead of navigating away). The default ProseMirror click
+      // already places the cursor inside the link, so by the time the
+      // panel reads `editor.getAttributes("link")` it sees the right
+      // mark. Defer with a microtask to ensure the cursor has moved.
+      handleClick(_view, _pos, event) {
+        const anchor = event?.target?.closest?.("a");
+        if (!anchor) return false;
+        // Don't fight with cmd/ctrl-click (lets power users open the URL
+        // in a new tab if they really need to).
+        if (event.metaKey || event.ctrlKey) return false;
+        event.preventDefault();
+        Promise.resolve().then(() => openLinkPanelRef.current?.());
+        return true;
+      },
     },
   });
 
@@ -194,6 +213,8 @@ export default function RichTextEditor({ html, onChange, tools }) {
     parsed.color = pickColorFromStyle(attrs.style);
     setLinkPanel({ open: true, form: parsed });
   };
+  // Expose to the editor's handleClick closure.
+  openLinkPanelRef.current = openLinkPanel;
 
   const closeLinkPanel = () => setLinkPanel({ open: false, form: EMPTY_FORM });
 
@@ -332,7 +353,11 @@ export default function RichTextEditor({ html, onChange, tools }) {
             <LinkIcon className="w-4 h-4" />
           </ToolbarButton>
         )}
-        {enabled.has("link") && onLink && (
+        {/* Remove / underline-toggle only surface while the user is
+            actively editing an existing link via the panel. Hidden during
+            link creation (no existing link to remove yet) and any time
+            the panel is closed (keeps the toolbar visually quiet). */}
+        {enabled.has("link") && linkPanel.open && onLink && (
           <ToolbarButton
             onClick={removeLink}
             label="Remove link"
@@ -341,7 +366,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
             <Link2Off className="w-4 h-4" />
           </ToolbarButton>
         )}
-        {enabled.has("link") && onLink && (
+        {enabled.has("link") && linkPanel.open && onLink && (
           <ToolbarButton
             active={!noUnderline}
             onClick={toggleLinkUnderline}
