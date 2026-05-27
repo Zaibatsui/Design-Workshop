@@ -57,6 +57,11 @@ const sampleResource = (i) => ({
             : "Building customer trust through technology",
   link: "#",
   openInSameTab: false,
+  // Per-card alignment override. When `contentAlignOverride` is false
+  // the card inherits the section-level `contentAlign`. Toggle on to
+  // expose a left / center / right choice for this card only.
+  contentAlignOverride: false,
+  contentAlign: "left",
 });
 
 const defaults = () => ({
@@ -83,6 +88,9 @@ const defaults = () => ({
   // read like a normal article header. baseReset forces h-tags to
   // inherit text-align, so this value is applied to `.ns-wrap`.
   textAlign: "left",
+  // Card content alignment (tag + title inside each card). Section-level
+  // default; per-card override available via `contentAlignOverride`.
+  contentAlign: "left",
   resources: Array.from({ length: 5 }, (_, i) => sampleResource(i + 1)),
 });
 
@@ -92,6 +100,9 @@ function render(cfg) {
   const cols = Math.max(2, Math.min(5, Number(cfg.columns) || 4));
   const gap = 18;
   const align = cfg.textAlign === "center" || cfg.textAlign === "right" ? cfg.textAlign : "left";
+  // Section-level card content alignment — same three-way choice.
+  const ALIGNS = new Set(["left", "center", "right"]);
+  const cardAlignDefault = ALIGNS.has(cfg.contentAlign) ? cfg.contentAlign : "left";
 
   const styleVars = [
     `--ns-title-color:${safeColor(cfg.titleColor, "#1f2937")}`,
@@ -102,6 +113,7 @@ function render(cfg) {
     `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px`,
     `--ns-cols:${cols}`,
     `--ns-gap:${gap}px`,
+    `--ns-card-align:${cardAlignDefault}`,
   ].join(";");
 
   const cardsHtml = (cfg.resources || [])
@@ -110,9 +122,17 @@ function render(cfg) {
       const link = safeUrl(r.link || "#");
       const target = r.openInSameTab ? "_self" : "_blank";
       const rel = r.openInSameTab ? "" : ' rel="noopener noreferrer"';
+      // Per-card override of card content alignment. Falls through to the
+      // section-level default when the per-card toggle is off (or the
+      // value isn't one of our three valid keys).
+      const cardAlign =
+        r.contentAlignOverride && ALIGNS.has(r.contentAlign)
+          ? r.contentAlign
+          : null;
+      const cardStyle = cardAlign ? ` style="text-align:${cardAlign}"` : "";
       return `<a class="ns-card" href="${escAttr(link)}" target="${target}"${rel}>
   <div class="ns-img"><img src="${escAttr(img)}" alt="${escAttr(r.imageAlt || r.title || "")}"/></div>
-  <div class="ns-body">
+  <div class="ns-body"${cardStyle}>
     ${r.tag ? `<span class="ns-tag">${escHtml(r.tag)}</span>` : ""}
     <h3 class="ns-rh">${escHtml(r.title || "")}</h3>
   </div>
@@ -137,7 +157,7 @@ ${baseReset(cls)}
 .${cls} .ns-card:hover{border-color:var(--ns-hover-border);box-shadow:0 4px 18px rgba(0,0,0,.06);transform:translateY(-2px)}
 .${cls} .ns-img{width:100%;height:170px;overflow:hidden;background:#fafafa}
 .${cls} .ns-img img{width:100%;height:100%;object-fit:cover;display:block}
-.${cls} .ns-body{padding:18px;text-align:left;flex:1;display:flex;flex-direction:column}
+.${cls} .ns-body{padding:18px;text-align:var(--ns-card-align,left);flex:1;display:flex;flex-direction:column}
 .${cls} .ns-tag{display:block;margin:0 0 8px;font-size:11px;line-height:1;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ns-tag-color)}
 .${cls} .ns-rh{margin:0;font-size:16px;line-height:1.4;font-weight:600;color:#1f1f1f}
 .${cls} .ns-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid #f2f2f2;background:#fff;color:var(--ns-tag-color);font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.08);z-index:3;transition:background .15s ease}
@@ -218,6 +238,17 @@ function FormPanel({ config, onUpdate }) {
             { value: "right", label: "Right" },
           ]}
           testid="resources-text-align"
+        />
+        <SelectField
+          label="Card content alignment"
+          value={config.contentAlign || "left"}
+          onChange={(v) => onUpdate({ contentAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="resources-content-align"
         />
       </Group>
 
@@ -390,6 +421,28 @@ function FormPanel({ config, onUpdate }) {
                 onChange={(v) => updateResource(r.id, { openInSameTab: v })}
                 testid={`resource-same-tab-${r.id}`}
               />
+              <ToggleField
+                label="Override content alignment"
+                description="Off to inherit the section's card alignment."
+                checked={!!r.contentAlignOverride}
+                onChange={(v) =>
+                  updateResource(r.id, { contentAlignOverride: v })
+                }
+                testid={`resource-content-align-override-${r.id}`}
+              />
+              {r.contentAlignOverride ? (
+                <SelectField
+                  label="Content alignment"
+                  value={r.contentAlign || "left"}
+                  onChange={(v) => updateResource(r.id, { contentAlign: v })}
+                  options={[
+                    { value: "left", label: "Left" },
+                    { value: "center", label: "Center" },
+                    { value: "right", label: "Right" },
+                  ]}
+                  testid={`resource-content-align-${r.id}`}
+                />
+              ) : null}
             </>
           )}
         />

@@ -57,7 +57,12 @@ export const SECTION_META = {
     whatsNew:
       "The optional corner-badge upload is now tucked behind a small disclosure with clearer wording — no more mistaking it for the main product photo.",
   },
-  resources: { addedOn: LAUNCH, updatedOn: LAUNCH },
+  resources: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-26",
+    whatsNew:
+      "Card content alignment is now configurable from the Header group, with a per-card override toggle for one-off cards that should align differently from the rest.",
+  },
   insights: { addedOn: LAUNCH, updatedOn: LAUNCH },
   "feature-grid": { addedOn: LAUNCH, updatedOn: LAUNCH },
   steps: { addedOn: LAUNCH, updatedOn: LAUNCH },
