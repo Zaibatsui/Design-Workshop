@@ -18,3 +18,22 @@ aside::-webkit-scrollbar-thumb {
 aside::-webkit-scrollbar-thumb:hover {
   background: rgba(15, 23, 42, 0.24);
 }
+
+/* Rich-text editor: make link text visually distinct inside the editor
+ * so authors can spot which text already has a link attached without
+ * needing to flip to the preview. The brand-blue colour + underline is
+ * editor-only — the rendered snippet uses the section's own link styling. */
+.dw-rt-content a {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.dw-rt-content a:hover {
+  background: rgba(29, 78, 216, 0.08);
+}
+.dw-rt-content a[data-no-underline] {
+  text-decoration: underline dotted;
+  text-decoration-color: rgba(29, 78, 216, 0.55);
+}

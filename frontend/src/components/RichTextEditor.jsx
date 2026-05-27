@@ -15,6 +15,16 @@ import {
   Underline as UnderlineIcon,
   X,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /**
  * Custom Link extension —
@@ -160,7 +170,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none focus:outline-none min-h-[120px] px-4 py-3 text-slate-900",
+          "dw-rt-content prose prose-sm max-w-none focus:outline-none min-h-[120px] px-4 py-3 text-slate-900",
         "data-testid": "richtext-editor",
       },
     },
@@ -362,9 +372,12 @@ export default function RichTextEditor({ html, onChange, tools }) {
  * Inline link-editor panel rendered between the toolbar and the editor
  * body. Switches between Web and Email modes; the latter exposes the
  * three classic mailto fields (address, subject, body) and emits a
- * `mailto:` href on save. A colour swatch lets authors override the
- * section's default link colour for this link only — leave empty to
- * inherit the section default.
+ * `mailto:` href on save. A colour swatch overrides the section's
+ * default link colour for this link only — leave empty to inherit.
+ *
+ * Styling deliberately matches `FormFields.jsx` (uppercase micro labels,
+ * shadcn Input/Textarea/Select) so the panel reads as a natural extension
+ * of the rest of the section form rather than a third-party widget.
  */
 function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
   const isEmail = form.type === "email";
@@ -373,36 +386,44 @@ function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
       data-testid="rt-link-panel"
       className="border-b border-slate-200 bg-white"
     >
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-100/70 border-b border-slate-200">
-        <h4 className="text-base font-semibold text-slate-900">Text link</h4>
+      <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-200">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Text link
+        </h4>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close link panel"
           data-testid="rt-link-panel-close"
-          className="p-1 text-slate-500 hover:text-slate-900 rounded transition-colors"
+          className="p-0.5 text-slate-400 hover:text-slate-900 rounded transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      <div className="px-4 py-4 space-y-4">
-        <div className="space-y-1.5">
-          <label className="block text-sm text-slate-700">Link to</label>
-          <select
-            data-testid="rt-link-type"
+      <div className="px-3 py-3 space-y-3">
+        <div>
+          <Label className={LABEL_CLS}>Link to</Label>
+          <Select
             value={form.type}
-            onChange={(e) => setForm({ type: e.target.value })}
-            className="w-full text-sm px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
+            onValueChange={(v) => setForm({ type: v })}
           >
-            <option value="web">Web</option>
-            <option value="email">Email</option>
-          </select>
+            <SelectTrigger
+              data-testid="rt-link-type"
+              className="mt-1.5 h-9"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="web">Web</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {isEmail ? (
           <>
-            <Field
+            <PanelField
               label="Email address"
               placeholder="email@company.com"
               value={form.email}
@@ -410,13 +431,13 @@ function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
               testid="rt-link-email"
               type="email"
             />
-            <Field
+            <PanelField
               label="Message subject"
               value={form.subject}
               onChange={(v) => setForm({ subject: v })}
               testid="rt-link-subject"
             />
-            <Field
+            <PanelField
               label="Message body"
               value={form.body}
               onChange={(v) => setForm({ body: v })}
@@ -425,7 +446,7 @@ function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
             />
           </>
         ) : (
-          <Field
+          <PanelField
             label="URL"
             placeholder="https://example.com"
             value={form.url}
@@ -445,7 +466,7 @@ function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
           onClick={onSave}
           disabled={!canSave}
           data-testid="rt-link-save"
-          className="w-full py-2.5 rounded-md font-semibold text-white transition-colors bg-teal-400 hover:bg-teal-500 disabled:bg-teal-200 disabled:cursor-not-allowed"
+          className="w-full h-9 text-sm font-semibold rounded-md text-white transition-colors bg-[#E01839] hover:bg-[#c0142f] disabled:bg-slate-300 disabled:cursor-not-allowed"
         >
           Save
         </button>
@@ -454,21 +475,24 @@ function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
   );
 }
 
+const LABEL_CLS =
+  "text-xs font-semibold uppercase tracking-wider text-slate-500";
+
 /**
  * Compact colour-override row — small swatch + native picker + a clear
- * button to revert to "no override" so the section's default colour wins.
+ * link to revert to the section's default colour.
  */
 function ColorRow({ value, onChange, testidPrefix }) {
   const hasValue = Boolean(value);
   return (
-    <div className="space-y-1.5">
-      <label className="block text-sm text-slate-700">
-        Link colour <span className="text-slate-400 font-normal">(optional)</span>
-      </label>
-      <div className="flex items-center gap-2">
+    <div>
+      <Label className={LABEL_CLS}>
+        Link colour <span className="normal-case font-normal text-slate-400">(optional)</span>
+      </Label>
+      <div className="mt-1.5 flex items-center gap-2">
         <label
-          className="relative inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-300 cursor-pointer overflow-hidden"
-          style={{ background: hasValue ? value : "transparent" }}
+          className="relative inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-300 cursor-pointer overflow-hidden flex-shrink-0"
+          style={{ background: hasValue ? value : "#fff" }}
         >
           {!hasValue && (
             <span className="text-[10px] text-slate-400">Auto</span>
@@ -481,20 +505,19 @@ function ColorRow({ value, onChange, testidPrefix }) {
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
         </label>
-        <input
+        <Input
           data-testid={`${testidPrefix}-hex`}
-          type="text"
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Use section default"
-          className="flex-1 text-sm px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
+          className="flex-1 h-9"
         />
         {hasValue && (
           <button
             type="button"
             onClick={() => onChange("")}
             data-testid={`${testidPrefix}-clear`}
-            className="text-xs text-slate-500 hover:text-slate-900 px-2"
+            className="text-xs text-slate-500 hover:text-slate-900"
           >
             Clear
           </button>
@@ -504,29 +527,27 @@ function ColorRow({ value, onChange, testidPrefix }) {
   );
 }
 
-function Field({ label, value, onChange, placeholder, testid, multiline, type }) {
-  const cls =
-    "w-full text-sm px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400";
+function PanelField({ label, value, onChange, placeholder, testid, multiline, type }) {
   return (
-    <div className="space-y-1.5">
-      <label className="block text-sm text-slate-700">{label}</label>
+    <div>
+      <Label className={LABEL_CLS}>{label}</Label>
       {multiline ? (
-        <textarea
+        <Textarea
           data-testid={testid}
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
-          rows={4}
+          rows={3}
           placeholder={placeholder}
-          className={cls}
+          className="mt-1.5 resize-none"
         />
       ) : (
-        <input
+        <Input
           data-testid={testid}
           type={type || "text"}
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={cls}
+          className="mt-1.5"
         />
       )}
     </div>
