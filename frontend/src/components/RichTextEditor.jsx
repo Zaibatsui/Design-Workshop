@@ -69,6 +69,33 @@ function parseHref(href) {
   return { type: "web", url: href, email: "", subject: "", body: "" };
 }
 
+/**
+ * Extracts a `color: …` declaration from an inline-style string. Returns ""
+ * when no colour is set (e.g. "" / "text-decoration:none" / etc.).
+ */
+function pickColorFromStyle(style) {
+  if (!style) return "";
+  const m = style.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i);
+  return m ? m[1].trim() : "";
+}
+
+/**
+ * Updates / inserts the `color:` declaration on an inline-style string,
+ * preserving any other declarations the user might have set (e.g.
+ * `text-decoration:none`). Pass an empty colour to remove the rule
+ * entirely. Returns `null` when the resulting style string would be empty
+ * so the StyledLink attribute can drop the attribute cleanly.
+ */
+function setColorInStyle(style, color) {
+  const base = String(style || "")
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s && !/^color\s*:/i.test(s));
+  if (color) base.push(`color: ${color}`);
+  const joined = base.join("; ");
+  return joined || null;
+}
+
 /** Builds an href string from the link-panel form state. */
 function buildHref(form) {
   if (form.type === "email") {
@@ -89,6 +116,7 @@ const EMPTY_FORM = {
   email: "",
   subject: "",
   body: "",
+  color: "",
 };
 
 /**
@@ -149,12 +177,12 @@ export default function RichTextEditor({ html, onChange, tools }) {
   if (!editor) return null;
 
   const openLinkPanel = () => {
-    const existing = editor.getAttributes("link").href || "";
-    const parsed = parseHref(existing);
-    setLinkPanel({
-      open: true,
-      form: parsed || EMPTY_FORM,
-    });
+    const attrs = editor.getAttributes("link");
+    const existing = attrs.href || "";
+    const parsed = parseHref(existing) || { ...EMPTY_FORM };
+    // Carry over any inline color the active link already has.
+    parsed.color = pickColorFromStyle(attrs.style);
+    setLinkPanel({ open: true, form: parsed });
   };
 
   const closeLinkPanel = () => setLinkPanel({ open: false, form: EMPTY_FORM });
@@ -166,11 +194,17 @@ export default function RichTextEditor({ html, onChange, tools }) {
       closeLinkPanel();
       return;
     }
+    // Merge the colour into any pre-existing inline style so a user-pasted
+    // `text-decoration:none` (etc.) isn't trampled when they just want to
+    // tweak the colour.
+    const existingStyle = editor.getAttributes("link").style || "";
+    const nextStyle = setColorInStyle(existingStyle, linkPanel.form.color);
     editor
       .chain()
       .focus()
       .extendMarkRange("link")
       .setLink({ href })
+      .updateAttributes("link", { style: nextStyle })
       .run();
     closeLinkPanel();
   };
@@ -328,91 +362,90 @@ export default function RichTextEditor({ html, onChange, tools }) {
  * Inline link-editor panel rendered between the toolbar and the editor
  * body. Switches between Web and Email modes; the latter exposes the
  * three classic mailto fields (address, subject, body) and emits a
- * `mailto:` href on save.
+ * `mailto:` href on save. A colour swatch lets authors override the
+ * section's default link colour for this link only — leave empty to
+ * inherit the section default.
  */
 function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
   const isEmail = form.type === "email";
   return (
     <div
       data-testid="rt-link-panel"
-      className="px-3 py-3 border-b border-slate-200 bg-slate-50/60 space-y-2"
+      className="border-b border-slate-200 bg-white"
     >
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold tracking-wide text-slate-700">
-          Text link
-        </h4>
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-100/70 border-b border-slate-200">
+        <h4 className="text-base font-semibold text-slate-900">Text link</h4>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close link panel"
           data-testid="rt-link-panel-close"
-          className="p-0.5 text-slate-500 hover:text-slate-900"
+          className="p-1 text-slate-500 hover:text-slate-900 rounded transition-colors"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-4 h-4" />
         </button>
       </div>
-      <div className="space-y-1">
-        <label className="block text-[11px] font-medium text-slate-600">
-          Link to
-        </label>
-        <select
-          data-testid="rt-link-type"
-          value={form.type}
-          onChange={(e) => setForm({ type: e.target.value })}
-          className="w-full text-xs px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-slate-400"
-        >
-          <option value="web">Web</option>
-          <option value="email">Email</option>
-        </select>
-      </div>
-      {isEmail ? (
-        <>
+
+      <div className="px-4 py-4 space-y-4">
+        <div className="space-y-1.5">
+          <label className="block text-sm text-slate-700">Link to</label>
+          <select
+            data-testid="rt-link-type"
+            value={form.type}
+            onChange={(e) => setForm({ type: e.target.value })}
+            className="w-full text-sm px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
+          >
+            <option value="web">Web</option>
+            <option value="email">Email</option>
+          </select>
+        </div>
+
+        {isEmail ? (
+          <>
+            <Field
+              label="Email address"
+              placeholder="email@company.com"
+              value={form.email}
+              onChange={(v) => setForm({ email: v })}
+              testid="rt-link-email"
+              type="email"
+            />
+            <Field
+              label="Message subject"
+              value={form.subject}
+              onChange={(v) => setForm({ subject: v })}
+              testid="rt-link-subject"
+            />
+            <Field
+              label="Message body"
+              value={form.body}
+              onChange={(v) => setForm({ body: v })}
+              testid="rt-link-body"
+              multiline
+            />
+          </>
+        ) : (
           <Field
-            label="Email address"
-            placeholder="email@company.com"
-            value={form.email}
-            onChange={(v) => setForm({ email: v })}
-            testid="rt-link-email"
-            type="email"
+            label="URL"
+            placeholder="https://example.com"
+            value={form.url}
+            onChange={(v) => setForm({ url: v })}
+            testid="rt-link-url"
           />
-          <Field
-            label="Message subject (optional)"
-            value={form.subject}
-            onChange={(v) => setForm({ subject: v })}
-            testid="rt-link-subject"
-          />
-          <Field
-            label="Message body (optional)"
-            value={form.body}
-            onChange={(v) => setForm({ body: v })}
-            testid="rt-link-body"
-            multiline
-          />
-        </>
-      ) : (
-        <Field
-          label="URL"
-          placeholder="https://example.com"
-          value={form.url}
-          onChange={(v) => setForm({ url: v })}
-          testid="rt-link-url"
+        )}
+
+        <ColorRow
+          value={form.color}
+          onChange={(v) => setForm({ color: v })}
+          testidPrefix="rt-link-color"
         />
-      )}
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={onClose}
-          data-testid="rt-link-cancel"
-          className="text-xs text-slate-600 hover:text-slate-900 px-2.5 py-1.5"
-        >
-          Cancel
-        </button>
+
         <button
           type="button"
           onClick={onSave}
           disabled={!canSave}
           data-testid="rt-link-save"
-          className="text-xs font-medium px-3 py-1.5 rounded bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed"
+          className="w-full py-2.5 rounded-md font-semibold text-white transition-colors bg-teal-400 hover:bg-teal-500 disabled:bg-teal-200 disabled:cursor-not-allowed"
         >
           Save
         </button>
@@ -421,20 +454,68 @@ function LinkPanel({ form, setForm, onClose, onSave, canSave }) {
   );
 }
 
+/**
+ * Compact colour-override row — small swatch + native picker + a clear
+ * button to revert to "no override" so the section's default colour wins.
+ */
+function ColorRow({ value, onChange, testidPrefix }) {
+  const hasValue = Boolean(value);
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-sm text-slate-700">
+        Link colour <span className="text-slate-400 font-normal">(optional)</span>
+      </label>
+      <div className="flex items-center gap-2">
+        <label
+          className="relative inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-300 cursor-pointer overflow-hidden"
+          style={{ background: hasValue ? value : "transparent" }}
+        >
+          {!hasValue && (
+            <span className="text-[10px] text-slate-400">Auto</span>
+          )}
+          <input
+            data-testid={`${testidPrefix}-picker`}
+            type="color"
+            value={hasValue ? value : "#000000"}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+        </label>
+        <input
+          data-testid={`${testidPrefix}-hex`}
+          type="text"
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Use section default"
+          className="flex-1 text-sm px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
+        />
+        {hasValue && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            data-testid={`${testidPrefix}-clear`}
+            className="text-xs text-slate-500 hover:text-slate-900 px-2"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Field({ label, value, onChange, placeholder, testid, multiline, type }) {
   const cls =
-    "w-full text-xs px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-slate-400";
+    "w-full text-sm px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400";
   return (
-    <div className="space-y-1">
-      <label className="block text-[11px] font-medium text-slate-600">
-        {label}
-      </label>
+    <div className="space-y-1.5">
+      <label className="block text-sm text-slate-700">{label}</label>
       {multiline ? (
         <textarea
           data-testid={testid}
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
-          rows={3}
+          rows={4}
           placeholder={placeholder}
           className={cls}
         />

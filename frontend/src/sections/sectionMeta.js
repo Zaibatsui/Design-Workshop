@@ -71,7 +71,7 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",
     whatsNew:
-      "FAQ answers now support rich text with a compact toolbar — add bold, italics, lists, web links and email links right inside an answer. Each link can have its underline removed individually from the toolbar.",
+      "FAQ answers now have a rich-text toolbar with bold, italics, lists and an inline link editor. Add web or email links, pick a per-link colour, and toggle the underline off — all from the answer's own toolbar.",
   },
   "cta-banner": { addedOn: LAUNCH, updatedOn: LAUNCH },
   placeholder: { addedOn: LAUNCH, updatedOn: LAUNCH },
