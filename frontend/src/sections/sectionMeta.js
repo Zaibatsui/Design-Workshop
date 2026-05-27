@@ -45,8 +45,18 @@ export const SECTION_META = {
   },
   welcome: { addedOn: LAUNCH, updatedOn: LAUNCH },
   content: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  products: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  "product-grid": { addedOn: LAUNCH, updatedOn: LAUNCH },
+  products: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-26",
+    whatsNew:
+      "The optional corner-badge upload is now tucked behind a small disclosure with clearer wording — no more mistaking it for the main product photo.",
+  },
+  "product-grid": {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-26",
+    whatsNew:
+      "The optional corner-badge upload is now tucked behind a small disclosure with clearer wording — no more mistaking it for the main product photo.",
+  },
   resources: { addedOn: LAUNCH, updatedOn: LAUNCH },
   insights: { addedOn: LAUNCH, updatedOn: LAUNCH },
   "feature-grid": { addedOn: LAUNCH, updatedOn: LAUNCH },
