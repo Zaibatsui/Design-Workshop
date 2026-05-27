@@ -64,11 +64,6 @@ const defaults = () => ({
   singleOpen: false, // close siblings when opening
   divider: "hairline", // "hairline" | "none"
   textAlign: "left",
-  // Inline-link styling inside the answer body. Underlines on by default
-  // for predictable readability; flip off in the Defaults group to drop
-  // the underline. Colour is always the section accent — pasted/inline
-  // `style="color:…"` still wins because we don't use !important here.
-  underlineLinks: true,
   items: [sampleItem(0), sampleItem(1), sampleItem(2)],
 });
 
@@ -163,7 +158,8 @@ ${dividerCss}
 .${cls} .ns-a ul{list-style:disc!important}
 .${cls} .ns-a ol{list-style:decimal!important}
 .${cls} .ns-a li{margin:0 0 4px}
-.${cls} .ns-a a{color:${accent};${cfg.underlineLinks === false ? "text-decoration:none" : "text-decoration:underline;text-underline-offset:2px"}}
+.${cls} .ns-a a{color:${accent};text-decoration:underline;text-underline-offset:2px}
+.${cls} .ns-a a[data-no-underline]{text-decoration:none}
 .${cls} .ns-a a:hover{opacity:.85}
 @media (max-width:640px){.${cls} .ns-q{font-size:15px}}
 `.trim();
@@ -250,13 +246,6 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="faq-heading-size"
-        />
-        <ToggleField
-          label="Underline links in answers"
-          description="Off keeps links the same colour as the answer text with no underline. Inline link colours pasted into the answer are always respected."
-          checked={config.underlineLinks !== false}
-          onChange={(v) => onUpdate({ underlineLinks: v })}
-          testid="faq-underline-links"
         />
         <PaddingFields
           config={config}

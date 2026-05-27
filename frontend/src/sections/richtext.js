@@ -76,6 +76,7 @@ ${w(`.${cls}`)}{color:${fg}${bang}}
 .${cls} strong{font-weight:600}
 .${cls} em{font-style:italic}
 ${w(`.${cls} a`)}{color:${accent}${bang};${linkDecoration}}
+${w(`.${cls} a[data-no-underline]`)}{text-decoration:none${bang}}
 ${w(`.${cls} a:hover`)}{opacity:.8}
 .${cls} ul,.${cls} ol{margin:0 0 14px 0;padding-left:22px${align === "center" ? ";text-align:left;display:inline-block" : ""}}
 .${cls} ul{list-style:disc!important}
