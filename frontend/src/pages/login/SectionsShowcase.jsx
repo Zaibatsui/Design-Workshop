@@ -18,18 +18,22 @@ import {
   Star,
   Quote,
   Zap,
+  Columns3,
 } from "lucide-react";
+import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
 // Pro / Nettailer-aware blocks. Live VAT toggle, real-time scrape and
 // gated-pricing fallback are bundled into these — separated from the
 // generic editorial sections so the deeper integration story stands out.
 const PRO_SECTIONS = [
   {
+    id: "products",
     Icon: ShoppingBag,
     name: "Product Carousel",
     desc: "Horizontal carousel of auto-scraped product cards with prev / next arrows, optional autoplay and pause-on-hover. Universal VAT toggle live-flips inc / ex prices to match the host store, and login-walled prices are pulled via a same-origin credentialed fetch.",
   },
   {
+    id: "productGrid",
     Icon: LayoutGrid,
     name: "Product Grid",
     desc: "Static grid of auto-scraped product cards — 2 to 6 per row, wrapping to as many rows as you need. Universal VAT toggle live-flips inc / ex prices to match the host store, and login-walled prices are pulled via a same-origin credentialed fetch.",
@@ -37,24 +41,25 @@ const PRO_SECTIONS = [
 ];
 
 const SECTIONS = [
-  { Icon: Layers, name: "Hero", desc: "Slide or fade carousel with full-bleed background media, headline, subtitle and CTA. Per-slide colour overrides and an optional split layout that puts the image on one side and the copy on the other." },
-  { Icon: LayoutPanelLeft, name: "Split Banner", desc: "Full-bleed image with container-aligned heading, subtitle and buttons floating over it. Static, non-carousel, ideal for landing-page headers or campaign rows. Optional feature-points list inside the panel." },
-  { Icon: Star, name: "Featured Card", desc: "Full-bleed photo background with a translucent glass card holding eyebrow, headline, subheading, feature points and an optional CTA. Card sits in one of nine grid positions for flexible composition." },
-  { Icon: Sparkles, name: "Welcome", desc: "Post-login greeter with a movable header, customer logo and an account-manager card. Each block sits in one of nine grid positions so one section fits many brands." },
-  { Icon: AlignLeft, name: "Content", desc: "Heading, body copy and one or two buttons. The all-purpose marquee block for sales messages, intros and announcements." },
-  { Icon: LayoutGrid, name: "Insights Grid", desc: "Editorial 2 or 3 column grid for articles, case studies and mixed-media stories. Per-card image position (left, top or right), accent border toggle and configurable image width." },
-  { Icon: BookOpen, name: "Resources", desc: "Tag-tinted card carousel for blog posts, guides and downloadable assets. Optional autoplay, pause-on-hover and per-card open-in-same-tab control." },
-  { Icon: Sparkles, name: "Feature Grid", desc: "2 to 4 column value-prop cards with icon, title and body. Outlined, tinted or solid card styles plus an image-card variant (image-top or image-left)." },
-  { Icon: Shield, name: "Trust Strip", desc: "Compact 2 to 5 column row of icon + title + 1-line credibility callouts. Flat by design so it counterweights heavier sections — perfect for '20+ years', 'ISO 27001 certified', '5-star service' bands." },
-  { Icon: ListOrdered, name: "Steps", desc: "Numbered process strip with big editorial numerals or compact inline numbers. Horizontal or vertical stack with optional hairline dividers between steps." },
-  { Icon: Quote, name: "Testimonials", desc: "Auto-scrolling quote carousel with star ratings and avatars. Pauses on hover, supports per-quote source links and configurable scroll speed." },
-  { Icon: HelpCircle, name: "FAQ", desc: "Collapsible question-and-answer accordion built with native HTML details / summary — zero JS, fully keyboard-accessible out of the box." },
-  { Icon: Megaphone, name: "CTA Banner", desc: "Final-call conversion block with optional brand logo, gradient or solid background and one or two action buttons. Sized to bridge editorial sections and a checkout." },
-  { Icon: ImageIcon, name: "Logo Strip", desc: "Auto-scrolling marquee of partner / client logos. Optional per-logo links, greyscale-on-hover and configurable scroll direction and speed." },
-  { Icon: Minus, name: "Break banner", desc: "Full-bleed parallax break with an overlaid heading. Useful to chapterise a long page and re-anchor the reader's attention between sections." },
-  { Icon: Folders, name: "Tabs", desc: "Tabbed content with a side image, heading, body and CTAs per tab. On mobile the tabs collapse to a stacked layout with the image above the copy." },
-  { Icon: Grid2x2, name: "Grid", desc: "2 × 2 or 2 × 3 image grid with optional links per cell. Image-only by default, with editable alt text for accessibility and SEO." },
-  { Icon: Type, name: "Rich text", desc: "Tiptap-powered freeform copy block for everything the structured sections don't cover. Headings, lists, links, inline images, the lot." },
+  { id: "hero", Icon: Layers, name: "Hero", desc: "Slide or fade carousel with full-bleed background media, headline, subtitle and CTA. Per-slide colour overrides and an optional split layout that puts the image on one side and the copy on the other." },
+  { id: "split-banner", Icon: LayoutPanelLeft, name: "Split Banner", desc: "Full-bleed image with container-aligned heading, subtitle and buttons floating over it. Static, non-carousel, ideal for landing-page headers or campaign rows. Optional feature-points list inside the panel." },
+  { id: "featured-card", Icon: Star, name: "Featured Card", desc: "Full-bleed photo background with a translucent glass card holding eyebrow, headline, subheading, feature points and an optional CTA. Card sits in one of nine grid positions for flexible composition." },
+  { id: "welcome", Icon: Sparkles, name: "Welcome", desc: "Post-login greeter with a movable header, customer logo and an account-manager card. Each block sits in one of nine grid positions so one section fits many brands." },
+  { id: "content", Icon: AlignLeft, name: "Content", desc: "Heading, body copy and one or two buttons. The all-purpose marquee block for sales messages, intros and announcements." },
+  { id: "insights", Icon: LayoutGrid, name: "Insights Grid", desc: "Editorial 2 or 3 column grid for articles, case studies and mixed-media stories. Per-card image position (left, top or right), accent border toggle and configurable image width." },
+  { id: "resources", Icon: BookOpen, name: "Resources", desc: "Tag-tinted card carousel for blog posts, guides and downloadable assets. Optional autoplay, pause-on-hover and per-card open-in-same-tab control." },
+  { id: "feature-grid", Icon: Sparkles, name: "Feature Grid", desc: "2 to 4 column value-prop cards with icon, title and body. Outlined, tinted or solid card styles plus an image-card variant (image-top or image-left)." },
+  { id: "trust-strip", Icon: Shield, name: "Trust Strip", desc: "Compact 2 to 5 column row of icon + title + 1-line credibility callouts. Flat by design so it counterweights heavier sections — perfect for '20+ years', 'ISO 27001 certified', '5-star service' bands." },
+  { id: "comparison-table", Icon: Columns3, name: "Comparison Table", desc: "Three-column 'us vs them' matrix. Feature rows with ticks on your column and crosses on the competitor's. Brand-logo header, accent tint + border on the winning column, closing line + CTA below — a high-converting B2B pattern." },
+  { id: "steps", Icon: ListOrdered, name: "Steps", desc: "Numbered process strip with big editorial numerals or compact inline numbers. Horizontal or vertical stack with optional hairline dividers between steps." },
+  { id: "testimonials", Icon: Quote, name: "Testimonials", desc: "Auto-scrolling quote carousel with star ratings and avatars. Pauses on hover, supports per-quote source links and configurable scroll speed." },
+  { id: "faq", Icon: HelpCircle, name: "FAQ", desc: "Collapsible question-and-answer accordion built with native HTML details / summary — zero JS, fully keyboard-accessible out of the box." },
+  { id: "cta-banner", Icon: Megaphone, name: "CTA Banner", desc: "Final-call conversion block with optional brand logo, gradient or solid background and one or two action buttons. Sized to bridge editorial sections and a checkout." },
+  { id: "logos", Icon: ImageIcon, name: "Logo Strip", desc: "Auto-scrolling marquee of partner / client logos. Optional per-logo links, greyscale-on-hover and configurable scroll direction and speed." },
+  { id: "break", Icon: Minus, name: "Break banner", desc: "Full-bleed parallax break with an overlaid heading. Useful to chapterise a long page and re-anchor the reader's attention between sections." },
+  { id: "tabs", Icon: Folders, name: "Tabs", desc: "Tabbed content with a side image, heading, body and CTAs per tab. On mobile the tabs collapse to a stacked layout with the image above the copy." },
+  { id: "placeholder", Icon: Grid2x2, name: "Grid", desc: "2 × 2 or 2 × 3 image grid with optional links per cell. Image-only by default, with editable alt text for accessibility and SEO." },
+  { id: null, Icon: Type, name: "Rich text", desc: "Tiptap-powered freeform copy block for everything the structured sections don't cover. Headings, lists, links, inline images, the lot." },
 ];
 
 /**
@@ -74,12 +79,12 @@ export default function SectionsShowcase() {
             Section types in the box
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Twenty composable building blocks. Every page is one snippet.
+            Twenty-one composable building blocks. Every page is one snippet.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them
             inside the Hybrid Page Builder, drag to reorder, save the lot as
-            one HTML drop-in.
+            one HTML drop-in. <span className="text-slate-900 font-medium">Hover any tile to preview the rendered block live.</span>
           </p>
         </div>
 
@@ -95,22 +100,23 @@ export default function SectionsShowcase() {
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {PRO_SECTIONS.map(({ Icon, name, desc }, i) => (
-              <div
-                key={name}
-                data-testid={`pro-section-tile-${i}`}
-                className="group flex items-start gap-4 bg-white border-2 border-[#E01839]/30 p-5 rounded-md hover:border-[#E01839] hover:shadow-md transition-all"
-              >
-                <div className="w-10 h-10 rounded-md bg-[#E01839]/10 text-[#E01839] flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
-                  <Icon className="w-4 h-4" />
+            {PRO_SECTIONS.map(({ id, Icon, name, desc }, i) => (
+              <SectionPreviewPopover key={name} sectionId={id}>
+                <div
+                  data-testid={`pro-section-tile-${i}`}
+                  className="group flex items-start gap-4 bg-white border-2 border-[#E01839]/30 p-5 rounded-md hover:border-[#E01839] hover:shadow-md transition-all cursor-default"
+                >
+                  <div className="w-10 h-10 rounded-md bg-[#E01839]/10 text-[#E01839] flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
+                      {name}
+                    </h3>
+                    <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
-                    {name}
-                  </h3>
-                  <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
-                </div>
-              </div>
+              </SectionPreviewPopover>
             ))}
           </div>
         </div>
@@ -120,22 +126,23 @@ export default function SectionsShowcase() {
           Editorial &amp; layout
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {SECTIONS.map(({ Icon, name, desc }, i) => (
-            <div
-              key={name}
-              data-testid={`section-tile-${i}`}
-              className="group flex items-start gap-4 bg-white border border-slate-200 p-5 rounded-md hover:border-[#E01839] transition-colors"
-            >
-              <div className="w-10 h-10 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
-                <Icon className="w-4 h-4" />
+          {SECTIONS.map(({ id, Icon, name, desc }, i) => (
+            <SectionPreviewPopover key={name} sectionId={id}>
+              <div
+                data-testid={`section-tile-${i}`}
+                className="group flex items-start gap-4 bg-white border border-slate-200 p-5 rounded-md hover:border-[#E01839] transition-colors cursor-default"
+              >
+                <div className="w-10 h-10 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
+                    {name}
+                  </h3>
+                  <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
-                  {name}
-                </h3>
-                <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
-              </div>
-            </div>
+            </SectionPreviewPopover>
           ))}
         </div>
       </div>

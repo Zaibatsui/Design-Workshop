@@ -31,6 +31,8 @@ import {
 import { BRAND } from "@/lib/brand";
 import TicketDialog from "@/components/TicketDialog";
 import { Button } from "@/components/ui/button";
+import SectionPreviewPopover from "@/components/SectionPreviewPopover";
+import { Columns3 } from "lucide-react";
 
 /**
  * UserGuide — the in-app reference manual. Long-form, opinionated,
@@ -322,7 +324,7 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships nineteen reusable section types plus a
+              Design Workshop ships twenty reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
               where applicable. Two of them — <strong>Product Carousel</strong>
@@ -330,25 +332,26 @@ export default function UserGuide() {
               blocks with live price scraping and a universal VAT toggle.
             </P>
             <Grid>
-              <SectionCard Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour and layout overrides, an optional split slide layout (full-bleed image + container-aligned text), and mobile-specific overrides for overlay, gradients and alignment so the small-screen view never inherits a desktop-only look you didn't want." />
-              <SectionCard Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use. Optional feature-points list inside the panel for showing several benefits at once." />
-              <SectionCard Icon={Star} name="Featured Card" desc="Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions." />
-              <SectionCard Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
-              <SectionCard Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
-              <SectionCard Icon={Boxes} name="Product Carousel" desc="Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
-              <SectionCard Icon={LayoutGrid} name="Product Grid" desc="Same product cards as a static grid (2-6 per row, wraps to multiple rows). Identical scrape / VAT-toggle / gated-pricing behaviour as the Product Carousel — just no carousel." />
-              <SectionCard Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." />
-              <SectionCard Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
-              <SectionCard Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />
-              <SectionCard Icon={Shield} name="Trust Strip" desc="Compact 2-5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — great for credibility marks like '20+ years' or 'ISO 27001 certified'." />
-              <SectionCard Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
-              <SectionCard Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." />
-              <SectionCard Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." />
-              <SectionCard Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides." />
-              <SectionCard Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." />
-              <SectionCard Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." />
-              <SectionCard Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
-              <SectionCard Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
+              <SectionCard sectionId="hero" Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour and layout overrides, an optional split slide layout (full-bleed image + container-aligned text), and mobile-specific overrides for overlay, gradients and alignment so the small-screen view never inherits a desktop-only look you didn't want." />
+              <SectionCard sectionId="split-banner" Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use. Optional feature-points list inside the panel for showing several benefits at once." />
+              <SectionCard sectionId="featured-card" Icon={Star} name="Featured Card" desc="Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions." />
+              <SectionCard sectionId="welcome" Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
+              <SectionCard sectionId="content" Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
+              <SectionCard sectionId="products" Icon={Boxes} name="Product Carousel" desc="Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
+              <SectionCard sectionId="productGrid" Icon={LayoutGrid} name="Product Grid" desc="Same product cards as a static grid (2-6 per row, wraps to multiple rows). Identical scrape / VAT-toggle / gated-pricing behaviour as the Product Carousel — just no carousel." />
+              <SectionCard sectionId="insights" Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." />
+              <SectionCard sectionId="resources" Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
+              <SectionCard sectionId="feature-grid" Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />
+              <SectionCard sectionId="trust-strip" Icon={Shield} name="Trust Strip" desc="Compact 2-5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — great for credibility marks like '20+ years' or 'ISO 27001 certified'." />
+              <SectionCard sectionId="comparison-table" Icon={Columns3} name="Comparison Table" desc="Three-column 'us vs them' matrix — feature rows with ticks on your column and crosses on the competitor's. Optional brand-logo header on your column, accent tint + border to draw the eye, and a closing line + CTA below. High-converting B2B pattern." />
+              <SectionCard sectionId="steps" Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
+              <SectionCard sectionId="testimonials" Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." />
+              <SectionCard sectionId="faq" Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." />
+              <SectionCard sectionId="cta-banner" Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides." />
+              <SectionCard sectionId="logos" Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." />
+              <SectionCard sectionId="break" Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." />
+              <SectionCard sectionId="tabs" Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
+              <SectionCard sectionId="placeholder" Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
               <SectionCard Icon={PenLine} name="Rich text" desc="Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections." />
             </Grid>
             <Note>
@@ -766,9 +769,9 @@ function Grid({ children }) {
   );
 }
 
-function SectionCard({ Icon, name, desc }) {
-  return (
-    <div className="flex items-start gap-3 p-4 rounded-md border border-slate-200 hover:border-slate-300 transition-colors">
+function SectionCard({ Icon, name, desc, sectionId }) {
+  const card = (
+    <div className="flex items-start gap-3 p-4 rounded-md border border-slate-200 hover:border-slate-300 transition-colors cursor-default">
       <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
         <Icon className="w-3.5 h-3.5" />
       </div>
@@ -779,5 +782,9 @@ function SectionCard({ Icon, name, desc }) {
         <p className="text-[13px] leading-relaxed text-slate-600">{desc}</p>
       </div>
     </div>
+  );
+  if (!sectionId) return card;
+  return (
+    <SectionPreviewPopover sectionId={sectionId}>{card}</SectionPreviewPopover>
   );
 }

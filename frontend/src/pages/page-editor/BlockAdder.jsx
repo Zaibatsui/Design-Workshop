@@ -8,6 +8,7 @@ import { Layers, Type } from "lucide-react";
 import { SECTIONS, SECTIONS_BY_ID } from "@/sections/registry";
 import { computeBadges } from "@/lib/sectionBadges";
 import { useEscapeKey } from "@/lib/useEscapeKey";
+import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
 export default function BlockAdder({
   librarySections,
@@ -88,34 +89,35 @@ function NewSectionGrid({ onPick }) {
         const Icon = s.icon;
         const badge = badges[s.id];
         return (
-          <button
-            key={s.id}
-            data-testid={`adder-new-${s.id}`}
-            onClick={() => onPick(s.id)}
-            className="relative text-left p-4 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
-          >
-            {badge === "new" && (
-              <span
-                data-testid={`adder-badge-new-${s.id}`}
-                className="absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-emerald-500 text-white"
-              >
-                New
-              </span>
-            )}
-            {badge === "updated" && (
-              <span
-                data-testid={`adder-badge-updated-${s.id}`}
-                className="absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-amber-500 text-white"
-              >
-                Updated
-              </span>
-            )}
-            <Icon className="w-5 h-5 text-[#E01839] mb-2" />
-            <p className="text-sm font-medium text-slate-900">{s.name}</p>
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
-              {s.description}
-            </p>
-          </button>
+          <SectionPreviewPopover key={s.id} sectionId={s.id}>
+            <button
+              data-testid={`adder-new-${s.id}`}
+              onClick={() => onPick(s.id)}
+              className="relative text-left p-4 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+            >
+              {badge === "new" && (
+                <span
+                  data-testid={`adder-badge-new-${s.id}`}
+                  className="absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-emerald-500 text-white"
+                >
+                  New
+                </span>
+              )}
+              {badge === "updated" && (
+                <span
+                  data-testid={`adder-badge-updated-${s.id}`}
+                  className="absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-amber-500 text-white"
+                >
+                  Updated
+                </span>
+              )}
+              <Icon className="w-5 h-5 text-[#E01839] mb-2" />
+              <p className="text-sm font-medium text-slate-900">{s.name}</p>
+              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                {s.description}
+              </p>
+            </button>
+          </SectionPreviewPopover>
         );
       })}
     </div>

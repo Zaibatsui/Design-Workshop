@@ -7,6 +7,7 @@ import { Plus, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { computeBadges } from "@/lib/sectionBadges";
 import { useEscapeKey } from "@/lib/useEscapeKey";
+import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
 // Internal iframe canvas width — every preview renders at this fixed virtual
 // width so content layout matches what users see in the editor. Content
@@ -382,19 +383,20 @@ export function SectionPicker({ sections, onPick, onClose }) {
                 const Icon = s.icon;
                 const badge = badges[s.id];
                 return (
-                  <button
-                    key={s.id}
-                    data-testid={`picker-${s.id}`}
-                    onClick={() => onPick(s.id)}
-                    className="relative text-left p-3 rounded-lg border-2 border-[#E01839]/30 bg-[#E01839]/[0.02] hover:border-[#E01839] hover:bg-[#E01839]/[0.06] transition-colors"
-                  >
-                    <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
-                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
-                    <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
-                      {s.description}
-                    </p>
-                  </button>
+                  <SectionPreviewPopover key={s.id} sectionId={s.id}>
+                    <button
+                      data-testid={`picker-${s.id}`}
+                      onClick={() => onPick(s.id)}
+                      className="relative text-left p-3 rounded-lg border-2 border-[#E01839]/30 bg-[#E01839]/[0.02] hover:border-[#E01839] hover:bg-[#E01839]/[0.06] transition-colors"
+                    >
+                      <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
+                      <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
+                      <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
+                        {s.description}
+                      </p>
+                    </button>
+                  </SectionPreviewPopover>
                 );
               })}
             </div>
@@ -413,19 +415,20 @@ export function SectionPicker({ sections, onPick, onClose }) {
                 const Icon = s.icon;
                 const badge = badges[s.id];
                 return (
-                  <button
-                    key={s.id}
-                    data-testid={`picker-${s.id}`}
-                    onClick={() => onPick(s.id)}
-                    className="relative text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
-                  >
-                    <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
-                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
-                    <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
-                      {s.description}
-                    </p>
-                  </button>
+                  <SectionPreviewPopover key={s.id} sectionId={s.id}>
+                    <button
+                      data-testid={`picker-${s.id}`}
+                      onClick={() => onPick(s.id)}
+                      className="relative text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
+                    >
+                      <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
+                      <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
+                      <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
+                        {s.description}
+                      </p>
+                    </button>
+                  </SectionPreviewPopover>
                 );
               })}
             </div>
