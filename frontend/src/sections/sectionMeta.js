@@ -39,9 +39,9 @@ export const SECTION_META = {
   },
   "split-banner": {
     addedOn: LAUNCH,
-    updatedOn: "2026-05-26",
+    updatedOn: "2026-05-28",
     whatsNew:
-      "You can now add a list of icon + title + body points inside the text panel. Great for showing several benefits at once instead of just one CTA.",
+      "New mobile-only 'Centre text on mobile' toggle — on phones the eyebrow, heading, subheading and button sit centred under the image while desktop stays exactly as it was. You can still add a list of icon + title + body points inside the text panel.",
   },
   welcome: { addedOn: LAUNCH, updatedOn: LAUNCH },
   content: { addedOn: LAUNCH, updatedOn: LAUNCH },

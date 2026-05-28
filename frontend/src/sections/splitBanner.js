@@ -92,6 +92,10 @@ const defaults = () => ({
   // OFF (default) keeps the heading visually aligned with the
   // "Insights & Resources" sub-headline style (30px / 600 / normal).
   pageHeader: false,
+  // Mobile-only override: when ON, eyebrow / heading / subheading / CTA
+  // sit centred under the image on screens ≤767px. Desktop layout is
+  // unaffected. Default OFF preserves the existing left-aligned look.
+  mobileCenterText: false,
   // Theme — panel. Defaults track DEFAULT_BRAND_KIT (secondary_color
   // for solid panel, primary→secondary for gradient).
   panelBgType: "solid", // "solid" | "gradient"
@@ -159,7 +163,7 @@ function render(cfg) {
           .join("")}</ul>`
       : "";
 
-  const panelHtml = `<div class="ns-panel is-side-${imageSide === "left" ? "right" : "left"}">
+  const panelHtml = `<div class="ns-panel is-side-${imageSide === "left" ? "right" : "left"}${cfg.mobileCenterText ? " is-m-center" : ""}">
   <div class="ns-panel-inner">
     ${logoUrl ? `<img class="ns-logo" src="${escAttr(logoUrl)}" alt="${escAttr(cfg.logoAlt || "")}"${cfg.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
@@ -217,7 +221,7 @@ ${baseReset(cls)}
 .${cls}.is-full .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
 .${cls}.is-full .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
-@media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;height:auto;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:220px;height:220px}.${cls} .ns-panel{order:2;padding:32px 24px!important;height:auto}.${cls} .ns-panel-inner{max-width:none;margin:0!important}}
+@media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;height:auto;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:220px;height:220px}.${cls} .ns-panel{order:2;padding:32px 24px!important;height:auto}.${cls} .ns-panel-inner{max-width:none;margin:0!important}.${cls} .ns-panel.is-m-center .ns-panel-inner{text-align:center}.${cls} .ns-panel.is-m-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls} .ns-panel.is-m-center .ns-logo{margin-left:auto;margin-right:auto}.${cls} .ns-panel.is-m-center .ns-pt{justify-content:center;text-align:left}}
 `.trim();
 
   const out = wrapSnippet({ html, css, js: "" });
@@ -423,6 +427,13 @@ function FormPanel({ config, onUpdate }) {
           checked={!!config.pageHeader}
           onChange={(v) => onUpdate({ pageHeader: v })}
           testid="split-page-header"
+        />
+        <ToggleField
+          label="Centre text on mobile"
+          description="On phones (≤767px), centre the eyebrow, heading, subheading and button under the image. Desktop layout is unaffected."
+          checked={!!config.mobileCenterText}
+          onChange={(v) => onUpdate({ mobileCenterText: v })}
+          testid="split-mobile-center-text"
         />
         <SelectField
           label="Image side"
