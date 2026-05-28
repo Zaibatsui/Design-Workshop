@@ -431,7 +431,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
         {previewMode === "mobile" && (
           <ToggleField
             label="Centre text on mobile"
-            description="On phones (≤767px), centre the eyebrow, heading, subheading and button under the image. Desktop layout is unaffected. Switch the preview to desktop to hide this control."
+            description="Phones only — desktop is untouched."
             checked={!!config.mobileCenterText}
             onChange={(v) => onUpdate({ mobileCenterText: v })}
             testid="split-mobile-center-text"

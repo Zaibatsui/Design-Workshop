@@ -345,7 +345,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
         {previewMode === "mobile" && (
           <ToggleField
             label="Centre text on mobile"
-            description="On phones (≤640px), centre the heading, sub-heading and buttons regardless of the desktop alignment above. Switch the preview to desktop to hide this control."
+            description="Phones only — desktop is untouched."
             checked={!!config.mobileCenterText}
             onChange={(v) => onUpdate({ mobileCenterText: v })}
             testid="cta-mobile-center-text"
