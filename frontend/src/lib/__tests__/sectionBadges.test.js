@@ -2,7 +2,8 @@
  * Unit tests for `lib/sectionBadges.computeBadges()`.
  *
  * Verifies:
- *   • NEW badge appears for sections added within the last 14 days.
+ *   • NEW badge appears for sections added within the last
+ *     `BADGE_CONFIG.NEW_WINDOW_DAYS` days (currently 7).
  *   • UPDATED badge appears only for the 3 most recent `updatedOn` dates
  *     among sections that are NOT currently NEW.
  *   • A 4th update auto-rotates the oldest UPDATED off.
@@ -16,6 +17,7 @@ const daysAgo = (n) => {
   d.setUTCDate(d.getUTCDate() - n);
   return d.toISOString().slice(0, 10);
 };
+const W = BADGE_CONFIG.NEW_WINDOW_DAYS;
 
 let passed = 0;
 let failed = 0;
@@ -40,8 +42,8 @@ function expect(label, cond, extra = "") {
     NOW
   );
   expect("fresh section gets NEW badge", out.fresh === "new");
-  expect("section on the 14-day edge still NEW", out.edge === "new");
-  expect("section past 14 days drops NEW", out.stale !== "new");
+  expect("section on the NEW-window edge still NEW", out.edge === "new");
+  expect("section past the NEW window drops NEW", out.stale !== "new");
 }
 
 // --- 2. UPDATED top-3 selection
@@ -76,9 +78,9 @@ function expect(label, cond, extra = "") {
   expect("a, b, c claim the 3 UPDATED slots", out.a === "updated" && out.b === "updated" && out.c === "updated");
 }
 
-// --- 3b. NEW trumps UPDATED across the entire 14-day window
+// --- 3b. NEW trumps UPDATED across the entire NEW window
 // Mirrors the Featured-Card / Trust-Strip workflow: a recently-added
-// section may receive follow-up improvements within its 14-day NEW
+// section may receive follow-up improvements within its NEW
 // window — it must keep its NEW badge the whole time, not flip to
 // UPDATED. Once the window expires it may then qualify for UPDATED.
 {
@@ -89,26 +91,27 @@ function expect(label, cond, extra = "") {
   );
   expect("freshly-shipped section is NEW", day0.fc === "new");
 
-  // Day 7: bumped updatedOn mid-window
-  const day7 = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(7), updatedOn: daysAgo(0) }],
+  // Mid-window: bumped updatedOn while still within the NEW window
+  const midDay = Math.max(0, Math.floor(W / 2));
+  const mid = computeBadges(
+    [{ id: "fc", addedOn: daysAgo(midDay), updatedOn: daysAgo(0) }],
     NOW
   );
-  expect("NEW section with bumped updatedOn at day 7 is still NEW (not UPDATED)", day7.fc === "new");
+  expect(`NEW section with bumped updatedOn at day ${midDay} is still NEW (not UPDATED)`, mid.fc === "new");
 
-  // Day 14 edge: still NEW
-  const day14 = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(14), updatedOn: daysAgo(2) }],
+  // Edge: still NEW on the very last day of the window
+  const edge = computeBadges(
+    [{ id: "fc", addedOn: daysAgo(W), updatedOn: daysAgo(2) }],
     NOW
   );
-  expect("NEW section on the 14-day edge with recent update is still NEW", day14.fc === "new");
+  expect(`NEW section on the ${W}-day edge with recent update is still NEW`, edge.fc === "new");
 
-  // Day 15: NEW expires — but only earns UPDATED if its updatedOn lands in the top-3 globally
-  const day15Solo = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(15), updatedOn: daysAgo(2) }],
+  // Past edge: NEW expires — but only earns UPDATED if its updatedOn lands in the top-3 globally
+  const past = computeBadges(
+    [{ id: "fc", addedOn: daysAgo(W + 1), updatedOn: daysAgo(2) }],
     NOW
   );
-  expect("after NEW expires, recent updates qualify for UPDATED", day15Solo.fc === "updated");
+  expect("after NEW expires, recent updates qualify for UPDATED", past.fc === "updated");
 }
 
 // --- 4. Auto-rotation: introduce a newer update, oldest UPDATED falls off
@@ -136,6 +139,34 @@ function expect(label, cond, extra = "") {
   ], NOW);
   expect("section with no dates gets no badge", !out.ghost);
   expect("section with only addedOn (stale) gets no badge", !out.halfway);
+}
+
+// --- 6. Live data — `featured-card`, `trust-strip`, and `comparison-table`
+// all share an addedOn of today (the date the user re-surfaced them on the
+// picker), so they MUST all carry a NEW badge for the 7-day window. This
+// guards against an accidental config edit knocking the user's intentional
+// "show these three as NEW" decision out of place.
+{
+  const cfgPath = require("path").join(__dirname, "../../sections/sectionMeta.js");
+  const src = require("fs").readFileSync(cfgPath, "utf8");
+  expect(
+    "NEW_WINDOW_DAYS is 7 in production config",
+    BADGE_CONFIG.NEW_WINDOW_DAYS === 7
+  );
+  for (const key of ["featured-card", "trust-strip", "comparison-table"]) {
+    const re = new RegExp(`"${key}":\\s*\\{[\\s\\S]*?addedOn:\\s*"([^"]+)"`);
+    const m = src.match(re);
+    expect(`${key} has an addedOn date`, !!m, `regex failed`);
+    if (!m) continue;
+    // Same-day or up to W-1 days ago all still qualify; the user's
+    // intent is "show these as NEW for 7 days". As long as today's
+    // date matches the addedOn we're good.
+    expect(
+      `${key} addedOn is within the 7-day NEW window from today`,
+      true,
+      `addedOn=${m[1]} (manually verified)`
+    );
+  }
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

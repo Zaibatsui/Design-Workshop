@@ -23,7 +23,7 @@
  * recent than the previous 3, the oldest UPDATED badge drops off on
  * its own — no manual unflagging required.
  */
-const NEW_WINDOW_DAYS = 14;
+const NEW_WINDOW_DAYS = 7;
 const UPDATED_TOP_N = 3;
 
 const DAY_MS = 24 * 60 * 60 * 1000;

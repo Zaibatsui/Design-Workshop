@@ -85,15 +85,17 @@ export const SECTION_META = {
       "Visual editor now has an inline link panel — add web or email links, set a per-link colour, and turn the underline off on any single link from the toolbar. Click an existing link to re-open the panel and tweak it. Scheme-less URLs like 'example.com' are auto-resolved to 'https://example.com' so links never get appended to the host page. New per-link 'Open in a new tab' toggle.",
   },
 
-  // 2026-02-19 — new arrivals from the previous fork
+  // Featured Card, Trust Strip and Comparison Table all share a fresh
+  // 7-day NEW window starting 2026-02-27 — the date we re-surfaced
+  // them on the picker so every user can spot them.
   "featured-card": {
-    addedOn: "2026-02-19",
+    addedOn: "2026-02-27",
     updatedOn: "2026-02-19",
     whatsNew:
       "A new section: a big photo background with a clean card holding your headline, supporting points and an optional button. Perfect for hero intros, process steps and final calls to action.",
   },
   "trust-strip": {
-    addedOn: "2026-02-19",
+    addedOn: "2026-02-27",
     updatedOn: "2026-02-19",
     whatsNew:
       "A new compact row of icons and one-line callouts. Ideal for credibility marks like '20+ years' or '5-star service' between heavier sections.",
