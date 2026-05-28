@@ -231,7 +231,7 @@ ${baseReset(cls)}
   return `<div style="padding-top:${padTop}px;padding-bottom:${padBot}px">${out}</div>`;
 }
 
-function FormPanel({ config, onUpdate }) {
+function FormPanel({ config, onUpdate, previewMode }) {
   return (
     <FormAccordion sectionType="split-banner">
       <Group title="Image">
@@ -428,13 +428,15 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ pageHeader: v })}
           testid="split-page-header"
         />
-        <ToggleField
-          label="Centre text on mobile"
-          description="On phones (≤767px), centre the eyebrow, heading, subheading and button under the image. Desktop layout is unaffected."
-          checked={!!config.mobileCenterText}
-          onChange={(v) => onUpdate({ mobileCenterText: v })}
-          testid="split-mobile-center-text"
-        />
+        {previewMode === "mobile" && (
+          <ToggleField
+            label="Centre text on mobile"
+            description="On phones (≤767px), centre the eyebrow, heading, subheading and button under the image. Desktop layout is unaffected. Switch the preview to desktop to hide this control."
+            checked={!!config.mobileCenterText}
+            onChange={(v) => onUpdate({ mobileCenterText: v })}
+            testid="split-mobile-center-text"
+          />
+        )}
         <SelectField
           label="Image side"
           value={config.imageSide || "right"}
