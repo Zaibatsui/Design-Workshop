@@ -52,6 +52,9 @@ const defaults = () => ({
   primaryColor: "#E01839",
   buttons: [],
   fullBleed: false,
+  // Mobile-only override: when ON, the inner content + buttons sit
+  // centred at ≤640px regardless of the desktop alignment setting.
+  mobileCenterText: false,
 });
 
 // Back-compat: older sections used {primaryText,primaryLink,primaryOpenInSameTab,
@@ -135,10 +138,10 @@ ${baseReset(cls)}
 .${cls} .ns-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .${cls} .ns-btn-primary{background:var(--ns-accent);color:#fff;border-color:var(--ns-accent)}
 .${cls} .ns-btn-secondary{background:#fff;color:var(--ns-accent);border-color:var(--ns-accent)}
-@media (max-width:640px){.${cls} .ns-h{font-size:calc(var(--ns-size) * .82)}.${cls} .ns-p{font-size:15px}.${cls} .ns-btn{flex:1 1 140px}}
+@media (max-width:640px){.${cls} .ns-h{font-size:calc(var(--ns-size) * .82)}.${cls} .ns-p{font-size:15px}.${cls} .ns-btn{flex:1 1 140px}.${cls}.is-m-center .ns-inner{text-align:center!important}.${cls}.is-m-center .ns-btns{justify-content:center!important}}
 `.trim();
 
-  const html = `<section class="ns-content ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const html = `<section class="ns-content ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" style="${styleVars}">
   <div class="ns-inner">
     ${eyebrowHtml}
     <h2 class="ns-h">${escHtml(cfg.heading)}</h2>
@@ -151,7 +154,7 @@ ${baseReset(cls)}
   return wrapSnippet({ html, css, js });
 }
 
-function FormPanel({ config, onUpdate }) {
+function FormPanel({ config, onUpdate, previewMode }) {
   return (
     <FormAccordion sectionType="content">
       <Group title="Header">
@@ -218,6 +221,15 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="content-full-bleed"
         />
+        {previewMode === "mobile" && (
+          <ToggleField
+            label="Centre text on mobile"
+            description="On phones (≤640px), centre the heading, body and buttons regardless of the desktop alignment above. Switch the preview to desktop to hide this control."
+            checked={!!config.mobileCenterText}
+            onChange={(v) => onUpdate({ mobileCenterText: v })}
+            testid="content-mobile-center-text"
+          />
+        )}
         <PaddingFields
           config={config}
           onUpdate={onUpdate}

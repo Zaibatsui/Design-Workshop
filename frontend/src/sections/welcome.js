@@ -101,6 +101,9 @@ const defaults = () => ({
     "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600&auto=format&fit=crop",
   overlayColor: "#0f172a",
   overlayOpacity: 0.55,
+  // Mobile-only override: when ON, every block (header / logo / account
+  // manager) sits centred at ≤780px. Desktop layout unaffected.
+  mobileCenterText: false,
 });
 
 function render(cfg) {
@@ -156,6 +159,12 @@ ${baseReset(cls)}
   .${cls} .ns-block{position:static;transform:none!important;max-width:100%;text-align:left!important;inset:auto!important}
   .${cls} .ns-h{font-size:26px}
   .${cls} .ns-am{min-width:0}
+  .${cls}.is-m-center .ns-grid{align-items:center}
+  .${cls}.is-m-center .ns-block{text-align:center!important}
+  .${cls}.is-m-center .ns-body{margin-left:auto;margin-right:auto}
+  .${cls}.is-m-center .ns-logo-wrap{margin-left:auto;margin-right:auto}
+  .${cls}.is-m-center .ns-am{flex-direction:column;align-items:center;text-align:center}
+  .${cls}.is-m-center .ns-am-info{align-items:center;text-align:center}
 }
 `.trim();
 
@@ -201,7 +210,7 @@ ${baseReset(cls)}
     </div>`
     : "";
 
-  const html = `<section class="ns-welcome ${cls}${fullBleedClass(cfg)}" style="${styleVars};background-image:url('${escAttr(safeUrl(cfg.image))}')">
+  const html = `<section class="ns-welcome ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" style="${styleVars};background-image:url('${escAttr(safeUrl(cfg.image))}')">
   <div class="ns-overlay"></div>
   <div class="ns-grid">
     ${headerBlock}
@@ -218,7 +227,7 @@ ${baseReset(cls)}
   return `<div style="padding-top:${padTop}px;padding-bottom:${padBot}px">${out}</div>`;
 }
 
-function FormPanel({ config, onUpdate }) {
+function FormPanel({ config, onUpdate, previewMode }) {
   return (
     <FormAccordion sectionType="welcome">
       {/* Header — matches Header→Layout→Theme→Items convention. Header
@@ -260,6 +269,15 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="welcome-full-bleed"
         />
+        {previewMode === "mobile" && (
+          <ToggleField
+            label="Centre text on mobile"
+            description="On phones (≤780px), centre every block (header, logo, account manager). Desktop layout is unaffected. Switch the preview to desktop to hide this control."
+            checked={!!config.mobileCenterText}
+            onChange={(v) => onUpdate({ mobileCenterText: v })}
+            testid="welcome-mobile-center-text"
+          />
+        )}
         <SliderField
           label="Section height"
           value={config.height}

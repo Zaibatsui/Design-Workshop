@@ -43,8 +43,18 @@ export const SECTION_META = {
     whatsNew:
       "New mobile-only 'Centre text on mobile' toggle — on phones the eyebrow, heading, subheading and button sit centred under the image while desktop stays exactly as it was. You can still add a list of icon + title + body points inside the text panel.",
   },
-  welcome: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  content: { addedOn: LAUNCH, updatedOn: LAUNCH },
+  welcome: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "New mobile-only 'Centre text on mobile' toggle — on phones every block (header, customer logo, account manager card) sits centred while desktop keeps the positioned-grid layout exactly as it was.",
+  },
+  content: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "New mobile-only 'Centre text on mobile' toggle — on phones the heading, body and buttons sit centred regardless of the desktop alignment you've picked. Desktop layout is unchanged.",
+  },
   products: {
     addedOn: LAUNCH,
     updatedOn: "2026-05-28",
@@ -73,7 +83,12 @@ export const SECTION_META = {
     whatsNew:
       "Links inside FAQ answers now auto-resolve to full URLs even if you type 'example.com' without the https:// — they used to be appended to the host page's address and break. New per-link 'Open in a new tab' toggle so you can pick whether each link opens in the same window or a fresh tab. Rich-text toolbar still has bold / italics / lists and the inline link editor with colour and underline controls.",
   },
-  "cta-banner": { addedOn: LAUNCH, updatedOn: LAUNCH },
+  "cta-banner": {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "New mobile-only 'Centre text on mobile' toggle — on phones the heading, sub-heading and buttons sit centred regardless of the desktop alignment you've picked. Desktop layout is unchanged.",
+  },
   placeholder: { addedOn: LAUNCH, updatedOn: LAUNCH },
   logos: { addedOn: LAUNCH, updatedOn: LAUNCH },
   break: { addedOn: LAUNCH, updatedOn: LAUNCH },

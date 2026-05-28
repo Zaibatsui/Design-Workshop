@@ -69,6 +69,9 @@ const defaults = () => ({
   secondaryLabel: "Learn more",
   secondaryUrl: "#",
   secondaryOpenInSameTab: false,
+  // Mobile-only override: when ON, the heading / sub / buttons sit
+  // centred at ≤640px regardless of the desktop alignment setting.
+  mobileCenterText: false,
 });
 
 const render = (cfg) => {
@@ -121,7 +124,7 @@ const render = (cfg) => {
   const flAlign = cfg.textAlign === "left" ? "left" : "center";
   const flHtml = footerLinkHtml(cfg, flAlign);
 
-  const html = `<section class="ns-cta ${cls}${fullBleedClass(cfg)}" data-ns-uid="${escAttr(
+  const html = `<section class="ns-cta ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" data-ns-uid="${escAttr(
     uid
   )}"><div class="ns-inner">${logoHtml}${eyebrowHtml}<h2 class="ns-heading">${escHtml(
     cfg.heading || ""
@@ -176,13 +179,13 @@ ${baseReset(cls)}
   }}
 .${cls} .ns-btn-secondary:hover{border-color:${textColor}}
 ${footerLinkCss(cls, accent, bodyColor)}
-@media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}}
+@media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}.${cls}.is-m-center .ns-inner{text-align:center!important}.${cls}.is-m-center .ns-actions{justify-content:center!important}.${cls}.is-m-center .ns-logo{margin-left:auto;margin-right:auto}}
 `.trim();
 
   return wrapSnippet({ html, css, js: "" });
 };
 
-function FormPanel({ config, onUpdate }) {
+function FormPanel({ config, onUpdate, previewMode }) {
   return (
     <FormAccordion sectionType="cta-banner">
       <Group title="Copy">
@@ -339,6 +342,15 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="cta-full-bleed"
         />
+        {previewMode === "mobile" && (
+          <ToggleField
+            label="Centre text on mobile"
+            description="On phones (≤640px), centre the heading, sub-heading and buttons regardless of the desktop alignment above. Switch the preview to desktop to hide this control."
+            checked={!!config.mobileCenterText}
+            onChange={(v) => onUpdate({ mobileCenterText: v })}
+            testid="cta-mobile-center-text"
+          />
+        )}
         {!config.fullBleed && (
           <SliderField
             label="Border radius"
