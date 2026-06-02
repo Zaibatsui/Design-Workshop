@@ -42,7 +42,7 @@ export default function BlockList({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={closestCorners}
       onDragEnd={(e) => {
         if (e.over && e.active.id !== e.over.id) {
           onReorder(e.active.id, e.over.id);
