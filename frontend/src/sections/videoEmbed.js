@@ -50,9 +50,12 @@ import PaddingFields from "@/components/PaddingFields";
 const ID = "video-embed";
 
 /**
- * Parse a YouTube / Vimeo URL into an embeddable iframe src.
- * Returns null if the URL isn't recognised — caller falls back to
- * disabling the play button so we never inject a broken iframe.
+ * Parse a video URL into an embeddable source.
+ *
+ * Returns one of:
+ *   { type: "iframe", src }  — YouTube / Vimeo (loaded into an <iframe>)
+ *   { type: "video",  src }  — direct MP4 / WebM / Ogg (loaded into a <video>)
+ *   null                     — unknown / unsafe URL; caller disables playback
  *
  * Pure, exported for unit tests.
  */
@@ -64,7 +67,17 @@ export function parseVideoEmbed(rawUrl, { autoplay = true } = {}) {
   } catch {
     return null;
   }
+  // Only http(s) — refuse javascript:, data:, file: etc.
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
   const host = url.hostname.replace(/^www\./, "");
+  const pathLower = url.pathname.toLowerCase();
+  // ---- Direct video file (mp4 / webm / ogg / mov) ----
+  // Detected by extension so a CDN-hosted MP4 (e.g. our own
+  // /_dws_video/foo.mp4) plays via the HTML5 <video> element instead
+  // of being incorrectly funnelled through a YouTube embed path.
+  if (/\.(mp4|webm|ogg|ogv|mov)(?:$|\?)/.test(pathLower)) {
+    return { type: "video", src: url.toString() };
+  }
   // ---- YouTube ----
   if (host === "youtube.com" || host === "youtube-nocookie.com" || host === "m.youtube.com") {
     let id = url.searchParams.get("v");
@@ -74,20 +87,29 @@ export function parseVideoEmbed(rawUrl, { autoplay = true } = {}) {
     }
     if (!id) return null;
     const ap = autoplay ? "1" : "0";
-    return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=${ap}&rel=0&modestbranding=1`;
+    return {
+      type: "iframe",
+      src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=${ap}&rel=0&modestbranding=1`,
+    };
   }
   if (host === "youtu.be") {
     const id = url.pathname.replace(/^\//, "").split("/")[0];
     if (!id) return null;
     const ap = autoplay ? "1" : "0";
-    return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=${ap}&rel=0&modestbranding=1`;
+    return {
+      type: "iframe",
+      src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=${ap}&rel=0&modestbranding=1`,
+    };
   }
   // ---- Vimeo ----
   if (host === "vimeo.com" || host === "player.vimeo.com") {
     const m = url.pathname.match(/(?:\/video)?\/(\d+)/);
     if (!m) return null;
     const ap = autoplay ? "1" : "0";
-    return `https://player.vimeo.com/video/${m[1]}?autoplay=${ap}&title=0&byline=0&portrait=0`;
+    return {
+      type: "iframe",
+      src: `https://player.vimeo.com/video/${m[1]}?autoplay=${ap}&title=0&byline=0&portrait=0`,
+    };
   }
   return null;
 }
@@ -100,14 +122,18 @@ const defaults = () => ({
   heading: "See it built in under five minutes",
   body:
     "Watch a Design Workshop snippet drop straight into a live e-commerce site — one paste, no build step, no runtime libraries, no broken styles.",
-  // Poster image shown until the user clicks play.
+  // Poster image shown until the user clicks play. Defaults to the
+  // first frame of the bundled Design Workshop product reel so the
+  // section is "demo-ready" the moment it's added to a page.
   posterImage:
-    "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?q=80&w=1600&auto=format&fit=crop",
-  posterAlt: "",
-  // Video URL — YouTube or Vimeo. Placeholder is Blender Foundation's
-  // public-domain Big Buck Bunny clip, intentionally generic so users
-  // know to replace it.
-  videoUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+    "https://content-forge-1039.preview.emergentagent.com/_dws_video/poster.jpg",
+  posterAlt: "Design Workshop product walkthrough",
+  // Video URL — YouTube, Vimeo or a direct MP4/WebM/OGG file. Defaults
+  // to the 30-second Design Workshop product reel hosted on the same
+  // origin (so users see a real demo on first paste; they can swap it
+  // for their own URL via the form panel).
+  videoUrl:
+    "https://content-forge-1039.preview.emergentagent.com/_dws_video/design-workshop-30s.mp4",
   // Aspect ratio of the modal player.
   aspect: "16/9", // "16/9" | "4/3" | "1/1" | "21/9"
   // Player width inside the modal — controls how big the lightbox feels.
@@ -146,7 +172,9 @@ function render(cfg = {}) {
   const aspect = ASPECTS[c.aspect] || "16/9";
   const posterAspect = ASPECTS[c.posterAspect] || aspect;
   const playSize = num(c.playButtonSize, 88);
-  const embedUrl = parseVideoEmbed(c.videoUrl, { autoplay: !!c.autoplay });
+  const parsed = parseVideoEmbed(c.videoUrl, { autoplay: !!c.autoplay });
+  const embedUrl = parsed ? parsed.src : "";
+  const embedType = parsed ? parsed.type : "";
 
   // Header is only emitted when at least one field is filled, so users
   // can drop a Video Embed inline under another heading block without
@@ -254,7 +282,7 @@ ${baseReset(cls)}
 
   const html = `<section class="ns-video-embed ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-embed="${escAttr(
     embedUrl || ""
-  )}">
+  )}" data-ns-embed-type="${escAttr(embedType || "")}">
   <div class="ns-video-wrap">
     ${headerHtml}
     ${posterButton}
@@ -262,16 +290,17 @@ ${baseReset(cls)}
   ${modalHtml}
 </section>`;
 
-  // Click-to-open lightbox. Injects the iframe only on open so the
-  // third-party YouTube/Vimeo cookies / network requests don't happen
-  // until the user explicitly hits play. Removes the iframe on close
-  // so the video really stops (no orphaned audio streams).
+  // Click-to-open lightbox. Injects either an <iframe> (YouTube/Vimeo)
+  // or an HTML5 <video controls autoplay> (direct mp4/webm/ogg) only on
+  // open — so the third-party YouTube/Vimeo cookies & network requests
+  // never happen until the user explicitly hits play. Removes the
+  // element on close so the video really stops (no orphaned audio).
   // Focus management: stashes the previously-focused element, focuses
   // the close button on open, restores focus on close. ESC also closes.
   // Body scroll lock via document.body.style.overflow toggle.
   const js = iife(
     cls,
-    `var embed=root.getAttribute("data-ns-embed");if(!embed)return;var openBtn=root.querySelector("[data-ns-play]");var modal=root.querySelector("[data-ns-modal]");var frame=root.querySelector("[data-ns-frame]");var closeEls=root.querySelectorAll("[data-ns-close]");var closeBtn=root.querySelector(".ns-video-modal-close");var lastFocus=null;var prevBodyOverflow="";function open(){if(root.getAttribute("data-ns-open")==="true")return;lastFocus=document.activeElement;var ifr=document.createElement("iframe");ifr.setAttribute("src",embed);ifr.setAttribute("allow","autoplay; encrypted-media; fullscreen; picture-in-picture");ifr.setAttribute("allowfullscreen","");ifr.setAttribute("title","Video player");frame.innerHTML="";frame.appendChild(ifr);root.setAttribute("data-ns-open","true");prevBodyOverflow=document.body.style.overflow;document.body.style.overflow="hidden";requestAnimationFrame(function(){if(closeBtn)closeBtn.focus();});document.addEventListener("keydown",onKey);}function close(){if(root.getAttribute("data-ns-open")!=="true")return;root.removeAttribute("data-ns-open");frame.innerHTML="";document.body.style.overflow=prevBodyOverflow;document.removeEventListener("keydown",onKey);if(lastFocus&&typeof lastFocus.focus==="function"){try{lastFocus.focus();}catch(e){}}}function onKey(e){if(e.key==="Escape"||e.keyCode===27){e.preventDefault();close();}}if(openBtn)openBtn.addEventListener("click",function(e){e.preventDefault();open();});for(var i=0;i<closeEls.length;i++){closeEls[i].addEventListener("click",function(e){e.preventDefault();e.stopPropagation();close();});}`
+    `var embed=root.getAttribute("data-ns-embed");var kind=root.getAttribute("data-ns-embed-type");if(!embed)return;var openBtn=root.querySelector("[data-ns-play]");var modal=root.querySelector("[data-ns-modal]");var frame=root.querySelector("[data-ns-frame]");var closeEls=root.querySelectorAll("[data-ns-close]");var closeBtn=root.querySelector(".ns-video-modal-close");var lastFocus=null;var prevBodyOverflow="";var autoplay=${c.autoplay ? "true" : "false"};function buildPlayer(){if(kind==="video"){var v=document.createElement("video");v.setAttribute("src",embed);v.setAttribute("controls","");v.setAttribute("playsinline","");if(autoplay){v.setAttribute("autoplay","");v.muted=true;}v.style.width="100%";v.style.height="100%";v.style.display="block";v.style.background="#000";return v;}var ifr=document.createElement("iframe");ifr.setAttribute("src",embed);ifr.setAttribute("allow","autoplay; encrypted-media; fullscreen; picture-in-picture");ifr.setAttribute("allowfullscreen","");ifr.setAttribute("title","Video player");return ifr;}function open(){if(root.getAttribute("data-ns-open")==="true")return;lastFocus=document.activeElement;frame.innerHTML="";frame.appendChild(buildPlayer());root.setAttribute("data-ns-open","true");prevBodyOverflow=document.body.style.overflow;document.body.style.overflow="hidden";requestAnimationFrame(function(){if(closeBtn)closeBtn.focus();});document.addEventListener("keydown",onKey);}function close(){if(root.getAttribute("data-ns-open")!=="true")return;root.removeAttribute("data-ns-open");var existing=frame.querySelector("video");if(existing){try{existing.pause();}catch(e){}}frame.innerHTML="";document.body.style.overflow=prevBodyOverflow;document.removeEventListener("keydown",onKey);if(lastFocus&&typeof lastFocus.focus==="function"){try{lastFocus.focus();}catch(e){}}}function onKey(e){if(e.key==="Escape"||e.keyCode===27){e.preventDefault();close();}}if(openBtn)openBtn.addEventListener("click",function(e){e.preventDefault();open();});for(var i=0;i<closeEls.length;i++){closeEls[i].addEventListener("click",function(e){e.preventDefault();e.stopPropagation();close();});}`
   );
 
   return wrapSnippet({ html, css, js });
@@ -304,10 +333,10 @@ function FormPanel({ config, onUpdate }) {
 
       <Group title="Video">
         <TextField
-          label="Video URL (YouTube or Vimeo)"
+          label="Video URL (YouTube, Vimeo or direct MP4/WebM)"
           value={config.videoUrl || ""}
           onChange={(v) => onUpdate({ videoUrl: v })}
-          placeholder="https://www.youtube.com/watch?v=…"
+          placeholder="https://www.youtube.com/watch?v=…  or  https://…/video.mp4"
           testid="video-url"
         />
         <div>

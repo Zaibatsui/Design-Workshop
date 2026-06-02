@@ -75,19 +75,23 @@ function expect(label, cond, extra = "") {
 
 // ─── parseVideoEmbed ─────────────────────────────────────────────────
 const URL_CASES = [
-  { in: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", expectId: "dQw4w9WgXcQ", host: "youtube-nocookie.com" },
-  { in: "https://youtu.be/dQw4w9WgXcQ", expectId: "dQw4w9WgXcQ", host: "youtube-nocookie.com" },
-  { in: "https://www.youtube.com/embed/dQw4w9WgXcQ", expectId: "dQw4w9WgXcQ", host: "youtube-nocookie.com" },
-  { in: "https://www.youtube.com/shorts/abcDEF12345", expectId: "abcDEF12345", host: "youtube-nocookie.com" },
-  { in: "https://youtube.com/watch?v=aqz-KE-bpKQ&list=PL123", expectId: "aqz-KE-bpKQ", host: "youtube-nocookie.com" },
-  { in: "https://vimeo.com/76979871", expectId: "76979871", host: "player.vimeo.com" },
-  { in: "https://player.vimeo.com/video/76979871", expectId: "76979871", host: "player.vimeo.com" },
+  { in: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", type: "iframe", expectId: "dQw4w9WgXcQ", host: "youtube-nocookie.com" },
+  { in: "https://youtu.be/dQw4w9WgXcQ", type: "iframe", expectId: "dQw4w9WgXcQ", host: "youtube-nocookie.com" },
+  { in: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "iframe", expectId: "dQw4w9WgXcQ", host: "youtube-nocookie.com" },
+  { in: "https://www.youtube.com/shorts/abcDEF12345", type: "iframe", expectId: "abcDEF12345", host: "youtube-nocookie.com" },
+  { in: "https://youtube.com/watch?v=aqz-KE-bpKQ&list=PL123", type: "iframe", expectId: "aqz-KE-bpKQ", host: "youtube-nocookie.com" },
+  { in: "https://vimeo.com/76979871", type: "iframe", expectId: "76979871", host: "player.vimeo.com" },
+  { in: "https://player.vimeo.com/video/76979871", type: "iframe", expectId: "76979871", host: "player.vimeo.com" },
+  // Direct video files — should route through HTML5 <video>, not iframe.
+  { in: "https://content-forge-1039.preview.emergentagent.com/_dws_video/design-workshop-30s.mp4", type: "video", expectId: "design-workshop-30s.mp4", host: "content-forge" },
+  { in: "https://cdn.example.com/path/foo.webm", type: "video", expectId: "foo.webm", host: "cdn.example.com" },
+  { in: "https://cdn.example.com/path/foo.mp4?cache=123", type: "video", expectId: "foo.mp4", host: "cdn.example.com" },
 ];
 for (const c of URL_CASES) {
   const out = parseVideoEmbed(c.in);
   expect(
-    `parseVideoEmbed("${c.in}") returns ${c.host} URL with id ${c.expectId}`,
-    typeof out === "string" && out.includes(c.host) && out.includes(c.expectId)
+    `parseVideoEmbed("${c.in}") returns { type: "${c.type}", src: …${c.expectId} }`,
+    out && out.type === c.type && typeof out.src === "string" && out.src.includes(c.host) && out.src.includes(c.expectId)
   );
 }
 
@@ -104,14 +108,15 @@ for (const u of BAD_URLS) {
   expect(`parseVideoEmbed(${JSON.stringify(u)}) returns null`, parseVideoEmbed(u) === null);
 }
 
-// autoplay flag wiring
+// autoplay flag wiring (iframe path only — direct video files always
+// honour the section's autoplay setting at injection time via the JS).
 expect(
-  "parseVideoEmbed defaults to autoplay=1",
-  /autoplay=1/.test(parseVideoEmbed("https://youtu.be/abc12345678"))
+  "parseVideoEmbed defaults to autoplay=1 (iframe)",
+  /autoplay=1/.test(parseVideoEmbed("https://youtu.be/abc12345678").src)
 );
 expect(
-  "parseVideoEmbed honours { autoplay: false }",
-  /autoplay=0/.test(parseVideoEmbed("https://youtu.be/abc12345678", { autoplay: false }))
+  "parseVideoEmbed honours { autoplay: false } (iframe)",
+  /autoplay=0/.test(parseVideoEmbed("https://youtu.be/abc12345678", { autoplay: false }).src)
 );
 
 // ─── render() contract ──────────────────────────────────────────────
@@ -120,11 +125,29 @@ expect(
   expect("default render emits the poster <button>", /<button[^>]*class="ns-video-poster"[^>]*data-ns-play/.test(code));
   expect("default render emits the play-icon span", /class="ns-video-play[^"]*"/.test(code));
   expect("default render emits the modal container", /class="ns-video-modal"[^>]*role="dialog"/.test(code));
-  expect("default render emits the close button with aria-label", /data-ns-close[^>]*aria-label="Close video"|aria-label="Close video"[^>]*data-ns-close/.test(code) ||
+  expect("default render emits the close button with aria-label",
     /class="ns-video-modal-close"[^>]*aria-label="Close video"/.test(code));
   expect("default render does NOT inject an <iframe>", !/<iframe/.test(code));
-  expect("default render exposes the parsed embed URL via data-ns-embed", /data-ns-embed="https:\/\/www\.youtube-nocookie\.com\/embed\/[A-Za-z0-9_-]+\?autoplay=1/.test(code));
-  expect("default render uses youtube-nocookie host (privacy-friendly)", code.includes("youtube-nocookie.com"));
+  expect("default render does NOT inject a <video>", !/<video/.test(code));
+  expect("default render exposes the parsed embed URL via data-ns-embed", /data-ns-embed="https?:\/\/[^"]+"/.test(code));
+  expect("default render exposes the embed type via data-ns-embed-type", /data-ns-embed-type="(iframe|video)"/.test(code));
+}
+
+// ─── default video URL is now the bundled MP4 → type="video" ────────
+{
+  const code = videoEmbed.render(videoEmbed.defaults());
+  expect('default render uses data-ns-embed-type="video" (direct MP4)',
+    /data-ns-embed-type="video"/.test(code));
+  expect("default render's embed URL ends in .mp4",
+    /data-ns-embed="[^"]+\.mp4[^"]*"/.test(code));
+}
+
+// ─── YouTube URL still routes through the iframe path ──────────────
+{
+  const code = videoEmbed.render({ ...videoEmbed.defaults(), videoUrl: "https://youtu.be/dQw4w9WgXcQ" });
+  expect('YouTube URL → data-ns-embed-type="iframe"', /data-ns-embed-type="iframe"/.test(code));
+  expect("YouTube URL → embed src uses youtube-nocookie host",
+    /data-ns-embed="https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/.test(code));
 }
 
 // ─── render() with a broken URL ─────────────────────────────────────
@@ -138,8 +161,10 @@ expect(
 // ─── JS bundle sanity ───────────────────────────────────────────────
 {
   const code = videoEmbed.render(videoEmbed.defaults());
-  expect("JS injects iframe via createElement on click", code.includes('createElement("iframe")'));
-  expect("JS removes iframe on close (frame.innerHTML = \"\")", code.includes('frame.innerHTML=""'));
+  expect("JS builds <video> via createElement for direct files", code.includes('createElement("video")'));
+  expect("JS builds <iframe> via createElement for YouTube/Vimeo", code.includes('createElement("iframe")'));
+  expect("JS pauses the video on close", code.includes("existing.pause()"));
+  expect("JS removes the player on close (frame.innerHTML = \"\")", code.includes('frame.innerHTML=""'));
   expect("JS locks body scroll on open", code.includes('document.body.style.overflow="hidden"'));
   expect("JS handles ESC key to close", /Escape|keyCode===27/.test(code));
 }
