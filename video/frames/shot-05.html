@@ -1,0 +1,126 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+html,body{margin:0;padding:0;width:1920px;height:1080px;font-family:'Inter',system-ui,sans-serif;color:#fff;background:#0b0f1a;overflow:hidden}
+.stage{position:relative;width:1920px;height:1080px;overflow:hidden}
+.stage::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,11,20,0.16) 0%,rgba(8,11,20,0.86) 80%);pointer-events:none;z-index:5}
+.snippet{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center}
+.snippet > div{width:100%;height:100%;overflow:hidden}
+.kicker{position:absolute;z-index:10;max-width:1280px;left:50%;transform:translateX(-50%);text-align:center}
+.kicker.left{left:96px;transform:none;text-align:left}
+.kicker.bottom{bottom:80px;top:auto}
+.kicker{top:50%;transform:translate(-50%,-50%)}
+.kicker.left{top:50%;transform:translateY(-50%)}
+.kicker.bottom.left{top:auto;bottom:80px;transform:none}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:14px;font-weight:500;letter-spacing:0.38em;text-transform:uppercase;color:#E01839;margin:0 0 28px;text-align:inherit}
+.kicker h1{font-size:88px;font-weight:700;line-height:1.04;letter-spacing:-0.025em;margin:0;color:#fff;text-wrap:balance}
+.kicker .sub{margin:32px auto 0;max-width:880px;font-size:30px;font-weight:500;line-height:1.35;color:rgba(255,255,255,0.86);letter-spacing:-0.01em;text-wrap:balance}
+.kicker.left .sub{margin-left:0;margin-right:0}
+.kicker .body{margin:24px auto 0;max-width:760px;font-size:20px;line-height:1.55;color:rgba(255,255,255,0.7);text-wrap:balance}
+.kicker.left .body{margin-left:0;margin-right:0}
+.shotid{position:absolute;top:48px;right:64px;z-index:20;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.28em;color:rgba(255,255,255,0.42);text-transform:uppercase}
+.shotid::before{content:'';display:inline-block;width:14px;height:1px;background:#E01839;vertical-align:middle;margin-right:10px}
+.brand{position:absolute;bottom:48px;left:64px;z-index:20;display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.28em;color:rgba(255,255,255,0.55);text-transform:uppercase}
+.brand .dot{width:10px;height:10px;background:#E01839;border-radius:50%;box-shadow:0 0 0 4px rgba(224,24,57,0.18)}
+.progress{position:absolute;bottom:0;left:0;right:0;height:3px;z-index:20;background:rgba(255,255,255,0.06)}
+.progress .bar{height:100%;background:#E01839;width:50%}
+.tag{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(224,24,57,0.14);border:1px solid rgba(224,24,57,0.6);color:#fda4af;border-radius:99px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:36px}
+.tag .dot{width:7px;height:7px;background:#E01839;border-radius:50%;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.bullets{display:flex;flex-direction:column;gap:20px;margin-top:42px;max-width:920px;text-align:left}
+.bullets.center{margin-left:auto;margin-right:auto}
+.bullets li{display:flex;align-items:flex-start;gap:18px;font-size:24px;line-height:1.5;color:rgba(255,255,255,0.92);list-style:none}
+.bullets li::before{content:'';flex-shrink:0;width:14px;height:14px;border-radius:3px;margin-top:12px;background:#E01839;box-shadow:0 0 0 4px rgba(224,24,57,0.18)}
+.bullets li b{color:#fff;font-weight:600}
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:60px}
+.tile{background:linear-gradient(135deg,rgba(224,24,57,0.14) 0%,rgba(15,23,42,0.55) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;height:auto;color:#fff;font-size:15px;font-weight:600;letter-spacing:-0.01em;overflow:hidden;position:relative}
+.tile::before{content:'';position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:rgba(224,24,57,0.7)}
+.tile small{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.18em;text-transform:uppercase;font-weight:500}
+.snippet-scale-90 > div{transform:scale(0.9);transform-origin:center top}
+.snippet-scale-80 > div{transform:scale(0.8);transform-origin:center top}
+.brand-name{font-size:160px;font-weight:800;letter-spacing:-0.045em;line-height:0.95;background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,0.45) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0}
+.brand-tag{margin-top:36px;font-size:32px;font-weight:500;line-height:1.3;color:rgba(255,255,255,0.78);max-width:900px;letter-spacing:-0.01em;margin-left:auto;margin-right:auto;text-wrap:balance}
+</style></head>
+<body>
+<div class="stage">
+  <div class="shotid">Shot 05 / 10</div>
+  <div class="snippet snippet-scale-90"><section class="ns-stat-counter ns-stat-toilb1" style="--ns-bg:#0f172a;--ns-text:#ffffff;--ns-num:#ffffff;--ns-label:#ffffff;--ns-body:#cbd5e1;--ns-accent:#E01839;--ns-border:rgba(255,255,255,0.18);--ns-cols:4;--ns-num-size:72px;--ns-num-weight:700" data-ns-animate="0" data-ns-dur="1200">
+  <div class="ns-stat-wrap">
+    <div class="ns-stat-header">
+      <p class="ns-stat-eyebrow">By the numbers</p>
+      <h2 class="ns-stat-heading">Build pages, not boilerplate.</h2>
+      <p class="ns-stat-intro">Every section ships as one paste-ready snippet — fully scoped CSS, zero runtime libraries, and a Hybrid Page Builder that lets you compose entire pages without writing front-end code.</p>
+    </div>
+    <ul class="ns-stat-list">
+    <li class="ns-stat-item">
+      <div class="ns-stat-num" data-ns-target="23" data-ns-decimals="0">
+        <span class="ns-stat-value">23</span>
+      </div>
+      <h3 class="ns-stat-label">Composable section types</h3>
+      <p class="ns-stat-body">Hero, Split Banner, Comparison Table, Video Embed and many more — every one a self-contained snippet.</p>
+    </li>
+    <li class="ns-stat-item">
+      <div class="ns-stat-num" data-ns-target="5" data-ns-decimals="0">
+        <span class="ns-stat-value">5</span><span class="ns-stat-suffix"> min</span>
+      </div>
+      <h3 class="ns-stat-label">From paste to live snippet</h3>
+      <p class="ns-stat-body">Open the editor, pick a section, theme it with your brand kit, copy the HTML drop-in.</p>
+    </li>
+    <li class="ns-stat-item">
+      <div class="ns-stat-num" data-ns-target="0" data-ns-decimals="0">
+        <span class="ns-stat-value">0</span>
+      </div>
+      <h3 class="ns-stat-label">External runtime libraries</h3>
+      <p class="ns-stat-body">No React, jQuery or build step on the host site. Every snippet ships scoped CSS + a tiny IIFE.</p>
+    </li>
+    <li class="ns-stat-item">
+      <div class="ns-stat-num" data-ns-target="100" data-ns-decimals="0">
+        <span class="ns-stat-value">100</span><span class="ns-stat-suffix">%</span>
+      </div>
+      <h3 class="ns-stat-label">Self-contained HTML / CSS / JS</h3>
+      <p class="ns-stat-body">Drops into Nettailer, Shopify, WordPress, plain HTML — and survives a host CSS reset.</p>
+    </li></ul>
+    <div class="ns-stat-cta-row"><a class="ns-stat-cta" href="#" target="_blank" rel="noopener noreferrer">Browse the section library</a></div>
+  </div>
+</section>
+<style>@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+.ns-stat-toilb1,.ns-stat-toilb1 *,.ns-stat-toilb1 *::before,.ns-stat-toilb1 *::after{box-sizing:border-box}
+.ns-stat-toilb1{font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif!important;line-height:1.5;-webkit-font-smoothing:antialiased;text-align:left}
+.ns-stat-toilb1{color:#1f2937}
+.ns-stat-toilb1 h1,.ns-stat-toilb1 h2,.ns-stat-toilb1 h3,.ns-stat-toilb1 h4,.ns-stat-toilb1 h5,.ns-stat-toilb1 h6{margin:0;padding:0!important;text-indent:0!important;text-transform:none!important;font-style:normal;letter-spacing:normal;text-align:inherit!important;font-family:inherit}
+.ns-stat-toilb1 p,.ns-stat-toilb1 a,.ns-stat-toilb1 ul,.ns-stat-toilb1 ol,.ns-stat-toilb1 li,.ns-stat-toilb1 span,.ns-stat-toilb1 div{margin:0;padding:0;text-indent:0!important;text-transform:none;font-style:normal;letter-spacing:normal}
+.ns-stat-toilb1 ul,.ns-stat-toilb1 ol{list-style:none!important}
+.ns-stat-toilb1 a{color:inherit;text-decoration:none}
+.ns-stat-toilb1 button{font-family:inherit;cursor:pointer;background:none;border:0;padding:0;margin:0;color:inherit;text-align:inherit}
+.ns-stat-toilb1 img{max-width:100%;display:block;border:0}
+.ns-stat-toilb1.is-full{position:relative;width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+.ns-stat-toilb1{padding:80px 20px 80px;width:100%;background:var(--ns-bg);color:var(--ns-text)}
+.ns-stat-toilb1 .ns-stat-wrap{max-width:1200px;margin:0 auto;text-align:center}
+.ns-stat-toilb1 .ns-stat-header{margin:0 auto 48px;max-width:680px;text-align:center}
+.ns-stat-toilb1 .ns-stat-eyebrow{margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-accent)}
+.ns-stat-toilb1 .ns-stat-heading{margin:0 0 14px;font-size:clamp(1.6rem,3vw,2.25rem);font-weight:600;letter-spacing:-0.015em;line-height:1.15;color:var(--ns-text)}
+.ns-stat-toilb1 .ns-stat-intro{margin:0;font-size:16px;line-height:1.6;color:var(--ns-body)}
+.ns-stat-toilb1 .ns-stat-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--ns-cols), minmax(0, 1fr));gap:40px 24px;align-items:start}
+.ns-stat-toilb1 .ns-stat-item{display:flex;flex-direction:column;gap:10px;text-align:center;align-items:center;--ns-stat-color:var(--ns-accent)}
+.ns-stat-toilb1 .ns-stat-num{display:inline-flex;align-items:baseline;gap:2px;font-size:var(--ns-num-size);font-weight:var(--ns-num-weight);line-height:1;letter-spacing:-0.025em;color:var(--ns-stat-color);font-variant-numeric:tabular-nums}
+.ns-stat-toilb1 .ns-stat-prefix,.ns-stat-toilb1 .ns-stat-suffix{font-size:0.55em;font-weight:600;line-height:1;align-self:flex-start;margin-top:0.45em}
+.ns-stat-toilb1 .ns-stat-prefix{margin-right:2px;margin-top:0.55em}
+.ns-stat-toilb1 .ns-stat-suffix{margin-left:2px}
+.ns-stat-toilb1 .ns-stat-label{margin:4px 0 0;font-size:16px;font-weight:600;line-height:1.3;color:var(--ns-label);letter-spacing:-0.005em}
+.ns-stat-toilb1 .ns-stat-body{margin:0;font-size:14px;line-height:1.55;color:var(--ns-body);max-width:36ch}
+.ns-stat-toilb1 .ns-stat-cta{display:inline-flex;align-items:center;justify-content:center;margin-top:40px;padding:13px 28px;background:var(--ns-accent);color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;transition:transform .15s ease,filter .15s ease}
+.ns-stat-toilb1 .ns-stat-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
+
+@media (max-width:980px){.ns-stat-toilb1 .ns-stat-list{grid-template-columns:repeat(2, minmax(0, 1fr));gap:36px 20px}}
+@media (max-width:560px){.ns-stat-toilb1 .ns-stat-list{grid-template-columns:1fr;gap:32px}.ns-stat-toilb1 .ns-stat-num{font-size:calc(var(--ns-num-size) * 0.78)}}
+@media (prefers-reduced-motion: reduce){.ns-stat-toilb1 .ns-stat-cta{transition:none}}</style>
+<script>(function(){var SEL=".ns-stat-toilb1";function init(root){if(root.__nsInit)return;root.__nsInit=true;root.removeAttribute("data-ns-init");if(root.getAttribute("data-ns-animate")!=="1")return;var dur=parseInt(root.getAttribute("data-ns-dur"),10)||1200;var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;function fmt(n,d){if(d===0)return String(Math.round(n));var s=n.toFixed(d);return s;}function run(){if(root.__nsCounted)return;root.__nsCounted=true;var vals=root.querySelectorAll(".ns-stat-num");if(reduced){for(var i=0;i<vals.length;i++){var v=vals[i].querySelector(".ns-stat-value");var t=parseFloat(vals[i].getAttribute("data-ns-target"))||0;var d=parseInt(vals[i].getAttribute("data-ns-decimals"),10)||0;v.textContent=fmt(t,d);}return;}var start=null;function step(ts){if(start===null)start=ts;var p=Math.min(1,(ts-start)/dur);var ease=1-Math.pow(1-p,3);for(var i=0;i<vals.length;i++){var vv=vals[i].querySelector(".ns-stat-value");var tt=parseFloat(vals[i].getAttribute("data-ns-target"))||0;var dd=parseInt(vals[i].getAttribute("data-ns-decimals"),10)||0;vv.textContent=fmt(tt*ease,dd);}if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}if("IntersectionObserver" in window){var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){run();io.disconnect();break;}}},{threshold:0.25});io.observe(root);}else{run();}}function boot(){var els=document.querySelectorAll(SEL);if(!els.length)return false;els.forEach(init);return true;}if(!boot()){document.addEventListener("DOMContentLoaded",boot);}})();</script></div>
+  <div class="kicker bottom left">
+         <p class="eyebrow">Design Workshop · 2026</p>
+         <h1>Stat Counter — animated big numbers.</h1>
+         
+         <p class="body">Count-up on scroll into view. Respects prefers-reduced-motion. New this week.</p>
+       </div>
+  <div class="brand"><span class="dot"></span>Design Workshop</div>
+  <div class="progress"><div class="bar"></div></div>
+</div></body></html>

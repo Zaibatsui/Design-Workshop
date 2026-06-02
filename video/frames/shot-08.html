@@ -1,0 +1,147 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+html,body{margin:0;padding:0;width:1920px;height:1080px;font-family:'Inter',system-ui,sans-serif;color:#fff;background:#0b0f1a;overflow:hidden}
+.stage{position:relative;width:1920px;height:1080px;overflow:hidden}
+.stage::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,11,20,0.0) 0%,rgba(8,11,20,0.88) 78%);pointer-events:none;z-index:5}
+.snippet{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center}
+.snippet > div{width:100%;height:100%;overflow:hidden}
+.kicker{position:absolute;z-index:10;max-width:1280px;left:50%;transform:translateX(-50%);text-align:center}
+.kicker.left{left:96px;transform:none;text-align:left}
+.kicker.bottom{bottom:80px;top:auto}
+.kicker{top:50%;transform:translate(-50%,-50%)}
+.kicker.left{top:50%;transform:translateY(-50%)}
+.kicker.bottom.left{top:auto;bottom:80px;transform:none}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:14px;font-weight:500;letter-spacing:0.38em;text-transform:uppercase;color:#E01839;margin:0 0 28px;text-align:inherit}
+.kicker h1{font-size:88px;font-weight:700;line-height:1.04;letter-spacing:-0.025em;margin:0;color:#fff;text-wrap:balance}
+.kicker .sub{margin:32px auto 0;max-width:880px;font-size:30px;font-weight:500;line-height:1.35;color:rgba(255,255,255,0.86);letter-spacing:-0.01em;text-wrap:balance}
+.kicker.left .sub{margin-left:0;margin-right:0}
+.kicker .body{margin:24px auto 0;max-width:760px;font-size:20px;line-height:1.55;color:rgba(255,255,255,0.7);text-wrap:balance}
+.kicker.left .body{margin-left:0;margin-right:0}
+.shotid{position:absolute;top:48px;right:64px;z-index:20;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.28em;color:rgba(255,255,255,0.42);text-transform:uppercase}
+.shotid::before{content:'';display:inline-block;width:14px;height:1px;background:#E01839;vertical-align:middle;margin-right:10px}
+.brand{position:absolute;bottom:48px;left:64px;z-index:20;display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.28em;color:rgba(255,255,255,0.55);text-transform:uppercase}
+.brand .dot{width:10px;height:10px;background:#E01839;border-radius:50%;box-shadow:0 0 0 4px rgba(224,24,57,0.18)}
+.progress{position:absolute;bottom:0;left:0;right:0;height:3px;z-index:20;background:rgba(255,255,255,0.06)}
+.progress .bar{height:100%;background:#E01839;width:80%}
+.tag{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(224,24,57,0.14);border:1px solid rgba(224,24,57,0.6);color:#fda4af;border-radius:99px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:36px}
+.tag .dot{width:7px;height:7px;background:#E01839;border-radius:50%;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.bullets{display:flex;flex-direction:column;gap:20px;margin-top:42px;max-width:920px;text-align:left}
+.bullets.center{margin-left:auto;margin-right:auto}
+.bullets li{display:flex;align-items:flex-start;gap:18px;font-size:24px;line-height:1.5;color:rgba(255,255,255,0.92);list-style:none}
+.bullets li::before{content:'';flex-shrink:0;width:14px;height:14px;border-radius:3px;margin-top:12px;background:#E01839;box-shadow:0 0 0 4px rgba(224,24,57,0.18)}
+.bullets li b{color:#fff;font-weight:600}
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:60px}
+.tile{background:linear-gradient(135deg,rgba(224,24,57,0.14) 0%,rgba(15,23,42,0.55) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;height:auto;color:#fff;font-size:15px;font-weight:600;letter-spacing:-0.01em;overflow:hidden;position:relative}
+.tile::before{content:'';position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:rgba(224,24,57,0.7)}
+.tile small{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.18em;text-transform:uppercase;font-weight:500}
+.snippet-scale-90 > div{transform:scale(0.9);transform-origin:center top}
+.snippet-scale-80 > div{transform:scale(0.8);transform-origin:center top}
+.brand-name{font-size:160px;font-weight:800;letter-spacing:-0.045em;line-height:0.95;background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,0.45) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0}
+.brand-tag{margin-top:36px;font-size:32px;font-weight:500;line-height:1.3;color:rgba(255,255,255,0.78);max-width:900px;letter-spacing:-0.01em;margin-left:auto;margin-right:auto;text-wrap:balance}
+</style></head>
+<body>
+<div class="stage">
+  <div class="shotid">Shot 08 / 10</div>
+  <div class="snippet "><div style="display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;align-items:center;gap:24px;padding:120px 64px 240px;box-sizing:border-box">
+<div style="border-radius:14px;overflow:hidden;background:#fff"><section class="ns-trust-strip ns-trust-yspksq" style="--ns-bg:#ffffff;--ns-text:#0f172a;--ns-body:#475569;--ns-accent:#E01839;--ns-border:#e2e8f0;--ns-cols:2;--ns-icon-size:28px">
+  <div class="ns-wrap">
+    <ul class="ns-list">
+    <li class="ns-item">
+      <span class="ns-ico ns-ico-tinted" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg></span>
+      <div class="ns-item-text">
+        <h3 class="ns-item-title">Established &amp; reliable</h3>
+        <p class="ns-item-body">Over 20 years of supporting businesses across the UK.</p>
+      </div>
+    </li>
+    <li class="ns-item">
+      <span class="ns-ico ns-ico-tinted" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <div class="ns-item-text">
+        <h3 class="ns-item-title">Thousands of happy customers</h3>
+        <p class="ns-item-body">Proud to build long-term partnerships with businesses of all sizes.</p>
+      </div>
+    </li></ul>
+  </div>
+</section>
+<style>@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+.ns-trust-yspksq,.ns-trust-yspksq *,.ns-trust-yspksq *::before,.ns-trust-yspksq *::after{box-sizing:border-box}
+.ns-trust-yspksq{font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif!important;line-height:1.5;-webkit-font-smoothing:antialiased;text-align:left}
+.ns-trust-yspksq{color:#1f2937}
+.ns-trust-yspksq h1,.ns-trust-yspksq h2,.ns-trust-yspksq h3,.ns-trust-yspksq h4,.ns-trust-yspksq h5,.ns-trust-yspksq h6{margin:0;padding:0!important;text-indent:0!important;text-transform:none!important;font-style:normal;letter-spacing:normal;text-align:inherit!important;font-family:inherit}
+.ns-trust-yspksq p,.ns-trust-yspksq a,.ns-trust-yspksq ul,.ns-trust-yspksq ol,.ns-trust-yspksq li,.ns-trust-yspksq span,.ns-trust-yspksq div{margin:0;padding:0;text-indent:0!important;text-transform:none;font-style:normal;letter-spacing:normal}
+.ns-trust-yspksq ul,.ns-trust-yspksq ol{list-style:none!important}
+.ns-trust-yspksq a{color:inherit;text-decoration:none}
+.ns-trust-yspksq button{font-family:inherit;cursor:pointer;background:none;border:0;padding:0;margin:0;color:inherit;text-align:inherit}
+.ns-trust-yspksq img{max-width:100%;display:block;border:0}
+.ns-trust-yspksq.is-full{position:relative;width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+.ns-trust-yspksq{padding:30px 20px 30px;width:100%;background:var(--ns-bg);color:var(--ns-text)}
+.ns-trust-yspksq .ns-wrap{max-width:1200px;margin:0 auto;text-align:left}
+.ns-trust-yspksq .ns-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--ns-cols), minmax(0, 1fr));gap:24px;align-items:start}
+.ns-trust-yspksq .ns-item{display:flex;flex-direction:row;gap:14px;align-items:flex-start;text-align:left}
+.ns-trust-yspksq .ns-ico{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;color:var(--ns-accent)}
+.ns-trust-yspksq .ns-ico-tinted{width:calc(var(--ns-icon-size) + 18px);height:calc(var(--ns-icon-size) + 18px);border-radius:50%;background:color-mix(in srgb, var(--ns-accent) 12%, transparent)}
+.ns-trust-yspksq .ns-ico-flat{width:var(--ns-icon-size);height:var(--ns-icon-size)}
+.ns-trust-yspksq .ns-ico svg{width:var(--ns-icon-size);height:var(--ns-icon-size)}
+.ns-trust-yspksq .ns-item-text{min-width:0}
+.ns-trust-yspksq .ns-item-title{margin:0 0 4px;font-size:15px;font-weight:600;color:var(--ns-text);line-height:1.3;letter-spacing:-0.005em}
+.ns-trust-yspksq .ns-item-body{margin:0;font-size:13.5px;line-height:1.55;color:var(--ns-body)}
+
+@media (max-width:980px){.ns-trust-yspksq .ns-list{grid-template-columns:repeat(2, minmax(0, 1fr))}}
+@media (max-width:600px){.ns-trust-yspksq .ns-list{grid-template-columns:1fr;gap:18px}}</style>
+<script>(function(){var SEL=".ns-trust-yspksq";function init(root){if(root.__nsInit)return;root.__nsInit=true;root.removeAttribute("data-ns-init");/* static */}function boot(){var els=document.querySelectorAll(SEL);if(!els.length)return false;els.forEach(init);return true;}if(!boot()){document.addEventListener("DOMContentLoaded",boot);}})();</script></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff"><section class="ns-trust-strip ns-trust-s5rcem" style="--ns-bg:#0f172a;--ns-text:#ffffff;--ns-body:#cbd5e1;--ns-accent:#22d3ee;--ns-border:#e2e8f0;--ns-cols:2;--ns-icon-size:28px">
+  <div class="ns-wrap">
+    <ul class="ns-list">
+    <li class="ns-item">
+      <span class="ns-ico ns-ico-tinted" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg></span>
+      <div class="ns-item-text">
+        <h3 class="ns-item-title">Established &amp; reliable</h3>
+        <p class="ns-item-body">Over 20 years of supporting businesses across the UK.</p>
+      </div>
+    </li>
+    <li class="ns-item">
+      <span class="ns-ico ns-ico-tinted" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <div class="ns-item-text">
+        <h3 class="ns-item-title">Thousands of happy customers</h3>
+        <p class="ns-item-body">Proud to build long-term partnerships with businesses of all sizes.</p>
+      </div>
+    </li></ul>
+  </div>
+</section>
+<style>@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+.ns-trust-s5rcem,.ns-trust-s5rcem *,.ns-trust-s5rcem *::before,.ns-trust-s5rcem *::after{box-sizing:border-box}
+.ns-trust-s5rcem{font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif!important;line-height:1.5;-webkit-font-smoothing:antialiased;text-align:left}
+.ns-trust-s5rcem{color:#1f2937}
+.ns-trust-s5rcem h1,.ns-trust-s5rcem h2,.ns-trust-s5rcem h3,.ns-trust-s5rcem h4,.ns-trust-s5rcem h5,.ns-trust-s5rcem h6{margin:0;padding:0!important;text-indent:0!important;text-transform:none!important;font-style:normal;letter-spacing:normal;text-align:inherit!important;font-family:inherit}
+.ns-trust-s5rcem p,.ns-trust-s5rcem a,.ns-trust-s5rcem ul,.ns-trust-s5rcem ol,.ns-trust-s5rcem li,.ns-trust-s5rcem span,.ns-trust-s5rcem div{margin:0;padding:0;text-indent:0!important;text-transform:none;font-style:normal;letter-spacing:normal}
+.ns-trust-s5rcem ul,.ns-trust-s5rcem ol{list-style:none!important}
+.ns-trust-s5rcem a{color:inherit;text-decoration:none}
+.ns-trust-s5rcem button{font-family:inherit;cursor:pointer;background:none;border:0;padding:0;margin:0;color:inherit;text-align:inherit}
+.ns-trust-s5rcem img{max-width:100%;display:block;border:0}
+.ns-trust-s5rcem.is-full{position:relative;width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+.ns-trust-s5rcem{padding:30px 20px 30px;width:100%;background:var(--ns-bg);color:var(--ns-text)}
+.ns-trust-s5rcem .ns-wrap{max-width:1200px;margin:0 auto;text-align:left}
+.ns-trust-s5rcem .ns-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--ns-cols), minmax(0, 1fr));gap:24px;align-items:start}
+.ns-trust-s5rcem .ns-item{display:flex;flex-direction:row;gap:14px;align-items:flex-start;text-align:left}
+.ns-trust-s5rcem .ns-ico{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;color:var(--ns-accent)}
+.ns-trust-s5rcem .ns-ico-tinted{width:calc(var(--ns-icon-size) + 18px);height:calc(var(--ns-icon-size) + 18px);border-radius:50%;background:color-mix(in srgb, var(--ns-accent) 12%, transparent)}
+.ns-trust-s5rcem .ns-ico-flat{width:var(--ns-icon-size);height:var(--ns-icon-size)}
+.ns-trust-s5rcem .ns-ico svg{width:var(--ns-icon-size);height:var(--ns-icon-size)}
+.ns-trust-s5rcem .ns-item-text{min-width:0}
+.ns-trust-s5rcem .ns-item-title{margin:0 0 4px;font-size:15px;font-weight:600;color:var(--ns-text);line-height:1.3;letter-spacing:-0.005em}
+.ns-trust-s5rcem .ns-item-body{margin:0;font-size:13.5px;line-height:1.55;color:var(--ns-body)}
+
+@media (max-width:980px){.ns-trust-s5rcem .ns-list{grid-template-columns:repeat(2, minmax(0, 1fr))}}
+@media (max-width:600px){.ns-trust-s5rcem .ns-list{grid-template-columns:1fr;gap:18px}}</style>
+<script>(function(){var SEL=".ns-trust-s5rcem";function init(root){if(root.__nsInit)return;root.__nsInit=true;root.removeAttribute("data-ns-init");/* static */}function boot(){var els=document.querySelectorAll(SEL);if(!els.length)return false;els.forEach(init);return true;}if(!boot()){document.addEventListener("DOMContentLoaded",boot);}})();</script></div>
+</div></div>
+  <div class="kicker bottom left">
+         <p class="eyebrow">Design Workshop · 2026</p>
+         <h1>One brand kit themes the whole library.</h1>
+         
+         <p class="body">Colours, fonts, logos, eyebrow style — set them once, every section follows.</p>
+       </div>
+  <div class="brand"><span class="dot"></span>Design Workshop</div>
+  <div class="progress"><div class="bar"></div></div>
+</div></body></html>

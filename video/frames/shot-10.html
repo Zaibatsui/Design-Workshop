@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap');
+html,body{margin:0;padding:0;width:1920px;height:1080px;font-family:'Inter',sans-serif;color:#fff;background:linear-gradient(135deg,#1e293b 0%,#0b0f1a 50%,#020617 100%);overflow:hidden}
+.stage{position:relative;width:1920px;height:1080px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 120px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;letter-spacing:0.42em;text-transform:uppercase;color:#E01839;margin:0 0 48px}
+.headline{font-size:140px;font-weight:800;letter-spacing:-0.045em;line-height:0.96;margin:0;color:#fff;text-wrap:balance}
+.headline em{font-style:normal;background:linear-gradient(135deg,#E01839 0%,#fda4af 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin:44px auto 0;font-size:30px;font-weight:500;line-height:1.4;color:rgba(255,255,255,0.78);max-width:1100px;letter-spacing:-0.01em}
+.cta{margin-top:60px;display:inline-flex;align-items:center;gap:18px;padding:22px 42px;background:#E01839;border-radius:99px;font-size:24px;font-weight:600;color:#fff;letter-spacing:-0.005em;box-shadow:0 24px 48px -16px rgba(224,24,57,0.55)}
+.cta::after{content:'→';font-size:30px;line-height:1}
+.dot-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.06) 1.5px,transparent 1.5px);background-size:36px 36px;mask-image:radial-gradient(ellipse at center,rgba(0,0,0,0.5) 0%,transparent 70%);-webkit-mask-image:radial-gradient(ellipse at center,rgba(0,0,0,0.5) 0%,transparent 70%);pointer-events:none}
+.shotid{position:absolute;top:48px;right:64px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.28em;color:rgba(255,255,255,0.42);text-transform:uppercase}
+.shotid::before{content:'';display:inline-block;width:14px;height:1px;background:#E01839;vertical-align:middle;margin-right:10px}
+.progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.06)}
+.progress .bar{height:100%;background:#E01839;width:100%}
+</style></head>
+<body>
+<div class="stage">
+  <div class="shotid">Shot 10 / 10</div>
+  <div class="dot-grid"></div>
+  <p class="eyebrow">Start building</p>
+  <h1 class="headline">Build pages,<br/><em>not boilerplate.</em></h1>
+  <p class="sub">23 composable sections. Hybrid Page Builder. Brand Kit. One paste-ready snippet per page.</p>
+  <span class="cta">Design Workshop</span>
+  <div class="progress"><div class="bar"></div></div>
+</div></body></html>
