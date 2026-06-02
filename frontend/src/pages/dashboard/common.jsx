@@ -392,7 +392,7 @@ export function SectionPicker({ sections, onPick, onClose }) {
                     <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
                     <SectionPreviewPopover
                       sectionId={s.id}
-                      className="absolute bottom-1.5 right-1.5 z-10"
+                      className="absolute top-1.5 right-1.5 z-10"
                     />
                     <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
                     <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
@@ -427,7 +427,7 @@ export function SectionPicker({ sections, onPick, onClose }) {
                     <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
                     <SectionPreviewPopover
                       sectionId={s.id}
-                      className="absolute bottom-1.5 right-1.5 z-10"
+                      className="absolute top-1.5 right-1.5 z-10"
                     />
                     <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
                     <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
@@ -456,7 +456,9 @@ export function SectionBadge({ kind, testid }) {
   return (
     <span
       data-testid={testid}
-      className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm shadow-sm ${
+      // top-9 of the right edge leaves room for the eye-icon preview
+      // trigger which sits at top-1.5 right-1.5 on picker tiles.
+      className={`absolute top-1.5 right-9 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm shadow-sm ${
         isNew ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"
       }`}
     >
