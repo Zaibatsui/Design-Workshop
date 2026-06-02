@@ -21,6 +21,7 @@ import {
   Columns3,
   Hash,
   PlayCircle,
+  Eye,
 } from "lucide-react";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
@@ -88,7 +89,7 @@ export default function SectionsShowcase() {
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them
             inside the Hybrid Page Builder, drag to reorder, save the lot as
-            one HTML drop-in. <span className="text-slate-900 font-medium">Hover any tile to preview the rendered block live.</span>
+            one HTML drop-in. <span className="text-slate-900 font-medium inline-flex items-baseline gap-1">Hover the <Eye className="w-3.5 h-3.5 inline self-center text-slate-500" aria-hidden="true" /> icon on any tile to preview the rendered block live.</span>
           </p>
         </div>
 
@@ -105,22 +106,22 @@ export default function SectionsShowcase() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {PRO_SECTIONS.map(({ id, Icon, name, desc }, i) => (
-              <SectionPreviewPopover key={name} sectionId={id}>
-                <div
-                  data-testid={`pro-section-tile-${i}`}
-                  className="group flex items-start gap-4 bg-white border-2 border-[#E01839]/30 p-5 rounded-md hover:border-[#E01839] hover:shadow-md transition-all cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-md bg-[#E01839]/10 text-[#E01839] flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
-                      {name}
-                    </h3>
-                    <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
-                  </div>
-                </div>
-              </SectionPreviewPopover>
+          <div
+            key={name}
+            data-testid={`pro-section-tile-${i}`}
+            className="group relative flex items-start gap-4 bg-white border-2 border-[#E01839]/30 p-5 rounded-md hover:border-[#E01839] hover:shadow-md transition-all cursor-default"
+          >
+            <SectionPreviewPopover sectionId={id} className="absolute top-1.5 right-1.5 z-10" />
+            <div className="w-10 h-10 rounded-md bg-[#E01839]/10 text-[#E01839] flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
+              <Icon className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
+                {name}
+              </h3>
+              <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
+            </div>
+          </div>
             ))}
           </div>
         </div>
@@ -131,22 +132,22 @@ export default function SectionsShowcase() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {SECTIONS.map(({ id, Icon, name, desc }, i) => (
-            <SectionPreviewPopover key={name} sectionId={id}>
-              <div
-                data-testid={`section-tile-${i}`}
-                className="group flex items-start gap-4 bg-white border border-slate-200 p-5 rounded-md hover:border-[#E01839] transition-colors cursor-default"
-              >
-                <div className="w-10 h-10 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
-                    {name}
-                  </h3>
-                  <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
-                </div>
+            <div
+              key={name}
+              data-testid={`section-tile-${i}`}
+              className="group relative flex items-start gap-4 bg-white border border-slate-200 p-5 rounded-md hover:border-[#E01839] transition-colors cursor-default"
+            >
+              <SectionPreviewPopover sectionId={id} className="absolute top-1.5 right-1.5 z-10" />
+              <div className="w-10 h-10 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 group-hover:bg-[#E01839] group-hover:text-white transition-colors">
+                <Icon className="w-4 h-4" />
               </div>
-            </SectionPreviewPopover>
+              <div className="min-w-0">
+                <h3 className="font-heading text-sm font-semibold tracking-tight text-slate-900 mb-1 leading-tight">
+                  {name}
+                </h3>
+                <p className="text-xs leading-relaxed text-slate-500">{desc}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>

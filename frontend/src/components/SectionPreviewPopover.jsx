@@ -1,30 +1,39 @@
 /**
- * SectionPreviewPopover — wraps a trigger element so that hovering it
- * shows a live thumbnail of the section's rendered snippet.
+ * SectionPreviewPopover — renders a small Eye-icon trigger button that,
+ * when hovered, focused, or clicked, pops a live thumbnail of the
+ * section's rendered snippet next to it.
  *
- * Implementation notes:
- * - Lazy: the iframe only mounts on first hover so listing 20 of these
- *   on the landing page doesn't render 20 iframes upfront.
+ * History: this used to wrap the whole card so the entire tile would
+ * trigger a preview on hover. That proved noisy in practice (users
+ * scanning the picker grid got an unsolicited iframe every time their
+ * cursor crossed a card). The new shape is an opt-in 28px icon
+ * positioned in the corner of the parent card — same internal popover
+ * machinery, but the trigger surface is small and explicit.
+ *
+ * Implementation notes (preserved from the original):
+ * - Lazy: the iframe only mounts on first activation so a grid of 20
+ *   tiles doesn't spin up 20 iframes upfront.
  * - Memoised: `section.render(section.defaults())` runs once per
  *   section id and the resulting HTML string is cached.
  * - Scaled: the iframe lays out at native desktop width (1280px) and
- *   we then CSS-transform it down to a 480×270 thumbnail. That keeps
- *   the snippet's design intact instead of squashing into a tiny
- *   viewport where breakpoints would misbehave.
+ *   we then CSS-transform it down to a 480×270 thumbnail, preserving
+ *   the snippet's responsive breakpoints.
  * - Pointer-events:none on the iframe so the user can't accidentally
  *   click into the preview and lose hover.
  * - Edge-aware: prefers right-of-trigger, flips left if it would
  *   overflow the viewport.
  *
- * Usage:
- *   <SectionPreviewPopover sectionId="hero">
- *     <button>Hero</button>
- *   </SectionPreviewPopover>
+ * Usage (caller must give the wrapping card `position: relative`):
+ *   <button className="relative ...">
+ *     <Icon/> <p>Hero</p>
+ *     <SectionPreviewPopover sectionId="hero" />
+ *   </button>
  *
  * Pass `disabled` to skip mounting entirely (used for `richtext` and
  * library snapshot tiles, where there's nothing meaningful to preview).
  */
-import { useState, useRef, useEffect, useMemo, cloneElement, Children } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Eye } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { useBrandKit } from "@/lib/BrandKitContext";
 import { usePreviewOverrides } from "@/lib/PreviewOverridesContext";
@@ -109,9 +118,10 @@ function renderHtmlFor(sectionId, override, brandKit) {
 
 export default function SectionPreviewPopover({
   sectionId,
-  children,
   disabled,
-  className = "",
+  // Default places the icon in the top-left corner so it doesn't
+  // collide with the NEW/UPDATED badges callers tend to pin top-right.
+  className = "absolute top-1.5 left-1.5 z-10",
 }) {
   const triggerRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -167,14 +177,16 @@ export default function SectionPreviewPopover({
     return { top, left, flipped };
   };
 
+  const openNow = () => {
+    setPos(computePos());
+    setMounted(true);
+    setOpen(true);
+  };
+
   const onEnter = () => {
     if (disabled || !html) return;
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setPos(computePos());
-      setMounted(true);
-      setOpen(true);
-    }, HOVER_DELAY_MS);
+    timerRef.current = setTimeout(openNow, HOVER_DELAY_MS);
   };
 
   const onLeave = () => {
@@ -182,44 +194,47 @@ export default function SectionPreviewPopover({
     setOpen(false);
   };
 
-  // Clone the child to attach our ref + listeners without forcing
-  // callers to use a wrapping div (preserves their layout/grid).
-  const child = Children.only(children);
-  const cloned = cloneElement(child, {
-    ref: (node) => {
-      triggerRef.current = node;
-      // Forward to caller's ref if any.
-      const orig = child.ref;
-      if (typeof orig === "function") orig(node);
-      else if (orig && typeof orig === "object") orig.current = node;
-    },
-    onMouseEnter: (e) => {
-      child.props.onMouseEnter?.(e);
-      onEnter();
-    },
-    onMouseLeave: (e) => {
-      child.props.onMouseLeave?.(e);
-      onLeave();
-    },
-    onFocus: (e) => {
-      child.props.onFocus?.(e);
-      onEnter();
-    },
-    onBlur: (e) => {
-      child.props.onBlur?.(e);
-      onLeave();
-    },
-  });
+  const onClick = (e) => {
+    // Stop the click from bubbling to the parent card (which usually
+    // wires `onClick` to "pick this section" — we don't want previewing
+    // to accidentally create a new section).
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled || !html) return;
+    clearTimeout(timerRef.current);
+    if (open) {
+      setOpen(false);
+    } else {
+      openNow();
+    }
+  };
+
+  if (disabled || !sectionId) return null;
 
   return (
     <>
-      {cloned}
+      <button
+        ref={triggerRef}
+        type="button"
+        data-testid={`section-preview-trigger-${sectionId}`}
+        aria-label={`Preview ${sectionId} section`}
+        aria-expanded={open}
+        title="Preview"
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
+        onFocus={onEnter}
+        onBlur={onLeave}
+        onClick={onClick}
+        className={`${className} inline-flex items-center justify-center w-7 h-7 rounded-md bg-white/90 backdrop-blur border border-slate-200 text-slate-500 hover:text-[#E01839] hover:border-[#E01839] hover:bg-white shadow-sm opacity-70 hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E01839]/40 transition-opacity`}
+      >
+        <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+      </button>
       {mounted && (
         <div
           role="tooltip"
           aria-hidden={!open}
           data-testid={`section-preview-${sectionId}`}
-          className={`fixed z-[60] pointer-events-none transition-opacity duration-150 ${className}`}
+          className="fixed z-[60] pointer-events-none transition-opacity duration-150"
           style={{
             top: pos.top,
             left: pos.left,

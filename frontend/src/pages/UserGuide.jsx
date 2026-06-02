@@ -772,8 +772,14 @@ function Grid({ children }) {
 }
 
 function SectionCard({ Icon, name, desc, sectionId }) {
-  const card = (
-    <div className="flex items-start gap-3 p-4 rounded-md border border-slate-200 hover:border-slate-300 transition-colors cursor-default">
+  return (
+    <div className="relative flex items-start gap-3 p-4 rounded-md border border-slate-200 hover:border-slate-300 transition-colors cursor-default">
+      {sectionId && (
+        <SectionPreviewPopover
+          sectionId={sectionId}
+          className="absolute top-1.5 right-1.5 z-10"
+        />
+      )}
       <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
         <Icon className="w-3.5 h-3.5" />
       </div>
@@ -784,9 +790,5 @@ function SectionCard({ Icon, name, desc, sectionId }) {
         <p className="text-[13px] leading-relaxed text-slate-600">{desc}</p>
       </div>
     </div>
-  );
-  if (!sectionId) return card;
-  return (
-    <SectionPreviewPopover sectionId={sectionId}>{card}</SectionPreviewPopover>
   );
 }
