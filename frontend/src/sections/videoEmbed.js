@@ -350,7 +350,7 @@ function FormPanel({ config, onUpdate }) {
           label="Video URL (YouTube, Vimeo or direct MP4/WebM)"
           value={config.videoUrl || ""}
           onChange={(v) => onUpdate({ videoUrl: v })}
-          placeholder="Paste your video URL — leave blank to use the bundled demo"
+          placeholder="Paste your video URL here"
           testid="video-url"
         />
         <div>
