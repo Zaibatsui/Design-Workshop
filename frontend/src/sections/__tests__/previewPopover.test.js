@@ -107,8 +107,11 @@ expect("landing page lists Comparison Table",
 expect("landing page lists Stat Counter",
   /id: "stat-counter"/.test(showcaseSrc) &&
   /name: "Stat Counter"/.test(showcaseSrc));
-expect("landing copy reflects 22 building blocks",
-  /Twenty-two composable/.test(showcaseSrc));
+expect("landing page lists Video Embed",
+  /id: "video-embed"/.test(showcaseSrc) &&
+  /name: "Video Embed"/.test(showcaseSrc));
+expect("landing copy reflects 23 building blocks",
+  /Twenty-three composable/.test(showcaseSrc));
 
 // UserGuide must also surface the Comparison Table SectionCard.
 const guideSrc = fs.readFileSync(
@@ -117,8 +120,10 @@ expect("UserGuide lists Comparison Table",
   /sectionId="comparison-table"/.test(guideSrc));
 expect("UserGuide lists Stat Counter",
   /sectionId="stat-counter"/.test(guideSrc));
-expect("UserGuide updated count to twenty-one",
-  /Design Workshop ships twenty-one/.test(guideSrc));
+expect("UserGuide lists Video Embed",
+  /sectionId="video-embed"/.test(guideSrc));
+expect("UserGuide updated count to twenty-two",
+  /Design Workshop ships twenty-two/.test(guideSrc));
 expect("UserGuide passes sectionId to every SectionCard except richtext",
   // every <SectionCard ... /> call except the rich-text one should have a sectionId
   (() => {

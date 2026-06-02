@@ -92,6 +92,7 @@ const SPACING_REQUIRED = [
   "tabs",
   "testimonials",
   "trustStrip",
+  "videoEmbed",
   "welcome",
 ];
 

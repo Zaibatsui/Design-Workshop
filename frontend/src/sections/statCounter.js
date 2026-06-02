@@ -48,31 +48,31 @@ const ID = "stat-counter";
 const SAMPLE = [
   {
     prefix: "",
-    value: "36",
-    suffix: "%",
-    label: "Saving on Microsoft 365 Licences",
-    body: "Optimising licences, closing security gaps, right-sizing usage.",
+    value: "23",
+    suffix: "",
+    label: "Composable section types",
+    body: "Hero, Split Banner, Comparison Table, Video Embed and many more — every one a self-contained snippet.",
   },
   {
     prefix: "",
-    value: "50",
-    suffix: "%",
-    label: "Saving on SharePoint Storage",
-    body: "Optimised storage with no impact on user experience.",
+    value: "5",
+    suffix: " min",
+    label: "From paste to live snippet",
+    body: "Open the editor, pick a section, theme it with your brand kit, copy the HTML drop-in.",
   },
   {
     prefix: "",
-    value: "42",
-    suffix: "%",
-    label: "Saving on Print",
-    body: "Optimising devices, cutting print volumes, reducing colour usage.",
+    value: "0",
+    suffix: "",
+    label: "External runtime libraries",
+    body: "No React, jQuery or build step on the host site. Every snippet ships scoped CSS + a tiny IIFE.",
   },
   {
     prefix: "",
-    value: "50",
+    value: "100",
     suffix: "%",
-    label: "Saving on Cyber Security Tooling",
-    body: "Fewer overlapping tools — stronger security, more team time.",
+    label: "Self-contained HTML / CSS / JS",
+    body: "Drops into Nettailer, Shopify, WordPress, plain HTML — and survives a host CSS reset.",
   },
 ];
 
@@ -80,12 +80,12 @@ const defaults = () => ({
   uid: makeUid(),
   // Optional section header — keeps the layout flexible: a Stat Counter
   // can sit on its own or sit under an eyebrow/heading combo.
-  eyebrow: "Impact",
-  heading: "IT That Delivers",
+  eyebrow: "By the numbers",
+  heading: "Build pages, not boilerplate.",
   body:
-    "We remove waste, eliminate siloed suppliers, and reduce tool sprawl and friction across your IT environment.",
+    "Every section ships as one paste-ready snippet — fully scoped CSS, zero runtime libraries, and a Hybrid Page Builder that lets you compose entire pages without writing front-end code.",
   // Optional trailing CTA below the numbers row.
-  ctaText: "Contact Us",
+  ctaText: "Browse the section library",
   ctaLink: "#",
   ctaOpenInSameTab: false,
   // Items.

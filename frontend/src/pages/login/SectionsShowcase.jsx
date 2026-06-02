@@ -20,6 +20,7 @@ import {
   Zap,
   Columns3,
   Hash,
+  PlayCircle,
 } from "lucide-react";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
@@ -52,6 +53,7 @@ const SECTIONS = [
   { id: "feature-grid", Icon: Sparkles, name: "Feature Grid", desc: "2 to 4 column value-prop cards with icon, title and body. Outlined, tinted or solid card styles plus an image-card variant (image-top or image-left)." },
   { id: "trust-strip", Icon: Shield, name: "Trust Strip", desc: "Compact 2 to 5 column row of icon + title + 1-line credibility callouts. Flat by design so it counterweights heavier sections — perfect for '20+ years', 'ISO 27001 certified', '5-star service' bands." },
   { id: "stat-counter", Icon: Hash, name: "Stat Counter", desc: "Row of big numbers — '36%', '£2.4M', '5×' — each with a short label and optional supporting line. Optional count-up animation when the section scrolls into view, prefers-reduced-motion respected. Ideal for 'we saved customers X' impact bands." },
+  { id: "video-embed", Icon: PlayCircle, name: "Video Embed", desc: "Poster image with a centred play button — clicking opens a modal lightbox that lazy-loads a YouTube or Vimeo iframe. Nothing loads from the video host until the user actually presses play. ESC, click-outside and focus management built in. Aspect ratio, lightbox width and button style are all configurable." },
   { id: "comparison-table", Icon: Columns3, name: "Comparison Table", desc: "Three-column 'us vs them' matrix. Feature rows with ticks on your column and crosses on the competitor's. Brand-logo header, accent tint + border on the winning column, closing line + CTA below — a high-converting B2B pattern." },
   { id: "steps", Icon: ListOrdered, name: "Steps", desc: "Numbered process strip with big editorial numerals or compact inline numbers. Horizontal or vertical stack with optional hairline dividers between steps." },
   { id: "testimonials", Icon: Quote, name: "Testimonials", desc: "Auto-scrolling quote carousel with star ratings and avatars. Pauses on hover, supports per-quote source links and configurable scroll speed." },
@@ -81,7 +83,7 @@ export default function SectionsShowcase() {
             Section types in the box
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Twenty-two composable building blocks. Every page is one snippet.
+            Twenty-three composable building blocks. Every page is one snippet.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             Each section ships as its own self-contained markup. Mix them

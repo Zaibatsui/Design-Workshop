@@ -19,6 +19,7 @@ import { featuredCard } from "./featuredCard";
 import { trustStrip } from "./trustStrip";
 import { comparisonTable } from "./comparisonTable";
 import { statCounter } from "./statCounter";
+import { videoEmbed } from "./videoEmbed";
 import { metaFor } from "./sectionMeta";
 
 // Attach `addedOn` / `updatedOn` metadata to each section so the
@@ -40,6 +41,7 @@ export const SECTIONS = [
   trustStrip,
   comparisonTable,
   statCounter,
+  videoEmbed,
   steps,
   testimonials,
   faq,

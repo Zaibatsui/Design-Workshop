@@ -127,6 +127,12 @@ export const SECTION_META = {
     whatsNew:
       "A new big-number block. 2-5 columns of large stats (with optional £/% prefix-suffix and per-stat accent colours), an optional eyebrow + heading + intro, an optional trailing CTA, and a count-up animation that ramps the numbers from zero when the section scrolls into view. Respects prefers-reduced-motion. Perfect for 'we saved 36%' / 'cut tooling by 50%' impact bands.",
   },
+  "video-embed": {
+    addedOn: "2026-05-28",
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "A new privacy-friendly video block. Paste any YouTube or Vimeo URL, drop a poster image, and the section renders a clickable poster with a centred play button. Clicking opens a modal lightbox that injects the iframe on demand — nothing loads from YouTube/Vimeo until the user actually presses play. Built-in ESC-to-close, click-outside-to-dismiss, focus management and body scroll-lock. Aspect ratio, lightbox width and play-button style are all configurable.",
+  },
 };
 
 /** Default metadata used when a section ID isn't in SECTION_META. */
