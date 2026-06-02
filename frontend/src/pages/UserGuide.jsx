@@ -515,12 +515,13 @@ export default function UserGuide() {
 
           <Section id="templates" Icon={BookMarked} title="Page templates">
             <P>
-              When you create a new page, the template picker offers nine
+              When you create a new page, the template picker offers ten
               starting points: <strong>Landing</strong>,{" "}
               <strong>Product detail</strong>, <strong>Category hub</strong>,
               <strong> About us</strong>, <strong>Pricing</strong>,{" "}
               <strong>Blog post</strong>, <strong>Brand page</strong>,{" "}
-              <strong>Service landing</strong>, plus <strong>Blank</strong>.
+              <strong>Service landing</strong>,{" "}
+              <strong>Story page</strong>, plus <strong>Blank</strong>.
               Each one pre-stacks a coherent block order with realistic
               placeholder content, all themed by your Brand Kit. New and
               recently-improved templates wear the same NEW / UPDATED chips
@@ -583,7 +584,7 @@ export default function UserGuide() {
           </Section>
 
           <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-3">
-            <span>Last updated: 2026-05-26 ·</span>
+            <span>Last updated: 2026-06-02 ·</span>
             <span>Want a feature documented?</span>
             <Button
               type="button"
