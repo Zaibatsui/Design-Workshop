@@ -433,22 +433,24 @@ export const PAGE_TEMPLATES = [
         ],
       }),
 
-      // 5 — CTA Banner in email-capture mode. The form-action URL is
-      // left blank so the section visibly nudges the user to wire up
-      // their mailing-list provider (Mailchimp / ConvertKit / Beehiiv /
-      // Buttondown) — better that than silently shipping a broken form.
+      // 5 — CTA Banner: single button pointing at the bundled Jotform.
+      // Reasoning: Jotform's public URL is a form-view page, not a POST
+      // endpoint, so the email-form mode wouldn't actually submit to it.
+      // A Buttons-mode CTA that opens the Jotform in a new tab is the
+      // clean fit. When the user later wires up a real mailing-list
+      // provider (Mailchimp / ConvertKit / Beehiiv / Buttondown), they
+      // can flip Action style → Email capture form and paste the
+      // provider's embed URL into the form-action field.
       section("cta-banner", {
         eyebrow: "Get started",
         heading: "Tell better stories. Starting today.",
         subheading:
-          "Join the early-access list — we'll send you the next batch of templates the moment they ship.",
-        mode: "email-form",
-        formAction: "",
-        emailFieldName: "email",
-        emailPlaceholder: "you@yourcompany.com",
-        submitLabel: "Join the list",
-        submitOpenInNewTab: true,
-        formMicroTrust: "No spam — unsubscribe in one click.",
+          "Tell us a bit about your project and we'll be in touch with the next batch of templates.",
+        mode: "buttons",
+        primaryLabel: "Open the form",
+        primaryUrl: "https://form.jotform.com/261525245636054",
+        primaryOpenInSameTab: false,
+        showSecondary: false,
         bgColor: "#0f172a",
         textColor: "#ffffff",
         bodyColor: "#cbd5e1",

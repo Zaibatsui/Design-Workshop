@@ -125,14 +125,16 @@ expect("trust-strip ships 4 columns of 4 items",
 expect("trust-strip uses a light theme for visual contrast",
   /^#ffffff$/i.test(byType["trust-strip"].bgColor || ""));
 
-// CTA Banner: must be in email-form mode
-expect('cta-banner is in mode="email-form"',
-  byType["cta-banner"].mode === "email-form");
-expect("cta-banner formAction is left blank so user wires up provider",
-  byType["cta-banner"].formAction === "");
-expect("cta-banner ships a trust line under the form",
-  typeof byType["cta-banner"].formMicroTrust === "string" &&
-    byType["cta-banner"].formMicroTrust.length > 0);
+// CTA Banner: ships with the bundled Jotform URL as a single button.
+expect('cta-banner is in mode="buttons"',
+  byType["cta-banner"].mode === "buttons");
+expect("cta-banner primaryUrl is the bundled Jotform link",
+  byType["cta-banner"].primaryUrl ===
+    "https://form.jotform.com/261525245636054");
+expect("cta-banner primary button opens in a new tab (host site stays put)",
+  byType["cta-banner"].primaryOpenInSameTab === false);
+expect("cta-banner secondary button is hidden by default",
+  byType["cta-banner"].showSecondary === false);
 
 // ─── End-to-end render contract ──────────────────────────────────────
 for (const block of tmpl.blocks) {
