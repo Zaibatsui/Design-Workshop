@@ -35,26 +35,18 @@ DUR[08]=3.0
 DUR[09]=2.5
 DUR[10]=1.5
 
-# ----- Phase 1: render each PNG → silent MP4 clip with Ken-Burns zoom ----
+# ----- Phase 1: render each PNG → silent MP4 clip (static, no Ken-Burns) -
+# Earlier versions used zoompan for a Ken-Burns push, but at slow zoom
+# rates ffmpeg's zoompan stair-steps coordinates frame-to-frame and the
+# result looks jittery. Static frames + the crossfade transitions between
+# shots already provide all the motion the eye needs.
 for id in 01 02 03 04 05 06 07 08 09 10; do
   d="${DUR[$id]}"
-  frames=$(awk "BEGIN { printf \"%.0f\", $d * $FPS }")
   out="$FRAMES/clips/shot-$id.mp4"
-  # zoompan zooms each input PNG over $frames frames; output canvas is
-  # 1920x1080 with 30fps, no shake (single-frame source). Direction
-  # alternates so adjacent shots don't feel like one continuous push.
-  case $id in
-    01|03|05|07|09)
-      zoom="zoom='min(zoom+0.0006,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-      ;;
-    *)
-      zoom="zoom='if(eq(on,1),1.08,max(zoom-0.0006,1))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-      ;;
-  esac
   ffmpeg -y -loglevel error -loop 1 -i "$FRAMES/shot-$id.png" \
-    -vf "scale=${W}*1.2:${H}*1.2,zoompan=$zoom:d=$frames:s=${W}x${H}:fps=$FPS,format=yuv420p" \
+    -vf "scale=${W}:${H},format=yuv420p" \
     -t "$d" -r "$FPS" -c:v libx264 -pix_fmt yuv420p -preset slow -crf 18 "$out"
-  echo "✓ clip $id  ($d s)"
+  echo "✓ clip $id  ($d s, static)"
 done
 
 # ----- Phase 2: stitch all clips with xfade crossfades --------------------
