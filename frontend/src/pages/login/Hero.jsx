@@ -43,20 +43,21 @@ export default function Hero() {
 
       <div className="relative max-w-6xl mx-auto px-6 md:px-8">
         <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#E01839] mb-6">
-          Zaibatsui Labs · Design Workshop
+          Design Workshop
         </p>
         <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter text-slate-900 leading-[1.05] max-w-4xl">
-          Build e-commerce pages
+          Create website content.
           <br />
-          without the bloat.
+          Without the developer.
         </h1>
         <p className="text-base md:text-lg leading-relaxed text-slate-600 mt-8 max-w-2xl">
-          A hybrid section + page editor that ships{" "}
+          Pick a ready-made section — a hero banner, product showcase, FAQ,
+          testimonial — and customise it in a simple editor.{" "}
           <span className="text-slate-900 font-medium">
-            self-contained HTML / CSS / JS snippets
+            Copy the result as one tidy block of HTML
           </span>{" "}
-          you can drop straight into Nettailer or any B2B e-commerce CMS — zero
-          runtime libraries, zero framework lock-in, zero render-blocking junk.
+          and paste it into your shop, your CMS, or wherever you publish. No
+          code, no developer, no waiting.
         </p>
         <div className="flex flex-wrap items-center gap-3 mt-10">
           <Button
@@ -88,8 +89,8 @@ export default function Hero() {
           </a>
         </div>
         <p className="text-xs text-slate-500 mt-5">
-          Free during beta · No card required · We only read your Google name &
-          email
+          Free during beta · No card required · Works with Shopify, WordPress,
+          Squarespace, Webflow, Wix, BigCommerce, Nettailer and most CMS tools
         </p>
       </div>
     </section>

@@ -169,14 +169,15 @@ export default function SectionSpotlights() {
       <div className="max-w-6xl mx-auto px-6 md:px-8">
         <div className="max-w-2xl mb-16">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#E01839] mb-4">
-            Two of the new favourites
+            A closer look
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Built for portals and product pages alike.
+            Two examples — live and editable.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
-            Below are the actual snippets running in sandboxed frames —
-            interactive, scoped, and shippable as-is.
+            These aren't mockups. They're the real building blocks, running
+            here in your browser. Click around — what you see is what your
+            visitors would see.
           </p>
         </div>
 

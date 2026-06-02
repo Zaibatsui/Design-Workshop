@@ -7,28 +7,36 @@ import {
 
 const QA = [
   {
-    q: "Do I need to install anything to use the snippets?",
-    a: "No. Each snippet is a single block of HTML, scoped CSS, and a tiny inline IIFE. Paste it into a CMS rich-text field, an HTML widget, or a static page — no npm, no build step, no CDN dependencies.",
+    q: "Is this a website builder like Wix or Squarespace?",
+    a: "No — Design Workshop isn't a website builder. It builds polished content blocks (banners, product showcases, FAQs, landing-page sections) that you paste into the website tools you already use. Keep your shop, keep your CMS, just upgrade the content you put in them.",
   },
   {
-    q: "Is the code I generate actually mine?",
-    a: "Yes. You own every byte. The generated HTML/CSS/JS has no licence headers, no fingerprints, no calls home. We never inject tracking. Walk away with your snippets and they keep working forever.",
+    q: "Which platforms does Design Workshop work with?",
+    a: "Anywhere that accepts a custom HTML block or embed. That includes Shopify, WordPress (Gutenberg, Classic Editor, Elementor, Divi, and most page builders), Squarespace, Wix, Webflow, BigCommerce, Magento / Adobe Commerce, PrestaShop, OpenCart, Drupal, Joomla, HubSpot CMS, Umbraco, Sitecore, and Nettailer. If you can paste HTML into a page, you can use Design Workshop.",
   },
   {
-    q: "Will the snippets slow down my site?",
-    a: "Tiny by design — most sections are 4–8 KB gzipped, with no third-party requests. The only JS we ship is the few hundred bytes needed for things like the carousel logic. Lighthouse-friendly out of the box.",
+    q: "Do I need to know how to code?",
+    a: "Not at all. The editor is fully visual — you click into a section, change the words, swap the images, set your colours, and a live preview shows you exactly how it'll look. The HTML is generated for you behind the scenes; you only ever see it when you hit \"Copy\".",
   },
   {
-    q: "Do I need to know HTML to use Design Workshop?",
-    a: "No — the editor is fully WYSIWYG. If you can use Notion or Google Docs, you can use this. The HTML is what we generate behind the scenes for your developer / CMS to embed.",
+    q: "Do I need to install anything?",
+    a: "Nothing. You sign in, build, and copy the result. The HTML you paste into your site is completely self-contained — no plugins, no extensions, no extra scripts to load. It just works.",
   },
   {
-    q: "Can multiple sections coexist on the same page?",
-    a: "Yes. Every section is CSS-scoped to a unique class so paste-and-stack just works. The Hybrid Page Builder also lets you compose multiple sections into a single combined snippet.",
+    q: "Will the sections slow down my website?",
+    a: "No. Each section is small (around 4–8 KB) and doesn't load any external libraries or third-party scripts. It renders fast on mobile and desktop, and won't hurt your page speed scores.",
+  },
+  {
+    q: "Is the content I create actually mine?",
+    a: "Completely. You own every line of the HTML. There are no licence headers, no watermarks, no tracking, no calls back to our servers. Walk away with your sections and they keep working forever, even if Design Workshop disappears tomorrow.",
+  },
+  {
+    q: "Can I use multiple sections on the same page?",
+    a: "Yes. Each section is styled independently so they never clash with each other — or with the rest of your site. Stack as many as you like. You can also build a whole page in our editor and copy the lot as one combined block.",
   },
   {
     q: "Is there a free tier?",
-    a: "Design Workshop is free during the open beta. We'll introduce paid tiers later for advanced features (component marketplace, multiplayer collab) but the core editor will stay free.",
+    a: "Design Workshop is free while we're in open beta. We may introduce paid add-ons later (a marketplace of premium sections, team collaboration) but the core editor will stay free.",
   },
 ];
 

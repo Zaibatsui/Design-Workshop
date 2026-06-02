@@ -81,15 +81,15 @@ export default function SectionsShowcase() {
       <div className="max-w-6xl mx-auto px-6 md:px-8">
         <div className="max-w-2xl mb-14">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#E01839] mb-4">
-            Section types in the box
+            What you can build
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Twenty-three composable building blocks. Every page is one snippet.
+            Twenty-three ready-made sections. Mix and match.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
-            Each section ships as its own self-contained markup. Mix them
-            inside the Hybrid Page Builder, drag to reorder, save the lot as
-            one HTML drop-in. <span className="text-slate-900 font-medium inline-flex items-baseline gap-1">Hover the <Eye className="w-3.5 h-3.5 inline self-center text-slate-500" aria-hidden="true" /> icon on any tile to preview the rendered block live.</span>
+            From hero banners and product showcases to FAQs, testimonials, and
+            stat counters — every section is designed, built, and ready to
+            customise. <span className="text-slate-900 font-medium inline-flex items-baseline gap-1">Hover the <Eye className="w-3.5 h-3.5 inline self-center text-slate-500" aria-hidden="true" /> icon on any tile to preview it live.</span>
           </p>
         </div>
 

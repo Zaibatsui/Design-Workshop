@@ -111,7 +111,7 @@ expect("landing page lists Video Embed",
   /id: "video-embed"/.test(showcaseSrc) &&
   /name: "Video Embed"/.test(showcaseSrc));
 expect("landing copy reflects 23 building blocks",
-  /Twenty-three composable/.test(showcaseSrc));
+  /Twenty-three ready-made sections/.test(showcaseSrc));
 
 // UserGuide must also surface the Comparison Table SectionCard.
 const guideSrc = fs.readFileSync(

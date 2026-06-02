@@ -95,19 +95,18 @@ export default function LiveDemo() {
             What you see is what you ship.
           </h2>
           <p className="text-base leading-relaxed text-slate-300 mt-5">
-            The frame below isn't a screenshot — it's the actual HTML +
-            scoped CSS + IIFE produced by Design Workshop, rendered inside a
-            sandboxed iframe. Hover, click, scroll. No React, no jQuery, no
-            CDN — just markup your CMS pastes.
+            The frame below isn't a screenshot. It's a real page built in
+            Design Workshop, running right here. Hover, click, scroll — it
+            behaves exactly the same way once you paste it into your own site.
           </p>
           <div className="flex flex-wrap items-center gap-5 mt-6 text-xs text-slate-400">
             <span className="flex items-center gap-2">
               <MousePointer2 className="w-3.5 h-3.5 text-[#E01839]" />
-              Hover to interact
+              Try clicking around
             </span>
             <span className="flex items-center gap-2">
               <Code2 className="w-3.5 h-3.5 text-[#E01839]" />
-              Sandboxed, real export
+              This is the real export
             </span>
           </div>
         </div>

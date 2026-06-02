@@ -5,19 +5,19 @@ const STEPS = [
     Icon: LogIn,
     n: "01",
     title: "Sign in with Google",
-    body: "One click, one scope (name + email). Your library spins up instantly — no install, no setup.",
+    body: "One click to start. We only ask for your name and email — nothing else. Your library is ready immediately, no install or setup.",
   },
   {
     Icon: Wand2,
     n: "02",
-    title: "Build & autosave",
-    body: "Compose sections in the WYSIWYG editor. Stack them into pages. Drag to reorder. Everything autosaves the moment you click away.",
+    title: "Pick and customise",
+    body: "Choose a section from the library — banner, product showcase, FAQ, whatever you need. Edit the words, swap the images, set your colours. Everything saves as you go.",
   },
   {
     Icon: ClipboardCopy,
     n: "03",
-    title: "Copy → paste → ship",
-    body: "Each section and page exposes a single HTML/CSS/JS snippet. Copy it, paste into your CMS, done. No build step, no dependencies.",
+    title: "Copy and paste",
+    body: "Hit copy. Paste the block into your shop, CMS, or page builder. It looks exactly the same wherever it lands — no plugins, no setup, no surprises.",
   },
 ];
 
@@ -34,7 +34,7 @@ export default function HowItWorks() {
             How it works
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Three steps from blank canvas to live e-commerce content.
+            From idea to published page in three steps.
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-slate-200 border border-slate-200 rounded-md overflow-hidden">

@@ -3,23 +3,23 @@ import { Code, Layout, Palette, Blocks } from "lucide-react";
 const PROPS = [
   {
     Icon: Layout,
-    title: "WYSIWYG section editor",
-    body: "Live shrink-wrapped previews, drag to reorder, autosave. Edit one field at a time and watch the iframe render exactly what'll ship.",
+    title: "Pick a section, make it yours",
+    body: "Browse ready-made building blocks — hero banners, product showcases, FAQs, testimonials — and customise the words, colours, and images in a simple editor. No code, no templates to wrangle.",
   },
   {
     Icon: Blocks,
-    title: "Hybrid page builder",
-    body: "Stack reusable sections — Hero, Products, Tabs, Logos, Grid — alongside raw rich-text blocks. One page is one self-contained snippet.",
+    title: "Stack sections into a full page",
+    body: "Snap multiple sections together to build landing pages, category pages, or promotional blocks. Drag to reorder, click to edit, everything saves as you go.",
   },
   {
     Icon: Palette,
-    title: "Brand kit, applied once",
-    body: "Pick your colours, fonts, accent and reuse them across every section. One click re-skins existing sections without touching content.",
+    title: "Your brand, applied everywhere",
+    body: "Set your colours and fonts once. Every section you build picks them up automatically. Tweak the palette and your whole library re-skins itself in one click.",
   },
   {
     Icon: Code,
-    title: "No-dependency snippets",
-    body: "What you copy is HTML + scoped CSS + a tiny IIFE. No React, no jQuery, no CDN calls. Drops into Nettailer or any B2B e-commerce stack alike.",
+    title: "Copy. Paste. Done.",
+    body: "Each section exports as one tidy block of HTML. Drop it into Shopify, WordPress, Squarespace, Wix, Webflow, Nettailer — wherever you publish. Nothing to install.",
   },
 ];
 
@@ -39,8 +39,8 @@ export default function ValueProps() {
             What it does
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            A small toolkit for content people who ship to{" "}
-            <span className="text-[#E01839]">real</span> e-commerce sites.
+            Build better website content — for the tools you{" "}
+            <span className="text-[#E01839]">already use</span>.
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

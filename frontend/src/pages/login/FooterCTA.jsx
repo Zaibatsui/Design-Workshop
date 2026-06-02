@@ -11,11 +11,11 @@ export default function FooterCTA() {
     >
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-20 md:py-24 text-center">
         <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight max-w-2xl mx-auto">
-          Start building your library.
+          Build your first section in five minutes.
         </h2>
         <p className="text-base leading-relaxed text-slate-600 mt-5 max-w-xl mx-auto">
-          Sign in with Google and have your first reusable section published in
-          under five minutes.
+          Sign in with Google and have something polished to copy into your
+          site in less time than it takes to make coffee.
         </p>
         <div className="mt-9 flex justify-center">
           <Button
