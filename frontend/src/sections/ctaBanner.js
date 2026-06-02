@@ -72,6 +72,31 @@ const defaults = () => ({
   // Mobile-only override: when ON, the heading / sub / buttons sit
   // centred at ≤640px regardless of the desktop alignment setting.
   mobileCenterText: false,
+  // ─── Email-capture mode ─────────────────────────────────────────────
+  // "buttons" (default) = original primary/secondary button stack.
+  // "email-form"        = inline <input type="email"> + submit button
+  //                       that posts directly to a mailing-list provider
+  //                       (Mailchimp / ConvertKit / Beehiiv / Substack
+  //                       all expose a public form-action URL — paste it
+  //                       in and the browser handles the rest).
+  mode: "buttons",
+  formAction: "",
+  // Field name the provider expects. Mailchimp = "EMAIL" (caps),
+  // Beehiiv = "email", ConvertKit = "email_address", Buttondown = "email".
+  emailFieldName: "email",
+  emailPlaceholder: "Enter your email",
+  // Falls back to `primaryLabel` when blank so users who toggle modes
+  // back and forth don't have to retype their CTA copy.
+  submitLabel: "",
+  // Open the provider's confirmation page in a new tab so the host site
+  // doesn't navigate away when someone submits. Default ON — matches the
+  // way Mailchimp / Beehiiv embed forms work out of the box.
+  submitOpenInNewTab: true,
+  // Tiny line under the form — common pattern: "No credit card · Unsubscribe anytime".
+  formMicroTrust: "",
+  // Optional hidden inputs for providers that need extra fields
+  // (e.g. Mailchimp's list/audience honeypot field). Shape: [{ name, value }].
+  formHiddenFields: [],
 });
 
 const render = (cfg) => {
@@ -121,6 +146,68 @@ const render = (cfg) => {
     primaryBtn || secondaryBtn
       ? `<div class="ns-actions">${primaryBtn}${secondaryBtn}</div>`
       : "";
+
+  // ─── Email-form mode ──────────────────────────────────────────────
+  // Replaces the button stack with a real <form> that POSTs directly
+  // to the user's mailing-list provider. Requires a valid http(s)
+  // formAction; falls back to omitting the form entirely so we never
+  // ship a broken / hijackable submit.
+  // The field name is whitelisted to [A-Za-z0-9_-] so a malformed
+  // provider config can't smuggle attribute injection into the input.
+  const isEmailMode = cfg.mode === "email-form";
+  const formActionRaw = (cfg.formAction || "").trim();
+  let formActionSafe = "";
+  if (isEmailMode && formActionRaw) {
+    const cleaned = safeUrl(formActionRaw);
+    if (/^https?:/i.test(cleaned)) formActionSafe = cleaned;
+  }
+  const emailFieldName =
+    String(cfg.emailFieldName || "email").replace(/[^A-Za-z0-9_-]/g, "") ||
+    "email";
+  const submitLabel = (cfg.submitLabel || cfg.primaryLabel || "Subscribe").trim();
+  const formTarget = cfg.submitOpenInNewTab === false ? "_self" : "_blank";
+  const microTrust = (cfg.formMicroTrust || "").trim();
+  const hiddenInputsHtml = Array.isArray(cfg.formHiddenFields)
+    ? cfg.formHiddenFields
+        .filter((h) => h && h.name)
+        .map(
+          (h) =>
+            `<input type="hidden" name="${escAttr(
+              String(h.name).replace(/[^A-Za-z0-9_\-[\]]/g, "")
+            )}" value="${escAttr(h.value || "")}"/>`
+        )
+        .join("")
+    : "";
+  const emailFormHtml =
+    isEmailMode && formActionSafe
+      ? `<form class="ns-form" action="${escAttr(formActionSafe)}" method="POST" target="${formTarget}" novalidate>
+  <label class="ns-form-label" for="ns-cta-email-${escAttr(uid)}">${escHtml(
+        cfg.emailPlaceholder || "Enter your email"
+      )}</label>
+  <div class="ns-form-row">
+    <input class="ns-form-input" type="email" id="ns-cta-email-${escAttr(
+      uid
+    )}" name="${escAttr(emailFieldName)}" placeholder="${escAttr(
+        cfg.emailPlaceholder || "Enter your email"
+      )}" required autocomplete="email" />
+    <button class="ns-btn ns-btn-primary ns-form-submit" type="submit">${escHtml(
+      submitLabel
+    )}</button>
+  </div>
+  ${hiddenInputsHtml}
+  ${
+    microTrust
+      ? `<p class="ns-form-trust">${escHtml(microTrust)}</p>`
+      : ""
+  }
+</form>`
+      : isEmailMode
+        ? `<p class="ns-form-error">Add a form-action URL (Mailchimp / ConvertKit / Beehiiv embed URL) to enable the email capture form.</p>`
+        : "";
+
+  // In email-form mode the button stack is replaced; in buttons mode the
+  // email form is empty — same .ns-inner wrapper, one of the two slots.
+  const actionsSlot = isEmailMode ? emailFormHtml : buttonsHtml;
   const flAlign = cfg.textAlign === "left" ? "left" : "center";
   const flHtml = footerLinkHtml(cfg, flAlign);
 
@@ -128,7 +215,7 @@ const render = (cfg) => {
     uid
   )}"><div class="ns-inner">${logoHtml}${eyebrowHtml}<h2 class="ns-heading">${escHtml(
     cfg.heading || ""
-  )}</h2>${subHtml}${buttonsHtml}${flHtml}</div></section>`;
+  )}</h2>${subHtml}${actionsSlot}${flHtml}</div></section>`;
 
   // Detect if the background is dark to pick a contrast colour for the
   // secondary button border. Heuristic: hex luminance < 128. When in
@@ -178,8 +265,18 @@ ${baseReset(cls)}
     isDarkBg ? "rgba(255,255,255,0.25)" : "rgba(15,23,42,0.2)"
   }}
 .${cls} .ns-btn-secondary:hover{border-color:${textColor}}
+/* Email-form mode */
+.${cls} .ns-form{margin-top:32px;max-width:520px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}text-align:${align}}
+.${cls} .ns-form-label{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.${cls} .ns-form-row{display:flex;gap:8px;background:${isDarkBg ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.04)"};border:1px solid ${isDarkBg ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.12)"};border-radius:${num(cfg.buttonRadius, 8)}px;padding:6px;transition:border-color .18s ease}
+.${cls} .ns-form-row:focus-within{border-color:${accent}}
+.${cls} .ns-form-input{flex:1;min-width:0;height:48px;padding:0 14px;border:0;background:transparent;color:${textColor};font:inherit;font-size:15px;outline:none}
+.${cls} .ns-form-input::placeholder{color:${isDarkBg ? "rgba(255,255,255,0.5)" : "rgba(15,23,42,0.45)"}}
+.${cls} .ns-form-submit{flex:0 0 auto}
+.${cls} .ns-form-trust{margin:14px 0 0;font-size:13px;color:${bodyColor};line-height:1.5}
+.${cls} .ns-form-error{margin-top:32px;padding:14px 18px;background:rgba(224,24,57,0.12);border:1px dashed rgba(224,24,57,0.5);color:#fda4af;border-radius:8px;font-size:14px;line-height:1.5}
 ${footerLinkCss(cls, accent, bodyColor)}
-@media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}.${cls}.is-m-center .ns-inner{text-align:center!important}.${cls}.is-m-center .ns-actions{justify-content:center!important}.${cls}.is-m-center .ns-logo{margin-left:auto;margin-right:auto}}
+@media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}.${cls} .ns-form-row{flex-direction:column;padding:8px}.${cls} .ns-form-submit{width:100%}.${cls}.is-m-center .ns-inner{text-align:center!important}.${cls}.is-m-center .ns-actions{justify-content:center!important}.${cls}.is-m-center .ns-form{margin-left:auto;margin-right:auto}.${cls}.is-m-center .ns-logo{margin-left:auto;margin-right:auto}}
 `.trim();
 
   return wrapSnippet({ html, css, js: "" });
@@ -243,63 +340,143 @@ function FormPanel({ config, onUpdate, previewMode }) {
         ) : null}
       </Group>
 
-      <Group title="Primary button (optional)">
-        <TextField
-          label="Label (leave blank to hide)"
-          value={config.primaryLabel}
-          onChange={(v) => onUpdate({ primaryLabel: v })}
-          testid="cta-primary-label"
+      <Group title="Action style" value="action-style">
+        <SelectField
+          label="What should this section ask for?"
+          value={config.mode || "buttons"}
+          onChange={(v) => onUpdate({ mode: v })}
+          options={[
+            { value: "buttons", label: "Buttons (link to a page)" },
+            { value: "email-form", label: "Email capture form" },
+          ]}
+          testid="cta-mode"
         />
-        {config.primaryLabel ? (
-          <>
-            <TextField
-              label="URL"
-              placeholder="https://example.com"
-              value={config.primaryUrl}
-              onChange={(v) => onUpdate({ primaryUrl: v })}
-              testid="cta-primary-url"
-            />
-            <ToggleField
-              label="Open in same tab"
-              checked={!!config.primaryOpenInSameTab}
-              onChange={(v) => onUpdate({ primaryOpenInSameTab: v })}
-              testid="cta-primary-same-tab"
-            />
-          </>
-        ) : null}
       </Group>
 
-      <Group title="Secondary button">
-        <ToggleField
-          label="Show secondary button"
-          checked={!!config.showSecondary}
-          onChange={(v) => onUpdate({ showSecondary: v })}
-          testid="cta-show-secondary"
-        />
-        {config.showSecondary && (
-          <>
-            <TextField
-              label="Label"
-              value={config.secondaryLabel}
-              onChange={(v) => onUpdate({ secondaryLabel: v })}
-              testid="cta-secondary-label"
-            />
-            <TextField
-              label="URL"
-              placeholder="https://example.com"
-              value={config.secondaryUrl}
-              onChange={(v) => onUpdate({ secondaryUrl: v })}
-              testid="cta-secondary-url"
-            />
-            <ToggleField
-              label="Open in same tab"
-              checked={!!config.secondaryOpenInSameTab}
-              onChange={(v) => onUpdate({ secondaryOpenInSameTab: v })}
-              testid="cta-secondary-same-tab"
-            />
-          </>
-        )}
-      </Group>
+      {config.mode !== "email-form" && (
+        <Group title="Primary button (optional)">
+          <TextField
+            label="Label (leave blank to hide)"
+            value={config.primaryLabel}
+            onChange={(v) => onUpdate({ primaryLabel: v })}
+            testid="cta-primary-label"
+          />
+          {config.primaryLabel ? (
+            <>
+              <TextField
+                label="URL"
+                placeholder="https://example.com"
+                value={config.primaryUrl}
+                onChange={(v) => onUpdate({ primaryUrl: v })}
+                testid="cta-primary-url"
+              />
+              <ToggleField
+                label="Open in same tab"
+                checked={!!config.primaryOpenInSameTab}
+                onChange={(v) => onUpdate({ primaryOpenInSameTab: v })}
+                testid="cta-primary-same-tab"
+              />
+            </>
+          ) : null}
+        </Group>
+      )}
+
+      {config.mode !== "email-form" && (
+        <Group title="Secondary button">
+          <ToggleField
+            label="Show secondary button"
+            checked={!!config.showSecondary}
+            onChange={(v) => onUpdate({ showSecondary: v })}
+            testid="cta-show-secondary"
+          />
+          {config.showSecondary && (
+            <>
+              <TextField
+                label="Label"
+                value={config.secondaryLabel}
+                onChange={(v) => onUpdate({ secondaryLabel: v })}
+                testid="cta-secondary-label"
+              />
+              <TextField
+                label="URL"
+                placeholder="https://example.com"
+                value={config.secondaryUrl}
+                onChange={(v) => onUpdate({ secondaryUrl: v })}
+                testid="cta-secondary-url"
+              />
+              <ToggleField
+                label="Open in same tab"
+                checked={!!config.secondaryOpenInSameTab}
+                onChange={(v) => onUpdate({ secondaryOpenInSameTab: v })}
+                testid="cta-secondary-same-tab"
+              />
+            </>
+          )}
+        </Group>
+      )}
+
+      {config.mode === "email-form" && (
+        <Group title="Email capture form" value="email-form">
+          <TextField
+            label="Form action URL (where emails go)"
+            placeholder="https://yourdomain.us10.list-manage.com/subscribe/post?u=…&id=…"
+            value={config.formAction || ""}
+            onChange={(v) => onUpdate({ formAction: v })}
+            testid="cta-form-action"
+          />
+          <p className="text-[11px] text-slate-500 leading-snug -mt-2">
+            Paste the embed form URL from your mailing-list provider —
+            <strong className="font-semibold"> Mailchimp</strong>{" "}
+            (Audience → Signup forms → Embedded forms → copy the form&apos;s action URL),
+            <strong className="font-semibold"> ConvertKit</strong>{" "}
+            (Form → Embed → HTML → copy the action),
+            <strong className="font-semibold"> Beehiiv</strong>{" "}
+            (Subscribe forms → Embed → copy the action), or
+            <strong className="font-semibold"> Buttondown</strong>.
+            The browser POSTs the email straight to them — no backend on this side.
+          </p>
+          <TextField
+            label="Email field name"
+            value={config.emailFieldName || "email"}
+            onChange={(v) => onUpdate({ emailFieldName: v })}
+            placeholder="email"
+            testid="cta-form-email-field"
+          />
+          <p className="text-[11px] text-slate-500 leading-snug -mt-2">
+            Most providers use <code className="font-mono">email</code>.
+            Mailchimp expects <code className="font-mono">EMAIL</code> (caps).
+            ConvertKit uses <code className="font-mono">email_address</code>.
+          </p>
+          <TextField
+            label="Email placeholder text"
+            value={config.emailPlaceholder || ""}
+            onChange={(v) => onUpdate({ emailPlaceholder: v })}
+            placeholder="Enter your email"
+            testid="cta-form-placeholder"
+          />
+          <TextField
+            label="Submit button label"
+            value={config.submitLabel || ""}
+            onChange={(v) => onUpdate({ submitLabel: v })}
+            placeholder="Falls back to the primary button label"
+            testid="cta-form-submit-label"
+          />
+          <ToggleField
+            label="Open provider's confirmation page in a new tab"
+            description="Default ON — the host site stays put when the user submits. Turn OFF if you want users redirected straight to your thank-you page."
+            checked={config.submitOpenInNewTab !== false}
+            onChange={(v) => onUpdate({ submitOpenInNewTab: v })}
+            testid="cta-form-new-tab"
+          />
+          <TextField
+            label="Trust line under the form (optional)"
+            value={config.formMicroTrust || ""}
+            onChange={(v) => onUpdate({ formMicroTrust: v })}
+            placeholder="No credit card · Unsubscribe anytime"
+            testid="cta-form-trust"
+          />
+        </Group>
+      )}
 
       <FooterLinkEditor
         value={config.footerLink}

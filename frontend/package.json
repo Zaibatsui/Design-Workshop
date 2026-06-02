@@ -65,7 +65,7 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "test:snippets": "node src/sections/__tests__/productLive.session.test.js && node src/sections/__tests__/hero.mobile.test.js && node src/sections/__tests__/splitBanner.mobile.test.js && node src/sections/__tests__/mobileCenterText.test.js && node src/sections/__tests__/videoEmbed.test.js && node src/sections/__tests__/section-schema.test.js && node --input-type=commonjs src/lib/__tests__/sectionBadges.test.js && node src/sections/__tests__/richtextLink.test.js && node src/sections/__tests__/whatsNew.test.js && node src/sections/__tests__/previewPopover.test.js",
+    "test:snippets": "node src/sections/__tests__/productLive.session.test.js && node src/sections/__tests__/hero.mobile.test.js && node src/sections/__tests__/splitBanner.mobile.test.js && node src/sections/__tests__/mobileCenterText.test.js && node src/sections/__tests__/videoEmbed.test.js && node src/sections/__tests__/dripify.enhancements.test.js && node src/sections/__tests__/section-schema.test.js && node --input-type=commonjs src/lib/__tests__/sectionBadges.test.js && node src/sections/__tests__/richtextLink.test.js && node src/sections/__tests__/whatsNew.test.js && node src/sections/__tests__/previewPopover.test.js",
     "test:carousel": "node src/sections/__tests__/infiniteScroll.test.js && node src/sections/__tests__/heroSlideLoop.test.js && node src/sections/__tests__/comparisonTable.test.js"
   },
   "browserslist": {

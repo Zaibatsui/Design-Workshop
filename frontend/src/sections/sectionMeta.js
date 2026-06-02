@@ -76,7 +76,12 @@ export const SECTION_META = {
   insights: { addedOn: LAUNCH, updatedOn: LAUNCH },
   "feature-grid": { addedOn: LAUNCH, updatedOn: LAUNCH },
   steps: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  testimonials: { addedOn: LAUNCH, updatedOn: LAUNCH },
+  testimonials: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "Each testimonial card now supports an optional review-platform badge in the author footer — drop in a G2, Capterra or Trustpilot logo to add an instant credibility marker next to the author name.",
+  },
   faq: {
     addedOn: LAUNCH,
     updatedOn: "2026-05-28",
@@ -87,10 +92,15 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-28",
     whatsNew:
-      "New mobile-only 'Centre text on mobile' toggle — on phones the heading, sub-heading and buttons sit centred regardless of the desktop alignment you've picked. Desktop layout is unchanged.",
+      "Now supports two action styles. Pick Buttons for the classic stacked CTA, or switch to Email capture form to embed an inline <email + submit> that posts straight to your mailing-list provider (Mailchimp, ConvertKit, Beehiiv, Buttondown — paste your provider's embed URL, no backend required). Plus the existing mobile-only Centre text toggle for phones-only alignment.",
   },
   placeholder: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  logos: { addedOn: LAUNCH, updatedOn: LAUNCH },
+  logos: {
+    addedOn: LAUNCH,
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "Optional soft edge-fade — logos now fade in/out at the strip boundaries instead of a hard cut, matching the polished look on Stripe / Dripify / Linear. Toggleable per section with adjustable fade width.",
+  },
   break: { addedOn: LAUNCH, updatedOn: LAUNCH },
   tabs: { addedOn: LAUNCH, updatedOn: LAUNCH },
   richtext: {

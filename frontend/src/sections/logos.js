@@ -44,6 +44,12 @@ const defaults = () => ({
   accentColor: "#E01839",
   fullBleed: true,
   greyscale: false,
+  // Edge fade — soft gradient at the left/right strip boundaries so
+  // logos fade in/out instead of hard-cutting. Default ON because it's
+  // a near-universal polish on modern SaaS logo strips (matches
+  // Dripify, Stripe, Vercel, Linear etc).
+  edgeFade: true,
+  edgeFadeWidth: 80,
   // Empty by default — users add their own logos via the editor's
   // "Add logo" button. The strip renders a "no logos yet" hint when
   // the array is empty (see render() below).
@@ -61,6 +67,7 @@ function render(cfg) {
     `--ns-gap:${num(cfg.itemGap, 24)}px`,
     `--ns-pad-t:${padTopOf(cfg, 30)}px;--ns-pad-b:${padBotOf(cfg, 30)}px`,
     `--ns-bg:${safeColor(cfg.bgColor, "#ffffff")}`,
+    `--ns-fade:${num(cfg.edgeFadeWidth, 80)}px`,
   ].join(";");
 
   const itemsHtml = (cfg.logos || [])
@@ -90,6 +97,16 @@ function render(cfg) {
 `.trim()
     : "";
 
+  // Optional edge fade — uses CSS `mask-image` so the strip's background
+  // colour is preserved and the fade simply masks the logo layer at the
+  // boundaries. Falls back gracefully (no fade) on browsers without
+  // mask-image support — the strip just hard-cuts as before.
+  const fadeCss = cfg.edgeFade
+    ? `
+.${cls} .ns-track{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 var(--ns-fade),#000 calc(100% - var(--ns-fade)),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 var(--ns-fade),#000 calc(100% - var(--ns-fade)),transparent 100%)}
+`.trim()
+    : "";
+
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad-t) 0 var(--ns-pad-b);width:100%;background:var(--ns-bg);overflow:hidden}
@@ -99,6 +116,7 @@ ${baseReset(cls)}
 .${cls} .ns-item a{display:flex;align-items:center;justify-content:center;width:100%;height:100%;text-decoration:none;outline-offset:4px}
 @keyframes ${animName}{to{transform:translateX(-50%)}}
 .${cls}:hover .ns-track{animation-play-state:paused}
+${fadeCss}
 ${greyCss}
 ${footerLinkCss(cls, safeColor(cfg.accentColor, "#E01839"))}
 `.trim();
@@ -161,6 +179,24 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ greyscale: v })}
           testid="logos-greyscale"
         />
+        <ToggleField
+          label="Soft edge fade"
+          description="Fade logos in/out at the strip boundaries instead of a hard cut."
+          checked={!!config.edgeFade}
+          onChange={(v) => onUpdate({ edgeFade: v })}
+          testid="logos-edge-fade"
+        />
+        {config.edgeFade && (
+          <SliderField
+            label="Edge fade width"
+            value={config.edgeFadeWidth || 80}
+            min={20}
+            max={240}
+            suffix="px"
+            onChange={(v) => onUpdate({ edgeFadeWidth: v })}
+            testid="logos-edge-fade-width"
+          />
+        )}
         <SliderField
           label="Scroll speed"
           value={config.speedSeconds}

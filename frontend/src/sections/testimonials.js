@@ -34,7 +34,7 @@ import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 import PaddingFields from "@/components/PaddingFields";
 const ID = "testimonials";
 
-const sampleCard = (quote, name, role, rating = 5) => ({
+const sampleCard = (quote, name, role, rating = 5, platformLogo = "") => ({
   id: makeUid(),
   quote,
   name,
@@ -42,6 +42,12 @@ const sampleCard = (quote, name, role, rating = 5) => ({
   avatar: "",
   avatarAlt: "",
   rating,
+  // Optional small badge in the bottom-right of the card — used for
+  // review-platform logos like G2 / Capterra / Trustpilot. When empty,
+  // no badge is rendered. The image is rendered at 22px height to read
+  // as a credibility marker, not as the card's hero.
+  platformLogo,
+  platformAlt: "",
 });
 
 const defaults = () => ({
@@ -127,6 +133,10 @@ function render(cfg) {
         cfg.showRatings && Number(t.rating) > 0
           ? `<div class="ns-rating" aria-label="${escAttr(t.rating + " out of 5")}">${stars(t.rating, accent)}</div>`
           : "";
+      const platformUrl = safeUrl(t.platformLogo);
+      const platformHtml = platformUrl
+        ? `<img class="ns-platform" src="${escAttr(platformUrl)}" alt="${escAttr(t.platformAlt || "Review platform")}" loading="lazy"/>`
+        : "";
       return `<article class="ns-item" data-ns-original>
   ${ratingHtml}
   <p class="ns-quote">${escHtml(t.quote || "")}</p>
@@ -136,6 +146,7 @@ function render(cfg) {
       <div class="ns-name">${escHtml(t.name || "")}</div>
       <div class="ns-role">${escHtml(t.role || "")}</div>
     </div>
+    ${platformHtml}
   </div>
 </article>`;
     })
@@ -179,7 +190,8 @@ ${baseReset(cls)}
 .${cls} .ns-author{display:flex;align-items:center;gap:12px}
 .${cls} .ns-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:#f1f5f9}
 .${cls} .ns-avatar-placeholder{display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--ns-accent);background:color-mix(in srgb, var(--ns-accent) 12%, #fff)}
-.${cls} .ns-meta{min-width:0}
+.${cls} .ns-meta{min-width:0;flex:1}
+.${cls} .ns-platform{flex:0 0 auto;height:22px;width:auto;object-fit:contain;opacity:0.85;margin-left:8px}
 .${cls} .ns-name{font-size:14px;font-weight:600;color:#111827;line-height:1.3}
 .${cls} .ns-role{font-size:12px;color:#6b7280;line-height:1.4;margin-top:2px}
 @keyframes ${animName}{to{transform:translateX(-50%)}}
@@ -438,6 +450,27 @@ function FormPanel({ config, onUpdate }) {
                 suffix=" stars"
                 onChange={(v) => updateItem(t.id, { rating: v })}
                 testid={`testi-rating-${t.id}`}
+              />
+              <div>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Review platform badge (optional)
+                </Label>
+                <ImageUpload
+                  value={t.platformLogo}
+                  onChange={(v) => updateItem(t.id, { platformLogo: v })}
+                  testid={`testi-platform-${t.id}`}
+                  compact
+                />
+                <p className="mt-1 text-[11px] text-slate-500 leading-snug">
+                  Drop a G2 / Capterra / Trustpilot logo here — shows as a small badge in the corner of the card.
+                </p>
+              </div>
+              <TextField
+                label="Badge alt text (optional)"
+                value={t.platformAlt || ""}
+                onChange={(v) => updateItem(t.id, { platformAlt: v })}
+                placeholder="e.g. Reviewed on G2"
+                testid={`testi-platform-alt-${t.id}`}
               />
             </>
           )}
