@@ -390,8 +390,11 @@ export function SectionPicker({ sections, onPick, onClose }) {
                     className="relative text-left p-3 rounded-lg border-2 border-[#E01839]/30 bg-[#E01839]/[0.02] hover:border-[#E01839] hover:bg-[#E01839]/[0.06] transition-colors"
                   >
                     <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
-                    <SectionPreviewPopover sectionId={s.id} />
-                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5 ml-9" />
+                    <SectionPreviewPopover
+                      sectionId={s.id}
+                      className="absolute bottom-1.5 right-1.5 z-10"
+                    />
+                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
                     <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
                     <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
                       {s.description}
@@ -422,8 +425,11 @@ export function SectionPicker({ sections, onPick, onClose }) {
                     className="relative text-left p-3 rounded-lg border border-slate-200 hover:border-[#E01839] hover:bg-[#E01839]/[0.03] transition-colors"
                   >
                     <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
-                    <SectionPreviewPopover sectionId={s.id} />
-                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5 ml-9" />
+                    <SectionPreviewPopover
+                      sectionId={s.id}
+                      className="absolute bottom-1.5 right-1.5 z-10"
+                    />
+                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
                     <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
                     <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
                       {s.description}
