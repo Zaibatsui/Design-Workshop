@@ -683,7 +683,22 @@ function PreviewFrame({ doc, sectionId, heroIndex }) {
   const drag = useRef(null);
   const onPointerDown = (e) => {
     e.preventDefault();
-    drag.current = { startY: e.clientY, startH: h, lastH: h };
+    // Capture the pointer to the handle for the lifetime of the drag.
+    // Without this, dragging UPWARD crosses the cursor into the
+    // sandboxed iframe above the handle, which silently swallows the
+    // pointermove events at the cross-frame boundary — that's the
+    // "down smooth, up flaky" feel. Pointer capture guarantees every
+    // pointermove keeps flowing to the handle until pointerup, no
+    // matter what's visually under the cursor.
+    const handle = e.currentTarget;
+    try { handle.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+    drag.current = {
+      startY: e.clientY,
+      startH: h,
+      lastH: h,
+      pointerId: e.pointerId,
+      handle,
+    };
     document.body.style.cursor = "ns-resize";
     document.body.style.userSelect = "none";
     const onMove = (ev) => {
@@ -694,16 +709,24 @@ function PreviewFrame({ doc, sectionId, heroIndex }) {
     };
     const onUp = () => {
       const finalH = drag.current?.lastH;
+      try {
+        drag.current?.handle?.releasePointerCapture(drag.current.pointerId);
+      } catch (_) { /* ignore */ }
       drag.current = null;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      window.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointercancel", onUp);
       if (finalH != null) {
         try { localStorage.setItem(storageKey, String(finalH)); } catch (_) { /* ignore */ }
       }
     };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp, { once: true });
+    // With pointer capture, events route to the handle — listen there
+    // directly rather than on `window` (cleaner, plays nicely with
+    // capture and avoids leaked window listeners on edge-case cancels).
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp, { once: true });
+    handle.addEventListener("pointercancel", onUp, { once: true });
   };
 
   const resetH = () => {

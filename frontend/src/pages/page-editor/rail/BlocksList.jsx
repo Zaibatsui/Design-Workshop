@@ -1,6 +1,6 @@
 import {
   DndContext,
-  closestCorners,
+  closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
@@ -67,7 +67,7 @@ export default function BlocksList({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragEnd={(e) => {
         if (e.over && e.active.id !== e.over.id) {
           onReorder(e.active.id, e.over.id);
