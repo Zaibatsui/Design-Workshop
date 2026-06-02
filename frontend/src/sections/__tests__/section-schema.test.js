@@ -87,6 +87,7 @@ const SPACING_REQUIRED = [
   "products",
   "resources",
   "splitBanner",
+  "statCounter",
   "steps",
   "tabs",
   "testimonials",

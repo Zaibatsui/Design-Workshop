@@ -32,7 +32,7 @@ import { BRAND } from "@/lib/brand";
 import TicketDialog from "@/components/TicketDialog";
 import { Button } from "@/components/ui/button";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
-import { Columns3 } from "lucide-react";
+import { Columns3, Hash } from "lucide-react";
 
 /**
  * UserGuide — the in-app reference manual. Long-form, opinionated,
@@ -324,7 +324,7 @@ export default function UserGuide() {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships twenty reusable section types plus a
+              Design Workshop ships twenty-one reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
               where applicable. Two of them — <strong>Product Carousel</strong>
@@ -343,6 +343,7 @@ export default function UserGuide() {
               <SectionCard sectionId="resources" Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
               <SectionCard sectionId="feature-grid" Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />
               <SectionCard sectionId="trust-strip" Icon={Shield} name="Trust Strip" desc="Compact 2-5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — great for credibility marks like '20+ years' or 'ISO 27001 certified'." />
+              <SectionCard sectionId="stat-counter" Icon={Hash} name="Stat Counter" desc="Row of big numbers (e.g. '36%', '£2.4M', '5×') each with a label and an optional supporting line. 2-5 columns, optional eyebrow + heading + intro on top, optional CTA underneath. Numbers ramp from zero on scroll into view (respects prefers-reduced-motion). The natural complement to Trust Strip for impact / outcomes bands." />
               <SectionCard sectionId="comparison-table" Icon={Columns3} name="Comparison Table" desc="Three-column 'us vs them' matrix — feature rows with ticks on your column and crosses on the competitor's. Optional brand-logo header on your column, accent tint + border to draw the eye, and a closing line + CTA below. High-converting B2B pattern." />
               <SectionCard sectionId="steps" Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
               <SectionCard sectionId="testimonials" Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." />

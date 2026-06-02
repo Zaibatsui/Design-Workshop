@@ -121,6 +121,12 @@ export const SECTION_META = {
     whatsNew:
       "A new 'us vs them' comparison table. Three columns — feature labels, your offering with ticks, and a generic competitor column with crosses. Brand-logo header, highlight your column with a tinted background and accent border, and a closing line + CTA underneath. High-converting B2B pattern.",
   },
+  "stat-counter": {
+    addedOn: "2026-05-28",
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "A new big-number block. 2-5 columns of large stats (with optional £/% prefix-suffix and per-stat accent colours), an optional eyebrow + heading + intro, an optional trailing CTA, and a count-up animation that ramps the numbers from zero when the section scrolls into view. Respects prefers-reduced-motion. Perfect for 'we saved 36%' / 'cut tooling by 50%' impact bands.",
+  },
 };
 
 /** Default metadata used when a section ID isn't in SECTION_META. */

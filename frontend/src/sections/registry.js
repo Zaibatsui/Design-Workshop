@@ -18,6 +18,7 @@ import { splitBanner } from "./splitBanner";
 import { featuredCard } from "./featuredCard";
 import { trustStrip } from "./trustStrip";
 import { comparisonTable } from "./comparisonTable";
+import { statCounter } from "./statCounter";
 import { metaFor } from "./sectionMeta";
 
 // Attach `addedOn` / `updatedOn` metadata to each section so the
@@ -38,6 +39,7 @@ export const SECTIONS = [
   featureGrid,
   trustStrip,
   comparisonTable,
+  statCounter,
   steps,
   testimonials,
   faq,
