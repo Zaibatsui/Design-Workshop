@@ -13,18 +13,22 @@
  *                  fix — NOT typo fixes or refactors). If never updated
  *                  since launch, set equal to `addedOn`.
  *
- * Badge rules (computed live, no human gardening needed):
- *   NEW      — `addedOn` is within the last 14 days
- *   UPDATED  — section is NOT currently NEW, AND its `updatedOn` is
- *              one of the 3 most-recent `updatedOn` dates across the
- *              whole library
+ * Both fields accept either a date (`"2026-05-28"`) or a full ISO
+ * datetime (`"2026-05-28T16:00:00Z"`). Hour-precision is recommended
+ * for batches of edits on the same day so the drawer can sort them
+ * by actual edit recency rather than registry order.
  *
- * Auto-rotation: the moment a 4th section gets an `updatedOn` more
- * recent than the previous 3, the oldest UPDATED badge drops off on
- * its own — no manual unflagging required.
+ * Badge rules (computed live, no human gardening needed):
+ *   NEW      — `addedOn` is within the last `NEW_WINDOW_DAYS` days
+ *   UPDATED  — section is NOT currently NEW, AND its `updatedOn` is
+ *              within the last `UPDATED_WINDOW_DAYS` days
+ *
+ * Auto-rotation: edits naturally age out of the UPDATED window after
+ * the configured number of days — no manual unflagging required, no
+ * arbitrary TOP_N cliff that hides the 4th-most-recent edit.
  */
 const NEW_WINDOW_DAYS = 7;
-const UPDATED_TOP_N = 3;
+const UPDATED_WINDOW_DAYS = 7;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -37,6 +41,10 @@ function parseISO(s) {
 function daysSince(iso, now) {
   const d = parseISO(iso);
   if (!d) return Infinity;
+  // Day-floored so a date-only string like "2026-05-28" reads as the
+  // same "0 days ago" regardless of the time-of-day in `now`. Granular
+  // hour-precision still works because the drawer uses raw Date deltas
+  // for its sort, not this helper.
   return Math.floor((now.getTime() - d.getTime()) / DAY_MS);
 }
 
@@ -63,18 +71,18 @@ export function computeBadges(sections, now = new Date()) {
     }
   }
 
-  // Pass 2 — pick the top-N most recent `updatedOn` among sections that
-  // are NOT already NEW (a fresh section doesn't need both badges).
-  const candidates = sections
-    .filter((s) => s && s.id && !newIds.has(s.id) && parseISO(s.updatedOn))
-    .sort((a, b) => new Date(b.updatedOn) - new Date(a.updatedOn))
-    .slice(0, UPDATED_TOP_N);
-
-  for (const s of candidates) {
-    out[s.id] = "updated";
+  // Pass 2 — UPDATED window: any non-NEW section whose `updatedOn`
+  // lands within the configured window. Window-based (not top-N) so
+  // every recent edit surfaces and old ones age out on their own —
+  // no arbitrary cap at edit #3.
+  for (const s of sections) {
+    if (!s || !s.id || newIds.has(s.id)) continue;
+    if (daysSince(s.updatedOn, now) <= UPDATED_WINDOW_DAYS) {
+      out[s.id] = "updated";
+    }
   }
 
   return out;
 }
 
-export const BADGE_CONFIG = { NEW_WINDOW_DAYS, UPDATED_TOP_N };
+export const BADGE_CONFIG = { NEW_WINDOW_DAYS, UPDATED_WINDOW_DAYS };

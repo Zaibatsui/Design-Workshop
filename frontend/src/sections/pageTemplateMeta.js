@@ -51,8 +51,8 @@ export const PAGE_TEMPLATE_META = {
   // showcasing the four newest sections (Hero → Video Embed → Stat
   // Counter → Trust Strip → CTA Banner email capture) in one click.
   "story-page": {
-    addedOn: "2026-05-28",
-    updatedOn: "2026-05-28",
+    addedOn: "2026-05-28T17:00:00Z",
+    updatedOn: "2026-05-28T17:00:00Z",
     whatsNew:
       "A new sales-pitch template that drops in a coherent five-block narrative arc — Hero hook → product video → impact numbers → social proof → email capture — so you can edit a complete story instead of building one from scratch. Pre-wired to showcase the four newest sections together.",
   },
