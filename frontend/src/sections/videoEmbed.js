@@ -49,6 +49,15 @@ import PaddingFields from "@/components/PaddingFields";
 
 const ID = "video-embed";
 
+// Bundled fallback assets — played silently when the user hasn't entered
+// their own video yet. The form input shows as empty (with a placeholder)
+// so the user sees a fresh field, but the rendered snippet still has a
+// working demo so the section is never "broken" when previewed.
+const DEMO_VIDEO_URL =
+  "https://content-forge-1039.preview.emergentagent.com/_dws_video/design-workshop-30s.mp4";
+const DEMO_POSTER_URL =
+  "https://content-forge-1039.preview.emergentagent.com/_dws_video/poster.jpg";
+
 /**
  * Parse a video URL into an embeddable source.
  *
@@ -122,18 +131,17 @@ const defaults = () => ({
   heading: "See it built in under five minutes",
   body:
     "Watch a Design Workshop snippet drop straight into a live e-commerce site — one paste, no build step, no runtime libraries, no broken styles.",
-  // Poster image shown until the user clicks play. Defaults to the
-  // first frame of the bundled Design Workshop product reel so the
-  // section is "demo-ready" the moment it's added to a page.
-  posterImage:
-    "https://content-forge-1039.preview.emergentagent.com/_dws_video/poster.jpg",
-  posterAlt: "Design Workshop product walkthrough",
-  // Video URL — YouTube, Vimeo or a direct MP4/WebM/OGG file. Defaults
-  // to the 30-second Design Workshop product reel hosted on the same
-  // origin (so users see a real demo on first paste; they can swap it
-  // for their own URL via the form panel).
-  videoUrl:
-    "https://content-forge-1039.preview.emergentagent.com/_dws_video/design-workshop-30s.mp4",
+  // Poster image shown until the user clicks play. Left blank by default —
+  // when blank, render() falls back to the bundled demo poster so the
+  // section previews cleanly out of the box.
+  posterImage: "",
+  posterAlt: "",
+  // Video URL — YouTube, Vimeo or a direct MP4/WebM/OGG file. Left blank
+  // by default; render() silently falls back to a bundled Design Workshop
+  // product reel so a freshly-added section is never "broken-looking" in
+  // the preview. The form panel shows this field as empty (with a hint
+  // placeholder) so the user has a clean canvas for their own URL.
+  videoUrl: "",
   // Aspect ratio of the modal player.
   aspect: "16/9", // "16/9" | "4/3" | "1/1" | "21/9"
   // Player width inside the modal — controls how big the lightbox feels.
@@ -172,7 +180,13 @@ function render(cfg = {}) {
   const aspect = ASPECTS[c.aspect] || "16/9";
   const posterAspect = ASPECTS[c.posterAspect] || aspect;
   const playSize = num(c.playButtonSize, 88);
-  const parsed = parseVideoEmbed(c.videoUrl, { autoplay: !!c.autoplay });
+  // Silently fall back to the bundled demo reel when the user hasn't
+  // entered their own URL yet — so a freshly-added section always
+  // previews with a working video. As soon as the user types anything
+  // in the form, their URL takes over.
+  const effectiveVideoUrl = (c.videoUrl || "").trim() || DEMO_VIDEO_URL;
+  const effectivePosterUrl = (c.posterImage || "").trim() || DEMO_POSTER_URL;
+  const parsed = parseVideoEmbed(effectiveVideoUrl, { autoplay: !!c.autoplay });
   const embedUrl = parsed ? parsed.src : "";
   const embedType = parsed ? parsed.type : "";
 
@@ -188,7 +202,7 @@ function render(cfg = {}) {
     </div>`
       : "";
 
-  const posterUrl = safeUrl(c.posterImage);
+  const posterUrl = safeUrl(effectivePosterUrl);
   const posterAlt = escAttr(c.posterAlt || c.heading || "Video poster");
   const playButtonClass =
     c.playButtonStyle === "outline" ? "ns-video-play is-outline" : "ns-video-play is-solid";
@@ -336,7 +350,7 @@ function FormPanel({ config, onUpdate }) {
           label="Video URL (YouTube, Vimeo or direct MP4/WebM)"
           value={config.videoUrl || ""}
           onChange={(v) => onUpdate({ videoUrl: v })}
-          placeholder="https://www.youtube.com/watch?v=…  or  https://…/video.mp4"
+          placeholder="Paste your video URL — leave blank to use the bundled demo"
           testid="video-url"
         />
         <div>

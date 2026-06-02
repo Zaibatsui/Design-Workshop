@@ -133,21 +133,40 @@ expect(
   expect("default render exposes the embed type via data-ns-embed-type", /data-ns-embed-type="(iframe|video)"/.test(code));
 }
 
-// ─── default video URL is now the bundled MP4 → type="video" ────────
+// ─── default videoUrl is blank in defaults() — fallback fires inside render
 {
-  const code = videoEmbed.render(videoEmbed.defaults());
-  expect('default render uses data-ns-embed-type="video" (direct MP4)',
-    /data-ns-embed-type="video"/.test(code));
-  expect("default render's embed URL ends in .mp4",
-    /data-ns-embed="[^"]+\.mp4[^"]*"/.test(code));
+  const d = videoEmbed.defaults();
+  expect("defaults().videoUrl is empty string (form starts blank)",
+    d.videoUrl === "");
+  expect("defaults().posterImage is empty string (form starts blank)",
+    d.posterImage === "");
 }
 
-// ─── YouTube URL still routes through the iframe path ──────────────
+// ─── render() with blank URL silently uses the bundled demo reel ────
+{
+  const code = videoEmbed.render(videoEmbed.defaults());
+  expect('blank URL render uses data-ns-embed-type="video" (bundled MP4 fallback)',
+    /data-ns-embed-type="video"/.test(code));
+  expect("blank URL render's embed URL ends in .mp4 (bundled demo)",
+    /data-ns-embed="[^"]+\.mp4[^"]*"/.test(code));
+  expect("blank URL render still serves a poster image (bundled fallback)",
+    /class="ns-video-poster-img" src="[^"]+\.(jpg|png|webp)/.test(code));
+}
+
+// ─── user-supplied URL overrides the bundled fallback ───────────────
 {
   const code = videoEmbed.render({ ...videoEmbed.defaults(), videoUrl: "https://youtu.be/dQw4w9WgXcQ" });
-  expect('YouTube URL → data-ns-embed-type="iframe"', /data-ns-embed-type="iframe"/.test(code));
-  expect("YouTube URL → embed src uses youtube-nocookie host",
+  expect('user-supplied YouTube URL → data-ns-embed-type="iframe"',
+    /data-ns-embed-type="iframe"/.test(code));
+  expect("user-supplied YouTube URL → embed src uses youtube-nocookie",
     /data-ns-embed="https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/.test(code));
+}
+
+// ─── whitespace-only URL falls back to bundled too ──────────────────
+{
+  const code = videoEmbed.render({ ...videoEmbed.defaults(), videoUrl: "   " });
+  expect('whitespace-only URL → still falls back to bundled .mp4',
+    /data-ns-embed="[^"]+\.mp4[^"]*"/.test(code));
 }
 
 // ─── render() with a broken URL ─────────────────────────────────────
