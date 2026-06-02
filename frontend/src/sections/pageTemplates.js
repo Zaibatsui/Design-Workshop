@@ -357,6 +357,107 @@ export const PAGE_TEMPLATES = [
       }),
     ],
   },
+  {
+    id: "story-page",
+    name: "Story page",
+    description:
+      "Hero → product video → impact numbers → social proof → email-capture close. A complete sales-pitch arc that drops in the four newest sections in one click.",
+    icon: Sparkles,
+    blocks: [
+      // 1 — Hero hook. Single fade slide with a dark photo backdrop that
+      // sits naturally next to the dark Video Embed below it. Uses the
+      // correct slide schema (title / subtitle / image / ctaText /
+      // ctaLink — NOT React-ish camelCase).
+      section("hero", {
+        transition: "fade",
+        slides: [
+          {
+            id: makeUid(),
+            logo: "",
+            logoAlt: "",
+            title: "Tell people what you do — and why it matters.",
+            subtitle:
+              "A complete narrative arc, ready to edit. Open with the hook, show the product in action, prove the impact, lock in the trust, and close on a free-trial CTA.",
+            image:
+              "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1600&auto=format&fit=crop",
+            ctaText: "Watch the tour",
+            ctaLink: "#",
+          },
+        ],
+      }),
+
+      // 2 — Product video. Empty videoUrl so the section quietly plays
+      // the bundled Design Workshop demo reel by default — gives users
+      // an instant working preview while they hunt for their own video.
+      section("video-embed", {
+        eyebrow: "See it in action",
+        heading: "A ninety-second product tour.",
+        body:
+          "Watch how the pieces fit together — then come back and rewrite this section for your own product.",
+        bgColor: "#0f172a",
+        textColor: "#ffffff",
+        bodyColor: "#cbd5e1",
+        accentColor: "#E01839",
+        playButtonStyle: "solid",
+        aspect: "16/9",
+        posterAspect: "16/9",
+      }),
+
+      // 3 — Stat Counter. Dark theme to flow on from the video section
+      // visually (no jarring colour break). The defaults are already
+      // narrative-friendly ("Build pages, not boilerplate") so users can
+      // edit them without first having to rip out IT-consulting jargon.
+      section("stat-counter", {
+        eyebrow: "The impact",
+        heading: "Numbers your team will feel.",
+        body:
+          "Replace these with metrics that actually matter to your prospects — adoption, time saved, deals closed.",
+        ctaText: "",
+        ctaLink: "",
+      }),
+
+      // 4 — Trust Strip. Four credibility callouts on a clean light row
+      // — gives the eye a breather between the dark Stat Counter and the
+      // final dark CTA Banner. Inspired by Dripify / Stripe trust bands.
+      section("trust-strip", {
+        bgColor: "#ffffff",
+        textColor: "#0f172a",
+        bodyColor: "#475569",
+        accentColor: "#E01839",
+        columns: 4,
+        items: [
+          { id: makeUid(), icon: "users", title: "Trusted by teams", body: "From two-person startups to nine-figure enterprises." },
+          { id: makeUid(), icon: "shield", title: "Built for security", body: "SOC 2 ready, ISO 27001 aligned, no third-party tracking." },
+          { id: makeUid(), icon: "star", title: "Rated five stars", body: "Independent reviews on G2, Capterra and Trustpilot." },
+          { id: makeUid(), icon: "zap", title: "Setup in minutes", body: "No engineering team needed — paste it in and ship." },
+        ],
+      }),
+
+      // 5 — CTA Banner in email-capture mode. The form-action URL is
+      // left blank so the section visibly nudges the user to wire up
+      // their mailing-list provider (Mailchimp / ConvertKit / Beehiiv /
+      // Buttondown) — better that than silently shipping a broken form.
+      section("cta-banner", {
+        eyebrow: "Get started",
+        heading: "Tell better stories. Starting today.",
+        subheading:
+          "Join the early-access list — we'll send you the next batch of templates the moment they ship.",
+        mode: "email-form",
+        formAction: "",
+        emailFieldName: "email",
+        emailPlaceholder: "you@yourcompany.com",
+        submitLabel: "Join the list",
+        submitOpenInNewTab: true,
+        formMicroTrust: "No spam — unsubscribe in one click.",
+        bgColor: "#0f172a",
+        textColor: "#ffffff",
+        bodyColor: "#cbd5e1",
+        accentColor: "#E01839",
+        textAlign: "center",
+        fullBleed: true,
+      }),
+    ],
+  },
 ];
 
 // Attach `addedOn` / `updatedOn` / `whatsNew` metadata so the picker

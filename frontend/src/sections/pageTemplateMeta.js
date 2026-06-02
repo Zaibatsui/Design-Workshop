@@ -46,6 +46,16 @@ export const PAGE_TEMPLATE_META = {
     whatsNew:
       "A new template for service-led pages: problem → solution → trust → process → CTA. Pre-fills the new Featured Card and Trust Strip sections.",
   },
+
+  // 2026-05-28 — Story page template. A complete sales-pitch arc
+  // showcasing the four newest sections (Hero → Video Embed → Stat
+  // Counter → Trust Strip → CTA Banner email capture) in one click.
+  "story-page": {
+    addedOn: "2026-05-28",
+    updatedOn: "2026-05-28",
+    whatsNew:
+      "A new sales-pitch template that drops in a coherent five-block narrative arc — Hero hook → product video → impact numbers → social proof → email capture — so you can edit a complete story instead of building one from scratch. Pre-wired to showcase the four newest sections together.",
+  },
 };
 
 /** Default metadata used when a template ID isn't in PAGE_TEMPLATE_META. */
