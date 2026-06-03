@@ -53,10 +53,26 @@ const ID = "video-embed";
 // their own video yet. The form input shows as empty (with a placeholder)
 // so the user sees a fresh field, but the rendered snippet still has a
 // working demo so the section is never "broken" when previewed.
-const DEMO_VIDEO_URL =
-  "https://content-forge-1039.preview.emergentagent.com/_dws_video/design-workshop-30s.mp4";
-const DEMO_POSTER_URL =
-  "https://content-forge-1039.preview.emergentagent.com/_dws_video/poster.jpg";
+//
+// The assets live in `frontend/public/_dws_video/` and ship with every
+// Design Workshop deployment. We resolve to the CURRENT origin at render
+// time so the absolute URL baked into the snippet points to whatever
+// host the editor is running on (Emergent preview, local dev, the
+// user's self-hosted production box — whichever). The snippet is then
+// safe to paste into an arbitrary third-party site: the browser will
+// fetch the asset from the Design Workshop host that generated it,
+// not from the embedding page.
+const DEMO_VIDEO_PATH = "/_dws_video/design-workshop-30s.mp4";
+const DEMO_POSTER_PATH = "/_dws_video/poster.jpg";
+
+function bundledOrigin() {
+  if (typeof window !== "undefined" && window.location && window.location.origin) {
+    return window.location.origin;
+  }
+  // Node / jsdom test fallback. Real browsers never hit this branch;
+  // it exists so the snippet test suite can still parse the URL.
+  return "http://localhost";
+}
 
 /**
  * Parse a video URL into an embeddable source.
@@ -184,8 +200,8 @@ function render(cfg = {}) {
   // entered their own URL yet — so a freshly-added section always
   // previews with a working video. As soon as the user types anything
   // in the form, their URL takes over.
-  const effectiveVideoUrl = (c.videoUrl || "").trim() || DEMO_VIDEO_URL;
-  const effectivePosterUrl = (c.posterImage || "").trim() || DEMO_POSTER_URL;
+  const effectiveVideoUrl = (c.videoUrl || "").trim() || (bundledOrigin() + DEMO_VIDEO_PATH);
+  const effectivePosterUrl = (c.posterImage || "").trim() || (bundledOrigin() + DEMO_POSTER_PATH);
   const parsed = parseVideoEmbed(effectiveVideoUrl, { autoplay: !!c.autoplay });
   const embedUrl = parsed ? parsed.src : "";
   const embedType = parsed ? parsed.type : "";
