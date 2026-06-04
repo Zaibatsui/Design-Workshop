@@ -292,9 +292,9 @@ function cfgWith(description) {
     "card-body should centre when cardTextAlign=center"
   );
   expect(
-    "centred cards keep .ns-desc lists left-aligned + inline-block",
-    /\.ns-desc ul,\.[^.]*\.ns-desc ol\{[^}]*text-align:left;display:inline-block/.test(out),
-    "missing centred-list override — bullets will float in the middle"
+    "centred cards do NOT force lists left-aligned (bullets now flow with text)",
+    !/\.ns-desc ul,[^{]*\{[^}]*display:inline-block/.test(out),
+    "lists are still being inline-block-overridden — bullet flow should match the chosen alignment"
   );
   // Right alignment is honoured too.
   const right = products.defaults();

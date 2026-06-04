@@ -163,13 +163,23 @@ const EMPTY_FORM = {
  * `tools` subsets the toolbar buttons. Defaults to the full set; pass
  * e.g. `["bold","italic","ul","ol","link"]` for a compact inline editor.
  *
+ * `inheritedAlign` is the alignment the surrounding section/card forces
+ * when no per-paragraph override is set (e.g. a centred product card).
+ * The TextAlign extension treats `"left"` as the default and intentionally
+ * skips emitting `style="text-align:left"`, which means clicking "Align
+ * left" on a centred-card paragraph would otherwise change the editor's
+ * internal state but emit no markup — and the cascade would keep
+ * centring the text. By making the editor's default alignment match the
+ * card's, the user's explicit clicks ALWAYS produce inline `style="…"`
+ * attributes that override the inherited cascade.
+ *
  * Link UX: clicking the link button opens an inline panel under the
  * toolbar (Web URL or Email with optional subject/body). When the cursor
  * is on a link, an additional "remove underline" toggle appears in the
  * toolbar so an author can strip the default underline on a single link
  * without affecting the rest of the section.
  */
-export default function RichTextEditor({ html, onChange, tools }) {
+export default function RichTextEditor({ html, onChange, tools, inheritedAlign }) {
   const enabled =
     tools && tools.length
       ? new Set(tools)
@@ -195,17 +205,32 @@ export default function RichTextEditor({ html, onChange, tools }) {
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
       }),
       // Per-block text alignment. Authors get explicit control over
-      // paragraph / heading alignment inside the editor regardless of
-      // any outer section text-align (e.g. a centred product card with
-      // a left-aligned description, or a centred line of marketing
-      // copy inside a generally left-aligned rich-text block).
-      // Lists are intentionally excluded so the toolbar's Align Center
-      // / Right buttons can't be used to break bullet markers — list
-      // alignment stays the responsibility of the surrounding section.
+      // paragraph / heading / list alignment inside the editor
+      // regardless of any outer section / card text-align.
+      //
+      // `defaultAlignment` is set to whatever the parent context
+      // inherits (e.g. a centred product card passes
+      // `inheritedAlign="center"`). The TextAlign extension treats
+      // its default alignment as "no inline style" — so when an
+      // author clicks the toolbar button that matches the inherited
+      // alignment, no `style="text-align:…"` markup is emitted and
+      // the cascade naturally wins. When the author clicks ANY OTHER
+      // alignment, an inline style IS emitted, which overrides the
+      // cascade. Net result: the toolbar always reflects (and
+      // overrides) the visible alignment, never the other way around.
+      //
+      // Lists are deliberately INCLUDED in `types` here — bullet
+      // markers travel with their list items so right-aligning a
+      // shopping-cart-style list works the way users expect. The
+      // surrounding section is responsible for any "lists must stay
+      // left" rule via its own CSS, not the editor.
       TextAlign.configure({
-        types: ["heading", "paragraph"],
+        types: ["heading", "paragraph", "bulletList", "orderedList", "listItem"],
         alignments: ["left", "center", "right"],
-        defaultAlignment: "left",
+        defaultAlignment:
+          inheritedAlign === "center" || inheritedAlign === "right"
+            ? inheritedAlign
+            : "left",
       }),
     ],
     content: html || "",

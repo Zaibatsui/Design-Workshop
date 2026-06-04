@@ -252,7 +252,7 @@ ${baseReset(cls)}
 .${cls} .ns-desc p{margin:0 0 8px}
 .${cls} .ns-desc strong{font-weight:600;color:#1f1f1f}
 .${cls} .ns-desc em{font-style:italic}
-.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:20px${cardAlign === "center" ? ";text-align:left;display:inline-block" : ""}}
+.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:20px}
 .${cls} .ns-desc ul{list-style:disc!important}
 .${cls} .ns-desc ol{list-style:decimal!important}
 .${cls} .ns-desc li{display:list-item;margin:0 0 4px}
@@ -639,6 +639,7 @@ function FormPanel({ config, onUpdate }) {
                   html={coerceDescHtml(p.description)}
                   onChange={(v) => updateProduct(p.id, { description: v })}
                   tools={["bold", "italic", "ul", "ol", "link", "align"]}
+                  inheritedAlign={config.cardTextAlign || "left"}
                 />
                 <p className="text-[11px] text-slate-500">
                   Short blurb shown between the product name and price. Select
