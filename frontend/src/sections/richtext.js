@@ -78,9 +78,10 @@ ${w(`.${cls}`)}{color:${fg}${bang}}
 ${w(`.${cls} a`)}{color:${accent}${bang};${linkDecoration}}
 ${w(`.${cls} a[data-no-underline]`)}{text-decoration:none${bang}}
 ${w(`.${cls} a:hover`)}{opacity:.8}
-.${cls} ul,.${cls} ol{margin:0 0 14px 0;padding-left:22px${align === "center" ? ";text-align:left;display:inline-block" : ""}}
-.${cls} ul{list-style:disc!important}
-.${cls} ol{list-style:decimal!important}
+.${cls} ul,.${cls} ol{margin:0 0 14px 0;padding-left:0;list-style-position:inside}
+.${cls} ul{list-style:disc inside!important}
+.${cls} ol{list-style:decimal inside!important}
+.${cls} li>p{display:inline;margin:0}
 .${cls} li{margin:0 0 6px;line-height:1.6}
 .${cls} .ns-inner > :first-child{margin-top:0}
 .${cls} .ns-inner > :last-child{margin-bottom:0}

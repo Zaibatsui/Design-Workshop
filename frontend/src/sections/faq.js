@@ -154,10 +154,11 @@ ${dividerCss}
 .${cls} .ns-a p:last-child{margin-bottom:0}
 .${cls} .ns-a strong{font-weight:600}
 .${cls} .ns-a em{font-style:italic}
-.${cls} .ns-a ul,.${cls} .ns-a ol{margin:0 0 10px;padding-left:20px}
-.${cls} .ns-a ul{list-style:disc!important}
-.${cls} .ns-a ol{list-style:decimal!important}
+.${cls} .ns-a ul,.${cls} .ns-a ol{margin:0 0 10px;padding-left:0;list-style-position:inside}
+.${cls} .ns-a ul{list-style:disc inside!important}
+.${cls} .ns-a ol{list-style:decimal inside!important}
 .${cls} .ns-a li{margin:0 0 4px}
+.${cls} .ns-a li>p{display:inline;margin:0}
 .${cls} .ns-a a{color:${accent};text-decoration:underline;text-underline-offset:2px}
 .${cls} .ns-a a[data-no-underline]{text-decoration:none}
 .${cls} .ns-a a:hover{opacity:.85}
@@ -320,6 +321,7 @@ function FormPanel({ config, onUpdate }) {
                   html={coerceAnswerHtml(it.answer)}
                   onChange={(v) => updateItem(it.id, { answer: v })}
                   tools={["bold", "italic", "ul", "ol", "link", "align"]}
+                  inheritedAlign={config.textAlign || "left"}
                 />
                 <p className="text-[11px] text-slate-500">
                   Select text and use the toolbar to add links, bold or italics.

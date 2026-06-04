@@ -65,10 +65,16 @@ aside::-webkit-scrollbar-thumb:hover {
   display: list-item;
   margin: 0 0 0.15rem;
 }
-/* Tiptap wraps each <li>'s text in a <p>. Without trimming the
- * default browser margin on those, list items get an unwanted gap
- * between the bullet and the text. */
+/* Tiptap wraps each <li>'s text in a <p>. Default block-level <p>
+ * forces a line break between the bullet marker and the text — so
+ * even with `list-style-position: inside` the marker ends up alone
+ * on the first line and centred text drops below. Inline the inner
+ * <p> so the marker + text form one anonymous inline line that
+ * `text-align` can shift as a single unit. (Multi-paragraph list
+ * items are vanishingly rare in this product; trade-off accepted.)
+ */
 .dw-rt-content li > p {
+  display: inline;
   margin: 0;
 }
 .dw-rt-content h1 { font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0 0.4rem; line-height: 1.2; }

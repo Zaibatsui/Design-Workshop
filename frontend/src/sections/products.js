@@ -256,7 +256,7 @@ ${baseReset(cls)}
 .${cls} .ns-desc ul{list-style:disc inside!important}
 .${cls} .ns-desc ol{list-style:decimal inside!important}
 .${cls} .ns-desc li{display:list-item;margin:0 0 4px}
-.${cls} .ns-desc li>p{margin:0}
+.${cls} .ns-desc li>p{display:inline;margin:0}
 .${cls} .ns-desc a{color:var(--ns-price-color);text-decoration:underline;text-underline-offset:2px}
 .${cls} .ns-desc a:hover{opacity:.85}
 .${cls} .ns-price{font-size:18px;font-weight:600;color:var(--ns-price-color);margin:auto 0 0}
