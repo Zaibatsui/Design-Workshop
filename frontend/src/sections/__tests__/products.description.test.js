@@ -184,5 +184,44 @@ function cfgWith(description) {
   );
 }
 
+// ── 5. Name spacing slider feeds .ns-name margin-bottom ────────────
+{
+  // Default → 12 px below the name (historical look).
+  const dflt = products.render(products.defaults());
+  expect(
+    "default nameSpacing renders as 12px margin-bottom on .ns-name",
+    /\.ns-name\{[^}]*margin:0 0 12px/.test(dflt),
+    "default .ns-name margin should be 12px"
+  );
+  // The legacy `min-height:42px` reservation on .ns-name caused
+  // ~30px of phantom whitespace when product names fit on a single
+  // line. With the description field in play it actively gets in the
+  // way of authors who want a tight layout, so it was removed.
+  expect(
+    ".ns-name no longer reserves 2-line min-height",
+    !/\.ns-name\{[^}]*min-height/.test(dflt),
+    "min-height on .ns-name is back — it creates phantom whitespace"
+  );
+  // Custom slider value → flows through verbatim.
+  const cfg = products.defaults();
+  cfg.nameSpacing = 4;
+  const tight = products.render(cfg);
+  expect(
+    "custom nameSpacing renders as 4px margin-bottom on .ns-name",
+    /\.ns-name\{[^}]*margin:0 0 4px/.test(tight),
+    "custom .ns-name margin should be 4px"
+  );
+  // Zero is honoured — important corner case (authors who want
+  // name flush against the next element).
+  const cfgZero = products.defaults();
+  cfgZero.nameSpacing = 0;
+  const flush = products.render(cfgZero);
+  expect(
+    "nameSpacing=0 renders as 0px margin-bottom on .ns-name",
+    /\.ns-name\{[^}]*margin:0 0 0px/.test(flush),
+    "zero spacing should produce 'margin:0 0 0px'"
+  );
+}
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);
 process.exit(failed ? 1 : 0);

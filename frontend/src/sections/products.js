@@ -104,6 +104,12 @@ const defaults = () => ({
   // read like a normal article header. baseReset forces h-tags to
   // inherit text-align, so this value is applied to `.ns-wrap`.
   textAlign: "left",
+  // Vertical gap between the product name and the description (or
+  // the price, when no description is set). Surfaced as a slider in
+  // the editor so authors can dial in the card density they want —
+  // tighter on shop fronts, more breathing room on storytelling
+  // landing pages. Default of 12px matches the historical look.
+  nameSpacing: 12,
   // "" = Auto (use whatever the scraper / user input already shows).
   // Anything else REPLACES the leading currency token on every rendered
   // price, including live-refreshed prices. See `swapCur` in the snippet
@@ -219,7 +225,7 @@ ${baseReset(cls)}
 .${cls} .ns-overlay-bottom-left{bottom:0;left:0}
 .${cls} .ns-overlay-bottom-right{bottom:0;right:0}
 .${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto}
-.${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
+.${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 ${num(cfg.nameSpacing, 12)}px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .${cls} .ns-desc{font-size:13px;line-height:1.55;color:#4b5563;margin:0 0 12px}
 .${cls} .ns-desc>*:first-child{margin-top:0}
 .${cls} .ns-desc>*:last-child{margin-bottom:0}
@@ -440,6 +446,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="products-heading-size"
+        />
+        <SliderField
+          label="Space below product name"
+          value={Number(config.nameSpacing ?? 12)}
+          min={0}
+          max={40}
+          suffix="px"
+          onChange={(v) => onUpdate({ nameSpacing: v })}
+          testid="products-name-spacing"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
