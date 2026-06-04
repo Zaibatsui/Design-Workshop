@@ -37,3 +37,43 @@ aside::-webkit-scrollbar-thumb:hover {
   text-decoration: underline dotted;
   text-decoration-color: rgba(29, 78, 216, 0.55);
 }
+
+/* Tailwind's preflight reset zeroes out ul/ol/li styling globally so
+ * authors don't accidentally inherit browser-default list rendering on
+ * navigation menus etc. That's the right default for the rest of the
+ * app but it breaks the Tiptap editor surface: bullet / numbered lists
+ * the author creates with the toolbar render as plain runs of text
+ * with no marker, no indent — making it impossible to tell visually
+ * whether you're in a list or not.
+ *
+ * Restore native list rendering inside the editor only. The rendered
+ * snippet pulls in its own scoped list rules (see e.g. richtext.js
+ * and faq.js `.ns-a ul / .ns-a ol`), so this CSS lives strictly for
+ * the in-editor preview.
+ */
+.dw-rt-content ul {
+  list-style: disc outside;
+  padding-left: 1.4rem;
+  margin: 0 0 0.5rem;
+}
+.dw-rt-content ol {
+  list-style: decimal outside;
+  padding-left: 1.5rem;
+  margin: 0 0 0.5rem;
+}
+.dw-rt-content li {
+  display: list-item;
+  margin: 0 0 0.15rem;
+}
+/* Tiptap wraps each <li>'s text in a <p>. Without trimming the
+ * default browser margin on those, list items get an unwanted gap
+ * between the bullet and the text. */
+.dw-rt-content li > p {
+  margin: 0;
+}
+.dw-rt-content h1 { font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0 0.4rem; line-height: 1.2; }
+.dw-rt-content h2 { font-size: 1.25rem; font-weight: 600; margin: 0.5rem 0 0.35rem; line-height: 1.25; }
+.dw-rt-content h3 { font-size: 1.1rem; font-weight: 600; margin: 0.4rem 0 0.3rem; line-height: 1.3; }
+.dw-rt-content p { margin: 0 0 0.4rem; }
+.dw-rt-content strong { font-weight: 600; }
+.dw-rt-content em { font-style: italic; }

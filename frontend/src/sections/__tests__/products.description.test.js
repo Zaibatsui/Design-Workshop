@@ -166,6 +166,22 @@ function cfgWith(description) {
     /\.ns-desc a\{[^}]*text-decoration:underline/.test(out),
     "missing .ns-desc a underline rule"
   );
+  // The baseReset() helper applies `list-style:none !important` to every
+  // ul/ol inside the section to neutralise stray host-page CSS. To get
+  // bullets/numbers back inside the rich-text description we re-apply
+  // the canonical list-style with !important so authors who use the
+  // toolbar's bullet / numbered list buttons actually see markers in
+  // the rendered snippet.
+  expect(
+    "bullet lists in .ns-desc restore list-style:disc !important",
+    /\.ns-desc ul\{list-style:disc!important\}/.test(out),
+    "missing list-style:disc !important — bullets won't render in the rendered snippet"
+  );
+  expect(
+    "numbered lists in .ns-desc restore list-style:decimal !important",
+    /\.ns-desc ol\{list-style:decimal!important\}/.test(out),
+    "missing list-style:decimal !important — numbers won't render in the rendered snippet"
+  );
 }
 
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);

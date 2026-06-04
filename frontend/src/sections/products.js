@@ -226,8 +226,11 @@ ${baseReset(cls)}
 .${cls} .ns-desc p{margin:0 0 8px}
 .${cls} .ns-desc strong{font-weight:600;color:#1f1f1f}
 .${cls} .ns-desc em{font-style:italic}
-.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:18px}
-.${cls} .ns-desc li{margin:0 0 4px}
+.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:20px}
+.${cls} .ns-desc ul{list-style:disc!important}
+.${cls} .ns-desc ol{list-style:decimal!important}
+.${cls} .ns-desc li{display:list-item;margin:0 0 4px}
+.${cls} .ns-desc li>p{margin:0}
 .${cls} .ns-desc a{color:var(--ns-price-color);text-decoration:underline;text-underline-offset:2px}
 .${cls} .ns-desc a:hover{opacity:.85}
 .${cls} .ns-price{font-size:18px;font-weight:600;color:var(--ns-price-color);margin:auto 0 0}
