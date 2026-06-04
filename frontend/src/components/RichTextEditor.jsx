@@ -1,6 +1,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
 import { useEffect, useRef, useState } from "react";
 import {
   Bold,
@@ -13,6 +14,9 @@ import {
   Link as LinkIcon,
   Link2Off,
   Underline as UnderlineIcon,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
   X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
