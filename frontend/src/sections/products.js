@@ -30,6 +30,7 @@ import {
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,9 +41,34 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL;
 
 const ID = "products";
 
+/**
+ * Coerces a stored per-product description into safe HTML for rendering
+ * / Tiptap loading. Mirrors the FAQ section's `coerceAnswerHtml`:
+ *  - Empty / whitespace → "" (caller suppresses the wrapper element).
+ *  - HTML-looking string → trusted, passed through (it came from our
+ *    own editor, identical trust model to the Rich Text block).
+ *  - Plain text → escaped, paragraph-split on blank lines, `\n` becomes
+ *    `<br/>` so legacy hand-typed values still render sensibly.
+ */
+function coerceDescHtml(desc) {
+  const s = String(desc || "");
+  if (!s.trim()) return "";
+  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(s);
+  if (looksLikeHtml) return s;
+  return s
+    .split(/\n{2,}/)
+    .map((para) => `<p>${escHtml(para).replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+}
+
 const sampleProduct = () => ({
   id: makeUid(),
   name: "",
+  // Optional rich-text blurb shown between the name and the price.
+  // HTML payload from the same Tiptap editor used by FAQ answers and
+  // Rich-text blocks — bold / italic / lists / links. Empty by default;
+  // the renderer suppresses the wrapper element when blank.
+  description: "",
   price: "",
   priceSuffix: "Excl VAT",
   image: "",
@@ -161,6 +187,7 @@ function render(cfg) {
     </div>
     <div class="ns-card-body">
       <h3 class="ns-name">${escHtml(p.name || "")}</h3>
+      ${(() => { const d = coerceDescHtml(p.description); return d ? `<div class="ns-desc">${d}</div>` : ""; })()}
       <p class="ns-price"><span class="ns-price-amount">${escHtml(applyCur(p.price) || "")}</span>${p.priceSuffix ? `<span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
     </div>
   </a>
@@ -193,6 +220,16 @@ ${baseReset(cls)}
 .${cls} .ns-overlay-bottom-right{bottom:0;right:0}
 .${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto}
 .${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
+.${cls} .ns-desc{font-size:13px;line-height:1.55;color:#4b5563;margin:0 0 12px}
+.${cls} .ns-desc>*:first-child{margin-top:0}
+.${cls} .ns-desc>*:last-child{margin-bottom:0}
+.${cls} .ns-desc p{margin:0 0 8px}
+.${cls} .ns-desc strong{font-weight:600;color:#1f1f1f}
+.${cls} .ns-desc em{font-style:italic}
+.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:18px}
+.${cls} .ns-desc li{margin:0 0 4px}
+.${cls} .ns-desc a{color:var(--ns-price-color);text-decoration:underline;text-underline-offset:2px}
+.${cls} .ns-desc a:hover{opacity:.85}
 .${cls} .ns-price{font-size:18px;font-weight:600;color:var(--ns-price-color);margin:auto 0 0}
 .${cls} .ns-price-amount{display:inline-block}
 .${cls} .ns-price-suffix{font-size:12px;font-weight:400;color:#6b7280;margin-left:4px}
@@ -538,6 +575,21 @@ function FormPanel({ config, onUpdate }) {
                 onChange={(v) => updateProduct(p.id, { name: v })}
                 testid={`product-name-${p.id}`}
               />
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-slate-700">
+                  Description <span className="text-slate-400 font-normal">(optional)</span>
+                </Label>
+                <RichTextEditor
+                  html={coerceDescHtml(p.description)}
+                  onChange={(v) => updateProduct(p.id, { description: v })}
+                  tools={["bold", "italic", "ul", "ol", "link"]}
+                />
+                <p className="text-[11px] text-slate-500">
+                  Short blurb shown between the product name and price. Select
+                  text to add links, bold or italics — links inherit the card's
+                  price colour by default.
+                </p>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <TextField
                   label="Price"
