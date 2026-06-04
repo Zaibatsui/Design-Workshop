@@ -174,13 +174,13 @@ function cfgWith(description) {
   // the rendered snippet.
   expect(
     "bullet lists in .ns-desc restore list-style:disc !important",
-    /\.ns-desc ul\{list-style:disc!important\}/.test(out),
-    "missing list-style:disc !important — bullets won't render in the rendered snippet"
+    /\.ns-desc ul\{list-style:disc inside!important\}/.test(out),
+    "missing list-style:disc inside !important — bullets won't render OR won't travel with text alignment"
   );
   expect(
     "numbered lists in .ns-desc restore list-style:decimal !important",
-    /\.ns-desc ol\{list-style:decimal!important\}/.test(out),
-    "missing list-style:decimal !important — numbers won't render in the rendered snippet"
+    /\.ns-desc ol\{list-style:decimal inside!important\}/.test(out),
+    "missing list-style:decimal inside !important — numbers won't render OR won't travel with text alignment"
   );
 }
 
