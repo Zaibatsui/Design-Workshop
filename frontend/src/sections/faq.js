@@ -319,7 +319,7 @@ function FormPanel({ config, onUpdate }) {
                 <RichTextEditor
                   html={coerceAnswerHtml(it.answer)}
                   onChange={(v) => updateItem(it.id, { answer: v })}
-                  tools={["bold", "italic", "ul", "ol", "link"]}
+                  tools={["bold", "italic", "ul", "ol", "link", "align"]}
                 />
                 <p className="text-[11px] text-slate-500">
                   Select text and use the toolbar to add links, bold or italics.

@@ -169,7 +169,7 @@ export default function RichTextEditor({ html, onChange, tools }) {
   const enabled =
     tools && tools.length
       ? new Set(tools)
-      : new Set(["h1", "h2", "h3", "bold", "italic", "ul", "ol", "link"]);
+      : new Set(["h1", "h2", "h3", "bold", "italic", "ul", "ol", "link", "align"]);
 
   const [linkPanel, setLinkPanel] = useState({ open: false, form: EMPTY_FORM });
   // Ref-bridge so the editor's handleClick (created inside useEditor and
@@ -189,6 +189,19 @@ export default function RichTextEditor({ html, onChange, tools }) {
         openOnClick: false,
         autolink: true,
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
+      }),
+      // Per-block text alignment. Authors get explicit control over
+      // paragraph / heading alignment inside the editor regardless of
+      // any outer section text-align (e.g. a centred product card with
+      // a left-aligned description, or a centred line of marketing
+      // copy inside a generally left-aligned rich-text block).
+      // Lists are intentionally excluded so the toolbar's Align Center
+      // / Right buttons can't be used to break bullet markers — list
+      // alignment stays the responsibility of the surrounding section.
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right"],
+        defaultAlignment: "left",
       }),
     ],
     content: html || "",
@@ -410,6 +423,35 @@ export default function RichTextEditor({ html, onChange, tools }) {
           >
             <UnderlineIcon className="w-3.5 h-3.5" />
           </ToolbarButton>
+        )}
+        {enabled.has("align") && (
+          <>
+            <Divider />
+            <ToolbarButton
+              active={editor.isActive({ textAlign: "left" })}
+              onClick={() => editor.chain().focus().setTextAlign("left").run()}
+              label="Align left"
+              testid="rt-align-left"
+            >
+              <AlignLeft className="w-3.5 h-3.5" />
+            </ToolbarButton>
+            <ToolbarButton
+              active={editor.isActive({ textAlign: "center" })}
+              onClick={() => editor.chain().focus().setTextAlign("center").run()}
+              label="Align centre"
+              testid="rt-align-center"
+            >
+              <AlignCenter className="w-3.5 h-3.5" />
+            </ToolbarButton>
+            <ToolbarButton
+              active={editor.isActive({ textAlign: "right" })}
+              onClick={() => editor.chain().focus().setTextAlign("right").run()}
+              label="Align right"
+              testid="rt-align-right"
+            >
+              <AlignRight className="w-3.5 h-3.5" />
+            </ToolbarButton>
+          </>
         )}
       </div>
 

@@ -307,5 +307,33 @@ function cfgWith(description) {
   );
 }
 
+// ── 8. Tiptap inline text-align styles survive the render ─────────
+{
+  // The TextAlign extension emits `<p style="text-align: center">`
+  // when an author hits the Align-Centre button in the toolbar. That
+  // payload arrives via the rich-text `description` field, gets
+  // trusted as HTML, and must reach the snippet verbatim so the
+  // browser actually centres the paragraph at runtime. (baseReset()
+  // does NOT !important text-align on <p>, so the inline style
+  // wins over the section's cascade — that's the contract we're
+  // locking in here.)
+  const cfg = cfgWith(
+    '<p style="text-align: center">Centred line.</p>' +
+      '<p style="text-align: right">Right line.</p>' +
+      "<p>Default left.</p>"
+  );
+  const out = products.render(cfg);
+  expect(
+    "centred <p> inline style survives the render",
+    out.includes('style="text-align: center"'),
+    "Tiptap-emitted text-align:center got stripped from .ns-desc"
+  );
+  expect(
+    "right-aligned <p> inline style survives the render",
+    out.includes('style="text-align: right"'),
+    "Tiptap-emitted text-align:right got stripped"
+  );
+}
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);
 process.exit(failed ? 1 : 0);

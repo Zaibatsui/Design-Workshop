@@ -638,7 +638,7 @@ function FormPanel({ config, onUpdate }) {
                 <RichTextEditor
                   html={coerceDescHtml(p.description)}
                   onChange={(v) => updateProduct(p.id, { description: v })}
-                  tools={["bold", "italic", "ul", "ol", "link"]}
+                  tools={["bold", "italic", "ul", "ol", "link", "align"]}
                 />
                 <p className="text-[11px] text-slate-500">
                   Short blurb shown between the product name and price. Select
