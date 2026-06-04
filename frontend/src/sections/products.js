@@ -64,6 +64,12 @@ function coerceDescHtml(desc) {
 const sampleProduct = () => ({
   id: makeUid(),
   name: "",
+  // Optional per-card eyebrow — short uppercase label rendered above
+  // the product name in the section's `eyebrowColor`. Use it for
+  // category tags ("AI ENABLED", "FOR EDUCATION"), badge-style status
+  // ("EXCLUSIVE"), or product line ("PRO SERIES"). Empty by default;
+  // the renderer suppresses the wrapper element when blank.
+  eyebrow: "",
   // Optional rich-text blurb shown between the name and the price.
   // HTML payload from the same Tiptap editor used by FAQ answers and
   // Rich-text blocks — bold / italic / lists / links. Empty by default;
@@ -104,6 +110,12 @@ const defaults = () => ({
   // read like a normal article header. baseReset forces h-tags to
   // inherit text-align, so this value is applied to `.ns-wrap`.
   textAlign: "left",
+  // Horizontal alignment of the per-card body content (eyebrow,
+  // name, description, price). Independent of the section-level
+  // `textAlign` (which only affects the section heading + eyebrow at
+  // the top). "left" matches the historical look; "center" mimics
+  // the layout where every card reads like a small product page.
+  cardTextAlign: "left",
   // Vertical gap between the product name and the description (or
   // the price, when no description is set). Surfaced as a slider in
   // the editor so authors can dial in the card density they want —
@@ -141,6 +153,12 @@ function render(cfg) {
   const cols = Number(cfg.columns) === 4 ? 4 : 5;
   const gap = 18;
   const align = cfg.textAlign === "center" || cfg.textAlign === "right" ? cfg.textAlign : "left";
+  // Per-card body alignment — drives `.ns-card-body` text-align so the
+  // eyebrow / name / description / price all centre (or right-align)
+  // together. Description bullet markers are kept LEFT-aligned via an
+  // override on .ns-desc ul/ol so list lines don't end up centred with
+  // floating bullets — same pattern as richtext.js.
+  const cardAlign = cfg.cardTextAlign === "center" || cfg.cardTextAlign === "right" ? cfg.cardTextAlign : "left";
 
   // Currency override — empty means "Auto" (use whatever the scraper or
   // editor produced). Matching JS in the IIFE below uses the SAME regex
@@ -192,6 +210,7 @@ function render(cfg) {
       ${overlayHtml}
     </div>
     <div class="ns-card-body">
+      ${p.eyebrow ? `<p class="ns-card-eyebrow">${escHtml(p.eyebrow)}</p>` : ""}
       <h3 class="ns-name">${escHtml(p.name || "")}</h3>
       ${(() => { const d = coerceDescHtml(p.description); return d ? `<div class="ns-desc">${d}</div>` : ""; })()}
       <p class="ns-price"><span class="ns-price-amount">${escHtml(applyCur(p.price) || "")}</span>${p.priceSuffix ? `<span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
@@ -224,7 +243,8 @@ ${baseReset(cls)}
 .${cls} .ns-overlay-top-right{top:0;right:0}
 .${cls} .ns-overlay-bottom-left{bottom:0;left:0}
 .${cls} .ns-overlay-bottom-right{bottom:0;right:0}
-.${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto}
+.${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto;text-align:${cardAlign}}
+.${cls} .ns-card-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 6px}
 .${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 ${num(cfg.nameSpacing, 12)}px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .${cls} .ns-desc{font-size:13px;line-height:1.55;color:#4b5563;margin:0 0 12px}
 .${cls} .ns-desc>*:first-child{margin-top:0}
@@ -232,7 +252,7 @@ ${baseReset(cls)}
 .${cls} .ns-desc p{margin:0 0 8px}
 .${cls} .ns-desc strong{font-weight:600;color:#1f1f1f}
 .${cls} .ns-desc em{font-style:italic}
-.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:20px}
+.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:20px${cardAlign === "center" ? ";text-align:left;display:inline-block" : ""}}
 .${cls} .ns-desc ul{list-style:disc!important}
 .${cls} .ns-desc ol{list-style:decimal!important}
 .${cls} .ns-desc li{display:list-item;margin:0 0 4px}
@@ -376,6 +396,17 @@ function FormPanel({ config, onUpdate }) {
             { value: "right", label: "Right" },
           ]}
           testid="products-text-align"
+        />
+        <SelectField
+          label="Card text alignment"
+          value={config.cardTextAlign || "left"}
+          onChange={(v) => onUpdate({ cardTextAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="products-card-text-align"
         />
       </Group>
 
@@ -586,6 +617,13 @@ function FormPanel({ config, onUpdate }) {
                 onChange={(v) => updateProduct(p.id, { imageAlt: v })}
                 placeholder="Falls back to the product name"
                 testid={`product-image-alt-${p.id}`}
+              />
+              <TextField
+                label="Eyebrow (optional)"
+                placeholder='e.g. "AI ENABLED" or "EXCLUSIVE"'
+                value={p.eyebrow || ""}
+                onChange={(v) => updateProduct(p.id, { eyebrow: v })}
+                testid={`product-eyebrow-${p.id}`}
               />
               <TextField
                 label="Name"

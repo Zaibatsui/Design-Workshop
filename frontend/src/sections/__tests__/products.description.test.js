@@ -223,5 +223,89 @@ function cfgWith(description) {
   );
 }
 
+// ── 6. Per-card eyebrow renders above .ns-name in section eyebrow style
+{
+  // No eyebrow set → no .ns-card-eyebrow element emitted.
+  const dflt = products.render(products.defaults());
+  expect(
+    "defaults render with no per-card eyebrow",
+    !dflt.includes('class="ns-card-eyebrow"'),
+    "ns-card-eyebrow leaked into the default render"
+  );
+  // Set an eyebrow → renders above the name, escaped, in eyebrow style.
+  const cfg = cfgWith("");
+  cfg.products[0].eyebrow = "AI ENABLED";
+  const out = products.render(cfg);
+  const eyebrowPos = out.indexOf('class="ns-card-eyebrow"');
+  const namePos = out.indexOf('class="ns-name"');
+  expect(
+    ".ns-card-eyebrow renders when eyebrow value is set",
+    eyebrowPos > -1 && out.includes("AI ENABLED"),
+    `eyebrowPos=${eyebrowPos}`
+  );
+  expect(
+    ".ns-card-eyebrow sits ABOVE .ns-name in the DOM",
+    eyebrowPos > -1 && namePos > -1 && eyebrowPos < namePos,
+    `eyebrow=${eyebrowPos} name=${namePos}`
+  );
+  expect(
+    ".ns-card-eyebrow uses the section eyebrow colour CSS var",
+    /\.ns-card-eyebrow\{[^}]*color:var\(--ns-eyebrow-color\)/.test(out),
+    "missing --ns-eyebrow-color reference on .ns-card-eyebrow"
+  );
+  expect(
+    ".ns-card-eyebrow is uppercase + letter-spaced (eyebrow visual)",
+    /\.ns-card-eyebrow\{[^}]*text-transform:uppercase/.test(out) &&
+      /\.ns-card-eyebrow\{[^}]*letter-spacing:0\.14em/.test(out),
+    "missing uppercase / letter-spacing on .ns-card-eyebrow"
+  );
+  // Eyebrow text is HTML-escaped so user input can't break out of
+  // the element.
+  const xss = cfgWith("");
+  xss.products[0].eyebrow = "<script>x</script>";
+  const xssOut = products.render(xss);
+  expect(
+    "per-card eyebrow escapes HTML entities",
+    xssOut.includes("&lt;script&gt;") && !xssOut.includes("<script>x</script>"),
+    "raw <script> leaked through the eyebrow path"
+  );
+}
+
+// ── 7. Section-level cardTextAlign drives .ns-card-body text-align ──
+{
+  // Default → left.
+  const dflt = products.render(products.defaults());
+  expect(
+    "default cardTextAlign renders .ns-card-body as text-align:left",
+    /\.ns-card-body\{[^}]*text-align:left/.test(dflt),
+    "default card-body alignment should be left"
+  );
+  // Centre → text-align:center AND lists keep their bullets visible
+  // via `text-align:left; display:inline-block` override (same
+  // pattern as richtext.js).
+  const cfg = products.defaults();
+  cfg.cardTextAlign = "center";
+  const out = products.render(cfg);
+  expect(
+    "cardTextAlign=center renders .ns-card-body as text-align:center",
+    /\.ns-card-body\{[^}]*text-align:center/.test(out),
+    "card-body should centre when cardTextAlign=center"
+  );
+  expect(
+    "centred cards keep .ns-desc lists left-aligned + inline-block",
+    /\.ns-desc ul,\.[^.]*\.ns-desc ol\{[^}]*text-align:left;display:inline-block/.test(out),
+    "missing centred-list override — bullets will float in the middle"
+  );
+  // Right alignment is honoured too.
+  const right = products.defaults();
+  right.cardTextAlign = "right";
+  const rightOut = products.render(right);
+  expect(
+    "cardTextAlign=right renders .ns-card-body as text-align:right",
+    /\.ns-card-body\{[^}]*text-align:right/.test(rightOut),
+    "card-body should right-align when cardTextAlign=right"
+  );
+}
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);
 process.exit(failed ? 1 : 0);
