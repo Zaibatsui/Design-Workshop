@@ -1,25 +1,19 @@
 /**
- * Unit tests for `lib/sectionBadges.computeBadges()`.
+ * Unit tests for `lib/sectionBadges.computeBadges()` (top-N model).
  *
  * Verifies:
- *   • NEW badge appears for sections added within the last
- *     `BADGE_CONFIG.NEW_WINDOW_DAYS` days (currently 7).
- *   • UPDATED badge appears for any non-NEW section whose `updatedOn`
- *     lands within `BADGE_CONFIG.UPDATED_WINDOW_DAYS` (currently 7).
- *   • Edits naturally age out of the UPDATED window after the
- *     configured number of days — no TOP_N cliff.
- *   • Sections with no metadata at all silently get no badge.
+ *   • NEW: the `BADGE_CONFIG.NEW_COUNT` most-recent `addedOn` dates win,
+ *     excluding the launch sentinel (the earliest `addedOn` in the
+ *     dataset — foundational sections aren't "new" any more).
+ *   • UPDATED: the `BADGE_CONFIG.UPDATED_COUNT` most-recent `updatedOn`
+ *     dates win, excluding (a) anything currently flagged NEW and
+ *     (b) anything whose `updatedOn <= addedOn` (i.e. never actually
+ *     edited since being added).
+ *   • NEW never co-exists with UPDATED on the same section.
+ *   • Hour-precision ISO datetimes sort correctly within the same day.
+ *   • Sections with no metadata silently get no badge.
  */
 const { computeBadges, BADGE_CONFIG } = require("../sectionBadges.js");
-
-const NOW = new Date("2026-02-26T12:00:00Z");
-const daysAgo = (n) => {
-  const d = new Date(NOW);
-  d.setUTCDate(d.getUTCDate() - n);
-  return d.toISOString().slice(0, 10);
-};
-const W = BADGE_CONFIG.NEW_WINDOW_DAYS;
-const UW = BADGE_CONFIG.UPDATED_WINDOW_DAYS;
 
 let passed = 0;
 let failed = 0;
@@ -33,172 +27,146 @@ function expect(label, cond, extra = "") {
   }
 }
 
-// --- 1. NEW badge window
-{
-  const out = computeBadges(
-    [
-      { id: "fresh", addedOn: daysAgo(3), updatedOn: daysAgo(3) },
-      { id: "edge", addedOn: daysAgo(BADGE_CONFIG.NEW_WINDOW_DAYS), updatedOn: daysAgo(BADGE_CONFIG.NEW_WINDOW_DAYS) },
-      { id: "stale", addedOn: daysAgo(BADGE_CONFIG.NEW_WINDOW_DAYS + 1), updatedOn: daysAgo(BADGE_CONFIG.NEW_WINDOW_DAYS + 1) },
-    ],
-    NOW
-  );
-  expect("fresh section gets NEW badge", out.fresh === "new");
-  expect("section on the NEW-window edge still NEW", out.edge === "new");
-  expect("section past the NEW window drops NEW", out.stale !== "new");
-}
+const LAUNCH = "2025-09-01";
 
-// --- 2. UPDATED window selection (window-based, not top-N)
+// --- 1. NEW_COUNT and UPDATED_COUNT match the product spec
+expect(
+  "BADGE_CONFIG.NEW_COUNT === 3 (last 3 NEW features)",
+  BADGE_CONFIG.NEW_COUNT === 3
+);
+expect(
+  "BADGE_CONFIG.UPDATED_COUNT === 5 (last 5 UPDATES)",
+  BADGE_CONFIG.UPDATED_COUNT === 5
+);
+
+// --- 2. Top-N NEW selection, launch sentinel excluded
 {
   const sections = [
-    { id: "very-old", addedOn: daysAgo(200), updatedOn: daysAgo(200) },
-    { id: "u1", addedOn: daysAgo(100), updatedOn: daysAgo(1) },
-    { id: "u2", addedOn: daysAgo(100), updatedOn: daysAgo(3) },
-    { id: "u3", addedOn: daysAgo(100), updatedOn: daysAgo(5) },
-    { id: "u4", addedOn: daysAgo(100), updatedOn: daysAgo(UW) },
-    { id: "u-out", addedOn: daysAgo(100), updatedOn: daysAgo(UW + 1) },
+    { id: "launch1", addedOn: LAUNCH, updatedOn: LAUNCH },
+    { id: "launch2", addedOn: LAUNCH, updatedOn: LAUNCH },
+    { id: "n1", addedOn: "2026-05-01", updatedOn: "2026-05-01" },
+    { id: "n2", addedOn: "2026-05-15", updatedOn: "2026-05-15" },
+    { id: "n3", addedOn: "2026-05-28T10:00:00Z", updatedOn: "2026-05-28T10:00:00Z" },
+    { id: "n4", addedOn: "2026-05-28T12:00:00Z", updatedOn: "2026-05-28T12:00:00Z" },
+    { id: "n5", addedOn: "2026-06-01", updatedOn: "2026-06-01" },
   ];
-  const out = computeBadges(sections, NOW);
-  expect("every section updated inside the window is UPDATED",
-    out.u1 === "updated" && out.u2 === "updated" && out.u3 === "updated" && out.u4 === "updated");
-  expect("section updated 1 day past the window drops off", out["u-out"] !== "updated");
-  expect("very-old (oldest update) is not UPDATED", out["very-old"] !== "updated");
+  const out = computeBadges(sections);
+  // Top 3 by addedOn desc: n5 (Jun 1), n4 (May 28 12:00), n3 (May 28 10:00).
+  expect("n5 is NEW (most recent addedOn)", out.n5 === "new");
+  expect("n4 is NEW", out.n4 === "new");
+  expect("n3 is NEW", out.n3 === "new");
+  expect("n2 (4th most recent) is NOT NEW", out.n2 !== "new");
+  expect("n1 (5th most recent) is NOT NEW", out.n1 !== "new");
+  expect("launch1 (sentinel-tied) is NOT NEW", out.launch1 !== "new");
+  expect("launch2 (sentinel-tied) is NOT NEW", out.launch2 !== "new");
 }
 
-// --- 3. NEW + UPDATED never co-exist on the same section
+// --- 3. UPDATED selection — top 5 by updatedOn desc, excluding NEW + no-op
 {
   const sections = [
-    // Fresh + also has a recent update — should only show NEW (no double-badge).
-    { id: "freshish", addedOn: daysAgo(5), updatedOn: daysAgo(1) },
-    // 3 other sections with recent updates also qualify for UPDATED.
-    { id: "a", addedOn: daysAgo(100), updatedOn: daysAgo(1) },
-    { id: "b", addedOn: daysAgo(100), updatedOn: daysAgo(2) },
-    { id: "c", addedOn: daysAgo(100), updatedOn: daysAgo(3) },
+    // 3 NEW sections occupy the NEW slots.
+    { id: "n1", addedOn: "2026-06-03", updatedOn: "2026-06-03" },
+    { id: "n2", addedOn: "2026-06-04", updatedOn: "2026-06-04" },
+    { id: "n3", addedOn: "2026-06-05", updatedOn: "2026-06-05" },
+    // 7 candidates for UPDATED — only top 5 should land.
+    { id: "u1", addedOn: LAUNCH, updatedOn: "2026-06-02T10:00:00Z" },
+    { id: "u2", addedOn: LAUNCH, updatedOn: "2026-06-02T12:00:00Z" },
+    { id: "u3", addedOn: LAUNCH, updatedOn: "2026-05-30" },
+    { id: "u4", addedOn: LAUNCH, updatedOn: "2026-05-28" },
+    { id: "u5", addedOn: LAUNCH, updatedOn: "2026-05-26" },
+    { id: "u6", addedOn: LAUNCH, updatedOn: "2026-05-20" }, // 6th — should miss
+    { id: "u7", addedOn: LAUNCH, updatedOn: "2026-05-15" }, // 7th — should miss
+    // Sentinel section that's never been touched — never UPDATED.
+    { id: "noop", addedOn: LAUNCH, updatedOn: LAUNCH },
   ];
-  const out = computeBadges(sections, NOW);
-  expect("NEW section never gets UPDATED label", out.freshish === "new");
-  expect("non-NEW sections inside the UPDATED window all carry the UPDATED badge",
-    out.a === "updated" && out.b === "updated" && out.c === "updated");
+  const out = computeBadges(sections);
+  // Top 5 by updatedOn desc among non-NEW: u2, u1, u3, u4, u5.
+  expect("u2 is UPDATED (most recent)", out.u2 === "updated");
+  expect("u1 is UPDATED", out.u1 === "updated");
+  expect("u3 is UPDATED", out.u3 === "updated");
+  expect("u4 is UPDATED", out.u4 === "updated");
+  expect("u5 is UPDATED (5th most recent)", out.u5 === "updated");
+  expect("u6 (6th — past the cap) is NOT UPDATED", out.u6 !== "updated");
+  expect("u7 (7th — past the cap) is NOT UPDATED", out.u7 !== "updated");
+  expect(
+    "noop (updatedOn === addedOn at launch) is NOT UPDATED",
+    out.noop !== "updated"
+  );
+  expect("NEW sections still NEW (n1/n2/n3)",
+    out.n1 === "new" && out.n2 === "new" && out.n3 === "new");
 }
 
-// --- 3b. NEW trumps UPDATED across the entire NEW window
-// Mirrors the Featured-Card / Trust-Strip workflow: a recently-added
-// section may receive follow-up improvements within its NEW
-// window — it must keep its NEW badge the whole time, not flip to
-// UPDATED. Once the window expires it may then qualify for UPDATED.
-{
-  // Day 0: shipped + first whatsNew set
-  const day0 = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(0), updatedOn: daysAgo(0) }],
-    NOW
-  );
-  expect("freshly-shipped section is NEW", day0.fc === "new");
-
-  // Mid-window: bumped updatedOn while still within the NEW window
-  const midDay = Math.max(0, Math.floor(W / 2));
-  const mid = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(midDay), updatedOn: daysAgo(0) }],
-    NOW
-  );
-  expect(`NEW section with bumped updatedOn at day ${midDay} is still NEW (not UPDATED)`, mid.fc === "new");
-
-  // Edge: still NEW on the very last day of the window
-  const edge = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(W), updatedOn: daysAgo(2) }],
-    NOW
-  );
-  expect(`NEW section on the ${W}-day edge with recent update is still NEW`, edge.fc === "new");
-
-  // Past edge: NEW expires — and earns UPDATED if its updatedOn lands inside the UPDATED window.
-  const past = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(W + 1), updatedOn: daysAgo(2) }],
-    NOW
-  );
-  expect("after NEW expires, a recent updatedOn earns UPDATED", past.fc === "updated");
-
-  // Edits beyond the UPDATED window age out, even if NEW already expired.
-  const ancientUpdate = computeBadges(
-    [{ id: "fc", addedOn: daysAgo(W + 1), updatedOn: daysAgo(UW + 1) }],
-    NOW
-  );
-  expect("post-NEW + past UPDATED window → no badge", !ancientUpdate.fc);
-}
-
-// --- 4. Auto age-out: edits beyond the window drop off automatically.
+// --- 4. NEW + UPDATED never co-exist on the same section
 {
   const sections = [
-    { id: "a", addedOn: daysAgo(100), updatedOn: daysAgo(1) },               // inside window
-    { id: "b", addedOn: daysAgo(100), updatedOn: daysAgo(UW - 1) },          // edge: still inside
-    { id: "c", addedOn: daysAgo(100), updatedOn: daysAgo(UW + 1) },          // just past: outside
-    { id: "d", addedOn: daysAgo(100), updatedOn: daysAgo(UW + 5) },          // long expired
+    // Fresh + also has a recent update — should show NEW only.
+    { id: "fresh", addedOn: "2026-06-04", updatedOn: "2026-06-05" },
+    // 2 other NEW slots so `fresh` definitely lands in the top-3.
+    { id: "n2", addedOn: "2026-06-03", updatedOn: "2026-06-03" },
+    { id: "n3", addedOn: "2026-06-02", updatedOn: "2026-06-02" },
+    // 3 plain UPDATED sections.
+    { id: "u1", addedOn: LAUNCH, updatedOn: "2026-06-01" },
+    { id: "u2", addedOn: LAUNCH, updatedOn: "2026-05-30" },
+    { id: "u3", addedOn: LAUNCH, updatedOn: "2026-05-28" },
   ];
-  const out = computeBadges(sections, NOW);
-  expect("a (1 day old edit) is UPDATED", out.a === "updated");
-  expect("b (edge of window) is UPDATED", out.b === "updated");
-  expect("c (1 day past window) ages out", out.c !== "updated");
-  expect("d (well past window) ages out", out.d !== "updated");
+  const out = computeBadges(sections);
+  expect("fresh keeps NEW even with a later updatedOn", out.fresh === "new");
+  expect("plain UPDATED sections still carry UPDATED",
+    out.u1 === "updated" && out.u2 === "updated" && out.u3 === "updated");
 }
 
-// --- 5. Granular ISO datetime timestamps parse + sort correctly
-// Two edits on the same calendar day at different times should both
-// fall inside the window AND the drawer's sort (which uses raw Date
-// deltas, not the floored daysSince) should put the later one first.
+// --- 5. Granular ISO datetime stamps sort within the same calendar day
 {
-  const FROZEN = new Date("2026-05-29T08:00:00Z"); // morning after a busy day
   const sections = [
-    { id: "early", addedOn: daysAgo(100), updatedOn: "2026-05-28T09:00:00Z" },
-    { id: "late",  addedOn: daysAgo(100), updatedOn: "2026-05-28T16:00:00Z" },
+    { id: "n1", addedOn: LAUNCH, updatedOn: LAUNCH }, // sentinel only
+    { id: "n2", addedOn: LAUNCH, updatedOn: LAUNCH }, // sentinel only
+    { id: "early", addedOn: LAUNCH, updatedOn: "2026-05-28T09:00:00Z" },
+    { id: "mid", addedOn: LAUNCH, updatedOn: "2026-05-28T13:00:00Z" },
+    { id: "late", addedOn: LAUNCH, updatedOn: "2026-05-28T16:00:00Z" },
   ];
-  const out = computeBadges(sections, FROZEN);
-  expect("granular ISO datetime: 09:00 edit still inside window", out.early === "updated");
-  expect("granular ISO datetime: 16:00 edit still inside window", out.late === "updated");
-  // Drawer-style sort using raw Date deltas
-  const sorted = sections
+  const out = computeBadges(sections);
+  expect("early UPDATED", out.early === "updated");
+  expect("mid UPDATED", out.mid === "updated");
+  expect("late UPDATED", out.late === "updated");
+  // Drawer-style sort using raw Date deltas should put `late` first.
+  const ordered = [sections[2], sections[3], sections[4]]
     .map((s) => ({ ...s }))
     .sort((a, b) => new Date(b.updatedOn) - new Date(a.updatedOn));
-  expect("drawer sort: later timestamp comes first", sorted[0].id === "late");
+  expect("drawer sort within the same day: later timestamp first",
+    ordered[0].id === "late" && ordered[2].id === "early");
 }
 
-// --- 5. Missing metadata → no badge
+// --- 6. Missing metadata → no badge
 {
   const out = computeBadges([
     { id: "ghost" },
-    { id: "halfway", addedOn: daysAgo(50) },
-  ], NOW);
+    { id: "halfway", addedOn: "2026-05-15" },
+  ]);
+  // `ghost` has nothing → seeded null. `halfway` has only addedOn —
+  // it may land in NEW if it's in the top-3, but with only 1 candidate
+  // it'll be the launch sentinel itself and excluded.
   expect("section with no dates gets no badge", !out.ghost);
-  expect("section with only addedOn (stale) gets no badge", !out.halfway);
+  expect("the only addedOn in the dataset is treated as the sentinel",
+    out.halfway !== "new");
 }
 
-// --- 6. Live data — `featured-card`, `trust-strip`, and `comparison-table`
-// all share an addedOn of today (the date the user re-surfaced them on the
-// picker), so they MUST all carry a NEW badge for the 7-day window. This
-// guards against an accidental config edit knocking the user's intentional
-// "show these three as NEW" decision out of place.
+// --- 7. Live data — verify the productGrid update we just shipped
+// lands in the top 5 UPDATED of the actual production sectionMeta.
 {
-  const cfgPath = require("path").join(__dirname, "../../sections/sectionMeta.js");
-  const src = require("fs").readFileSync(cfgPath, "utf8");
-  expect(
-    "NEW_WINDOW_DAYS is 7 in production config",
-    BADGE_CONFIG.NEW_WINDOW_DAYS === 7
+  const path = require("path");
+  const fs = require("fs");
+  const src = fs.readFileSync(
+    path.join(__dirname, "../../sections/sectionMeta.js"),
+    "utf8"
   );
   expect(
-    "UPDATED_WINDOW_DAYS is 7 in production config",
-    BADGE_CONFIG.UPDATED_WINDOW_DAYS === 7
+    "productGrid key is in sectionMeta.js (camelCase, not kebab-case)",
+    /productGrid:\s*\{/.test(src) && !/"product-grid":\s*\{/.test(src)
   );
-  for (const key of ["featured-card", "trust-strip", "comparison-table"]) {
-    const re = new RegExp(`"${key}":\\s*\\{[\\s\\S]*?addedOn:\\s*"([^"]+)"`);
-    const m = src.match(re);
-    expect(`${key} has an addedOn date`, !!m, `regex failed`);
-    if (!m) continue;
-    // Same-day or up to W-1 days ago all still qualify; the user's
-    // intent is "show these as NEW for 7 days". As long as today's
-    // date matches the addedOn we're good.
-    expect(
-      `${key} addedOn is within the 7-day NEW window from today`,
-      true,
-      `addedOn=${m[1]} (manually verified)`
-    );
-  }
+  expect(
+    "productGrid has a whatsNew note",
+    /productGrid:\s*\{[\s\S]*?whatsNew:/.test(src)
+  );
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

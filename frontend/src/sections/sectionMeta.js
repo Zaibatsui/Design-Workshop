@@ -13,16 +13,18 @@
  *     `updatedOn` to today and update `whatsNew` to describe the change
  *     in plain language.
  *
- * NEW trumps UPDATED. A section within its 14-day NEW window keeps the
- * NEW badge even if its `updatedOn` is bumped (a follow-up improvement
- * on a brand-new section is still part of "what's new" — not yet
- * "what's changed"). Once the 14-day window expires the section may
- * then qualify for an UPDATED badge if its last `updatedOn` lands in
- * the 3 most-recent updates across the whole library.
+ * NEW trumps UPDATED. A section is NEW if its `addedOn` is one of the
+ * 3 most-recent `addedOn` dates across the whole library (excluding
+ * the launch sentinel — sections shipped on day-one don't count).
+ * A section is UPDATED if it's NOT currently NEW and its `updatedOn`
+ * is one of the 5 most-recent `updatedOn` dates AND `updatedOn` is
+ * strictly later than its own `addedOn` (so a section that's never
+ * been touched since launch doesn't qualify).
  *
- * Anything older than the NEW window (14 days) silently loses its
- * NEW badge. Anything outside the top-3 most-recent `updatedOn` dates
- * silently loses its UPDATED badge. No manual unflagging needed.
+ * Auto-rotation: shipping a new feature pushes the oldest NEW out of
+ * the top-3. Shipping a new edit pushes the oldest UPDATED out of the
+ * top-5. No manual unflagging needed — old entries silently age out
+ * as new ones land.
  *
  * Keys are section IDs (matching `SECTIONS_BY_ID`). Missing IDs fall
  * back to the platform launch date so they never qualify for badges.
