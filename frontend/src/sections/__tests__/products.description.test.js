@@ -335,5 +335,53 @@ function cfgWith(description) {
   );
 }
 
+// ── 9. descSpacing slider feeds .ns-desc paragraph/list spacing ────
+{
+  // Default → 6 px on paragraphs, list items, and the trailing
+  // margin under each list. All three driven by one slider so the
+  // editor exposes a single "description line spacing" control
+  // rather than three micro-knobs.
+  const dflt = products.render(products.defaults());
+  expect(
+    "default descSpacing renders as 6px margin-bottom on .ns-desc p",
+    /\.ns-desc p\{[^}]*margin:0 0 6px/.test(dflt),
+    ".ns-desc p margin should default to 6px"
+  );
+  expect(
+    "default descSpacing renders as 6px margin-bottom on .ns-desc li",
+    /\.ns-desc li\{[^}]*margin:0 0 6px/.test(dflt),
+    ".ns-desc li margin should default to 6px"
+  );
+  expect(
+    "default descSpacing renders as 6px margin-bottom on .ns-desc ul/ol",
+    /\.ns-desc ul,[^{]*\.ns-desc ol\{margin:0 0 6px/.test(dflt),
+    ".ns-desc ul/ol margin should default to 6px"
+  );
+  // Custom value flows through to all three.
+  const cfg = products.defaults();
+  cfg.descSpacing = 14;
+  const loose = products.render(cfg);
+  expect(
+    "custom descSpacing renders as 14px on .ns-desc p",
+    /\.ns-desc p\{[^}]*margin:0 0 14px/.test(loose),
+    "custom .ns-desc p margin should be 14px"
+  );
+  expect(
+    "custom descSpacing renders as 14px on .ns-desc li",
+    /\.ns-desc li\{[^}]*margin:0 0 14px/.test(loose),
+    "custom .ns-desc li margin should be 14px"
+  );
+  // Zero is honoured — useful when the carousel lives in a narrow
+  // category column and the author wants maximum density.
+  const tight = products.defaults();
+  tight.descSpacing = 0;
+  const flush = products.render(tight);
+  expect(
+    "descSpacing=0 renders as 0px on .ns-desc li",
+    /\.ns-desc li\{[^}]*margin:0 0 0px/.test(flush),
+    "zero descSpacing should produce 'margin:0 0 0px'"
+  );
+}
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);
 process.exit(failed ? 1 : 0);

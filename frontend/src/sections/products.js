@@ -122,6 +122,14 @@ const defaults = () => ({
   // tighter on shop fronts, more breathing room on storytelling
   // landing pages. Default of 12px matches the historical look.
   nameSpacing: 12,
+  // Vertical spacing between elements INSIDE the per-product
+  // description block — paragraphs, bullet/numbered list items, and
+  // the trailing margin under each list. One slider controls all
+  // three so authors can compress card density when the carousel
+  // lives inside a narrow container (e.g. a 845px category column)
+  // without exposing four micro-controls. Range 0-20px in the
+  // editor; 6px (today's loose default) flat across p / ul / ol / li.
+  descSpacing: 6,
   // "" = Auto (use whatever the scraper / user input already shows).
   // Anything else REPLACES the leading currency token on every rendered
   // price, including live-refreshed prices. See `swapCur` in the snippet
@@ -246,16 +254,16 @@ ${baseReset(cls)}
 .${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto;text-align:${cardAlign}}
 .${cls} .ns-card-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 6px}
 .${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 ${num(cfg.nameSpacing, 12)}px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.${cls} .ns-desc{font-size:13px;line-height:1.55;color:#4b5563;margin:0 0 12px}
+.${cls} .ns-desc{font-size:13px;line-height:1.55;color:#4b5563;margin:0 0 ${num(cfg.descSpacing, 6)}px}
 .${cls} .ns-desc>*:first-child{margin-top:0}
 .${cls} .ns-desc>*:last-child{margin-bottom:0}
-.${cls} .ns-desc p{margin:0 0 8px}
+.${cls} .ns-desc p{margin:0 0 ${num(cfg.descSpacing, 6)}px}
 .${cls} .ns-desc strong{font-weight:600;color:#1f1f1f}
 .${cls} .ns-desc em{font-style:italic}
-.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 8px;padding-left:0;list-style-position:inside}
+.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 ${num(cfg.descSpacing, 6)}px;padding-left:0;list-style-position:inside}
 .${cls} .ns-desc ul{list-style:disc inside!important}
 .${cls} .ns-desc ol{list-style:decimal inside!important}
-.${cls} .ns-desc li{display:list-item;margin:0 0 4px}
+.${cls} .ns-desc li{display:list-item;margin:0 0 ${num(cfg.descSpacing, 6)}px}
 .${cls} .ns-desc li>p{display:inline;margin:0}
 .${cls} .ns-desc a{color:var(--ns-price-color);text-decoration:underline;text-underline-offset:2px}
 .${cls} .ns-desc a:hover{opacity:.85}
@@ -486,6 +494,15 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ nameSpacing: v })}
           testid="products-name-spacing"
+        />
+        <SliderField
+          label="Description line spacing"
+          value={Number(config.descSpacing ?? 6)}
+          min={0}
+          max={20}
+          suffix="px"
+          onChange={(v) => onUpdate({ descSpacing: v })}
+          testid="products-desc-spacing"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
