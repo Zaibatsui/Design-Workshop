@@ -163,6 +163,12 @@ const baseDefaults = productGrid.defaults();
     /<div class="ns-grid" data-ns-mtrack>/.test(out)
   );
   expect(
+    "ON: arrows + grid wrapped in <div class=\"ns-mcwrap\">",
+    /<div class="ns-mcwrap">[\s\S]*?<div class="ns-grid" data-ns-mtrack>/.test(
+      out
+    )
+  );
+  expect(
     "ON: root carries data-ns-m-autoplay attr",
     /data-ns-m-autoplay="0"/.test(out)
   );
@@ -262,6 +268,30 @@ const baseDefaults = productGrid.defaults();
   expect(
     "arrows are display:none at desktop scope (outside the @media block)",
     /\.ns-marrow\{display:none\}/.test(out)
+  );
+  // ── Arrow positioning (traditional carousel layout) ───────────
+  expect(
+    ".ns-mcwrap is positioned relative — the anchor for the arrows",
+    /\.is-m-carousel \.ns-mcwrap\{position:relative\}/.test(out)
+  );
+  expect(
+    "arrows are vertically centred on the image (top:105px, translateY(-50%))",
+    /\.is-m-carousel \.ns-marrow\{[^}]*position:absolute[^}]*top:105px[^}]*transform:translateY\(-50%\)/.test(
+      out
+    )
+  );
+  expect(
+    "prev arrow sits on the LEFT side (left:4px)",
+    /\.is-m-carousel \.ns-mprev\{left:4px\}/.test(out)
+  );
+  expect(
+    "next arrow sits on the RIGHT side (right:4px)",
+    /\.is-m-carousel \.ns-mnext\{right:4px\}/.test(out)
+  );
+  // The legacy stacked-bottom-right positioning is gone.
+  expect(
+    "obsolete bottom:8px arrow positioning is removed",
+    !/\.is-m-carousel \.ns-marrow\{[^}]*bottom:8px/.test(out)
   );
 }
 

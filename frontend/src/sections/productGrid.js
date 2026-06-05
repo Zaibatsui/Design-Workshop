@@ -288,13 +288,19 @@ ${baseReset(cls)}
      the next one peeks in from the right and hints "swipe me". Scroll
      snap keeps each gesture landing on a whole card. */
   .${cls}.is-m-carousel{position:relative}
+  .${cls}.is-m-carousel .ns-mcwrap{position:relative}
   .${cls}.is-m-carousel .ns-grid{display:flex;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:12px;padding:4px 4px 8px;-webkit-overflow-scrolling:touch}
   .${cls}.is-m-carousel .ns-grid::-webkit-scrollbar{display:none}
   .${cls}.is-m-carousel .ns-card{flex:0 0 80%;scroll-snap-align:start}
-  .${cls}.is-m-carousel .ns-marrow{display:flex;position:absolute;bottom:8px;width:36px;height:36px;border-radius:50%;border:1px solid #e5e7eb;background:#fff;color:var(--ns-price-color);font-size:20px;line-height:1;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:3;padding:0;transition:background .15s ease}
+  /* Arrows: classic carousel position — vertically centred on the
+     product image (which sits at the top of each card and is 170px
+     content tall + 16px image padding-top, so its visual centre is
+     ~105px from the top of the track). Anchored to the wrapper so a
+     long description or heading doesn't drag them lower. */
+  .${cls}.is-m-carousel .ns-marrow{display:flex;position:absolute;top:105px;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:1px solid #e5e7eb;background:#fff;color:var(--ns-price-color);font-size:20px;line-height:1;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:3;padding:0;transition:background .15s ease}
   .${cls}.is-m-carousel .ns-marrow:hover{background:#f8fafc}
-  .${cls}.is-m-carousel .ns-mprev{right:52px}
-  .${cls}.is-m-carousel .ns-mnext{right:8px}
+  .${cls}.is-m-carousel .ns-mprev{left:4px}
+  .${cls}.is-m-carousel .ns-mnext{right:4px}
 }
 `.trim();
 
@@ -302,14 +308,27 @@ ${baseReset(cls)}
     ? `<button class="ns-marrow ns-mprev" type="button" data-ns-mprev aria-label="Previous">‹</button><button class="ns-marrow ns-mnext" type="button" data-ns-mnext aria-label="Next">›</button>`
     : "";
 
+  // When the mobile-carousel mode is active we wrap the arrows + grid
+  // in a `<div class="ns-mcwrap">` so the arrows can be positioned
+  // relative to the TRACK rather than `.ns-wrap` (which also contains
+  // the heading + eyebrow). Without the wrapper, vertically centring
+  // the arrows would shift them down past the cards whenever a long
+  // heading or description was present. The wrapper is omitted entirely
+  // when mobile-carousel is off, so existing snippets keep the
+  // unchanged `<h2>` → `<.ns-grid>` markup.
+  const trackBlock = isMCarousel
+    ? `<div class="ns-mcwrap">${mArrowsHtml}<div class="ns-grid" data-ns-mtrack>
+      ${cardsHtml}
+    </div></div>`
+    : `<div class="ns-grid">
+      ${cardsHtml}
+    </div>`;
+
   const html = `<section class="ns-pgrid ${cls}${fullBleedClass(cfg)}${isMCarousel ? " is-m-carousel" : ""}" style="${styleVars}"${isMCarousel ? ` data-ns-m-autoplay="${mAutoplay ? "1" : "0"}" data-ns-m-interval="${mInterval}"` : ""}>
   <div class="ns-wrap">
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     ${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
-    ${mArrowsHtml}
-    <div class="ns-grid"${isMCarousel ? " data-ns-mtrack" : ""}>
-      ${cardsHtml}
-    </div>
+    ${trackBlock}
   </div>
 </section>`;
 
