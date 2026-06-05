@@ -61,7 +61,7 @@ export const SECTION_META = {
     whatsNew:
       "Product Carousel now scrolls continuously in BOTH directions — the right-arrow infinite-loop bug is fixed, swipe-on-mobile loops too, and the carousel no longer drifts out of alignment after several full ring traversals. The corner-badge upload lives behind a clearer toggle so it's never mistaken for the main product photo.",
   },
-  "product-grid": {
+  productGrid: {
     addedOn: LAUNCH,
     updatedOn: "2026-06-05T12:00:00Z",
     whatsNew:

@@ -175,5 +175,43 @@ if (rt && typeof rt.defaults === "function") {
   );
 }
 
+// ─── SECTION_META key alignment ──────────────────────────────────────
+// Every key in sectionMeta.js's SECTION_META MUST match a real
+// `section.id` (which is what `metaFor(s.id)` looks up at registry
+// merge time). A camelCase / kebab-case mismatch silently falls
+// through to DEFAULT_META, which means the section's whatsNew copy
+// never reaches the What's-New drawer and the NEW/UPDATED badge
+// never appears on the Add-Section picker. This regression bit
+// productGrid (id="productGrid", meta key="product-grid") and would
+// trivially happen again next time a section uses a multi-word name.
+let meta;
+try {
+  meta = require("../sectionMeta.js");
+} catch (e) {
+  expect("sectionMeta.js: module loads", false, e.message);
+}
+if (meta && meta.SECTION_META) {
+  // Collect every real section id by loading each section module.
+  // `EXPORT_NAMES` already maps the one filename ↔ export-name kink
+  // (break.js → breakBanner) so we can derive the rest by convention.
+  // Richtext is registered separately (not in SPACING_REQUIRED) — load
+  // it explicitly so its id is in the set.
+  const realIds = new Set();
+  for (const id of [...SPACING_REQUIRED, "richtext"]) {
+    let mod2;
+    try { mod2 = require(`../${id}.js`); } catch { continue; }
+    const exportName = EXPORT_NAMES[id] || id;
+    const section = mod2[exportName] || mod2[id] || mod2.default || mod2;
+    if (section && section.id) realIds.add(section.id);
+  }
+  for (const key of Object.keys(meta.SECTION_META)) {
+    expect(
+      `sectionMeta.SECTION_META["${key}"] matches a real section id`,
+      realIds.has(key),
+      `key "${key}" has no section with id="${key}" — typo or kebab/camel mismatch (existing ids: ${[...realIds].join(", ")})`
+    );
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
