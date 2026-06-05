@@ -29,6 +29,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { categorizeGroupTitle } from "@/lib/studioCategorize";
 
 const STORAGE_PREFIX = "ns-form-open-group:";
 
@@ -95,11 +96,13 @@ export function FormAccordion({ sectionType, children, defaultOpen }) {
  */
 export function FormGroup({ title, children, value }) {
   const v = value || slug(title);
+  const studioCategory = categorizeGroupTitle(title);
   return (
     <AccordionItem
       value={v}
-      className="border border-slate-200 rounded-md bg-white overflow-hidden last:border-b"
+      className="border border-slate-200 rounded-md bg-white overflow-hidden last:border-b ns-studio-group"
       data-testid={`form-group-${v}`}
+      data-studio-category={studioCategory}
     >
       <AccordionTrigger
         className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-600 hover:no-underline hover:bg-slate-50 [&[data-state=open]]:bg-slate-50"
