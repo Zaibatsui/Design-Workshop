@@ -281,7 +281,7 @@ ${baseReset(cls)}
   const html = `<section class="ns-products ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${cfg.autoplay ? "1" : "0"}" data-ns-interval="${num(cfg.autoplayInterval, 4000)}" data-ns-poh="${cfg.pauseOnHover === false ? "0" : "1"}">
   <div class="ns-wrap">
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
-    <h2 class="ns-h">${escHtml(cfg.title)}</h2>
+    ${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
     ${arrowsHtml}
     <div class="ns-track" data-ns-track>
       ${cardsHtml}

@@ -383,5 +383,40 @@ function cfgWith(description) {
   );
 }
 
+// ── 10. Empty title suppresses the .ns-h heading element ───────────
+{
+  // Whitespace-only or empty title → no <h2 class="ns-h"> emitted so
+  // its 28px margin-bottom doesn't leave a phantom gap above the
+  // carousel when authors deliberately omit a heading (common in
+  // category-page embeds where the surrounding template already
+  // provides one).
+  const cfg = products.defaults();
+  cfg.title = "";
+  const empty = products.render(cfg);
+  expect(
+    "empty title suppresses the .ns-h element entirely",
+    !empty.includes('class="ns-h"'),
+    '.ns-h leaked into render even though title was ""'
+  );
+  // Same for whitespace-only.
+  const cfgWS = products.defaults();
+  cfgWS.title = "   ";
+  expect(
+    "whitespace-only title suppresses the .ns-h element",
+    !products.render(cfgWS).includes('class="ns-h"'),
+    '.ns-h leaked into render even though title was whitespace-only'
+  );
+  // Populated title → .ns-h renders normally (existing default
+  // behaviour preserved).
+  const cfgT = products.defaults();
+  cfgT.title = "Top offers";
+  const out = products.render(cfgT);
+  expect(
+    "populated title still renders the .ns-h element",
+    out.includes('class="ns-h">Top offers</h2>'),
+    ".ns-h regressed: populated title no longer emits the element"
+  );
+}
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);
 process.exit(failed ? 1 : 0);

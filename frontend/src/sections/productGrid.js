@@ -184,7 +184,7 @@ ${baseReset(cls)}
   const html = `<section class="ns-pgrid ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
   <div class="ns-wrap">
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
-    <h2 class="ns-h">${escHtml(cfg.title)}</h2>
+    ${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
     <div class="ns-grid">
       ${cardsHtml}
     </div>
