@@ -115,6 +115,24 @@ const defaults = () => ({
   // the trailing margin under each list. 6px = today's loose default,
   // mirrors the Product Carousel.
   descSpacing: 6,
+  // ─── Mobile carousel mode ──────────────────────────────────────────
+  // When ON, the grid layout collapses into a horizontal swipe-strip at
+  // ≤640px viewports (cards at 80% width with a 20% peek of the next
+  // card) while staying a normal stacked grid on desktop. OFF by
+  // default — existing sections continue to render as the legacy
+  // 2-up mobile grid. Mirrors the carousel section's clone-and-jump
+  // engine for a seamless forward infinite loop.
+  mobileCarousel: false,
+  // Sub-controls — only consulted when `mobileCarousel` is ON.
+  // Arrows: small ‹ / › buttons stacked over the bottom-right of the
+  // strip. They're CSS-hidden on desktop so they never leak into the
+  // grid layout.
+  mobileCarouselArrows: true,
+  // Autoplay: forward auto-advance on a timer. Pauses when the
+  // section is off-screen (IntersectionObserver, saves battery) and
+  // stops cleanly when the viewport widens past 640px.
+  mobileCarouselAutoplay: false,
+  mobileCarouselAutoplayInterval: 4000,
   currencyOverride: "",
   products: [],
 });
@@ -152,6 +170,18 @@ function render(cfg) {
     cfg.cardTextAlign === "center" || cfg.cardTextAlign === "right"
       ? cfg.cardTextAlign
       : "left";
+
+  // Mobile-only carousel mode. When ON, ≤640px viewports collapse the
+  // grid into a horizontal swipe-strip with optional arrows + autoplay;
+  // desktop layout is untouched. We emit the modifier class, arrow
+  // markup and autoplay data-attrs unconditionally so the snippet
+  // doesn't need to be re-rendered when the toggle flips — the CSS
+  // gates everything via `.is-m-carousel` and a `@media (max-width:640px)`
+  // block, and the JS gates itself via `matchMedia`.
+  const isMCarousel = !!cfg.mobileCarousel;
+  const mArrows = isMCarousel && cfg.mobileCarouselArrows !== false;
+  const mAutoplay = isMCarousel && !!cfg.mobileCarouselAutoplay;
+  const mInterval = num(cfg.mobileCarouselAutoplayInterval, 4000);
 
   const cur = typeof cfg.currencyOverride === "string" ? cfg.currencyOverride : "";
   const CUR_STRIP_RE = /^\s*(?:[£$€¥₹₪₺₽]+|GBP|USD|EUR|JPY|SEK|NOK|DKK|CHF|AUD|CAD|NZD|HKD|SGD|kr|zł|Kč|Ft|R\$|AED|SAR|ZAR|INR|PLN|CZK|HUF|RUB|TRY|ILS|CNY|MXN|BRL)\s*/i;
@@ -246,15 +276,38 @@ ${baseReset(cls)}
 .${cls} .ns-price{font-size:18px;font-weight:600;color:var(--ns-price-color);margin:auto 0 0}
 .${cls} .ns-price-amount{display:inline-block}
 .${cls} .ns-price-suffix{font-size:12px;font-weight:400;color:#6b7280;margin-left:4px}
+/* Mobile carousel arrows — hidden on desktop, shown only when
+   .is-m-carousel + viewport ≤640px (see media query below). */
+.${cls} .ns-marrow{display:none}
 @media (max-width:1024px){.${cls} .ns-grid{grid-template-columns:repeat(${Math.min(cols, 3)},1fr)}}
-@media (max-width:640px){.${cls} .ns-grid{grid-template-columns:repeat(${Math.min(cols, 2)},1fr)}}
+@media (max-width:640px){
+  .${cls} .ns-grid{grid-template-columns:repeat(${Math.min(cols, 2)},1fr)}
+  /* ── Mobile carousel mode ────────────────────────────────────────
+     When .is-m-carousel is set on the root section, the grid collapses
+     into a horizontal swipe-strip. Cards take 80% of the viewport so
+     the next one peeks in from the right and hints "swipe me". Scroll
+     snap keeps each gesture landing on a whole card. */
+  .${cls}.is-m-carousel{position:relative}
+  .${cls}.is-m-carousel .ns-grid{display:flex;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:12px;padding:4px 4px 8px;-webkit-overflow-scrolling:touch}
+  .${cls}.is-m-carousel .ns-grid::-webkit-scrollbar{display:none}
+  .${cls}.is-m-carousel .ns-card{flex:0 0 80%;scroll-snap-align:start}
+  .${cls}.is-m-carousel .ns-marrow{display:flex;position:absolute;bottom:8px;width:36px;height:36px;border-radius:50%;border:1px solid #e5e7eb;background:#fff;color:var(--ns-price-color);font-size:20px;line-height:1;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:3;padding:0;transition:background .15s ease}
+  .${cls}.is-m-carousel .ns-marrow:hover{background:#f8fafc}
+  .${cls}.is-m-carousel .ns-mprev{right:52px}
+  .${cls}.is-m-carousel .ns-mnext{right:8px}
+}
 `.trim();
 
-  const html = `<section class="ns-pgrid ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const mArrowsHtml = mArrows
+    ? `<button class="ns-marrow ns-mprev" type="button" data-ns-mprev aria-label="Previous">‹</button><button class="ns-marrow ns-mnext" type="button" data-ns-mnext aria-label="Next">›</button>`
+    : "";
+
+  const html = `<section class="ns-pgrid ${cls}${fullBleedClass(cfg)}${isMCarousel ? " is-m-carousel" : ""}" style="${styleVars}"${isMCarousel ? ` data-ns-m-autoplay="${mAutoplay ? "1" : "0"}" data-ns-m-interval="${mInterval}"` : ""}>
   <div class="ns-wrap">
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     ${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
-    <div class="ns-grid">
+    ${mArrowsHtml}
+    <div class="ns-grid"${isMCarousel ? " data-ns-mtrack" : ""}>
       ${cardsHtml}
     </div>
   </div>
@@ -268,12 +321,60 @@ ${baseReset(cls)}
       ? productLiveJs({ cur, apiBase })
       : "";
 
-  const js = liveJs ? iife(cls, liveJs) : "";
+  // ─── Mobile-carousel engine ──────────────────────────────────────
+  // Activates only when:
+  //   • `mobileCarousel` toggle is ON (modifier class on root)
+  //   • viewport matches `(max-width: 640px)` (matchMedia gate)
+  // On a mobile match: clones cards at both ends so forward scroll
+  // never hits a hard edge (clone-and-jump infinite loop), wires the
+  // optional arrow buttons, and optionally autoplays with an
+  // IntersectionObserver pause-when-off-screen. When the viewport
+  // crosses back to >640px the engine tears down its clones and
+  // resets the track scroll so the desktop grid layout is pristine.
+  //
+  // Kept inline here (rather than promoted to `shared.js`) because it's
+  // the only section that needs a mobile-only carousel today; if
+  // another section grows the same feature we'll lift it out then.
+  const mCarouselJs = isMCarousel
+    ? `var mq=window.matchMedia?window.matchMedia("(max-width: 640px)"):null;
+var mTrack=root.querySelector("[data-ns-mtrack]");
+var mPrev=root.querySelector("[data-ns-mprev]");
+var mNext=root.querySelector("[data-ns-mnext]");
+if(mTrack){
+  var mRealCards=Array.prototype.slice.call(mTrack.querySelectorAll(".ns-card"));
+  var mAp=root.getAttribute("data-ns-m-autoplay")==="1";
+  var mInt=parseInt(root.getAttribute("data-ns-m-interval"),10)||4000;
+  var mTimer=null,mIsVis=true,mActive=false,mIo=null,mScrollT=null;
+  var mReduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var mSmooth=mReduced?"auto":"smooth";
+  function mGapPx(){return parseInt(getComputedStyle(mTrack).gap,10)||12;}
+  function mCardStep(){var cs=mTrack.querySelectorAll(".ns-card");if(cs.length>=2)return cs[1].offsetLeft-cs[0].offsetLeft;return cs[0]?cs[0].offsetWidth+mGapPx():0;}
+  function mCloneCount(){var st=mCardStep()||1;var vis=Math.ceil((mTrack.clientWidth||0)/st);return Math.min(mRealCards.length,Math.max(2,vis+1));}
+  function mRemoveClones(){var cs=mTrack.querySelectorAll("[data-ns-clone]");for(var i=0;i<cs.length;i++)cs[i].parentNode.removeChild(cs[i]);}
+  function mAddClones(){if(mRealCards.length<2)return;mRemoveClones();var N=mCloneCount();var fp=document.createDocumentFragment();var fq=document.createDocumentFragment();for(var i=mRealCards.length-N;i<mRealCards.length;i++){var c=mRealCards[i].cloneNode(true);c.setAttribute("data-ns-clone","pre");c.removeAttribute("id");c.removeAttribute("data-ns-src");fp.appendChild(c);}for(var j=0;j<N;j++){var c2=mRealCards[j].cloneNode(true);c2.setAttribute("data-ns-clone","post");c2.removeAttribute("id");c2.removeAttribute("data-ns-src");fq.appendChild(c2);}mTrack.insertBefore(fp,mTrack.firstChild);mTrack.appendChild(fq);}
+  function mSyncStart(){var f=mTrack.querySelector(".ns-card:not([data-ns-clone])");if(!f)return;mTrack.style.scrollBehavior="auto";mTrack.scrollLeft=f.offsetLeft;void mTrack.offsetWidth;mTrack.style.scrollBehavior=mSmooth;}
+  function mGo(dir){var cards=mTrack.querySelectorAll(".ns-card");if(!cards.length)return;var sl=mTrack.scrollLeft;var curIdx=0,bd=Infinity;for(var i=0;i<cards.length;i++){var dd=Math.abs(cards[i].offsetLeft-sl);if(dd<bd){bd=dd;curIdx=i;}}var nx=Math.max(0,Math.min(cards.length-1,curIdx+dir));mTrack.scrollTo({left:cards[nx].offsetLeft,behavior:mSmooth});}
+  function mMaybeWrap(){if(mRealCards.length<2)return;var fr=mTrack.querySelector(".ns-card:not([data-ns-clone])");if(!fr)return;var fpst=mTrack.querySelector('.ns-card[data-ns-clone="post"]');if(!fpst)return;var d=fpst.offsetLeft-fr.offsetLeft;var sl=mTrack.scrollLeft;if(sl>=fpst.offsetLeft-2){mTrack.style.scrollBehavior="auto";mTrack.scrollLeft=sl-d;void mTrack.offsetWidth;mTrack.style.scrollBehavior=mSmooth;}else if(sl<fr.offsetLeft-2){mTrack.style.scrollBehavior="auto";mTrack.scrollLeft=sl+d;void mTrack.offsetWidth;mTrack.style.scrollBehavior=mSmooth;}}
+  function mOnScroll(){clearTimeout(mScrollT);mScrollT=setTimeout(mMaybeWrap,120);}
+  function mStartTimer(){if(!mAp||!mActive||mRealCards.length<2)return;mStopTimer();mTimer=setInterval(function(){if(mIsVis&&mActive)mGo(1);},mInt);}
+  function mStopTimer(){if(mTimer){clearInterval(mTimer);mTimer=null;}}
+  function mPrevClick(){mGo(-1);mStartTimer();}
+  function mNextClick(){mGo(1);mStartTimer();}
+  function mActivate(){if(mActive)return;mActive=true;mAddClones();mTrack.addEventListener("scroll",mOnScroll,{passive:true});if(mPrev)mPrev.addEventListener("click",mPrevClick);if(mNext)mNext.addEventListener("click",mNextClick);if(typeof IntersectionObserver==="function"){mIo=new IntersectionObserver(function(es){mIsVis=!!(es[0]&&es[0].isIntersecting);if(!mIsVis)mStopTimer();else mStartTimer();});mIo.observe(root);}requestAnimationFrame(function(){mSyncStart();mStartTimer();});}
+  function mDeactivate(){if(!mActive)return;mActive=false;mStopTimer();mTrack.removeEventListener("scroll",mOnScroll);if(mPrev)mPrev.removeEventListener("click",mPrevClick);if(mNext)mNext.removeEventListener("click",mNextClick);if(mIo){mIo.disconnect();mIo=null;}mRemoveClones();mTrack.style.scrollBehavior="auto";mTrack.scrollLeft=0;mTrack.style.scrollBehavior="";}
+  function mSync(){if(mq&&mq.matches)mActivate();else mDeactivate();}
+  if(mq){mSync();if(mq.addEventListener)mq.addEventListener("change",mSync);else if(mq.addListener)mq.addListener(mSync);}
+}
+`
+    : "";
+
+  const body = `${mCarouselJs}${liveJs}`;
+  const js = body ? iife(cls, body) : "";
 
   return wrapSnippet({ html, css, js });
 }
 
-function FormPanel({ config, onUpdate }) {
+function FormPanel({ config, onUpdate, previewMode }) {
   const [fetchUrl, setFetchUrl] = useState("");
   const [fetching, setFetching] = useState(false);
 
@@ -400,6 +501,49 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="pgrid-full-bleed"
         />
+        {previewMode === "mobile" && (
+          <>
+            <ToggleField
+              label="Use carousel on mobile"
+              description="Phones only — at ≤640px the grid becomes a horizontal swipe-strip (80% card width with a peek of the next). Desktop layout is untouched."
+              checked={!!config.mobileCarousel}
+              onChange={(v) => onUpdate({ mobileCarousel: v })}
+              testid="pgrid-mobile-carousel"
+            />
+            {config.mobileCarousel && (
+              <div className="pl-4 border-l-2 border-slate-200 space-y-3">
+                <ToggleField
+                  label="Show arrows"
+                  description="Small ‹ / › buttons stacked over the bottom-right of the strip."
+                  checked={config.mobileCarouselArrows !== false}
+                  onChange={(v) => onUpdate({ mobileCarouselArrows: v })}
+                  testid="pgrid-mobile-carousel-arrows"
+                />
+                <ToggleField
+                  label="Autoplay"
+                  description="Forward auto-advance on a timer. Pauses when the section scrolls off-screen."
+                  checked={!!config.mobileCarouselAutoplay}
+                  onChange={(v) => onUpdate({ mobileCarouselAutoplay: v })}
+                  testid="pgrid-mobile-carousel-autoplay"
+                />
+                {config.mobileCarouselAutoplay && (
+                  <SliderField
+                    label="Autoplay interval"
+                    value={Number(config.mobileCarouselAutoplayInterval) || 4000}
+                    min={2000}
+                    max={12000}
+                    step={500}
+                    suffix="ms"
+                    onChange={(v) =>
+                      onUpdate({ mobileCarouselAutoplayInterval: v })
+                    }
+                    testid="pgrid-mobile-carousel-interval"
+                  />
+                )}
+              </div>
+            )}
+          </>
+        )}
         <PaddingFields
           config={config}
           onUpdate={onUpdate}

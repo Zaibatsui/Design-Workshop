@@ -63,9 +63,9 @@ export const SECTION_META = {
   },
   "product-grid": {
     addedOn: LAUNCH,
-    updatedOn: "2026-06-05",
+    updatedOn: "2026-06-05T12:00:00Z",
     whatsNew:
-      "Each card now supports an optional Eyebrow label and a full rich-text Description (bold / italic / links / lists / alignment) between the name and price — same Tiptap editor used by the Product Carousel. New Header control: Card text alignment (Left / Center / Right) applies to the eyebrow, name, description and price together. Two new sliders in Defaults: Space below product name and Description line spacing — dial in card density without exposing four micro-controls.",
+      "Optional Mobile Carousel mode (off by default). Switch the editor to the mobile preview and flip the new Defaults toggle — at ≤640px viewports the grid collapses into a horizontal swipe-strip with 80% card width plus a peek of the next, while desktop stays a normal stacked grid. Sub-controls for arrows and autoplay become available when the toggle is on, with seamless forward infinite-loop scrolling and pause-when-off-screen. Plus the new Card text alignment header control and the per-card rich-text Description / Eyebrow fields ported across from the Product Carousel.",
   },
   resources: {
     addedOn: LAUNCH,
