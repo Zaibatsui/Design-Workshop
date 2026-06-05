@@ -63,9 +63,9 @@ export const SECTION_META = {
   },
   "product-grid": {
     addedOn: LAUNCH,
-    updatedOn: "2026-05-26",
+    updatedOn: "2026-06-05",
     whatsNew:
-      "The optional corner-badge upload is now tucked behind a small disclosure with clearer wording — no more mistaking it for the main product photo.",
+      "Each card now supports an optional Eyebrow label and a full rich-text Description (bold / italic / links / lists / alignment) between the name and price — same Tiptap editor used by the Product Carousel. New Header control: Card text alignment (Left / Center / Right) applies to the eyebrow, name, description and price together. Two new sliders in Defaults: Space below product name and Description line spacing — dial in card density without exposing four micro-controls.",
   },
   resources: {
     addedOn: LAUNCH,

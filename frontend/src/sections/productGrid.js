@@ -31,6 +31,7 @@ import {
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,9 +42,40 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL;
 
 const ID = "productGrid";
 
+/**
+ * Coerces a stored per-product description into safe HTML for rendering
+ * / Tiptap loading. Identical contract to the Product Carousel helper
+ * of the same name (kept duplicated rather than imported across so each
+ * section file remains a self-contained snippet generator).
+ *  - Empty / whitespace → "" (caller suppresses the wrapper element).
+ *  - HTML-looking string → trusted, passed through (it came from our
+ *    own editor, identical trust model to the Rich Text block).
+ *  - Plain text → escaped, paragraph-split on blank lines, `\n` becomes
+ *    `<br/>` so legacy hand-typed values still render sensibly.
+ */
+function coerceDescHtml(desc) {
+  const s = String(desc || "");
+  if (!s.trim()) return "";
+  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(s);
+  if (looksLikeHtml) return s;
+  return s
+    .split(/\n{2,}/)
+    .map((para) => `<p>${escHtml(para).replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+}
+
 const sampleProduct = () => ({
   id: makeUid(),
   name: "",
+  // Optional per-card eyebrow — short uppercase label rendered above the
+  // product name in the section's `eyebrowColor`. Same contract as the
+  // Product Carousel: blank by default; the renderer suppresses the
+  // wrapper element when empty.
+  eyebrow: "",
+  // Optional rich-text blurb shown between the name and the price.
+  // HTML payload from the same Tiptap editor used by FAQ answers and
+  // Rich-text blocks — bold / italic / lists / links / alignment.
+  description: "",
   price: "",
   priceSuffix: "Excl VAT",
   image: "",
@@ -68,7 +100,21 @@ const defaults = () => ({
   paddingTop: 60,
   paddingBottom: 60,
   fullBleed: false,
+  // Section-heading alignment (the header eyebrow + h2 above the grid).
   textAlign: "left",
+  // Horizontal alignment of the per-card body content (eyebrow, name,
+  // description, price). Independent of `textAlign` — mirrors the
+  // Product Carousel so the two sections feel identical to author.
+  cardTextAlign: "left",
+  // Vertical gap between the product name and the description (or
+  // the price, when no description is set). Default 12px matches the
+  // historical look of the grid card.
+  nameSpacing: 12,
+  // Vertical spacing between elements INSIDE the per-product
+  // description block — paragraphs, bullet / numbered list items, and
+  // the trailing margin under each list. 6px = today's loose default,
+  // mirrors the Product Carousel.
+  descSpacing: 6,
   currencyOverride: "",
   products: [],
 });
@@ -98,6 +144,13 @@ function render(cfg) {
   const align =
     cfg.textAlign === "center" || cfg.textAlign === "right"
       ? cfg.textAlign
+      : "left";
+  // Per-card body alignment — drives `.ns-card-body` text-align so the
+  // eyebrow / name / description / price all align together. Mirrors
+  // the Product Carousel contract.
+  const cardAlign =
+    cfg.cardTextAlign === "center" || cfg.cardTextAlign === "right"
+      ? cfg.cardTextAlign
       : "left";
 
   const cur = typeof cfg.currencyOverride === "string" ? cfg.currencyOverride : "";
@@ -147,7 +200,9 @@ function render(cfg) {
       ${overlayHtml}
     </div>
     <div class="ns-card-body">
+      ${p.eyebrow ? `<p class="ns-card-eyebrow">${escHtml(p.eyebrow)}</p>` : ""}
       <h3 class="ns-name">${escHtml(p.name || "")}</h3>
+      ${(() => { const d = coerceDescHtml(p.description); return d ? `<div class="ns-desc">${d}</div>` : ""; })()}
       <p class="ns-price"><span class="ns-price-amount">${escHtml(applyCur(p.price) || "")}</span>${p.priceSuffix ? `<span class="ns-price-suffix">${escHtml(p.priceSuffix)}</span>` : ""}</p>
     </div>
   </a>
@@ -172,8 +227,22 @@ ${baseReset(cls)}
 .${cls} .ns-overlay-top-right{top:0;right:0}
 .${cls} .ns-overlay-bottom-left{bottom:0;left:0}
 .${cls} .ns-overlay-bottom-right{bottom:0;right:0}
-.${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto}
-.${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
+.${cls} .ns-card-body{padding:0 16px 18px;display:flex;flex-direction:column;flex:1 1 auto;text-align:${cardAlign}}
+.${cls} .ns-card-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 6px}
+.${cls} .ns-name{font-size:15px;line-height:1.4;font-weight:500;color:#1f1f1f;margin:0 0 ${num(cfg.nameSpacing, 12)}px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
+.${cls} .ns-desc{font-size:13px;line-height:1.55;color:#4b5563;margin:0 0 ${num(cfg.descSpacing, 6)}px}
+.${cls} .ns-desc>*:first-child{margin-top:0}
+.${cls} .ns-desc>*:last-child{margin-bottom:0}
+.${cls} .ns-desc p{margin:0 0 ${num(cfg.descSpacing, 6)}px}
+.${cls} .ns-desc strong{font-weight:600;color:#1f1f1f}
+.${cls} .ns-desc em{font-style:italic}
+.${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 ${num(cfg.descSpacing, 6)}px;padding-left:0;list-style-position:inside}
+.${cls} .ns-desc ul{list-style:disc inside!important}
+.${cls} .ns-desc ol{list-style:decimal inside!important}
+.${cls} .ns-desc li{display:list-item;margin:0 0 ${num(cfg.descSpacing, 6)}px}
+.${cls} .ns-desc li>p{display:inline;margin:0}
+.${cls} .ns-desc a{color:var(--ns-price-color);text-decoration:underline;text-underline-offset:2px}
+.${cls} .ns-desc a:hover{opacity:.85}
 .${cls} .ns-price{font-size:18px;font-weight:600;color:var(--ns-price-color);margin:auto 0 0}
 .${cls} .ns-price-amount{display:inline-block}
 .${cls} .ns-price-suffix{font-size:12px;font-weight:400;color:#6b7280;margin-left:4px}
@@ -297,6 +366,17 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="pgrid-text-align"
         />
+        <SelectField
+          label="Card text alignment"
+          value={config.cardTextAlign || "left"}
+          onChange={(v) => onUpdate({ cardTextAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="pgrid-card-text-align"
+        />
       </Group>
 
       <Group title="Defaults" value="defaults">
@@ -336,6 +416,24 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="pgrid-heading-size"
+        />
+        <SliderField
+          label="Space below product name"
+          value={Number(config.nameSpacing ?? 12)}
+          min={0}
+          max={40}
+          suffix="px"
+          onChange={(v) => onUpdate({ nameSpacing: v })}
+          testid="pgrid-name-spacing"
+        />
+        <SliderField
+          label="Description line spacing"
+          value={Number(config.descSpacing ?? 6)}
+          min={0}
+          max={20}
+          suffix="px"
+          onChange={(v) => onUpdate({ descSpacing: v })}
+          testid="pgrid-desc-spacing"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
@@ -469,11 +567,34 @@ function FormPanel({ config, onUpdate }) {
                 testid={`pgrid-image-alt-${p.id}`}
               />
               <TextField
+                label="Eyebrow (optional)"
+                placeholder='e.g. "AI ENABLED" or "EXCLUSIVE"'
+                value={p.eyebrow || ""}
+                onChange={(v) => updateProduct(p.id, { eyebrow: v })}
+                testid={`pgrid-eyebrow-${p.id}`}
+              />
+              <TextField
                 label="Name"
                 value={p.name}
                 onChange={(v) => updateProduct(p.id, { name: v })}
                 testid={`pgrid-name-${p.id}`}
               />
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-slate-700">
+                  Description <span className="text-slate-400 font-normal">(optional)</span>
+                </Label>
+                <RichTextEditor
+                  html={coerceDescHtml(p.description)}
+                  onChange={(v) => updateProduct(p.id, { description: v })}
+                  tools={["bold", "italic", "ul", "ol", "link", "align"]}
+                  inheritedAlign={config.cardTextAlign || "left"}
+                />
+                <p className="text-[11px] text-slate-500">
+                  Short blurb shown between the product name and price. Select
+                  text to add links, bold or italics — links inherit the card&apos;s
+                  price colour by default.
+                </p>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <TextField
                   label="Price"
