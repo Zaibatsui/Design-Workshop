@@ -38,8 +38,45 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  /**
+   * Admin-only UI experiment toggle. Optimistically updates the local
+   * `user.ui_mode` so the layout swaps instantly, then persists the
+   * choice to the backend. If the server rejects (403 for non-admins,
+   * 400 for invalid value) the optimistic update is rolled back so
+   * the UI stays honest. Returns `true` on success.
+   */
+  const setUiMode = useCallback(
+    async (next) => {
+      if (!user) return false;
+      if (next !== "classic" && next !== "studio") return false;
+      const prev = user.ui_mode || "classic";
+      if (prev === next) return true;
+      setUser({ ...user, ui_mode: next });
+      try {
+        const r = await fetch(`${API}/api/auth/me/ui-mode`, {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ui_mode: next }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const fresh = await r.json();
+        setUser(fresh);
+        return true;
+      } catch (e) {
+        if (process.env.NODE_ENV !== "production")
+          console.warn("ui_mode update failed:", e);
+        setUser({ ...user, ui_mode: prev });
+        return false;
+      }
+    },
+    [user]
+  );
+
   return (
-    <AuthCtx.Provider value={{ user, loading, setUser, checkAuth, logout }}>
+    <AuthCtx.Provider
+      value={{ user, loading, setUser, checkAuth, logout, setUiMode }}
+    >
       {children}
     </AuthCtx.Provider>
   );

@@ -55,6 +55,12 @@ class User(BaseModel):
     last_login_at: Optional[datetime] = None
     is_active: bool = True
     is_admin: bool = False
+    # Admin-only UI experiment toggle. "classic" = the original layout,
+    # "studio" = the new Workspace-+-Inspector chrome. Persisted on the
+    # user record so the choice survives across sessions. Non-admin
+    # accounts always render "classic" (the toggle UI isn't surfaced
+    # to them and the studio routes fall back to the classic layout).
+    ui_mode: str = "classic"
 
 
 async def get_current_user(

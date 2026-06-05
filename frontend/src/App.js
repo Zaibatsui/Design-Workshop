@@ -9,6 +9,8 @@ import ProtectedRoute from "@/auth/ProtectedRoute";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Editor from "@/pages/Editor";
+import StudioEditor from "@/pages/studio/Editor";
+import StudioOrClassic from "@/components/studio/StudioOrClassic";
 import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
 import UserGuide from "@/pages/UserGuide";
@@ -145,7 +147,7 @@ function App() {
                 path="/edit/section/:sectionId"
                 element={
                   <ProtectedRoute>
-                    <Editor />
+                    <StudioOrClassic classic={Editor} studio={StudioEditor} />
                   </ProtectedRoute>
                 }
               />

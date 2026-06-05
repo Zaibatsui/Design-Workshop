@@ -11,8 +11,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from authlib.integrations.starlette_client import OAuth, OAuthError
-from fastapi import APIRouter, Cookie, Depends, Request, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 
 from db import db
 from deps import SESSION_COOKIE, SESSION_TTL_DAYS, User, get_current_user
@@ -111,6 +112,38 @@ async def google_callback(request: Request):
 @router.get("/me", response_model=User)
 async def auth_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+class UIModeUpdate(BaseModel):
+    ui_mode: str
+
+
+@router.patch("/me/ui-mode", response_model=User)
+async def update_ui_mode(
+    payload: UIModeUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    """Admin-only switch between the Classic and Studio UI shells.
+
+    The choice is persisted on the user document so it sticks across
+    sessions and browsers. Non-admins are 403'd here even though the
+    toggle UI isn't surfaced to them — defence in depth.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    if payload.ui_mode not in ("classic", "studio"):
+        raise HTTPException(
+            status_code=400, detail="ui_mode must be 'classic' or 'studio'"
+        )
+    await db.users.update_one(
+        {"user_id": current_user.user_id},
+        {"$set": {"ui_mode": payload.ui_mode}},
+    )
+    updated = await db.users.find_one(
+        {"user_id": current_user.user_id}, {"_id": 0}
+    )
+    updated["is_admin"] = current_user.is_admin
+    return User(**updated)
 
 
 @router.post("/logout")
