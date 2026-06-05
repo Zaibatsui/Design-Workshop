@@ -10,6 +10,9 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Editor from "@/pages/Editor";
 import StudioEditor from "@/pages/studio/Editor";
+import StudioDashboard from "@/pages/studio/Dashboard";
+import StudioBrandKit from "@/pages/studio/BrandKit";
+import { StudioAdminTickets, StudioMyTickets } from "@/pages/studio/Tickets";
 import StudioOrClassic from "@/components/studio/StudioOrClassic";
 import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
@@ -99,7 +102,7 @@ function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <StudioOrClassic classic={Dashboard} studio={StudioDashboard} />
                   </ProtectedRoute>
                 }
               />
@@ -107,7 +110,7 @@ function App() {
                 path="/brand"
                 element={
                   <ProtectedRoute>
-                    <BrandKitPage />
+                    <StudioOrClassic classic={BrandKitPage} studio={StudioBrandKit} />
                   </ProtectedRoute>
                 }
               />
@@ -131,7 +134,7 @@ function App() {
                 path="/admin/tickets"
                 element={
                   <ProtectedRoute requireAdmin>
-                    <AdminTicketsPage />
+                    <StudioOrClassic classic={AdminTicketsPage} studio={StudioAdminTickets} />
                   </ProtectedRoute>
                 }
               />
@@ -139,7 +142,7 @@ function App() {
                 path="/my-tickets"
                 element={
                   <ProtectedRoute>
-                    <MyTicketsPage />
+                    <StudioOrClassic classic={MyTicketsPage} studio={StudioMyTickets} />
                   </ProtectedRoute>
                 }
               />

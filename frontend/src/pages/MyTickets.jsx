@@ -64,7 +64,7 @@ function StatusBadge({ status }) {
  * notification badge, so the dot only re-appears next time admin
  * flips a status.
  */
-export default function MyTicketsPage() {
+export default function MyTicketsPage({ chromeless = false }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
@@ -127,8 +127,9 @@ export default function MyTicketsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="my-tickets-page">
-      <header className="bg-white border-b border-slate-200">
+    <div className={chromeless ? "" : "min-h-screen bg-slate-50"} data-testid="my-tickets-page">
+      {!chromeless && (
+        <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between gap-4">
           <Link
             to="/"
@@ -155,8 +156,9 @@ export default function MyTicketsPage() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="max-w-6xl mx-auto px-6 md:px-8 py-10">
+      <main className={chromeless ? "max-w-6xl mx-auto px-6 md:px-8 py-8" : "max-w-6xl mx-auto px-6 md:px-8 py-10"}>
         <div className="mb-8">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#E01839] mb-3">
             Your tickets

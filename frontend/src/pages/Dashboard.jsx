@@ -16,7 +16,7 @@ import PageTemplatePicker from "./dashboard/PageTemplatePicker";
 import TicketDialog from "@/components/TicketDialog";
 import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
 
-export default function Dashboard() {
+export default function Dashboard({ chromeless = false }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("sections");
@@ -95,8 +95,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div className={chromeless ? "" : "min-h-screen bg-slate-50"}>
+      {!chromeless && (
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div
@@ -212,8 +213,9 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className={chromeless ? "max-w-7xl mx-auto px-6 py-8" : "max-w-7xl mx-auto px-6 py-10"}>
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
           <div>
             <h1 className="font-heading text-3xl font-semibold tracking-tight">

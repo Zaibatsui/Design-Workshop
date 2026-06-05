@@ -31,7 +31,7 @@ import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
 import LandingSpotlightsPicker from "./brand-kit/LandingSpotlightsPicker";
 import { useAuth } from "@/auth/AuthContext";
 
-export default function BrandKitPage() {
+export default function BrandKitPage({ chromeless = false }) {
   const { user } = useAuth();
   const { brandKit, setBrandKit } = useBrandKit();
   const [draft, setDraft] = useState(brandKit);
@@ -176,8 +176,9 @@ export default function BrandKitPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div className={chromeless ? "" : "min-h-screen bg-slate-50"}>
+      {!chromeless && (
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
@@ -232,8 +233,42 @@ export default function BrandKitPage() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="max-w-5xl mx-auto px-6 py-10 space-y-10">
+      <main className={chromeless ? "max-w-5xl mx-auto px-6 py-10 space-y-10" : "max-w-5xl mx-auto px-6 py-10 space-y-10"}>
+        {chromeless && (
+          <div className="flex items-center justify-end gap-2 -mb-4">
+            <Button
+              variant="outline"
+              onClick={resetDefaults}
+              data-testid="brand-kit-reset"
+              size="sm"
+            >
+              <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+              Reset
+            </Button>
+            <Button
+              variant="outline"
+              onClick={applyToLibrary}
+              disabled={dirty || applying}
+              data-testid="brand-kit-apply-to-library"
+              size="sm"
+            >
+              <Wand2 className="w-3.5 h-3.5 mr-1.5" />
+              {applying ? "Applying…" : "Apply to library"}
+            </Button>
+            <Button
+              onClick={save}
+              disabled={!dirty || saving}
+              data-testid="brand-kit-save"
+              size="sm"
+              className="bg-zinc-900 hover:bg-zinc-800 text-white"
+            >
+              <Save className="w-3.5 h-3.5 mr-1.5" />
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        )}
         <div>
           <h1 className="font-heading text-3xl font-semibold tracking-tight mb-1">
             Your brand kit
