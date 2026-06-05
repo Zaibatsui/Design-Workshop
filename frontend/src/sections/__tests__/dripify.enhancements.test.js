@@ -5,10 +5,10 @@
  *     left/right boundaries when ON; emits nothing when OFF.
  *   • Testimonials — `platformLogo` per item emits a <img class="ns-platform">
  *     inside the author footer, with safe escaping for the URL & alt.
- *   • CTA Banner — `mode: "email-form"` swaps the button stack for a real
- *     <form action method="POST"> whose action is locked to http(s) URLs.
- *     `mode: "email-form"` with a blank/unsafe action falls back to the
- *     visible error hint instead of shipping a broken form.
+ *   • CTA Banner — email-capture mode coverage has been moved into its
+ *     own dedicated test file (`ctaBanner.emailCapture.test.js`) after
+ *     the simplification from a provider-POST form to a self-contained
+ *     `mailto:` handoff.
  *
  * Run with: node src/sections/__tests__/dripify.enhancements.test.js
  */
@@ -132,99 +132,11 @@ function expect(label, cond, extra = "") {
 }
 
 // ─── CTA Banner: email-form mode ─────────────────────────────────────
-{
-  const d = ctaBanner.defaults();
-  expect("ctaBanner.defaults().mode defaults to 'buttons'", d.mode === "buttons");
-  expect("ctaBanner.defaults().formAction defaults to ''", d.formAction === "");
-
-  // Buttons mode (default) — no form should appear.
-  const buttons = ctaBanner.render(d);
-  expect("buttons mode emits NO <form>",
-    !/<form/.test(buttons));
-  expect("buttons mode still emits .ns-actions wrapper",
-    /class="ns-actions"/.test(buttons));
-
-  // email-form mode WITH a valid action URL — should swap to <form>.
-  const valid = ctaBanner.render({
-    ...d,
-    mode: "email-form",
-    formAction: "https://example.us10.list-manage.com/subscribe/post?u=abc&id=xyz",
-    emailFieldName: "EMAIL",
-    emailPlaceholder: "Your work email",
-    submitLabel: "Subscribe",
-    formMicroTrust: "No credit card",
-  });
-  expect("email-form mode emits a real <form action method=POST>",
-    /<form class="ns-form" action="https:\/\/example\.us10\.list-manage\.com[^"]+" method="POST"/.test(valid));
-  expect("email-form mode emits an <input type=email> with the configured name",
-    /<input class="ns-form-input" type="email"[^>]*name="EMAIL"/.test(valid));
-  expect("email-form mode honours the placeholder",
-    /placeholder="Your work email"/.test(valid));
-  expect("email-form mode emits the submit label",
-    />Subscribe<\/button>/.test(valid));
-  expect("email-form mode emits the micro-trust line",
-    /class="ns-form-trust">No credit card<\/p>/.test(valid));
-  expect("email-form mode drops the button stack",
-    !/class="ns-actions"/.test(valid));
-
-  // Default target should be _blank so host site doesn't navigate away.
-  expect("email-form mode defaults target=\"_blank\"",
-    /target="_blank"/.test(valid));
-
-  // openInNewTab=false → target="_self".
-  const sameTab = ctaBanner.render({
-    ...d,
-    mode: "email-form",
-    formAction: "https://example.com/subscribe",
-    submitOpenInNewTab: false,
-  });
-  expect("submitOpenInNewTab=false emits target=\"_self\"",
-    /target="_self"/.test(sameTab));
-
-  // Blank action URL → renders the user-facing error hint, NOT a broken form.
-  const blank = ctaBanner.render({ ...d, mode: "email-form", formAction: "" });
-  expect("email-form mode with blank action shows error hint",
-    /Add a form-action URL/.test(blank));
-  expect("email-form mode with blank action emits NO <form>",
-    !/<form class="ns-form"/.test(blank));
-
-  // Unsafe action URL → blocked (safeUrl rejects javascript:).
-  const unsafeAction = ctaBanner.render({
-    ...d,
-    mode: "email-form",
-    formAction: "javascript:alert(1)",
-  });
-  expect("email-form mode rejects non-http(s) action URLs",
-    !/<form class="ns-form"/.test(unsafeAction));
-  expect("email-form mode rejects javascript: schemes",
-    !/javascript:alert/.test(unsafeAction));
-
-  // Field-name whitelisting — only [A-Za-z0-9_-] survives so an attacker
-  // can't inject attribute-breaking content via that field.
-  const fieldInjection = ctaBanner.render({
-    ...d,
-    mode: "email-form",
-    formAction: "https://example.com/subscribe",
-    emailFieldName: 'email" onfocus="alert(1)',
-  });
-  expect("email-form mode strips attribute-breaking chars from the field name",
-    !/onfocus=/.test(fieldInjection));
-
-  // Hidden fields wiring (e.g. Mailchimp's list ID + bot field).
-  const hidden = ctaBanner.render({
-    ...d,
-    mode: "email-form",
-    formAction: "https://example.com/subscribe",
-    formHiddenFields: [
-      { name: "u", value: "abc123" },
-      { name: "id", value: "xyz789" },
-    ],
-  });
-  expect("hiddenFields emit <input type=hidden name=u value=abc123>",
-    /<input type="hidden" name="u" value="abc123"/.test(hidden));
-  expect("hiddenFields emit <input type=hidden name=id value=xyz789>",
-    /<input type="hidden" name="id" value="xyz789"/.test(hidden));
-}
+// The CTA Banner's email-capture mode lives in its own dedicated test
+// file at `ctaBanner.emailCapture.test.js`. The capture flow was
+// simplified from a third-party-provider POST form to a self-contained
+// `mailto:` handoff (visitor's address gets emailed straight to the
+// store owner's inbox) — see that file for the full assertions.
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

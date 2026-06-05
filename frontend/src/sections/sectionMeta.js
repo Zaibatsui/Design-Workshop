@@ -92,7 +92,7 @@ export const SECTION_META = {
     addedOn: LAUNCH,
     updatedOn: "2026-05-28T16:00:00Z",
     whatsNew:
-      "Now supports two action styles. Pick Buttons for the classic stacked CTA, or switch to Email capture form to embed an inline <email + submit> that posts straight to your mailing-list provider (Mailchimp, ConvertKit, Beehiiv, Buttondown — paste your provider's embed URL, no backend required). Plus the existing mobile-only Centre text toggle for phones-only alignment.",
+      "Now supports two action styles. Pick Buttons for the classic stacked CTA, or switch to Email capture to add an inline <email + submit> field — when a visitor submits, their mail client opens with a pre-filled message to your inbox so the address lands with you, ready to drop into Mailchimp / Klaviyo / whatever list tool you already use. No third-party signup, no backend. Plus the existing mobile-only Centre text toggle for phones-only alignment.",
   },
   placeholder: { addedOn: LAUNCH, updatedOn: LAUNCH },
   logos: {

@@ -73,30 +73,37 @@ const defaults = () => ({
   // centred at ≤640px regardless of the desktop alignment setting.
   mobileCenterText: false,
   // ─── Email-capture mode ─────────────────────────────────────────────
-  // "buttons" (default) = original primary/secondary button stack.
-  // "email-form"        = inline <input type="email"> + submit button
-  //                       that posts directly to a mailing-list provider
-  //                       (Mailchimp / ConvertKit / Beehiiv / Substack
-  //                       all expose a public form-action URL — paste it
-  //                       in and the browser handles the rest).
+  // "buttons" (default)  = original primary/secondary button stack.
+  // "email-capture"      = inline <input type="email"> + a single
+  //                        capture button. On click, a `mailto:` is
+  //                        opened pointing at the store owner's
+  //                        address with the visitor's email pre-filled
+  //                        into the body, so the owner just clicks
+  //                        Send in their mail client and has the
+  //                        visitor's address in their inbox — ready
+  //                        to drop into Mailchimp / Klaviyo / whatever
+  //                        list tool they already use. Zero third-
+  //                        party signup required from the author.
   mode: "buttons",
-  formAction: "",
-  // Field name the provider expects. Mailchimp = "EMAIL" (caps),
-  // Beehiiv = "email", ConvertKit = "email_address", Buttondown = "email".
-  emailFieldName: "email",
+  // Where captured emails land. Required for email-capture mode;
+  // when blank the snippet renders a clear configuration hint instead
+  // of a broken capture.
+  destinationEmail: "",
+  // Subject + body templates the visitor's mail client will pre-fill.
+  // `{email}` placeholder is substituted with the typed address at
+  // click time, client-side.
+  emailSubject: "New newsletter signup",
+  emailBodyTemplate:
+    "A visitor wants to subscribe to your list.\n\nEmail: {email}\n\nSent from your website.",
+  // Placeholder + button text. Button text falls back to "Subscribe"
+  // when blank so authors flipping modes don't have to retype it.
   emailPlaceholder: "Enter your email",
-  // Falls back to `primaryLabel` when blank so users who toggle modes
-  // back and forth don't have to retype their CTA copy.
-  submitLabel: "",
-  // Open the provider's confirmation page in a new tab so the host site
-  // doesn't navigate away when someone submits. Default ON — matches the
-  // way Mailchimp / Beehiiv embed forms work out of the box.
-  submitOpenInNewTab: true,
-  // Tiny line under the form — common pattern: "No credit card · Unsubscribe anytime".
+  emailButtonText: "",
+  // Small confirmation shown inline after the visitor clicks (their
+  // mail client opens in the background; they may need to switch to
+  // it to finish sending). Tiny line under the row.
+  emailSuccessText: "Thanks! Check your email client to confirm.",
   formMicroTrust: "",
-  // Optional hidden inputs for providers that need extra fields
-  // (e.g. Mailchimp's list/audience honeypot field). Shape: [{ name, value }].
-  formHiddenFields: [],
 });
 
 const render = (cfg) => {
@@ -147,66 +154,64 @@ const render = (cfg) => {
       ? `<div class="ns-actions">${primaryBtn}${secondaryBtn}</div>`
       : "";
 
-  // ─── Email-form mode ──────────────────────────────────────────────
-  // Replaces the button stack with a real <form> that POSTs directly
-  // to the user's mailing-list provider. Requires a valid http(s)
-  // formAction; falls back to omitting the form entirely so we never
-  // ship a broken / hijackable submit.
-  // The field name is whitelisted to [A-Za-z0-9_-] so a malformed
-  // provider config can't smuggle attribute injection into the input.
-  const isEmailMode = cfg.mode === "email-form";
-  const formActionRaw = (cfg.formAction || "").trim();
-  let formActionSafe = "";
-  if (isEmailMode && formActionRaw) {
-    const cleaned = safeUrl(formActionRaw);
-    if (/^https?:/i.test(cleaned)) formActionSafe = cleaned;
-  }
-  const emailFieldName =
-    String(cfg.emailFieldName || "email").replace(/[^A-Za-z0-9_-]/g, "") ||
-    "email";
-  const submitLabel = (cfg.submitLabel || cfg.primaryLabel || "Subscribe").trim();
-  const formTarget = cfg.submitOpenInNewTab === false ? "_self" : "_blank";
+  // ─── Email-capture mode ───────────────────────────────────────────
+  // Single input + single button. On click the snippet builds a
+  // `mailto:` URL targeting the store owner with the visitor's typed
+  // email substituted into a subject/body template, then navigates
+  // the visitor's browser to it. Their mail client opens with the
+  // address / subject / body already populated — they just need to
+  // hit Send. The store owner receives a normal email in their
+  // inbox containing the captured address, which they can paste into
+  // whatever mailing-list tool they actually use. Zero third-party
+  // integration required; zero backend dependency.
+  //
+  // Light security: destinationEmail is validated to look like an
+  // email (basic shape only — the visitor's browser is doing the
+  // final RFC compliance check at click time), and rejected if it
+  // contains the characters that would let an attacker smuggle
+  // additional headers into the mailto URL (newlines, `?`/`&` for
+  // header injection). The visitor's typed email goes through the
+  // same gate in the IIFE before substitution.
+  const isEmailMode = cfg.mode === "email-capture" || cfg.mode === "email-form";
+  const rawDest = (cfg.destinationEmail || "").trim();
+  const destEmailSafe =
+    /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(rawDest) ? rawDest : "";
+  const emailSubject = (cfg.emailSubject || "New newsletter signup").trim();
+  const emailBody = (
+    cfg.emailBodyTemplate ||
+    "A visitor wants to subscribe to your list.\n\nEmail: {email}\n\nSent from your website."
+  ).trim();
+  const emailButtonText = (cfg.emailButtonText || "Subscribe").trim();
+  const emailPlaceholder = (cfg.emailPlaceholder || "Enter your email").trim();
+  const emailSuccessText = (
+    cfg.emailSuccessText || "Thanks! Check your email client to confirm."
+  ).trim();
   const microTrust = (cfg.formMicroTrust || "").trim();
-  const hiddenInputsHtml = Array.isArray(cfg.formHiddenFields)
-    ? cfg.formHiddenFields
-        .filter((h) => h && h.name)
-        .map(
-          (h) =>
-            `<input type="hidden" name="${escAttr(
-              String(h.name).replace(/[^A-Za-z0-9_\-[\]]/g, "")
-            )}" value="${escAttr(h.value || "")}"/>`
-        )
-        .join("")
-    : "";
+
   const emailFormHtml =
-    isEmailMode && formActionSafe
-      ? `<form class="ns-form" action="${escAttr(formActionSafe)}" method="POST" target="${formTarget}" novalidate>
-  <label class="ns-form-label" for="ns-cta-email-${escAttr(uid)}">${escHtml(
-        cfg.emailPlaceholder || "Enter your email"
-      )}</label>
-  <div class="ns-form-row">
-    <input class="ns-form-input" type="email" id="ns-cta-email-${escAttr(
-      uid
-    )}" name="${escAttr(emailFieldName)}" placeholder="${escAttr(
-        cfg.emailPlaceholder || "Enter your email"
-      )}" required autocomplete="email" />
-    <button class="ns-btn ns-btn-primary ns-form-submit" type="submit">${escHtml(
-      submitLabel
+    isEmailMode && destEmailSafe
+      ? `<div class="ns-capture" data-ns-dest="${escAttr(destEmailSafe)}" data-ns-subject="${escAttr(
+          emailSubject
+        )}" data-ns-body="${escAttr(emailBody)}" data-ns-success="${escAttr(
+          emailSuccessText
+        )}">
+  <div class="ns-capture-row">
+    <input class="ns-capture-input" type="email" inputmode="email" autocomplete="email" placeholder="${escAttr(
+      emailPlaceholder
+    )}" aria-label="${escAttr(emailPlaceholder)}" />
+    <button class="ns-btn ns-btn-primary ns-capture-btn" type="button">${escHtml(
+      emailButtonText
     )}</button>
   </div>
-  ${hiddenInputsHtml}
-  ${
-    microTrust
-      ? `<p class="ns-form-trust">${escHtml(microTrust)}</p>`
-      : ""
-  }
-</form>`
+  <p class="ns-capture-msg" data-ns-msg role="status" aria-live="polite"></p>
+  ${microTrust ? `<p class="ns-form-trust">${escHtml(microTrust)}</p>` : ""}
+</div>`
       : isEmailMode
-        ? `<p class="ns-form-error">Add a form-action URL (Mailchimp / ConvertKit / Beehiiv embed URL) to enable the email capture form.</p>`
+        ? `<p class="ns-form-error">Add a destination email address (where captured signups should land) to enable the email-capture form.</p>`
         : "";
 
-  // In email-form mode the button stack is replaced; in buttons mode the
-  // email form is empty — same .ns-inner wrapper, one of the two slots.
+  // In email-capture mode the button stack is replaced; in buttons mode the
+  // capture form is empty — same .ns-inner wrapper, one of the two slots.
   const actionsSlot = isEmailMode ? emailFormHtml : buttonsHtml;
   const flAlign = cfg.textAlign === "left" ? "left" : "center";
   const flHtml = footerLinkHtml(cfg, flAlign);
@@ -266,20 +271,61 @@ ${baseReset(cls)}
   }}
 .${cls} .ns-btn-secondary:hover{border-color:${textColor}}
 /* Email-form mode */
-.${cls} .ns-form{margin-top:32px;max-width:520px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}text-align:${align}}
-.${cls} .ns-form-label{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-.${cls} .ns-form-row{display:flex;gap:8px;background:${isDarkBg ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.04)"};border:1px solid ${isDarkBg ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.12)"};border-radius:${num(cfg.buttonRadius, 8)}px;padding:6px;transition:border-color .18s ease}
-.${cls} .ns-form-row:focus-within{border-color:${accent}}
-.${cls} .ns-form-input{flex:1;min-width:0;height:48px;padding:0 14px;border:0;background:transparent;color:${textColor};font:inherit;font-size:15px;outline:none}
-.${cls} .ns-form-input::placeholder{color:${isDarkBg ? "rgba(255,255,255,0.5)" : "rgba(15,23,42,0.45)"}}
-.${cls} .ns-form-submit{flex:0 0 auto}
+.${cls} .ns-capture{margin-top:32px;max-width:520px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}text-align:${align}}
+.${cls} .ns-capture-row{display:flex;gap:8px;background:${isDarkBg ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.04)"};border:1px solid ${isDarkBg ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.12)"};border-radius:${num(cfg.buttonRadius, 8)}px;padding:6px;transition:border-color .18s ease}
+.${cls} .ns-capture-row:focus-within{border-color:${accent}}
+.${cls} .ns-capture-input{flex:1;min-width:0;height:48px;padding:0 14px;border:0;background:transparent;color:${textColor};font:inherit;font-size:15px;outline:none}
+.${cls} .ns-capture-input::placeholder{color:${isDarkBg ? "rgba(255,255,255,0.5)" : "rgba(15,23,42,0.45)"}}
+.${cls} .ns-capture-btn{flex:0 0 auto}
+.${cls} .ns-capture-msg{margin:10px 0 0;font-size:13px;line-height:1.5;color:${bodyColor};min-height:0}
+.${cls} .ns-capture-msg.is-error{color:${accent}}
 .${cls} .ns-form-trust{margin:14px 0 0;font-size:13px;color:${bodyColor};line-height:1.5}
 .${cls} .ns-form-error{margin-top:32px;padding:14px 18px;background:rgba(224,24,57,0.12);border:1px dashed rgba(224,24,57,0.5);color:#fda4af;border-radius:8px;font-size:14px;line-height:1.5}
 ${footerLinkCss(cls, accent, bodyColor)}
-@media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}.${cls} .ns-form-row{flex-direction:column;padding:8px}.${cls} .ns-form-submit{width:100%}.${cls}.is-m-center .ns-inner{text-align:center!important}.${cls}.is-m-center .ns-actions{justify-content:center!important}.${cls}.is-m-center .ns-form{margin-left:auto;margin-right:auto}.${cls}.is-m-center .ns-logo{margin-left:auto;margin-right:auto}}
+@media (max-width:640px){.${cls} .ns-heading{font-size:28px}.${cls} .ns-actions{flex-direction:column}.${cls} .ns-btn{width:100%}.${cls} .ns-capture-row{flex-direction:column;padding:8px}.${cls} .ns-capture-btn{width:100%}.${cls}.is-m-center .ns-inner{text-align:center!important}.${cls}.is-m-center .ns-actions{justify-content:center!important}.${cls}.is-m-center .ns-capture{margin-left:auto;margin-right:auto}.${cls}.is-m-center .ns-logo{margin-left:auto;margin-right:auto}}
 `.trim();
 
-  return wrapSnippet({ html, css, js: "" });
+  // ─── Email-capture click handler ────────────────────────────────
+  // Reads the destination email + subject/body templates from data-*
+  // attributes on the .ns-capture wrapper, validates the visitor's
+  // input client-side, then navigates the browser to a `mailto:` URL.
+  // The visitor's mail client opens with everything pre-filled — they
+  // just need to hit Send. No third-party form provider, no backend
+  // dependency. Only rendered when email-capture mode is active AND
+  // the destination email is set, so the JS is dead weight in the
+  // common button-stack case.
+  const js =
+    isEmailMode && destEmailSafe
+      ? `(function(){
+  var root=document.querySelector(".${cls} .ns-capture");
+  if(!root||root.__nsBound)return;
+  root.__nsBound=true;
+  var dest=root.getAttribute("data-ns-dest");
+  var subject=root.getAttribute("data-ns-subject")||"";
+  var bodyTpl=root.getAttribute("data-ns-body")||"{email}";
+  var successText=root.getAttribute("data-ns-success")||"";
+  var input=root.querySelector(".ns-capture-input");
+  var btn=root.querySelector(".ns-capture-btn");
+  var msg=root.querySelector("[data-ns-msg]");
+  if(!input||!btn)return;
+  var EMAIL_RE=/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/;
+  function show(text,err){if(!msg)return;msg.textContent=text||"";msg.className="ns-capture-msg"+(err?" is-error":"");}
+  function clean(s){return String(s||"").replace(/[\\r\\n]+/g," ").trim();}
+  function submit(){
+    var email=clean(input.value);
+    if(!EMAIL_RE.test(email)){show("Please enter a valid email address.",true);input.focus();return;}
+    var body=bodyTpl.replace(/\\{email\\}/g,email);
+    var href="mailto:"+encodeURIComponent(dest)+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+    try{window.location.href=href;}catch(e){}
+    show(successText,false);
+    input.value="";
+  }
+  btn.addEventListener("click",submit);
+  input.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();submit();}});
+})();`
+      : "";
+
+  return wrapSnippet({ html, css, js });
 };
 
 function FormPanel({ config, onUpdate, previewMode }) {
@@ -347,10 +393,19 @@ function FormPanel({ config, onUpdate, previewMode }) {
           onChange={(v) => onUpdate({ mode: v })}
           options={[
             { value: "buttons", label: "Buttons (link to a page)" },
-            { value: "email-form", label: "Email capture form" },
+            { value: "email-form", label: "Email capture (sent to your inbox)" },
           ]}
           testid="cta-mode"
         />
+        {config.mode === "email-form" && (
+          <p className="text-[11px] text-slate-500 leading-snug">
+            Visitors type their email and hit submit. Their mail client opens
+            with a pre-filled message to you — they just press Send and the
+            address lands in your inbox, ready to drop into Mailchimp / Klaviyo
+            / whatever list tool you already use. No third-party signup, no
+            backend.
+          </p>
+        )}
       </Group>
 
       {config.mode !== "email-form" && (
@@ -416,37 +471,26 @@ function FormPanel({ config, onUpdate, previewMode }) {
       )}
 
       {config.mode === "email-form" && (
-        <Group title="Email capture form" value="email-form">
+        <Group title="Email capture" value="email-form">
           <TextField
-            label="Form action URL (where emails go)"
-            placeholder="https://yourdomain.us10.list-manage.com/subscribe/post?u=…&id=…"
-            value={config.formAction || ""}
-            onChange={(v) => onUpdate({ formAction: v })}
-            testid="cta-form-action"
+            label="Send captured emails to"
+            placeholder="you@yourstore.com"
+            value={config.destinationEmail || ""}
+            onChange={(v) => onUpdate({ destinationEmail: v })}
+            testid="cta-form-destination"
           />
           <p className="text-[11px] text-slate-500 leading-snug -mt-2">
-            Paste the embed form URL from your mailing-list provider —
-            <strong className="font-semibold"> Mailchimp</strong>{" "}
-            (Audience → Signup forms → Embedded forms → copy the form&apos;s action URL),
-            <strong className="font-semibold"> ConvertKit</strong>{" "}
-            (Form → Embed → HTML → copy the action),
-            <strong className="font-semibold"> Beehiiv</strong>{" "}
-            (Subscribe forms → Embed → copy the action), or
-            <strong className="font-semibold"> Buttondown</strong>.
-            The browser POSTs the email straight to them — no backend on this side.
+            Where the visitor&apos;s email lands. When they hit submit, their
+            mail client opens a new message addressed to you with their email
+            inside — they just press Send. Required for the form to work.
           </p>
           <TextField
-            label="Email field name"
-            value={config.emailFieldName || "email"}
-            onChange={(v) => onUpdate({ emailFieldName: v })}
-            placeholder="email"
-            testid="cta-form-email-field"
+            label="Submit button label"
+            value={config.emailButtonText || ""}
+            onChange={(v) => onUpdate({ emailButtonText: v })}
+            placeholder="Subscribe"
+            testid="cta-form-button-text"
           />
-          <p className="text-[11px] text-slate-500 leading-snug -mt-2">
-            Most providers use <code className="font-mono">email</code>.
-            Mailchimp expects <code className="font-mono">EMAIL</code> (caps).
-            ConvertKit uses <code className="font-mono">email_address</code>.
-          </p>
           <TextField
             label="Email placeholder text"
             value={config.emailPlaceholder || ""}
@@ -455,18 +499,30 @@ function FormPanel({ config, onUpdate, previewMode }) {
             testid="cta-form-placeholder"
           />
           <TextField
-            label="Submit button label"
-            value={config.submitLabel || ""}
-            onChange={(v) => onUpdate({ submitLabel: v })}
-            placeholder="Falls back to the primary button label"
-            testid="cta-form-submit-label"
+            label="Email subject (sent to you)"
+            value={config.emailSubject || ""}
+            onChange={(v) => onUpdate({ emailSubject: v })}
+            placeholder="New newsletter signup"
+            testid="cta-form-subject"
           />
-          <ToggleField
-            label="Open provider's confirmation page in a new tab"
-            description="Default ON — the host site stays put when the user submits. Turn OFF if you want users redirected straight to your thank-you page."
-            checked={config.submitOpenInNewTab !== false}
-            onChange={(v) => onUpdate({ submitOpenInNewTab: v })}
-            testid="cta-form-new-tab"
+          <TextAreaField
+            label="Email body template"
+            value={config.emailBodyTemplate || ""}
+            onChange={(v) => onUpdate({ emailBodyTemplate: v })}
+            placeholder="A visitor wants to subscribe to your list.&#10;&#10;Email: {email}&#10;&#10;Sent from your website."
+            testid="cta-form-body"
+          />
+          <p className="text-[11px] text-slate-500 leading-snug -mt-2">
+            Use <code className="font-mono">{"{email}"}</code> as a placeholder
+            for the visitor&apos;s typed address — it&apos;s substituted in
+            automatically.
+          </p>
+          <TextField
+            label="Confirmation message"
+            value={config.emailSuccessText || ""}
+            onChange={(v) => onUpdate({ emailSuccessText: v })}
+            placeholder="Thanks! Check your email client to confirm."
+            testid="cta-form-success"
           />
           <TextField
             label="Trust line under the form (optional)"
