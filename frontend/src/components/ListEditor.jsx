@@ -81,6 +81,31 @@ export default function ListEditor({
     };
   }, []);
 
+  // Preview click-to-edit bridge: when the user clicks a specific list
+  // row in the preview iframe (a hero slide, a product card, an FAQ
+  // row), the editor dispatches `ns-studio-expand-item` with the
+  // matching `testidPrefix` + zero-based index. We open that row and
+  // scroll it into view so the user lands directly on its editor.
+  useEffect(() => {
+    const handler = (e) => {
+      const d = e.detail || {};
+      if (d.list !== testidPrefix) return;
+      const idx = Number.isInteger(d.itemIndex) ? d.itemIndex : -1;
+      if (idx < 0 || idx >= items.length) return;
+      const target = items[idx];
+      if (!target) return;
+      setOpenId(target.id);
+      requestAnimationFrame(() => {
+        const el = rowRefs.current[target.id];
+        if (el && typeof el.scrollIntoView === "function") {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+    };
+    window.addEventListener("ns-studio-expand-item", handler);
+    return () => window.removeEventListener("ns-studio-expand-item", handler);
+  }, [items, testidPrefix]);
+
   return (
     <div className="space-y-2">
       {items.map((item, idx) => {

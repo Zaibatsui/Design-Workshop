@@ -254,19 +254,29 @@ export default function StudioEditor() {
   );
 
   // Preview click-to-edit bridge. Each section renders its own
-  // `data-ns-group="..."` markers on key wrapper elements; when the
-  // user clicks inside the preview iframe, the bridge in `previewDoc`
-  // posts a message which we translate into the same jump-to-group
-  // event the outline rail uses.
+  // `data-ns-group="..."` / `data-ns-list="..."` markers on key wrapper
+  // elements; when the user clicks inside the preview iframe, the
+  // bridge in `previewDoc` posts a message which we translate into:
+  //   • the same jump-to-group event the outline rail uses; and
+  //   • a list-row expand event handled by ListEditor instances.
   useEffect(() => {
     const onMessage = (e) => {
       const d = e?.data;
-      if (!d || d.type !== "ns-preview-click" || !d.group) return;
-      window.dispatchEvent(
-        new CustomEvent("ns-studio-jump-to-group", {
-          detail: { groupValue: d.group },
-        })
-      );
+      if (!d || d.type !== "ns-preview-click") return;
+      if (d.group) {
+        window.dispatchEvent(
+          new CustomEvent("ns-studio-jump-to-group", {
+            detail: { groupValue: d.group },
+          })
+        );
+      }
+      if (d.list && Number.isInteger(d.itemIndex)) {
+        window.dispatchEvent(
+          new CustomEvent("ns-studio-expand-item", {
+            detail: { list: d.list, itemIndex: d.itemIndex },
+          })
+        );
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);

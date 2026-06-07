@@ -114,7 +114,7 @@ function render(cfg) {
   ].join(";");
 
   const cardsHtml = (cfg.cards || [])
-    .map((c) => {
+    .map((c, idx) => {
       const rawLink = String(c.link || "").trim();
       const href = safeUrl(rawLink || "#");
       const target = c.openInSameTab ? "_self" : "_blank";
@@ -126,9 +126,6 @@ function render(cfg) {
       const logoHtml = logoUrl
         ? `<img class="ns-card-logo" src="${escAttr(logoUrl)}" alt="${escAttr(c.logoAlt || "")}"${c.logoAlt ? "" : ' aria-hidden="true"'} style="max-height:${num(c.logoMaxHeight, 40)}px"/>`
         : "";
-      // Per-card heading colour override — leaves the rest of the
-      // section's heading colour intact, lets the user spotlight a
-      // single card.
       const headingStyle = c.headingColor
         ? ` style="color:${safeColor(c.headingColor, "")}"`
         : "";
@@ -140,14 +137,11 @@ function render(cfg) {
     <p class="ns-cp">${escHtml(c.body || "")}</p>
     ${c.linkText ? `<span class="ns-link">${escHtml(c.linkText)} →</span>` : ""}
   </div>`;
-      // Render as <a> when a link value is present (incl. legacy "#")
-      // so saved records keep their click behaviour. Empty string ⇒
-      // emit <div> instead so the card isn't a focusable dead link.
-      // Users opt into the static variant by clearing the link field.
       const interactive = rawLink !== "";
+      const itemAttrs = ` data-ns-list="insight" data-ns-item="${idx}"`;
       return interactive
-        ? `<a class="ns-card is-link" href="${escAttr(href)}" target="${target}"${rel}>${inner}</a>`
-        : `<div class="ns-card">${inner}</div>`;
+        ? `<a class="ns-card is-link" href="${escAttr(href)}" target="${target}"${rel}${itemAttrs}>${inner}</a>`
+        : `<div class="ns-card"${itemAttrs}>${inner}</div>`;
     })
     .join("");
 

@@ -118,20 +118,17 @@ function render(cfg) {
   ].join(";");
 
   const cardsHtml = (cfg.resources || [])
-    .map((r) => {
+    .map((r, idx) => {
       const img = safeUrl(r.image);
       const link = safeUrl(r.link || "#");
       const target = r.openInSameTab ? "_self" : "_blank";
       const rel = r.openInSameTab ? "" : ' rel="noopener noreferrer"';
-      // Per-card override of card content alignment. Falls through to the
-      // section-level default when the per-card toggle is off (or the
-      // value isn't one of our three valid keys).
       const cardAlign =
         r.contentAlignOverride && ALIGNS.has(r.contentAlign)
           ? r.contentAlign
           : null;
       const cardStyle = cardAlign ? ` style="text-align:${cardAlign}"` : "";
-      return `<a class="ns-card" href="${escAttr(link)}" target="${target}"${rel}>
+      return `<a class="ns-card" href="${escAttr(link)}" target="${target}"${rel} data-ns-list="resource" data-ns-item="${idx}">
   <div class="ns-img"><img src="${escAttr(img)}" alt="${escAttr(r.imageAlt || r.title || "")}"/></div>
   <div class="ns-body"${cardStyle}>
     ${r.tag ? `<span class="ns-tag">${escHtml(r.tag)}</span>` : ""}

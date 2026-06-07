@@ -94,8 +94,8 @@ const render = (cfg) => {
 
   const itemsHtml = (cfg.items || [])
     .map(
-      (it) =>
-        `<details class="ns-item"><summary class="ns-q"><span class="ns-q-text">${escHtml(
+      (it, idx) =>
+        `<details class="ns-item" data-ns-list="faq" data-ns-item="${idx}"><summary class="ns-q"><span class="ns-q-text">${escHtml(
           it.question || ""
         )}</span><span class="ns-q-mark" aria-hidden="true"></span></summary><div class="ns-a">${coerceAnswerHtml(
           it.answer

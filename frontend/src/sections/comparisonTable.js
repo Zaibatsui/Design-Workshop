@@ -162,10 +162,10 @@ function render(cfg = {}) {
 
   const rowsHtml = (c.rows || [])
     .filter((r) => r && (r.feature || r.ourValue || r.competitorValue))
-    .map((r) => {
+    .map((r, idx) => {
       const our = (r.ourValue || "").trim();
       const their = (r.competitorValue || "").trim();
-      return `<div class="ns-row" role="row">
+      return `<div class="ns-row" role="row" data-ns-list="compare" data-ns-item="${idx}">
         <div class="ns-cell ns-cell-feature" role="cell">${escHtml(r.feature || "")}</div>
         <div class="ns-cell ns-cell-our" role="cell">
           ${iconFor(r.ourIcon === "x" || r.ourIcon === "none" ? r.ourIcon : "check")}

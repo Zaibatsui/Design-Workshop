@@ -681,10 +681,10 @@ function renderSlide(cfg) {
     .join(";");
 
   const slidesHtml = slides
-    .map((slide) => {
+    .map((slide, idx) => {
       if (slideMode(slide) === "split") {
         const splitStyle = splitSlideRootStyle(slide, cfg);
-        return `<div class="ns-slide is-split"${splitStyle ? ` style="${splitStyle}"` : ""}>${splitSlideInner(slide, cfg)}</div>`;
+        return `<div class="ns-slide is-split"${splitStyle ? ` style="${splitStyle}"` : ""} data-ns-list="hero-slide" data-ns-item="${idx}">${splitSlideInner(slide, cfg)}</div>`;
       }
       const bg = safeUrl(slide.image);
       const bgMobile = safeUrl(slide.imageMobile);
@@ -693,10 +693,6 @@ function renderSlide(cfg) {
       const link = safeUrl(slide.ctaLink || "#");
       const target = slide.openInSameTab ? "_self" : "_blank";
       const rel = slide.openInSameTab ? "" : ' rel="noopener noreferrer"';
-      // Background image emitted as CSS custom properties so the
-      // section stylesheet can swap to a mobile-specific image
-      // under a media query (inline `background-image:` would
-      // shadow the @media rule).
       const overlayStyle = slideOverlayStyle(slide, cfg, "slide");
       const slideStyle = [
         bgMobile
@@ -706,7 +702,7 @@ function renderSlide(cfg) {
       ]
         .filter(Boolean)
         .join(";");
-      return `<div class="ns-slide" style="${slideStyle}">
+      return `<div class="ns-slide" style="${slideStyle}" data-ns-list="hero-slide" data-ns-item="${idx}">
       <div class="ns-overlay"></div>
       <div class="ns-content">
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}
@@ -842,7 +838,7 @@ function renderFade(cfg) {
     .map((slide, i) => {
       if (slideMode(slide) === "split") {
         const splitStyle = splitSlideRootStyle(slide, cfg);
-        return `<div class="ns-slide is-split${i === 0 ? " is-active" : ""}" data-ns-slide="${i}"${splitStyle ? ` style="${splitStyle}"` : ""}>${splitSlideInner(slide, cfg)}</div>`;
+        return `<div class="ns-slide is-split${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" data-ns-list="hero-slide" data-ns-item="${i}"${splitStyle ? ` style="${splitStyle}"` : ""}>${splitSlideInner(slide, cfg)}</div>`;
       }
       const bg = safeUrl(slide.image);
       const bgMobile = safeUrl(slide.imageMobile);
@@ -860,7 +856,7 @@ function renderFade(cfg) {
       ]
         .filter(Boolean)
         .join(";");
-      return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" style="${slideStyle}">
+      return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" data-ns-list="hero-slide" data-ns-item="${i}" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}

@@ -242,5 +242,57 @@ function expect(name, cond, extra) {
   );
 }
 
+// ── 5. Per-item list markers (Wave 3 — click a specific slide/card) ──
+{
+  // Each section that has a per-item ListEditor should also stamp
+  // `data-ns-list` + `data-ns-item` on the rendered HTML of each item
+  // so the click bridge can post an itemIndex back to the editor.
+  // The "list" value MUST match the ListEditor's `testidPrefix` so the
+  // expand-item handler in `ListEditor.jsx` matches correctly.
+  const cases = [
+    { name: "Product Carousel cards", file: "products.js", export: "products", list: "product", needle: /<div class="ns-card"[^>]*data-ns-list="product"[^>]*data-ns-item="0"/ },
+    { name: "Product Grid cards",     file: "productGrid.js", export: "productGrid", list: "pgrid-product", needle: /<div class="ns-card"[^>]*data-ns-list="pgrid-product"[^>]*data-ns-item="0"/ },
+    { name: "Hero slides",            file: "hero.js", export: "hero", list: "hero-slide", needle: /class="ns-slide[^"]*"[^>]*data-ns-list="hero-slide"[^>]*data-ns-item="0"/ },
+    { name: "FAQ items",              file: "faq.js", export: "faq", list: "faq", needle: /<details class="ns-item"[^>]*data-ns-list="faq"[^>]*data-ns-item="0"/ },
+    { name: "Steps",                  file: "steps.js", export: "steps", list: "steps", needle: /<article class="ns-step"[^>]*data-ns-list="steps"[^>]*data-ns-item="0"/ },
+    { name: "Testimonials",           file: "testimonials.js", export: "testimonials", list: "testi", needle: /<article class="ns-item"[^>]*data-ns-list="testi"[^>]*data-ns-item="0"/ },
+    { name: "Insights cards",         file: "insights.js", export: "insights", list: "insight", needle: /data-ns-list="insight"[^>]*data-ns-item="0"/ },
+    { name: "Resources cards",        file: "resources.js", export: "resources", list: "resource", needle: /data-ns-list="resource"[^>]*data-ns-item="0"/ },
+    { name: "Feature Grid items",     file: "featureGrid.js", export: "featureGrid", list: "feature", needle: /data-ns-list="feature"[^>]*data-ns-item="0"/ },
+    { name: "Logo Strip items",       file: "logos.js", export: "logos", list: "logo", needle: /data-ns-list="logo"[^>]*data-ns-item="0"/ },
+    { name: "Trust Strip items",      file: "trustStrip.js", export: "trustStrip", list: "trust-item", needle: /data-ns-list="trust-item"[^>]*data-ns-item="0"/ },
+    { name: "Stat Counter items",     file: "statCounter.js", export: "statCounter", list: "stat-item", needle: /data-ns-list="stat-item"[^>]*data-ns-item="0"/ },
+    { name: "Comparison Table rows",  file: "comparisonTable.js", export: "comparisonTable", list: "compare", needle: /data-ns-list="compare"[^>]*data-ns-item="0"/ },
+    { name: "Tabs",                   file: "tabs.js", export: "tabs", list: "tab", needle: /data-ns-list="tab"[^>]*data-ns-item="0"/ },
+  ];
+  for (const c of cases) {
+    const mod = require(`../${c.file}`);
+    const section = mod[c.export];
+    if (!section || !section.render || !section.defaults) {
+      expect(`${c.name}: module loads`, false, `couldn't import ${c.file}`);
+      continue;
+    }
+    // Some sections (Logos) have an empty default items list — seed one
+    // before rendering so the regex matches.
+    let cfg = section.defaults();
+    if (c.export === "logos") {
+      cfg = { ...cfg, logos: [{ id: "L1", image: "x.png", alt: "Brand" }] };
+    } else if (c.export === "products" || c.export === "productGrid") {
+      cfg = {
+        ...cfg,
+        products: [
+          { id: "P1", name: "Sample", price: "100", image: "x.jpg", link: "#" },
+        ],
+      };
+    }
+    const html = section.render(cfg);
+    expect(
+      `${c.name}: rendered HTML carries data-ns-list="${c.list}" + data-ns-item="0"`,
+      c.needle.test(html),
+      `${c.name}: missing per-item click marker — clicking the rendered item won't open its editor`
+    );
+  }
+}
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);
 process.exit(failed ? 1 : 0);

@@ -91,23 +91,24 @@ function render(cfg) {
   while (items.length < total) items.push({});
 
   const itemsHtml = items
-    .map((item) => {
+    .map((item, idx) => {
       const img = safeUrl(item.image);
       const link = safeUrl(item.link);
       const alt = escAttr(item.alt || "");
       const target = item.openInSameTab ? "_self" : "_blank";
       const rel = item.openInSameTab ? "" : ' rel="noopener noreferrer"';
+      const itemAttrs = ` data-ns-list="grid-cell" data-ns-item="${idx}"`;
 
       if (img && link) {
-        return `<a class="ns-cell ns-cell-link" href="${escAttr(link)}" target="${target}"${rel}><img src="${escAttr(img)}" alt="${alt}"/></a>`;
+        return `<a class="ns-cell ns-cell-link" href="${escAttr(link)}" target="${target}"${rel}${itemAttrs}><img src="${escAttr(img)}" alt="${alt}"/></a>`;
       }
       if (img) {
-        return `<div class="ns-cell"><img src="${escAttr(img)}" alt="${alt}"/></div>`;
+        return `<div class="ns-cell"${itemAttrs}><img src="${escAttr(img)}" alt="${alt}"/></div>`;
       }
       if (link) {
-        return `<a class="ns-cell ns-cell-empty ns-cell-link" href="${escAttr(link)}" target="${target}"${rel}></a>`;
+        return `<a class="ns-cell ns-cell-empty ns-cell-link" href="${escAttr(link)}" target="${target}"${rel}${itemAttrs}></a>`;
       }
-      return `<div class="ns-cell ns-cell-empty"></div>`;
+      return `<div class="ns-cell ns-cell-empty"${itemAttrs}></div>`;
     })
     .join("");
 

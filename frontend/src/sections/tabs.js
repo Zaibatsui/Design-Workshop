@@ -101,7 +101,7 @@ function render(cfg) {
   const buttonsHtml = tabs
     .map(
       (tab, i) =>
-        `<button class="ns-tab${i === 0 ? " is-active" : ""}" type="button" data-ns-tab="${escAttr(tab.id)}">${escHtml(tab.label)}</button>`
+        `<button class="ns-tab${i === 0 ? " is-active" : ""}" type="button" data-ns-tab="${escAttr(tab.id)}" data-ns-list="tab" data-ns-item="${i}">${escHtml(tab.label)}</button>`
     )
     .join("");
 

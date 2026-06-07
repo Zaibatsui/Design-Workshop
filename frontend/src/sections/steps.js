@@ -76,7 +76,7 @@ const render = (cfg) => {
       const iconBox = iconHtml
         ? `<span class="ns-icon" aria-hidden="true">${iconHtml}</span>`
         : "";
-      return `<article class="ns-step"><div class="ns-step-head">${numHtml}${iconBox}</div><h3 class="ns-step-title">${escHtml(
+      return `<article class="ns-step" data-ns-list="steps" data-ns-item="${i}"><div class="ns-step-head">${numHtml}${iconBox}</div><h3 class="ns-step-title">${escHtml(
         s.title || ""
       )}</h3><p class="ns-step-body">${escHtml(s.body || "")}</p></article>`;
     })

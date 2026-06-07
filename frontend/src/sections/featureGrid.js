@@ -98,16 +98,13 @@ const render = (cfg) => {
   const layoutMod = cardLayout === "icon" ? "" : ` is-${cardLayout}`;
 
   const featuresHtml = (cfg.features || [])
-    .map((f) => {
-      // Image-led cards bypass the icon box entirely. We keep both
-      // `icon` and `image` persisted on the feature record so the user
-      // can flip cardLayout back to "icon" without losing data.
+    .map((f, idx) => {
       if (cardLayout !== "icon") {
         const imgUrl = safeUrl(f.image);
         const imgHtml = imgUrl
           ? `<img src="${escAttr(imgUrl)}" alt="${escAttr(f.imageAlt || f.title || "")}"/>`
           : "";
-        return `<article class="ns-card${layoutMod}"><div class="ns-image-wrap">${imgHtml}</div><div class="ns-card-body"><h3 class="ns-title">${escHtml(
+        return `<article class="ns-card${layoutMod}" data-ns-list="feature" data-ns-item="${idx}"><div class="ns-image-wrap">${imgHtml}</div><div class="ns-card-body"><h3 class="ns-title">${escHtml(
           f.title || ""
         )}</h3><p class="ns-body">${escHtml(f.body || "")}</p></div></article>`;
       }
@@ -115,7 +112,7 @@ const render = (cfg) => {
       const iconBox = iconHtml
         ? `<div class="ns-icon-box" aria-hidden="true">${iconHtml}</div>`
         : "";
-      return `<article class="ns-card">${iconBox}<h3 class="ns-title">${escHtml(
+      return `<article class="ns-card" data-ns-list="feature" data-ns-item="${idx}">${iconBox}<h3 class="ns-title">${escHtml(
         f.title || ""
       )}</h3><p class="ns-body">${escHtml(f.body || "")}</p></article>`;
     })
@@ -314,7 +311,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addFeature}
           itemLabel={(f) => f.title || "Untitled feature"}
           addLabel="Add feature"
-          testid="fg-features"
+          testidPrefix="feature"
           renderRow={(f) => (
             <div className="text-xs font-medium text-slate-700 truncate">
               {f.title || "Untitled feature"}

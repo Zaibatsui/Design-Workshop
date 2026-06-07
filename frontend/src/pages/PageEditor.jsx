@@ -307,10 +307,12 @@ export default function PageEditor({ studio = false }) {
 
   // ── Click-to-edit bridge ─────────────────────────────────────────
   // The preview iframe posts a message whenever the user clicks any
-  // element with a `data-ns-block-id` or `data-ns-group` ancestor.
-  // Translate that into editor state: select the block (so the right
-  // pane swaps to its editor) AND dispatch the same studio jump-event
-  // the outline rail uses so the matching FormGroup expands.
+  // element with a `data-ns-block-id`, `data-ns-group`, or
+  // `data-ns-list`/`data-ns-item` ancestor. Translate that into
+  // editor state: select the block (so the right pane swaps to its
+  // editor) AND dispatch the same studio jump-event the outline rail
+  // uses so the matching FormGroup expands AND — when a per-row
+  // marker was hit — expand that specific list row.
   useEffect(() => {
     const onMessage = (e) => {
       const d = e?.data;
@@ -318,18 +320,25 @@ export default function PageEditor({ studio = false }) {
       if (d.blockId) {
         setSelectedBlockId(d.blockId);
       }
-      if (d.group) {
-        // Defer until React has had a tick to mount the inspector for
-        // the newly selected block, so the inspector's listener is in
-        // place when the jump event fires.
-        setTimeout(() => {
+      // Defer all subsequent dispatches until React has had a tick to
+      // mount the inspector for the newly selected block, so listeners
+      // are in place when the events fire.
+      setTimeout(() => {
+        if (d.group) {
           window.dispatchEvent(
             new CustomEvent("ns-studio-jump-to-group", {
               detail: { groupValue: d.group },
             })
           );
-        }, 80);
-      }
+        }
+        if (d.list && Number.isInteger(d.itemIndex)) {
+          window.dispatchEvent(
+            new CustomEvent("ns-studio-expand-item", {
+              detail: { list: d.list, itemIndex: d.itemIndex },
+            })
+          );
+        }
+      }, 80);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);

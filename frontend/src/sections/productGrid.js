@@ -203,7 +203,7 @@ function render(cfg) {
   ].join(";");
 
   const cardsHtml = (cfg.products || [])
-    .map((p) => {
+    .map((p, idx) => {
       const img = safeUrl(p.image);
       const link = safeUrl(p.link || "#");
       const target = p.openInSameTab ? "_self" : "_blank";
@@ -223,7 +223,7 @@ function render(cfg) {
       const overlayHtml = overlaySrc
         ? `<img class="ns-overlay ns-overlay-${overlayPos}" src="${escAttr(overlaySrc)}" alt="${escAttr(overlayAlt)}"${overlayAlt ? "" : ' aria-hidden="true"'} style="max-width:${overlaySize}%;max-height:${overlaySize}%"/>`
         : "";
-      return `<div class="ns-card"${liveAttr}>
+      return `<div class="ns-card"${liveAttr} data-ns-list="pgrid-product" data-ns-item="${idx}">
   <a href="${escAttr(link)}" target="${target}"${rel}>
     <div class="ns-image-wrap">
       <img src="${escAttr(img)}" alt="${escAttr(p.imageAlt || p.name || "")}"/>

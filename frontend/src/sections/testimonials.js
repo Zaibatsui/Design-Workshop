@@ -124,7 +124,7 @@ function render(cfg) {
 
   const items = Array.isArray(cfg.items) ? cfg.items : [];
   const itemsHtml = items
-    .map((t) => {
+    .map((t, idx) => {
       const avatar = safeUrl(t.avatar);
       const avatarHtml = avatar
         ? `<img class="ns-avatar" src="${escAttr(avatar)}" alt="${escAttr(t.avatarAlt || t.name || "")}"/>`
@@ -137,7 +137,7 @@ function render(cfg) {
       const platformHtml = platformUrl
         ? `<img class="ns-platform" src="${escAttr(platformUrl)}" alt="${escAttr(t.platformAlt || "Review platform")}" loading="lazy"/>`
         : "";
-      return `<article class="ns-item" data-ns-original>
+      return `<article class="ns-item" data-ns-original data-ns-list="testi" data-ns-item="${idx}">
   ${ratingHtml}
   <p class="ns-quote">${escHtml(t.quote || "")}</p>
   <div class="ns-author">

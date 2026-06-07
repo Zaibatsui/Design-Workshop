@@ -71,16 +71,14 @@ function render(cfg) {
   ].join(";");
 
   const itemsHtml = (cfg.logos || [])
-    .map((logo) => {
+    .map((logo, idx) => {
       const img = safeUrl(logo.image);
       const imgTag = `<img src="${escAttr(img)}" alt="${escAttr(logo.alt || "")}"/>`;
-      // Wrap in an <a> only when a link is set. safeUrl rejects javascript:
-      // and other unsafe schemes; alt text doubles as accessible label.
       const linkHref = (logo.link || "").trim();
       const inner = linkHref
         ? `<a href="${escAttr(safeUrl(linkHref))}" target="_blank" rel="noopener noreferrer" aria-label="${escAttr(logo.alt || "Visit link")}">${imgTag}</a>`
         : imgTag;
-      return `<div class="ns-item" data-ns-original>${inner}</div>`;
+      return `<div class="ns-item" data-ns-original data-ns-list="logo" data-ns-item="${idx}">${inner}</div>`;
     })
     .join("");
 

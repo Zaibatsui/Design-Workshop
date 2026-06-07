@@ -88,11 +88,11 @@ function render(cfg = {}) {
 
   const itemsHtml = (c.items || [])
     .filter((it) => it && (it.title || it.body))
-    .map((it) => {
+    .map((it, idx) => {
       const iconWrapClass =
         c.iconStyle === "flat" ? "ns-ico ns-ico-flat" : "ns-ico ns-ico-tinted";
       return `
-    <li class="ns-item">
+    <li class="ns-item" data-ns-list="trust-item" data-ns-item="${idx}">
       <span class="${iconWrapClass}" aria-hidden="true">${svgIcon(it.icon || "check", num(c.iconSize, 28))}</span>
       <div class="ns-item-text">
         ${it.title ? `<h3 class="ns-item-title">${escHtml(it.title)}</h3>` : ""}
@@ -165,7 +165,7 @@ function FormPanel({ config, onUpdate }) {
           onReorder={reorder}
           itemLabel={(it) => it.title || "Untitled item"}
           addLabel="Add item"
-          testid="trust-items"
+          testidPrefix="trust-item"
           renderRow={(it) => (
             <div className="text-xs font-medium text-slate-700 truncate">
               {it.title || "Untitled item"}

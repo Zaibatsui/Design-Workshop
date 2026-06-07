@@ -162,17 +162,16 @@ function render(cfg = {}) {
 
   const itemsHtml = (c.items || [])
     .filter((it) => it && (it.value || it.label))
-    .map((it) => {
+    .map((it, idx) => {
       const target = parseTarget(it.value);
       const prefix = it.prefix ? escHtml(it.prefix) : "";
       const suffix = it.suffix ? escHtml(it.suffix) : "";
       const initial = animate ? "0" : escHtml(String(it.value || ""));
-      // Per-item accent override (optional). Default to the section accent.
       const colorVar = it.accent
         ? ` style="--ns-stat-color:${safeColor(it.accent, accent)}"`
         : "";
       return `
-    <li class="ns-stat-item"${colorVar}>
+    <li class="ns-stat-item"${colorVar} data-ns-list="stat-item" data-ns-item="${idx}">
       <div class="ns-stat-num" data-ns-target="${escAttr(String(target.num))}" data-ns-decimals="${target.decimals}">
         ${prefix ? `<span class="ns-stat-prefix">${prefix}</span>` : ""}<span class="ns-stat-value">${initial}</span>${suffix ? `<span class="ns-stat-suffix">${suffix}</span>` : ""}
       </div>
@@ -305,7 +304,7 @@ function FormPanel({ config, onUpdate }) {
             `${it.prefix || ""}${it.value || "?"}${it.suffix || ""} — ${it.label || "Untitled"}`
           }
           addLabel="Add number"
-          testid="stat-items"
+          testidPrefix="stat-item"
           renderRow={(it) => (
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-sm font-bold text-slate-900 tabular-nums">
