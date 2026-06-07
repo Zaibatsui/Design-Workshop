@@ -1,8 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect -- AuthProvider clears
-   user state from a window event handler when the backend returns 401.
-   The rule's static analysis can't tell the handler fires AFTER effect
-   setup (not during it), so it false-positives. The userRef gate above
-   the setUser call confirms we don't loop on initial mount. */
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
