@@ -98,11 +98,13 @@ ${baseReset(cls)}
   // visually consistent with the snippet output.
   const overlayHtml = bgMode === "image" ? `<div class="ns-overlay"></div>` : "";
 
-  const html = `<section class="ns-break ${cls}${fullBleedClass(cfg)}" style="${styleVars};${inlineBg}">
+  const html = `<section class="ns-break ${cls}${fullBleedClass(cfg)}" style="${styleVars};${inlineBg}" data-ns-group="defaults">
   ${overlayHtml}
   <div class="ns-inner">
+    <div data-ns-group="header">
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
     <h2 class="ns-h">${escHtml(cfg.heading)}</h2>
+    </div>
   </div>
 </section>`;
 

@@ -199,7 +199,7 @@ function render(cfg = {}) {
   // entirely just by blanking the fields.
   const headerHtml =
     c.eyebrow || c.heading || c.body
-      ? `<div class="ns-stat-header">
+      ? `<div class="ns-stat-header" data-ns-group="header-optional">
       ${c.eyebrow ? `<p class="ns-stat-eyebrow">${escHtml(c.eyebrow)}</p>` : ""}
       ${c.heading ? `<h2 class="ns-stat-heading">${escHtml(c.heading)}</h2>` : ""}
       ${c.body ? `<p class="ns-stat-intro">${escHtml(c.body)}</p>` : ""}
@@ -230,11 +230,11 @@ ${dividerCss}
 @media (prefers-reduced-motion: reduce){.${cls} .ns-stat-cta{transition:none}}
 `.trim();
 
-  const html = `<section class="ns-stat-counter ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-animate="${animate ? "1" : "0"}" data-ns-dur="${animateMs}">
+  const html = `<section class="ns-stat-counter ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-animate="${animate ? "1" : "0"}" data-ns-dur="${animateMs}" data-ns-group="defaults">
   <div class="ns-stat-wrap">
     ${headerHtml}
-    <ul class="ns-stat-list">${itemsHtml}</ul>
-    ${ctaHtml ? `<div class="ns-stat-cta-row">${ctaHtml}</div>` : ""}
+    <ul class="ns-stat-list" data-ns-group="items">${itemsHtml}</ul>
+    ${ctaHtml ? `<div class="ns-stat-cta-row" data-ns-group="cta-optional">${ctaHtml}</div>` : ""}
   </div>
 </section>`;
 

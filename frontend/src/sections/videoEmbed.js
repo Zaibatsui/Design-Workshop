@@ -211,7 +211,7 @@ function render(cfg = {}) {
   // forcing a duplicate header.
   const headerHtml =
     c.eyebrow || c.heading || c.body
-      ? `<div class="ns-video-header">
+      ? `<div class="ns-video-header" data-ns-group="header-optional">
       ${c.eyebrow ? `<p class="ns-video-eyebrow">${escHtml(c.eyebrow)}</p>` : ""}
       ${c.heading ? `<h2 class="ns-video-heading">${escHtml(c.heading)}</h2>` : ""}
       ${c.body ? `<p class="ns-video-body">${escHtml(c.body)}</p>` : ""}
@@ -312,10 +312,10 @@ ${baseReset(cls)}
 
   const html = `<section class="ns-video-embed ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-embed="${escAttr(
     embedUrl || ""
-  )}" data-ns-embed-type="${escAttr(embedType || "")}">
+  )}" data-ns-embed-type="${escAttr(embedType || "")}" data-ns-group="defaults">
   <div class="ns-video-wrap">
     ${headerHtml}
-    ${posterButton}
+    <div data-ns-group="video">${posterButton}</div>
   </div>
   ${modalHtml}
 </section>`;

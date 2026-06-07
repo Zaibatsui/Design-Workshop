@@ -162,7 +162,7 @@ function render(cfg) {
     : "";
   const hasHeader = !!(cfg.title || cfg.eyebrow || cfg.subheading);
   const headerHtml = hasHeader
-    ? `<div class="ns-head-wrap"><header class="ns-head"><div class="ns-head-inner">${eyebrowHtml}${cfg.title ? `<h2 class="ns-heading">${escHtml(cfg.title)}</h2>` : ""}${subHtml}</div></header></div>`
+    ? `<div class="ns-head-wrap" data-ns-group="header"><header class="ns-head"><div class="ns-head-inner">${eyebrowHtml}${cfg.title ? `<h2 class="ns-heading">${escHtml(cfg.title)}</h2>` : ""}${subHtml}</div></header></div>`
     : "";
 
   // Head-inner margin logic matches Feature Grid / Steps / FAQ exactly.
@@ -200,7 +200,7 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-heading{font-size:26px}}
 `.trim();
 
-  const html = `<section class="ns-testimonials ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const html = `<section class="ns-testimonials ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-group="defaults">
   ${headerHtml}
   <div class="ns-track" data-ns-track>${itemsHtml}</div>
 </section>`;

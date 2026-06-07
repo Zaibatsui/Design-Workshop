@@ -123,7 +123,7 @@ ${footerLinkCss(cls, safeColor(cfg.accentColor, "#E01839"))}
 
   const flHtml = footerLinkHtml(cfg, "center");
 
-  const html = `<section class="ns-logos ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const html = `<section class="ns-logos ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-track" data-ns-track>${itemsHtml}</div>${flHtml}
 </section>`;
 

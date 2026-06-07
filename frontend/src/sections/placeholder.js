@@ -123,7 +123,7 @@ ${baseReset(cls)}
 @media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}}
 `.trim();
 
-  const html = `<section class="ns-placeholder ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const html = `<section class="ns-placeholder ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-grid">${itemsHtml}</div>
 </section>`;
 

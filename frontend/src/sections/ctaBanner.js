@@ -218,9 +218,9 @@ const render = (cfg) => {
 
   const html = `<section class="ns-cta ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" data-ns-uid="${escAttr(
     uid
-  )}"><div class="ns-inner">${logoHtml}${eyebrowHtml}<h2 class="ns-heading">${escHtml(
+  )}" data-ns-group="defaults"><div class="ns-inner"><div data-ns-group="brand-logo-optional">${logoHtml}</div><div data-ns-group="copy">${eyebrowHtml}<h2 class="ns-heading">${escHtml(
     cfg.heading || ""
-  )}</h2>${subHtml}${actionsSlot}${flHtml}</div></section>`;
+  )}</h2>${subHtml}</div>${actionsSlot}${flHtml}</div></section>`;
 
   // Detect if the background is dark to pick a contrast colour for the
   // secondary button border. Heuristic: hex luminance < 128. When in

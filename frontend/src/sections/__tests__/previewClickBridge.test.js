@@ -184,6 +184,54 @@ function expect(name, cond, extra) {
   );
 }
 
+// ── 3b. Wave-2 sections all expose data-ns-group="defaults" on root ──
+{
+  const wave2Modules = [
+    ["breakBanner", "break.js"],
+    ["comparisonTable", "comparisonTable.js"],
+    ["content", "content.js"],
+    ["ctaBanner", "ctaBanner.js"],
+    ["faq", "faq.js"],
+    ["featureGrid", "featureGrid.js"],
+    ["featuredCard", "featuredCard.js"],
+    ["insights", "insights.js"],
+    ["logos", "logos.js"],
+    ["placeholder", "placeholder.js"],
+    ["resources", "resources.js"],
+    ["splitBanner", "splitBanner.js"],
+    ["statCounter", "statCounter.js"],
+    ["steps", "steps.js"],
+    ["tabs", "tabs.js"],
+    ["testimonials", "testimonials.js"],
+    ["trustStrip", "trustStrip.js"],
+    ["videoEmbed", "videoEmbed.js"],
+    ["welcome", "welcome.js"],
+  ];
+  for (const [exportName, fileName] of wave2Modules) {
+    const mod = require(`../${fileName}`);
+    const section = mod[exportName];
+    if (!section || !section.render || !section.defaults) continue;
+    const cfg = section.defaults();
+    // featuredCard's root <section> uses data-ns-group="bg" (the image
+    // wrapper), not "defaults" — every other instrumented section uses
+    // "defaults" on its outermost element.
+    const html = section.render(cfg);
+    if (exportName === "featuredCard") {
+      expect(
+        `${exportName} root emits a data-ns-group attribute`,
+        /<section[^>]*data-ns-group="(?:defaults|bg)"/.test(html),
+        `${exportName} root must carry a click-to-edit marker`
+      );
+    } else {
+      expect(
+        `${exportName} root emits data-ns-group="defaults"`,
+        /<section[^>]*data-ns-group="defaults"/.test(html),
+        `${exportName} root must carry data-ns-group="defaults"`
+      );
+    }
+  }
+}
+
 // ── 4. Snippets copied out of the editor must NOT include the bridge ──
 {
   const raw = products.render(products.defaults());

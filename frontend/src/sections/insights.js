@@ -202,10 +202,9 @@ ${footerLinkCss(cls, safeColor(cfg.accentColor, "#E01839"))}
 @media (max-width:768px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-card{flex-direction:column}.${cls} .ns-icon{flex-basis:auto;width:100%;aspect-ratio:16/9}}
 `.trim();
 
-  const html = `<section class="ns-insights ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const html = `<section class="ns-insights ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-wrap">
-    ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
-    ${cfg.title ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
+    ${cfg.eyebrow || cfg.title ? `<div data-ns-group="header">${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}${cfg.title ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}</div>` : ""}
     <div class="ns-grid">
       ${cardsHtml}
     </div>

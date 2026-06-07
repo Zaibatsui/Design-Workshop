@@ -126,9 +126,9 @@ ${dividerCss}
 @media (max-width:600px){.${cls} .ns-list{grid-template-columns:1fr;gap:18px}}
 `.trim();
 
-  const html = `<section class="ns-trust-strip ${cls}${fullBleedClass(c)}" style="${styleVars}">
+  const html = `<section class="ns-trust-strip ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-wrap">
-    <ul class="ns-list">${itemsHtml}</ul>
+    <ul class="ns-list" data-ns-group="items">${itemsHtml}</ul>
   </div>
 </section>`;
 

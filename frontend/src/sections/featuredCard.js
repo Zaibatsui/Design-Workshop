@@ -190,14 +190,16 @@ ${baseReset(cls)}
 }
 `.trim();
 
-  const html = `<section class="ns-featured-card ${cls}${fullBleedClass(c)}" style="${styleVars};background-image:url('${escAttr(safeUrl(c.image))}')" role="img"${c.imageAlt ? ` aria-label="${escAttr(c.imageAlt)}"` : ""}>
+  const html = `<section class="ns-featured-card ${cls}${fullBleedClass(c)}" style="${styleVars};background-image:url('${escAttr(safeUrl(c.image))}')" role="img"${c.imageAlt ? ` aria-label="${escAttr(c.imageAlt)}"` : ""} data-ns-group="bg">
   <div class="ns-overlay"></div>
-  <div class="ns-card">
+  <div class="ns-card" data-ns-group="card">
+    <div data-ns-group="header">
     ${c.eyebrow ? `<p class="ns-eyebrow">${escHtml(c.eyebrow)}</p>` : ""}
     ${c.heading ? `<h2 class="ns-heading">${highlight(c.heading, c.accentHeading, c.accentColor)}</h2>` : ""}
     ${c.subheading ? `<p class="ns-sub">${escHtml(c.subheading)}</p>` : ""}
-    ${pointsHtml ? `<ul class="ns-points">${pointsHtml}</ul>` : ""}
-    ${ctaHtml}
+    </div>
+    ${pointsHtml ? `<ul class="ns-points" data-ns-group="points">${pointsHtml}</ul>` : ""}
+    <div data-ns-group="cta">${ctaHtml}</div>
   </div>
 </section>`;
 

@@ -170,7 +170,7 @@ ${baseReset(cls)}
 
   // ---- block markup --------------------------------------------------
   const headerBlock = (cfg.heading || cfg.body || cfg.eyebrow)
-    ? `<div class="ns-block pos-${headerPos}">
+    ? `<div class="ns-block pos-${headerPos}" data-ns-group="header">
       ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
       ${cfg.heading ? `<h1 class="ns-h">${escHtml(cfg.heading)}</h1>` : ""}
       ${cfg.body ? `<p class="ns-body">${escHtml(cfg.body)}</p>` : ""}
@@ -178,7 +178,7 @@ ${baseReset(cls)}
     : "";
 
   const logoBlock = (cfg.showLogo && cfg.logo)
-    ? `<div class="ns-block pos-${logoPos}">
+    ? `<div class="ns-block pos-${logoPos}" data-ns-group="customer-logo">
       <div class="ns-logo-wrap">
         <img class="ns-logo-img" src="${escAttr(safeUrl(cfg.logo))}" alt="${escAttr(cfg.logoAlt || "Customer logo")}"/>
       </div>
@@ -197,7 +197,7 @@ ${baseReset(cls)}
     : "";
 
   const amBlock = cfg.showAm
-    ? `<div class="ns-block pos-${amPos}">
+    ? `<div class="ns-block pos-${amPos}" data-ns-group="account-manager">
       <div class="ns-am">
         ${amAvatarMarkup}
         <div class="ns-am-info">
@@ -210,7 +210,7 @@ ${baseReset(cls)}
     </div>`
     : "";
 
-  const html = `<section class="ns-welcome ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" style="${styleVars};background-image:url('${escAttr(safeUrl(cfg.image))}')">
+  const html = `<section class="ns-welcome ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" style="${styleVars};background-image:url('${escAttr(safeUrl(cfg.image))}')" data-ns-group="defaults">
   <div class="ns-overlay"></div>
   <div class="ns-grid">
     ${headerBlock}

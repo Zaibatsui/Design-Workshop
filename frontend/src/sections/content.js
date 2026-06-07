@@ -141,10 +141,12 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-h{font-size:calc(var(--ns-size) * .82)}.${cls} .ns-p{font-size:15px}.${cls} .ns-btn{flex:1 1 140px}.${cls}.is-m-center .ns-inner{text-align:center!important}.${cls}.is-m-center .ns-btns{justify-content:center!important}}
 `.trim();
 
-  const html = `<section class="ns-content ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" style="${styleVars}">
+  const html = `<section class="ns-content ${cls}${fullBleedClass(cfg)}${cfg.mobileCenterText ? " is-m-center" : ""}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-inner">
+    <div data-ns-group="header">
     ${eyebrowHtml}
     <h2 class="ns-h">${escHtml(cfg.heading)}</h2>
+    </div>
     ${bodyHtml}
     ${btnsHtml}
   </div>

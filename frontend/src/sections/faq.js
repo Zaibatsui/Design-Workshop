@@ -112,7 +112,7 @@ const render = (cfg) => {
 
   const html = `<section class="ns-faq ${cls}${fullBleedClass(cfg)}" data-ns-uid="${escAttr(
     uid
-  )}"><div class="ns-inner"><header class="ns-head"><div class="ns-head-inner">${eyebrowHtml}<h2 class="ns-heading">${escHtml(
+  )}" data-ns-group="defaults"><div class="ns-inner"><header class="ns-head" data-ns-group="header"><div class="ns-head-inner">${eyebrowHtml}<h2 class="ns-heading">${escHtml(
     cfg.heading || ""
   )}</h2>${subHtml}</div></header><div class="ns-list">${itemsHtml}</div></div></section>`;
 

@@ -163,7 +163,7 @@ function render(cfg) {
           .join("")}</ul>`
       : "";
 
-  const panelHtml = `<div class="ns-panel is-side-${imageSide === "left" ? "right" : "left"}${cfg.mobileCenterText ? " is-m-center" : ""}">
+  const panelHtml = `<div class="ns-panel is-side-${imageSide === "left" ? "right" : "left"}${cfg.mobileCenterText ? " is-m-center" : ""}" data-ns-group="panel-content">
   <div class="ns-panel-inner">
     ${logoUrl ? `<img class="ns-logo" src="${escAttr(logoUrl)}" alt="${escAttr(cfg.logoAlt || "")}"${cfg.logoAlt ? "" : ' aria-hidden="true"'}/>` : ""}
     ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
@@ -174,11 +174,11 @@ function render(cfg) {
   </div>
 </div>`;
 
-  const imageHtml = `<div class="ns-image-wrap">${
+  const imageHtml = `<div class="ns-image-wrap" data-ns-group="image">${
     imageUrl ? `<img src="${escAttr(imageUrl)}" alt="${escAttr(cfg.imageAlt || cfg.heading || "")}"/>` : ""
   }</div>`;
 
-  const html = `<section class="ns-split-banner ${cls}${fullBleedClass(cfg)}">
+  const html = `<section class="ns-split-banner ${cls}${fullBleedClass(cfg)}" data-ns-group="defaults">
   <div class="ns-grid">
     ${imageSide === "left" ? imageHtml + panelHtml : panelHtml + imageHtml}
   </div>

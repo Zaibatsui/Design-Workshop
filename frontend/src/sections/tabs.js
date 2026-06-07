@@ -213,7 +213,7 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 @media (max-width:768px){.${cls} .ns-split{grid-template-columns:1fr;gap:24px}.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}.${cls} .ns-heading{margin:0 0 12px}.${cls} .ns-ctas{flex-direction:column;align-items:stretch}.${cls} .ns-btn{width:100%}}
 `.trim();
 
-  const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}">
+  const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-inner">
     <div class="ns-tabs-row">${buttonsHtml}</div>
     <div class="ns-panels">${panelsHtml}</div>

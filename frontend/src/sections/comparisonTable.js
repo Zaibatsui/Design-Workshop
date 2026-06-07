@@ -254,17 +254,19 @@ ${footerLinkCss(cls, accent, safeColor(c.bodyColor, "#475569"))}
     <div class="ns-cell ns-cell-them" role="columnheader">${escHtml(c.competitorLabel || "Other Platforms")}</div>
   </div>`;
 
-  const html = `<section class="ns-comparison ${cls}${fullBleedClass(c)}" style="${styleVars}">
+  const html = `<section class="ns-comparison ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-wrap">
+    <div data-ns-group="header">
     ${eyebrowHtml}
     ${titleHtml}
     ${subHtml}
-    <div class="ns-table" role="table">
+    </div>
+    <div class="ns-table" role="table" data-ns-group="rows">
       ${ourBorderHtml}
       ${headRow}
       ${rowsHtml}
     </div>
-    ${closingHtml}
+    <div data-ns-group="closing">${closingHtml}</div>
     ${footerLinkHtml(c, align)}
   </div>
 </section>`;
