@@ -8,16 +8,18 @@ import InlineEditableLabel from "@/components/InlineEditableLabel";
  * double-click renames inline.
  */
 export default function PagesList({
+  studio,
   pages,
   loading,
   activePageId,
   expanded,
   onRename,
 }) {
+  const emptyCls = studio ? "text-zinc-500" : "text-slate-500";
   if (loading) {
     return (
       <div
-        className={`text-slate-500 ${
+        className={`${emptyCls} ${
           expanded ? "px-3 py-2 text-xs" : "py-2 text-[10px]"
         }`}
       >
@@ -28,7 +30,7 @@ export default function PagesList({
   if (!pages.length) {
     return (
       <div
-        className={`text-slate-500 ${
+        className={`${emptyCls} ${
           expanded ? "px-3 py-2 text-xs leading-relaxed" : "py-2 text-[10px]"
         }`}
       >
@@ -41,6 +43,20 @@ export default function PagesList({
       {pages.map((p) => {
         const isActive = activePageId === p.page_id;
         const blockCount = (p.blocks || []).length;
+        const linkCls = studio
+          ? isActive
+            ? "bg-blue-50 text-blue-900 border border-blue-200"
+            : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-transparent"
+          : isActive
+          ? "bg-white text-slate-900"
+          : "text-slate-400 hover:bg-white/10 hover:text-white";
+        const captionCls = studio
+          ? isActive
+            ? "text-blue-700"
+            : "text-zinc-400 group-hover:text-zinc-500"
+          : isActive
+          ? "text-slate-500"
+          : "text-slate-500 group-hover:text-slate-300";
         return (
           <Link
             key={p.page_id}
@@ -51,11 +67,7 @@ export default function PagesList({
               expanded
                 ? "w-full h-10 px-2 gap-2 rounded-md"
                 : "w-11 h-11 rounded-md justify-center"
-            } ${
-              isActive
-                ? "bg-white text-slate-900"
-                : "text-slate-400 hover:bg-white/10 hover:text-white"
-            }`}
+            } ${linkCls}`}
           >
             <FileStack className="w-[18px] h-[18px] flex-shrink-0" />
             {expanded ? (
@@ -67,11 +79,7 @@ export default function PagesList({
                   className="block text-xs font-medium truncate leading-tight"
                 />
                 <p
-                  className={`text-[10px] uppercase tracking-wider truncate leading-tight ${
-                    isActive
-                      ? "text-slate-500"
-                      : "text-slate-500 group-hover:text-slate-300"
-                  }`}
+                  className={`text-[10px] uppercase tracking-wider truncate leading-tight ${captionCls}`}
                 >
                   {blockCount} block{blockCount === 1 ? "" : "s"}
                 </p>

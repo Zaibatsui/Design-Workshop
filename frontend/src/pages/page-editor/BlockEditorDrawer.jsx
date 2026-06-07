@@ -8,19 +8,29 @@ import { SECTIONS_BY_ID } from "@/sections/registry";
 import { blockTypeLabel } from "@/sections/pageSnippet";
 import RichTextBlockForm from "./RichTextBlockForm";
 
-export default function BlockEditorDrawer({ block, onUpdate, onClose }) {
+export default function BlockEditorDrawer({ studio = false, block, onUpdate, onClose }) {
   const isRichText = block.type === "richtext";
   const def = !isRichText ? SECTIONS_BY_ID[block.section_type] : null;
   const typeLabel = blockTypeLabel(block);
 
+  const asideCls = studio
+    ? "w-96 flex-shrink-0 border-l border-zinc-200 bg-white h-screen overflow-y-auto"
+    : "w-96 flex-shrink-0 border-l border-slate-200 bg-white h-screen overflow-y-auto";
+  const headerCls = studio
+    ? "px-5 py-4 border-b border-zinc-200 sticky top-0 bg-white z-10 flex items-start justify-between"
+    : "px-5 py-4 border-b border-slate-200 sticky top-0 bg-white z-10 flex items-start justify-between";
+  const eyebrowCls = studio
+    ? "text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-0.5"
+    : "text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5";
+  const closeCls = studio
+    ? "p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors flex-shrink-0"
+    : "p-1.5 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0";
+
   return (
-    <aside
-      data-testid="block-editor-drawer"
-      className="w-96 flex-shrink-0 border-l border-slate-200 bg-white h-screen overflow-y-auto"
-    >
-      <div className="px-5 py-4 border-b border-slate-200 sticky top-0 bg-white z-10 flex items-start justify-between">
+    <aside data-testid="block-editor-drawer" className={asideCls}>
+      <div className={headerCls}>
         <div className="min-w-0 flex-1 pr-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">
+          <div className={eyebrowCls}>
             Editing · {typeLabel}
           </div>
           <Input
@@ -35,7 +45,7 @@ export default function BlockEditorDrawer({ block, onUpdate, onClose }) {
           type="button"
           onClick={onClose}
           data-testid="block-editor-close"
-          className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0"
+          className={closeCls}
           title="Close"
         >
           <X className="w-4 h-4" />

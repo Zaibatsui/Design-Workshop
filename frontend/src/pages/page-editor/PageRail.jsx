@@ -31,6 +31,7 @@ import PagesList from "./rail/PagesList";
  * Collapsed state shows tab icons only; list is hidden.
  */
 export default function PageRail({
+  studio = false,
   activePageId,
   blocks,
   selectedBlockId,
@@ -92,9 +93,11 @@ export default function PageRail({
     <>
       <div
         data-testid="page-rail"
-        className={`flex-shrink-0 bg-slate-900 h-screen flex flex-col overflow-hidden transition-[width] duration-200 ease-out ${
-          expanded ? "w-64" : "w-16"
-        }`}
+        className={`flex-shrink-0 h-screen flex flex-col overflow-hidden transition-[width] duration-200 ease-out ${
+          studio
+            ? "bg-white border-r border-zinc-200"
+            : "bg-slate-900"
+        } ${expanded ? "w-64" : "w-16"}`}
       >
         {/* Top: back + collapse toggle */}
         <div
@@ -107,7 +110,11 @@ export default function PageRail({
           <Link
             to="/"
             data-testid="page-rail-back"
-            className="w-9 h-9 rounded-md flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+            className={`w-9 h-9 rounded-md flex items-center justify-center transition-colors ${
+              studio
+                ? "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                : "text-slate-400 hover:bg-white/10 hover:text-white"
+            }`}
             title="Back to dashboard"
             aria-label="Back to dashboard"
           >
@@ -117,7 +124,11 @@ export default function PageRail({
             type="button"
             data-testid="page-rail-toggle"
             onClick={() => setExpanded((v) => !v)}
-            className="w-9 h-9 rounded-md flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+            className={`w-9 h-9 rounded-md flex items-center justify-center transition-colors ${
+              studio
+                ? "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                : "text-slate-400 hover:bg-white/10 hover:text-white"
+            }`}
             title={expanded ? "Collapse" : "Expand"}
             aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
           >
@@ -137,8 +148,9 @@ export default function PageRail({
           data-testid="page-rail-tabs"
         >
           {expanded ? (
-            <div className="flex items-center gap-1 p-1 bg-white/5 rounded-lg">
+            <div className={`flex items-center gap-1 p-1 rounded-lg ${studio ? "bg-zinc-100" : "bg-white/5"}`}>
               <RailTab
+                studio={studio}
                 active={tab === "blocks"}
                 onClick={() => setTab("blocks")}
                 testid="page-rail-tab-blocks"
@@ -148,6 +160,7 @@ export default function PageRail({
                 Blocks
               </RailTab>
               <RailTab
+                studio={studio}
                 active={tab === "pages"}
                 onClick={() => setTab("pages")}
                 testid="page-rail-tab-pages"
@@ -160,6 +173,7 @@ export default function PageRail({
           ) : (
             <>
               <CollapsedTabButton
+                studio={studio}
                 active={tab === "blocks"}
                 onClick={() => setTab("blocks")}
                 testid="page-rail-tab-blocks"
@@ -167,6 +181,7 @@ export default function PageRail({
                 label="Blocks"
               />
               <CollapsedTabButton
+                studio={studio}
                 active={tab === "pages"}
                 onClick={() => setTab("pages")}
                 testid="page-rail-tab-pages"
@@ -186,6 +201,7 @@ export default function PageRail({
         >
           {tab === "blocks" ? (
             <BlocksList
+              studio={studio}
               blocks={blocks || []}
               selectedBlockId={selectedBlockId}
               onSelect={onSelectBlock}
@@ -196,6 +212,7 @@ export default function PageRail({
             />
           ) : (
             <PagesList
+              studio={studio}
               pages={pages}
               loading={pagesLoading}
               activePageId={activePageId}
@@ -207,12 +224,13 @@ export default function PageRail({
 
         {/* Footer action — mirrors active tab */}
         <div
-          className={`border-t border-white/5 py-3 ${
+          className={`border-t py-3 ${studio ? "border-zinc-200" : "border-white/5"} ${
             expanded ? "px-3" : "px-0 flex justify-center"
           }`}
         >
           {tab === "blocks" ? (
             <RailFooterButton
+              studio={studio}
               onClick={onAddBlock}
               testid="page-rail-add-block"
               label="Add block"
@@ -220,6 +238,7 @@ export default function PageRail({
             />
           ) : (
             <RailFooterButton
+              studio={studio}
               onClick={() => setTemplatePicker(true)}
               testid="page-rail-new-page"
               label="New page"

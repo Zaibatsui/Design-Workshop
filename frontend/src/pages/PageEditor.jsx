@@ -371,6 +371,7 @@ export default function PageEditor({ studio = false }) {
       data-testid={studio ? "studio-page-editor" : undefined}
     >
       <PageRail
+        studio={studio}
         activePageId={page.page_id}
         blocks={page.blocks || []}
         selectedBlockId={selectedBlockId}
@@ -386,12 +387,13 @@ export default function PageEditor({ studio = false }) {
           layout for consistency. */}
       {selectedBlock ? (
         <BlockEditorDrawer
+          studio={studio}
           block={selectedBlock}
           onUpdate={(patch) => updateBlock(selectedBlock.block_id, patch)}
           onClose={() => setSelectedBlockId(null)}
         />
       ) : (
-        <EmptyBlockEditor onAdd={() => setAdder(true)} />
+        <EmptyBlockEditor studio={studio} onAdd={() => setAdder(true)} />
       )}
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -502,12 +504,16 @@ export default function PageEditor({ studio = false }) {
 
         <div className={`flex-1 overflow-auto p-6 ${studio ? "bg-zinc-100" : "bg-slate-50"}`}>
           <div
-            className="mx-auto bg-white rounded-md border border-slate-200 overflow-hidden"
+            className={`mx-auto bg-white overflow-hidden ${
+              studio
+                ? "rounded-xl border border-zinc-200 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_30px_rgba(0,0,0,0.06)]"
+                : "rounded-md border border-slate-200"
+            }`}
             style={{ maxWidth: "100%", width: "100%" }}
             data-testid="page-preview-container"
           >
             {(page.blocks || []).length === 0 ? (
-              <EmptyPageState onAdd={() => setAdder(true)} />
+              <EmptyPageState studio={studio} onAdd={() => setAdder(true)} />
             ) : (
               <PagePreviewFrame
                 doc={previewHtml}
@@ -543,20 +549,28 @@ export default function PageEditor({ studio = false }) {
   );
 }
 
-function EmptyPageState({ onAdd }) {
+function EmptyPageState({ studio = false, onAdd }) {
   return (
     <div className="py-24 px-6 text-center">
-      <div className="w-12 h-12 rounded-xl bg-slate-100 mx-auto flex items-center justify-center mb-4">
-        <FileStack className="w-5 h-5 text-slate-400" />
+      <div
+        className={`w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-4 ${
+          studio ? "bg-zinc-100" : "bg-slate-100"
+        }`}
+      >
+        <FileStack className={`w-5 h-5 ${studio ? "text-zinc-400" : "text-slate-400"}`} />
       </div>
       <h2 className="font-heading text-lg font-semibold mb-2">Empty page</h2>
-      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
+      <p className={`text-sm max-w-sm mx-auto mb-6 ${studio ? "text-zinc-500" : "text-slate-500"}`}>
         Stack library sections, fresh sections, and rich-text blocks to build a
         full page. Export as a single HTML snippet.
       </p>
       <Button
         onClick={onAdd}
-        className="bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
+        className={
+          studio
+            ? "bg-zinc-900 hover:bg-zinc-800 text-white font-medium"
+            : "bg-[#E01839] hover:bg-[#c01530] text-white font-medium"
+        }
       >
         <Plus className="w-4 h-4 mr-1.5" />
         Add your first block
