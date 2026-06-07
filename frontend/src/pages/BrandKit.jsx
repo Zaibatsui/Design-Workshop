@@ -33,7 +33,7 @@ import { useAuth } from "@/auth/AuthContext";
 import UserMenu from "@/components/UserMenu";
 import StudioToggle from "@/components/studio/StudioToggle";
 
-export default function BrandKitPage({ chromeless = false }) {
+export default function BrandKitPage({ chromeless = false, hideImageLibrary = false }) {
   const { user } = useAuth();
   const { brandKit, setBrandKit } = useBrandKit();
   const [draft, setDraft] = useState(brandKit);
