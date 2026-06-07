@@ -91,16 +91,26 @@ export default function StudioInspector({
   // owned by `FormAccordion` (which is rendered deep inside the
   // section's FormPanel) — clicking the trigger is the lowest-friction
   // way to drive that state without a context refactor.
+  //
+  // The preview's click-to-edit bridge dispatches the same event with
+  // only `groupValue` (it can't know the FormGroup's category from a
+  // bare HTML data attribute), so we also look up the category from
+  // the target group's DOM attrs and switch the tab automatically.
   useEffect(() => {
     const handler = (e) => {
       const { category, groupValue } = e.detail || {};
-      if (category) setActive(category);
+      const root = panelRef.current;
+      if (!root || !groupValue) {
+        if (category) setActive(category);
+        return;
+      }
+      const item = root.querySelector(
+        `[data-testid="form-group-${groupValue}"]`
+      );
+      const resolvedCategory =
+        category || item?.getAttribute("data-studio-category") || null;
+      if (resolvedCategory) setActive(resolvedCategory);
       requestAnimationFrame(() => {
-        const root = panelRef.current;
-        if (!root || !groupValue) return;
-        const item = root.querySelector(
-          `[data-testid="form-group-${groupValue}"]`
-        );
         if (!item) return;
         const trigger = item.querySelector("button");
         if (trigger && trigger.getAttribute("data-state") === "closed") {

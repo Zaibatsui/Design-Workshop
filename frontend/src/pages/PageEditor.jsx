@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Copy, FileStack, Plus, Save, Layers } from "lucide-react";
+import { ArrowLeft, Copy, FileStack, Monitor, Plus, Save, Smartphone, Tablet, Layers } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { richtext } from "@/sections/richtext";
 import { composePage } from "@/sections/pageSnippet";
@@ -45,6 +45,7 @@ export default function PageEditor({ studio = false }) {
   const [adder, setAdder] = useState(false);
   const [librarySections, setLibrarySections] = useState([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [previewWidth, setPreviewWidth] = useState("desktop");
   const { brandKit } = useBrandKit();
 
   // After first save POSTs the new page, we navigate-replace from
@@ -304,6 +305,36 @@ export default function PageEditor({ studio = false }) {
     [deferredSnippet, hasProducts]
   );
 
+  // ── Click-to-edit bridge ─────────────────────────────────────────
+  // The preview iframe posts a message whenever the user clicks any
+  // element with a `data-ns-block-id` or `data-ns-group` ancestor.
+  // Translate that into editor state: select the block (so the right
+  // pane swaps to its editor) AND dispatch the same studio jump-event
+  // the outline rail uses so the matching FormGroup expands.
+  useEffect(() => {
+    const onMessage = (e) => {
+      const d = e?.data;
+      if (!d || d.type !== "ns-preview-click") return;
+      if (d.blockId) {
+        setSelectedBlockId(d.blockId);
+      }
+      if (d.group) {
+        // Defer until React has had a tick to mount the inspector for
+        // the newly selected block, so the inspector's listener is in
+        // place when the jump event fires.
+        setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent("ns-studio-jump-to-group", {
+              detail: { groupValue: d.group },
+            })
+          );
+        }, 80);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
   const copySnippet = async () => {
     if (!page) return;
     try {
@@ -504,13 +535,54 @@ export default function PageEditor({ studio = false }) {
         )}
 
         <div className={`flex-1 overflow-auto p-6 ${studio ? "bg-zinc-100" : "bg-slate-50"}`}>
+          {studio && (
+            <div
+              className="max-w-7xl mx-auto mb-3 flex items-center justify-between"
+              data-testid="page-canvas-toolbar"
+            >
+              <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500">
+                Canvas
+              </span>
+              <div className="flex items-center bg-white rounded-md p-0.5 border border-zinc-200">
+                {[
+                  { id: "desktop", Icon: Monitor },
+                  { id: "tablet", Icon: Tablet },
+                  { id: "mobile", Icon: Smartphone },
+                ].map(({ id, Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setPreviewWidth(id)}
+                    data-testid={`page-viewport-${id}`}
+                    title={id.charAt(0).toUpperCase() + id.slice(1)}
+                    className={`flex items-center justify-center h-7 w-9 rounded transition-colors ${
+                      previewWidth === id
+                        ? "bg-zinc-100 text-zinc-900 shadow-sm"
+                        : "text-zinc-500 hover:text-zinc-700"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div
-            className={`mx-auto bg-white overflow-hidden ${
+            className={`mx-auto bg-white overflow-hidden transition-[max-width] duration-300 ${
               studio
                 ? "rounded-xl border border-zinc-200 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_30px_rgba(0,0,0,0.06)]"
                 : "rounded-md border border-slate-200"
             }`}
-            style={{ maxWidth: "100%", width: "100%" }}
+            style={{
+              maxWidth: studio
+                ? previewWidth === "tablet"
+                  ? "820px"
+                  : previewWidth === "mobile"
+                  ? "390px"
+                  : "100%"
+                : "100%",
+              width: "100%",
+            }}
             data-testid="page-preview-container"
           >
             {(page.blocks || []).length === 0 ? (

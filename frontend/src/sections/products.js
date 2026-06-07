@@ -278,10 +278,9 @@ ${baseReset(cls)}
 @media (max-width:640px){.${cls} .ns-card{flex-basis:80%}.${cls} .ns-prev{left:0}.${cls} .ns-next{right:0}}
 `.trim();
 
-  const html = `<section class="ns-products ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${cfg.autoplay ? "1" : "0"}" data-ns-interval="${num(cfg.autoplayInterval, 4000)}" data-ns-poh="${cfg.pauseOnHover === false ? "0" : "1"}">
+  const html = `<section class="ns-products ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-autoplay="${cfg.autoplay ? "1" : "0"}" data-ns-interval="${num(cfg.autoplayInterval, 4000)}" data-ns-poh="${cfg.pauseOnHover === false ? "0" : "1"}" data-ns-group="defaults">
   <div class="ns-wrap">
-    ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
-    ${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
+    ${cfg.eyebrow || (cfg.title || "").trim() ? `<div data-ns-group="header">${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}</div>` : ""}
     ${arrowsHtml}
     <div class="ns-track" data-ns-track>
       ${cardsHtml}

@@ -773,7 +773,7 @@ ${baseReset(cls)}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
 
-  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}">
+  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}" data-ns-group="section-carousel">
   <div class="ns-track" data-ns-track>${slidesHtml}</div>
   ${arrowsHtml}
   ${dotsHtml}
@@ -926,7 +926,7 @@ ${baseReset(cls)}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
 
-  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}">
+  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}" data-ns-group="section-carousel">
 ${slidesHtml}
 ${arrowsHtml}
 ${dotsHtml}

@@ -33,8 +33,31 @@ export function renderBlock(block) {
   return "";
 }
 
+/**
+ * Escape a string for safe embedding inside an HTML attribute value.
+ * Block IDs are server-generated UUIDs so they're already safe, but
+ * the helper keeps composePage defensive in case a future block-id
+ * scheme ever includes user-supplied characters.
+ */
+function attrEscape(s) {
+  return String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
 export function composePage(blocks = []) {
-  const rendered = blocks.map(renderBlock).filter(Boolean);
+  const rendered = blocks.map((b) => {
+    const html = renderBlock(b);
+    if (!html) return "";
+    const id = b?.block_id;
+    // Wrap each block in an editor-only marker the click bridge picks
+    // up to drive block-selection. The wrapper renders inline-block
+    // contents (display:contents) so it has zero layout impact on the
+    // rendered snippet — semantically transparent. Browsers that don't
+    // support `display:contents` (~all modern do) will see a plain
+    // <div> which still works correctly for the click bridge.
+    return id
+      ? `<div data-ns-block-id="${attrEscape(id)}" style="display:contents">${html}</div>`
+      : html;
+  }).filter(Boolean);
   if (rendered.length === 0) return "";
 
   // Keep the font import on the FIRST snippet only.

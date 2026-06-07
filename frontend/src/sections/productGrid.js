@@ -324,10 +324,9 @@ ${baseReset(cls)}
       ${cardsHtml}
     </div>`;
 
-  const html = `<section class="ns-pgrid ${cls}${fullBleedClass(cfg)}${isMCarousel ? " is-m-carousel" : ""}" style="${styleVars}"${isMCarousel ? ` data-ns-m-autoplay="${mAutoplay ? "1" : "0"}" data-ns-m-interval="${mInterval}"` : ""}>
+  const html = `<section class="ns-pgrid ${cls}${fullBleedClass(cfg)}${isMCarousel ? " is-m-carousel" : ""}" style="${styleVars}"${isMCarousel ? ` data-ns-m-autoplay="${mAutoplay ? "1" : "0"}" data-ns-m-interval="${mInterval}"` : ""} data-ns-group="defaults">
   <div class="ns-wrap">
-    ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
-    ${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}
+    ${cfg.eyebrow || (cfg.title || "").trim() ? `<div data-ns-group="header">${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}${(cfg.title || "").trim() ? `<h2 class="ns-h">${escHtml(cfg.title)}</h2>` : ""}</div>` : ""}
     ${trackBlock}
   </div>
 </section>`;

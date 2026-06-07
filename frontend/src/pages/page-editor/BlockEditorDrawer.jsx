@@ -19,7 +19,6 @@ import { SECTIONS_BY_ID } from "@/sections/registry";
 import { blockTypeLabel } from "@/sections/pageSnippet";
 import RichTextBlockForm from "./RichTextBlockForm";
 import StudioInspector from "@/components/studio/StudioInspector";
-import StudioOutline from "@/components/studio/StudioOutline";
 
 export default function BlockEditorDrawer({
   studio = false,
@@ -86,27 +85,17 @@ export default function BlockEditorDrawer({
       </div>
 
       {studio && def ? (
-        // Studio: outline quick-jump + StudioInspector (Content / Design /
-        // Advanced tabs) — same chrome as the standalone section editor.
-        <div className="flex-1 min-h-0 flex flex-col">
-          <div
-            className="px-3 pt-3 pb-2 border-b border-zinc-200 max-h-48 overflow-y-auto"
-            data-testid="block-editor-outline"
-          >
-            <StudioOutline
-              panelRef={inspectorPanelRef}
-              signal={`${def.id}:${JSON.stringify(block.config || {}).length}`}
-            />
-          </div>
-          <div className="flex-1 min-h-0">
-            <StudioInspector
-              def={def}
-              config={block.config || {}}
-              onUpdate={formOnUpdate}
-              panelRef={inspectorPanelRef}
-              hideHeader
-            />
-          </div>
+        // Studio: section's FormPanel wrapped in <StudioInspector> so the
+        // user gets the Content / Design / Advanced tab UI — same as the
+        // standalone section editor.
+        <div className="flex-1 min-h-0">
+          <StudioInspector
+            def={def}
+            config={block.config || {}}
+            onUpdate={formOnUpdate}
+            panelRef={inspectorPanelRef}
+            hideHeader
+          />
         </div>
       ) : (
         // Classic mode OR rich-text block in Studio: render the legacy

@@ -253,6 +253,25 @@ export default function StudioEditor() {
     [debouncedSnippet, section?.type]
   );
 
+  // Preview click-to-edit bridge. Each section renders its own
+  // `data-ns-group="..."` markers on key wrapper elements; when the
+  // user clicks inside the preview iframe, the bridge in `previewDoc`
+  // posts a message which we translate into the same jump-to-group
+  // event the outline rail uses.
+  useEffect(() => {
+    const onMessage = (e) => {
+      const d = e?.data;
+      if (!d || d.type !== "ns-preview-click" || !d.group) return;
+      window.dispatchEvent(
+        new CustomEvent("ns-studio-jump-to-group", {
+          detail: { groupValue: d.group },
+        })
+      );
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
   const copySnippet = async () => {
     if (!def || !section) return;
     const fresh = { ...section.config, uid: makeUid() };

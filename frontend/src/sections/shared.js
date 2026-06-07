@@ -305,5 +305,14 @@ export function previewDoc(snippet, opts) {
   // each reload we read the state back and re-apply it before the user
   // notices a flicker. Exported snippets never receive this script.
   const stateRestoreJs = `<script>(function(){function r(f){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",f);else f();}r(function(){var st={};try{st=JSON.parse(window.name||"{}")||{};}catch(e){}var ds=document.querySelectorAll("details");if(Array.isArray(st.od))st.od.forEach(function(i){if(ds[i])ds[i].open=true;});if(typeof st.sy==="number"){var y=st.sy;requestAnimationFrame(function(){window.scrollTo(0,y);requestAnimationFrame(function(){window.scrollTo(0,y);});});}function save(){try{var od=[];document.querySelectorAll("details").forEach(function(d,i){if(d.open)od.push(i);});window.name=JSON.stringify({sy:window.scrollY||window.pageYOffset||0,od:od});}catch(e){}}var t=false;window.addEventListener("scroll",function(){if(t)return;t=true;requestAnimationFrame(function(){save();t=false;});},{passive:true});document.addEventListener("toggle",function(e){if(e.target&&e.target.tagName==="DETAILS")save();},true);});})();</script>`;
-  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}${stateRestoreJs}</body></html>`;
+  // Editor-only click-to-edit bridge. Captures clicks anywhere in the
+  // preview, walks up the DOM to find the nearest [data-ns-block-id]
+  // (page-editor blocks) and / or [data-ns-group] (FormGroup wrappers
+  // emitted by individual sections), then posts a message to the
+  // parent editor so it can select the block + open the matching
+  // settings group. preventDefault stops <a>/<button> navigation
+  // inside the preview iframe (users want to edit, not navigate).
+  // Snippets copied out of the editor never receive this script.
+  const clickBridgeJs = `<script>(function(){function up(el,attr){while(el&&el.nodeType===1){if(el.hasAttribute&&el.hasAttribute(attr))return el.getAttribute(attr);el=el.parentNode;}return null;}document.addEventListener("click",function(e){var blockId=up(e.target,"data-ns-block-id");var group=up(e.target,"data-ns-group");if(!blockId&&!group)return;e.preventDefault();e.stopPropagation();try{parent.postMessage({type:"ns-preview-click",blockId:blockId,group:group},"*");}catch(err){}},true);})();</script>`;
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}[data-ns-group]{cursor:pointer}[data-ns-group]:hover{outline:2px dashed rgba(59,130,246,.4);outline-offset:-2px}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}${stateRestoreJs}${clickBridgeJs}</body></html>`;
 }
