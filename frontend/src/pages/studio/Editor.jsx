@@ -333,28 +333,9 @@ export default function StudioEditor() {
             <span className="hidden sm:inline">Dashboard</span>
           </button>
           <div className="h-5 w-px bg-zinc-200" />
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 flex-shrink-0">
-              {def.name}
-            </span>
-            <div
-              className="group relative flex items-center"
-              data-testid="studio-section-name-field"
-            >
-              <Input
-                value={section.name}
-                onChange={(e) => renameSection(e.target.value)}
-                data-testid="studio-section-name-input"
-                placeholder="Untitled section"
-                className="font-semibold text-[14px] tracking-tight border border-transparent hover:border-zinc-300 focus-visible:border-blue-500 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 h-8 py-0 shadow-none rounded-md min-w-[160px] max-w-[320px] bg-transparent hover:bg-zinc-50 transition-colors"
-                style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
-              />
-              <Pencil
-                className="w-3 h-3 text-zinc-400 absolute right-2 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-0 transition-opacity"
-                strokeWidth={2}
-              />
-            </div>
-          </div>
+          <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 flex-shrink-0">
+            {def.name}
+          </span>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -432,10 +413,26 @@ export default function StudioEditor() {
         {/* CENTER — canvas */}
         <main className="flex-1 flex flex-col min-w-0 bg-zinc-100">
           <div className="flex items-center justify-between h-12 px-4 bg-white border-b border-zinc-200 flex-shrink-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className="group relative flex items-center"
+                data-testid="studio-section-name-field"
+              >
+                <Input
+                  value={section.name}
+                  onChange={(e) => renameSection(e.target.value)}
+                  data-testid="studio-section-name-input"
+                  placeholder="Untitled section"
+                  className="font-semibold text-[14px] tracking-tight border border-zinc-200 hover:border-[#E01839] focus-visible:border-[#E01839] focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-8 py-0 shadow-none rounded-md min-w-[180px] max-w-[360px] bg-white hover:bg-red-50/40 transition-colors pr-8"
+                  style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+                />
+                <Pencil
+                  className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#E01839] group-focus-within:text-[#E01839] absolute right-2.5 pointer-events-none transition-colors"
+                  strokeWidth={2}
+                />
+              </div>
+            </div>
             <div className="flex items-center gap-3">
-              <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500">
-                Canvas
-              </span>
               <div className="flex items-center bg-zinc-100 rounded-md p-0.5">
                 {["desktop", "tablet", "mobile"].map((w) => {
                   const Icon = VIEWPORT_ICONS[w];

@@ -467,11 +467,11 @@ export default function PageEditor({ studio = false }) {
                   onChange={(e) => renamePage(e.target.value)}
                   data-testid="page-name-input"
                   placeholder="Untitled page"
-                  className="font-semibold text-[14px] tracking-tight border border-transparent hover:border-zinc-300 focus-visible:border-blue-500 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 h-8 py-0 shadow-none rounded-md min-w-[160px] max-w-[320px] bg-transparent hover:bg-zinc-50 transition-colors"
+                  className="font-semibold text-[14px] tracking-tight border border-zinc-200 hover:border-[#E01839] focus-visible:border-[#E01839] focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-8 py-0 shadow-none rounded-md min-w-[180px] max-w-[360px] bg-white hover:bg-red-50/40 transition-colors pr-8"
                   style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
                 />
                 <Pencil
-                  className="w-3 h-3 text-zinc-400 absolute right-2 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-0 transition-opacity"
+                  className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#E01839] group-focus-within:text-[#E01839] absolute right-2.5 pointer-events-none transition-colors"
                   strokeWidth={2}
                 />
               </div>
