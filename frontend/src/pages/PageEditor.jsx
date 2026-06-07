@@ -409,7 +409,6 @@ export default function PageEditor() {
             </span>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <StudioToggle />
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
             <Button
               variant="outline"
@@ -430,6 +429,7 @@ export default function PageEditor() {
               <Copy className="w-4 h-4 mr-2" />
               Copy page snippet
             </Button>
+            <StudioToggle />
             <UserMenu />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import UserMenu from "@/components/UserMenu";
+import StudioToggle from "@/components/studio/StudioToggle";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -168,6 +169,7 @@ export default function AdminTicketsPage({ chromeless = false }) {
               <RefreshCcw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
+            <StudioToggle />
             <UserMenu />
           </div>
         </div>

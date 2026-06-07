@@ -417,7 +417,6 @@ export default function Editor() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <StudioToggle />
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
             <Button
               data-testid="copy-snippet-button"
@@ -427,6 +426,7 @@ export default function Editor() {
               <Copy className="w-4 h-4 mr-2" />
               Copy HTML Snippet
             </Button>
+            <StudioToggle />
             <UserMenu />
           </div>
         </div>

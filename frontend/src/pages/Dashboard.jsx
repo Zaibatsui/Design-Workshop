@@ -16,6 +16,7 @@ import PageTemplatePicker from "./dashboard/PageTemplatePicker";
 import TicketDialog from "@/components/TicketDialog";
 import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
 import UserMenu from "@/components/UserMenu";
+import StudioToggle from "@/components/studio/StudioToggle";
 
 export default function Dashboard({ chromeless = false }) {
   const { user } = useAuth();
@@ -189,6 +190,7 @@ export default function Dashboard({ chromeless = false }) {
                 Users
               </Button>
             )}
+            <StudioToggle />
             <UserMenu />
           </div>
         </div>

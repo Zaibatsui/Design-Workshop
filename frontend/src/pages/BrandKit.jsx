@@ -31,6 +31,7 @@ import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
 import LandingSpotlightsPicker from "./brand-kit/LandingSpotlightsPicker";
 import { useAuth } from "@/auth/AuthContext";
 import UserMenu from "@/components/UserMenu";
+import StudioToggle from "@/components/studio/StudioToggle";
 
 export default function BrandKitPage({ chromeless = false }) {
   const { user } = useAuth();
@@ -231,6 +232,7 @@ export default function BrandKitPage({ chromeless = false }) {
               <Save className="w-4 h-4 mr-1.5" />
               {saving ? "Saving…" : "Save"}
             </Button>
+            <StudioToggle />
             <UserMenu />
           </div>
         </div>

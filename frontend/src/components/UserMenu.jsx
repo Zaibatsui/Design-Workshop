@@ -14,11 +14,11 @@
  * shell header) only affect the trigger sizing.
  */
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LayoutGrid, LogOut, Sparkles } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function UserMenu({ variant = "default" }) {
-  const { user, logout, setUiMode } = useAuth();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -37,8 +37,6 @@ export default function UserMenu({ variant = "default" }) {
   }, [open]);
 
   if (!user) return null;
-  const current = user.ui_mode || "classic";
-  const isStudio = current === "studio";
   const triggerSize = variant === "compact" ? "h-8" : "h-9";
   const avatarSize = variant === "compact" ? "w-6 h-6" : "w-7 h-7";
 
@@ -74,34 +72,6 @@ export default function UserMenu({ variant = "default" }) {
               </span>
             )}
           </div>
-
-          {user.is_admin && (
-            <>
-              <button
-                type="button"
-                role="menuitem"
-                data-testid="user-menu-switch-ui"
-                onClick={() => {
-                  setOpen(false);
-                  setUiMode(isStudio ? "classic" : "studio");
-                }}
-                className="w-full flex items-center justify-between px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-              >
-                <span className="flex items-center gap-2">
-                  {isStudio ? (
-                    <LayoutGrid className="w-3.5 h-3.5" strokeWidth={1.75} />
-                  ) : (
-                    <Sparkles className="w-3.5 h-3.5" strokeWidth={1.75} />
-                  )}
-                  Switch to {isStudio ? "Classic" : "Studio"} UI
-                </span>
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-                  {isStudio ? "v1" : "beta"}
-                </span>
-              </button>
-              <div className="my-1 border-t border-slate-100" />
-            </>
-          )}
 
           <button
             type="button"
