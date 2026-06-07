@@ -14,7 +14,7 @@
  * shell header) only affect the trigger sizing.
  */
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Clock, LogOut } from "lucide-react";
+import { ChevronDown, Clock, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 
 const IDLE_OPTIONS = [
@@ -25,9 +25,19 @@ const IDLE_OPTIONS = [
 ];
 
 export default function UserMenu({ variant = "default" }) {
-  const { user, logout, setIdleMinutes } = useAuth();
+  const { user, logout, setIdleMinutes, setUser } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+
+  const replayTour = () => {
+    // In-session replay: flip the local user.onboarded flag back to
+    // false so the StudioShell-mounted <OnboardingTour /> re-mounts.
+    // When the user finishes or skips again, the existing
+    // `markOnboarded()` call inside the tour re-persists `true` to
+    // the backend — no extra endpoint required.
+    if (user) setUser({ ...user, onboarded: false });
+    setOpen(false);
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -102,6 +112,17 @@ export default function UserMenu({ variant = "default" }) {
               ))}
             </select>
           </div>
+
+          <button
+            type="button"
+            role="menuitem"
+            data-testid="user-menu-replay-tour"
+            onClick={replayTour}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-900 border-b border-slate-100"
+          >
+            <Sparkles className="w-3.5 h-3.5" strokeWidth={1.75} />
+            Replay Studio tour
+          </button>
 
           <button
             type="button"

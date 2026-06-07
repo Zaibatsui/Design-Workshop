@@ -33,6 +33,31 @@ import { useAuth } from "@/auth/AuthContext";
 
 const LS_PREFIX = "ns.whatsNew.seen:";
 
+/**
+ * Platform-level announcements that aren't tied to a specific section
+ * or page template. These render in their own "Platform" band inside
+ * the drawer with a "Major update" badge, and they participate in the
+ * unread-dot logic identically to section / template entries.
+ *
+ * Shape mirrors `SECTIONS` / `PAGE_TEMPLATES` entries so the existing
+ * `buildEntries` / signature / seen-set plumbing reuses unchanged:
+ *   id, name, icon, addedOn, updatedOn?, whatsNew, kind override.
+ * The `kind: "major"` override skips `computeBadges` (which only
+ * understands NEW/UPDATED) so the badge stays purple regardless of
+ * how recently the entry was shipped.
+ */
+const PLATFORM_UPDATES = [
+  {
+    id: "studio-mode",
+    name: "Studio mode",
+    icon: Sparkles,
+    addedOn: "2026-02-07",
+    whatsNew:
+      "Brand-new Workspace + Inspector layout with Content / Design / Advanced tabs, click-to-edit anywhere in the preview, and a one-time guided tour. Studio is now the default — switch back to Classic any time from your user menu.",
+    kind: "major",
+  },
+];
+
 function readSeen(userKey) {
   if (!userKey) return new Set();
   try {
@@ -119,9 +144,25 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
   // on full reload because the dates are static config.
   const sectionEntries = useMemo(() => buildEntries(SECTIONS), []);
   const templateEntries = useMemo(() => buildEntries(PAGE_TEMPLATES), []);
+  // Platform updates bypass `computeBadges` — each entry already
+  // declares its own `kind` ("major") so it never expires out of
+  // the NEW/UPDATED rotation and always carries the purple badge.
+  const platformEntries = useMemo(
+    () =>
+      PLATFORM_UPDATES.map((p) => ({
+        id: p.id,
+        name: p.name,
+        icon: p.icon,
+        kind: p.kind || "major",
+        addedOn: p.addedOn,
+        updatedOn: p.updatedOn,
+        note: p.whatsNew,
+      })),
+    []
+  );
   const allEntries = useMemo(
-    () => [...sectionEntries, ...templateEntries],
-    [sectionEntries, templateEntries]
+    () => [...platformEntries, ...sectionEntries, ...templateEntries],
+    [platformEntries, sectionEntries, templateEntries]
   );
   const currentSigs = useMemo(() => currentSignatures(allEntries), [allEntries]);
   // Unread = any currently-shown signature the user hasn't acknowledged.
@@ -187,6 +228,13 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
             </SheetDescription>
           </SheetHeader>
 
+          {platformEntries.length > 0 && (
+            <EntryGroup
+              title="Platform"
+              entries={platformEntries}
+              testidPrefix="whats-new-platform-entry"
+            />
+          )}
           {sectionEntries.length > 0 && (
             <EntryGroup
               title="Sections"
@@ -221,6 +269,17 @@ function EntryGroup({ title, entries, testidPrefix }) {
         {entries.map((e) => {
           const Icon = e.icon;
           const isNew = e.kind === "new";
+          const isMajor = e.kind === "major";
+          const badgeClass = isMajor
+            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white"
+            : isNew
+            ? "bg-emerald-500 text-white"
+            : "bg-amber-500 text-white";
+          const badgeLabel = isMajor
+            ? "Major update"
+            : isNew
+            ? "New"
+            : "Updated";
           return (
             <div
               key={e.id}
@@ -236,13 +295,9 @@ function EntryGroup({ title, entries, testidPrefix }) {
                     {e.name}
                   </h3>
                   <span
-                    className={`px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ${
-                      isNew
-                        ? "bg-emerald-500 text-white"
-                        : "bg-amber-500 text-white"
-                    }`}
+                    className={`px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ${badgeClass}`}
                   >
-                    {isNew ? "New" : "Updated"}
+                    {badgeLabel}
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
