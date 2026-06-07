@@ -26,6 +26,10 @@ SESSION_TTL_DAYS = 7
 # that an unattended laptop in a coffee shop is reasonably safe, long
 # enough that an author taking a call doesn't get logged out mid-edit.
 SESSION_IDLE_MINUTES = 30
+# Hard bounds for the user-settable idle window. Floor matches the
+# system default; ceiling caps unattended-tab risk at 2 hours.
+SESSION_IDLE_MIN = 30
+SESSION_IDLE_MAX = 120
 
 
 def _load_admin_emails() -> frozenset:
@@ -67,6 +71,12 @@ class User(BaseModel):
     # accounts always render "classic" (the toggle UI isn't surfaced
     # to them and the studio routes fall back to the classic layout).
     ui_mode: str = "classic"
+    # Idle-timeout window in minutes (between SESSION_IDLE_MIN and
+    # SESSION_IDLE_MAX). Per-user override of the default
+    # SESSION_IDLE_MINUTES — lets users with longer concentration
+    # spans push the window up to 2 hours without forcing it on
+    # everyone else.
+    session_idle_minutes: int = 30
 
 
 async def get_current_user(
@@ -132,14 +142,16 @@ async def get_current_user(
     user_doc["is_admin"] = is_admin_email(user_doc.get("email"))
 
     # Bump the sliding idle stamp on the way out so successful traffic
-    # keeps the session alive. One write per authenticated request is
-    # acceptable for an admin SaaS app at this scale; if traffic grows
-    # we can debounce (e.g. only bump if the stamp is older than a
-    # minute) without changing the contract.
+    # keeps the session alive. Use the user's chosen idle window if
+    # set, otherwise fall back to the system default. Clamped to the
+    # documented bounds so a stale DB value (or a manual mongo edit)
+    # can't extend a session past the policy ceiling.
+    user_idle = int(user_doc.get("session_idle_minutes") or SESSION_IDLE_MINUTES)
+    user_idle = max(SESSION_IDLE_MIN, min(SESSION_IDLE_MAX, user_idle))
     await db.user_sessions.update_one(
         {"session_token": token},
         {"$set": {
-            "idle_expires_at": now + timedelta(minutes=SESSION_IDLE_MINUTES),
+            "idle_expires_at": now + timedelta(minutes=user_idle),
         }},
     )
     return User(**user_doc)

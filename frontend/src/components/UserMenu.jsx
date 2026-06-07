@@ -14,11 +14,18 @@
  * shell header) only affect the trigger sizing.
  */
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, Clock, LogOut } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 
+const IDLE_OPTIONS = [
+  { value: 30, label: "30 minutes" },
+  { value: 60, label: "1 hour" },
+  { value: 90, label: "1½ hours" },
+  { value: 120, label: "2 hours" },
+];
+
 export default function UserMenu({ variant = "default" }) {
-  const { user, logout } = useAuth();
+  const { user, logout, setIdleMinutes } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -71,6 +78,29 @@ export default function UserMenu({ variant = "default" }) {
                 Admin
               </span>
             )}
+          </div>
+
+          <div className="px-3 py-2 border-b border-slate-100">
+            <label
+              htmlFor="user-menu-idle-select"
+              className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500 mb-1"
+            >
+              <Clock className="w-3 h-3" strokeWidth={2} />
+              Sign me out after
+            </label>
+            <select
+              id="user-menu-idle-select"
+              data-testid="user-menu-idle-select"
+              value={user.session_idle_minutes || 30}
+              onChange={(e) => setIdleMinutes(Number(e.target.value))}
+              className="w-full text-[12.5px] bg-white border border-slate-200 rounded px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+            >
+              {IDLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label} of inactivity
+                </option>
+              ))}
+            </select>
           </div>
 
           <button

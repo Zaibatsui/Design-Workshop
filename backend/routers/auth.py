@@ -16,7 +16,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from db import db
-from deps import SESSION_COOKIE, SESSION_TTL_DAYS, SESSION_IDLE_MINUTES, User, get_current_user
+from deps import SESSION_COOKIE, SESSION_TTL_DAYS, SESSION_IDLE_MINUTES, SESSION_IDLE_MIN, SESSION_IDLE_MAX, User, get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +121,10 @@ class UIModeUpdate(BaseModel):
     ui_mode: str
 
 
+class IdleMinutesUpdate(BaseModel):
+    session_idle_minutes: int
+
+
 @router.patch("/me/ui-mode", response_model=User)
 async def update_ui_mode(
     payload: UIModeUpdate,
@@ -141,6 +145,35 @@ async def update_ui_mode(
     await db.users.update_one(
         {"user_id": current_user.user_id},
         {"$set": {"ui_mode": payload.ui_mode}},
+    )
+    updated = await db.users.find_one(
+        {"user_id": current_user.user_id}, {"_id": 0}
+    )
+    updated["is_admin"] = current_user.is_admin
+    return User(**updated)
+
+
+@router.patch("/me/idle-minutes", response_model=User)
+async def update_idle_minutes(
+    payload: IdleMinutesUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    """Lets the signed-in user choose their own idle-timeout window.
+
+    Bounded to [SESSION_IDLE_MIN, SESSION_IDLE_MAX] (30–120 minutes)
+    so a curious user can't push it indefinitely. The new value is
+    persisted on the user document and picked up on the next
+    authenticated request (no need to re-login).
+    """
+    n = int(payload.session_idle_minutes)
+    if n < SESSION_IDLE_MIN or n > SESSION_IDLE_MAX:
+        raise HTTPException(
+            status_code=400,
+            detail=f"session_idle_minutes must be between {SESSION_IDLE_MIN} and {SESSION_IDLE_MAX}",
+        )
+    await db.users.update_one(
+        {"user_id": current_user.user_id},
+        {"$set": {"session_idle_minutes": n}},
     )
     updated = await db.users.find_one(
         {"user_id": current_user.user_id}, {"_id": 0}

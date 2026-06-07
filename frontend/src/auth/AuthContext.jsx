@@ -104,9 +104,42 @@ export function AuthProvider({ children }) {
     [user]
   );
 
+  /**
+   * Lets the signed-in user pick a new idle-timeout window. Optimistic
+   * UI swap + rollback on failure, identical pattern to `setUiMode`
+   * above. The backend clamps the value to [30, 120] minutes.
+   */
+  const setIdleMinutes = useCallback(
+    async (next) => {
+      if (!user) return false;
+      const n = Math.max(30, Math.min(120, Number(next) || 30));
+      const prev = user.session_idle_minutes || 30;
+      if (prev === n) return true;
+      setUser({ ...user, session_idle_minutes: n });
+      try {
+        const r = await fetch(`${API}/api/auth/me/idle-minutes`, {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_idle_minutes: n }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const fresh = await r.json();
+        setUser(fresh);
+        return true;
+      } catch (e) {
+        if (process.env.NODE_ENV !== "production")
+          console.warn("idle-minutes update failed:", e);
+        setUser({ ...user, session_idle_minutes: prev });
+        return false;
+      }
+    },
+    [user]
+  );
+
   return (
     <AuthCtx.Provider
-      value={{ user, loading, setUser, checkAuth, logout, setUiMode }}
+      value={{ user, loading, setUser, checkAuth, logout, setUiMode, setIdleMinutes }}
     >
       {children}
     </AuthCtx.Provider>
