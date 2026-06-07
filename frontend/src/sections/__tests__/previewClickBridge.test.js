@@ -105,6 +105,11 @@ function expect(name, cond, extra) {
     doc.includes("scrollIntoView") && /behavior\s*:\s*"smooth"/.test(doc),
     "scrollIntoView call missing — click-to-edit won't centre the clicked card in horizontal carousels"
   );
+  expect(
+    "previewDoc injects editor→preview focus bridge listening for ns-focus-item",
+    doc.includes('"ns-focus-item"') && doc.includes("CSS.escape"),
+    "focus bridge missing — opening a list row in the editor won't scroll the preview to it"
+  );
 }
 
 // ── 2. composePage wraps each block in a marker ───────────────────

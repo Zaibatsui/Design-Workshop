@@ -1,19 +1,22 @@
 /**
- * StudioToggle — admin-only header pill that flips between the Classic
- * and Studio UI shells. The chosen mode persists on the user record
- * via `PATCH /api/auth/me/ui-mode`; non-admins never see this control.
+ * StudioToggle — header pill that flips between the Classic and Studio
+ * UI shells. Available to every signed-in user (no admin gating).
+ * The chosen mode persists on the user record via
+ * `PATCH /api/auth/me/ui-mode`, so the next session opens in the same
+ * layout. Studio is the default for users who haven't picked yet.
  *
- * Render-nothing when the user is loading, signed-out, or not an admin
- * so the pill never blinks into existence on the Classic header for
- * non-admin accounts.
+ * Render-nothing while auth is loading or the user is signed-out so
+ * the pill never blinks into existence on the login screen.
  */
 import { useAuth } from "@/auth/AuthContext";
 import { Sparkles, LayoutGrid } from "lucide-react";
 
 export default function StudioToggle({ variant = "default" }) {
   const { user, setUiMode } = useAuth();
-  if (!user || !user.is_admin) return null;
-  const current = user.ui_mode || "classic";
+  if (!user) return null;
+  // Default = "studio" (matches StudioOrClassic) so the pill reflects
+  // the actual rendered shell even before the user has saved a pref.
+  const current = user.ui_mode || "studio";
 
   // Two visual variants:
   //   - "default": full segmented control (used in the classic header,

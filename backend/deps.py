@@ -65,12 +65,12 @@ class User(BaseModel):
     last_login_at: Optional[datetime] = None
     is_active: bool = True
     is_admin: bool = False
-    # Admin-only UI experiment toggle. "classic" = the original layout,
-    # "studio" = the new Workspace-+-Inspector chrome. Persisted on the
-    # user record so the choice survives across sessions. Non-admin
-    # accounts always render "classic" (the toggle UI isn't surfaced
-    # to them and the studio routes fall back to the classic layout).
-    ui_mode: str = "classic"
+    # UI shell preference: "studio" (default, the new Workspace + Inspector
+    # chrome) or "classic" (the original layout, kept as an opt-out path
+    # for users who prefer it). Available to every user; persisted on
+    # the user record so the choice survives across sessions. Toggled
+    # via PATCH /api/auth/me/ui-mode and surfaced in the header pill.
+    ui_mode: str = "studio"
     # Idle-timeout window in minutes (between SESSION_IDLE_MIN and
     # SESSION_IDLE_MAX). Per-user override of the default
     # SESSION_IDLE_MINUTES — lets users with longer concentration

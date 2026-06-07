@@ -69,7 +69,21 @@ export default function ListEditor({
     if (typeof onOpenChangeRef.current === "function") {
       onOpenChangeRef.current(openId);
     }
-  }, [openId]);
+    // Tell the live preview iframe to scroll the matching row into
+    // view — closes the loop: clicking a card in the preview opens its
+    // editor (handled below), and opening a row in the editor scrolls
+    // the preview to it. `openId` is the row's stable list-item id; we
+    // resolve it back to a zero-based index because `data-ns-item`
+    // values in the rendered snippet are positional.
+    const idx = items.findIndex((it) => it.id === openId);
+    if (idx >= 0) {
+      window.dispatchEvent(
+        new CustomEvent("ns-editor-focus-item", {
+          detail: { list: testidPrefix, index: idx },
+        })
+      );
+    }
+  }, [openId, items, testidPrefix]);
   // Reset the parent's "active row" tracker when this editor unmounts
   // (e.g. the user collapses the surrounding accordion group) — without
   // this, the parent would stay locked to the last-opened row.

@@ -166,6 +166,25 @@ export function PreviewFrame({ doc, sectionId, heroIndex }) {
     f.contentWindow.postMessage({ ns: "hero", index: typeof heroIndex === "number" ? heroIndex : null }, "*");
   };
 
+  // Editor → preview bridge: when a ListEditor row opens (the user
+  // clicked a slide / card in the inspector), it dispatches
+  // `ns-editor-focus-item` on the window. Forward it into the iframe
+  // so the preview can smoothly scroll that item into view — closing
+  // the click-to-edit loop in both directions.
+  useEffect(() => {
+    const handler = (e) => {
+      const f = iframeRef.current;
+      if (!f || !f.contentWindow) return;
+      const d = e.detail || {};
+      f.contentWindow.postMessage(
+        { type: "ns-focus-item", list: d.list, index: d.index },
+        "*"
+      );
+    };
+    window.addEventListener("ns-editor-focus-item", handler);
+    return () => window.removeEventListener("ns-editor-focus-item", handler);
+  }, []);
+
   const drag = useRef(null);
   const onPointerDown = (e) => {
     e.preventDefault();

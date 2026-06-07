@@ -75,7 +75,7 @@ export function AuthProvider({ children }) {
     async (next) => {
       if (!user) return false;
       if (next !== "classic" && next !== "studio") return false;
-      const prev = user.ui_mode || "classic";
+      const prev = user.ui_mode || "studio";
       if (prev === next) return true;
       setUser({ ...user, ui_mode: next });
       try {
