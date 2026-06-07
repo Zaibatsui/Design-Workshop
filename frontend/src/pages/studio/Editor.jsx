@@ -109,7 +109,6 @@ export default function StudioEditor() {
         setLoadError(e.status === 404 ? "not_found" : "error");
       });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionId, isNewDraft, newType]);
 
   const def = section ? SECTIONS_BY_ID[section.type] : null;

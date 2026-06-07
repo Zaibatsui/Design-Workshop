@@ -57,7 +57,7 @@ const SECTIONS = [
   { id: "faq", label: "FAQ", Icon: BookOpen },
 ];
 
-export default function UserGuide() {
+export default function UserGuide({ chromeless = false }) {
   const [active, setActive] = useState("getting-started");
   // Ticket dialog state — opened from the in-guide "Report a bug /
   // request a feature" CTA and the bottom-of-page footer link.
@@ -95,9 +95,9 @@ export default function UserGuide() {
   return (
     <div
       data-testid="user-guide-page"
-      className="min-h-screen bg-white text-slate-900"
+      className={chromeless ? "bg-white text-slate-900" : "min-h-screen bg-white text-slate-900"}
     >
-      <Header />
+      {!chromeless && <Header />}
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-10 md:py-14 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-10 lg:gap-14">
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#E01839] mb-4">

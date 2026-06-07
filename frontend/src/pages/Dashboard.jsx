@@ -15,9 +15,10 @@ import { SectionPicker, Tabs } from "./dashboard/common";
 import PageTemplatePicker from "./dashboard/PageTemplatePicker";
 import TicketDialog from "@/components/TicketDialog";
 import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
+import UserMenu from "@/components/UserMenu";
 
 export default function Dashboard({ chromeless = false }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("sections");
   const [sections, setSections] = useState([]);
@@ -188,28 +189,7 @@ export default function Dashboard({ chromeless = false }) {
                 Users
               </Button>
             )}
-            {user?.picture ? (
-              <img
-                src={user.picture}
-                alt=""
-                className="w-8 h-8 rounded-full border border-slate-200"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-slate-200" />
-            )}
-            <span className="text-sm text-slate-700 hidden md:inline">
-              {user?.name}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={logout}
-              data-testid="logout-button"
-              className="text-slate-500 hover:text-slate-900"
-            >
-              <LogOut className="w-4 h-4 mr-1.5" />
-              Sign out
-            </Button>
+            <UserMenu />
           </div>
         </div>
       </header>

@@ -24,6 +24,8 @@ import BlockAdder from "./page-editor/BlockAdder";
 import BlockEditorDrawer from "./page-editor/BlockEditorDrawer";
 import EmptyBlockEditor from "./page-editor/EmptyBlockEditor";
 import SaveIndicator from "./page-editor/SaveIndicator";
+import StudioToggle from "@/components/studio/StudioToggle";
+import UserMenu from "@/components/UserMenu";
 import PagePreviewFrame from "./page-editor/PagePreviewFrame";
 import SaveAsTemplateDialog from "./page-editor/SaveAsTemplateDialog";
 
@@ -407,6 +409,7 @@ export default function PageEditor() {
             </span>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
+            <StudioToggle />
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
             <Button
               variant="outline"
@@ -427,6 +430,7 @@ export default function PageEditor() {
               <Copy className="w-4 h-4 mr-2" />
               Copy page snippet
             </Button>
+            <UserMenu />
           </div>
         </div>
 

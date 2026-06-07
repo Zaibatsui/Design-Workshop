@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import UserMenu from "@/components/UserMenu";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -153,6 +154,7 @@ export default function MyTicketsPage({ chromeless = false }) {
               />
               Refresh
             </Button>
+            <UserMenu />
           </div>
         </div>
       </header>

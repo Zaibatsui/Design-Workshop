@@ -24,17 +24,16 @@ import {
   ClipboardList,
   BookOpen,
   Users as UsersIcon,
-  LogOut,
   MessageSquarePlus,
-  ChevronDown,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { BRAND } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
 import StudioToggle from "@/components/studio/StudioToggle";
 import TicketDialog from "@/components/TicketDialog";
 import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
+import UserMenu from "@/components/UserMenu";
 
 const NAV_ITEMS = [
   { id: "sections", label: "Library", icon: LayoutGrid, href: "/", testid: "studio-nav-library" },
@@ -49,29 +48,10 @@ const ADMIN_NAV_ITEMS = [
 ];
 
 export default function StudioShell({ active, children, headerActions = null }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [ticketOpen, setTicketOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
-
-  // Click-outside the user-menu closes it. Keyboard Escape too — Linear
-  // habit. Both wired off the same effect so the listeners come on/off
-  // together.
-  useEffect(() => {
-    if (!menuOpen) return undefined;
-    const onDown = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
-    };
-    const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [menuOpen]);
 
   const isActive = (item) => {
     if (active) return active === item.id;
@@ -116,51 +96,7 @@ export default function StudioShell({ active, children, headerActions = null }) 
           <div className="h-5 w-px bg-zinc-200 mx-1" />
           <StudioToggle />
           <div className="h-5 w-px bg-zinc-200 mx-1" />
-          {/* User menu */}
-          <div ref={menuRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setMenuOpen((o) => !o)}
-              data-testid="studio-user-menu"
-              className="inline-flex items-center gap-1.5 h-8 pl-1 pr-2 rounded-full hover:bg-zinc-100 transition-colors"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-            >
-              {user?.picture ? (
-                <img src={user.picture} alt="" className="w-6 h-6 rounded-full" />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-zinc-200" />
-              )}
-              <ChevronDown className="w-3 h-3 text-zinc-500" strokeWidth={2} />
-            </button>
-            {menuOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 top-9 w-56 bg-white border border-zinc-200 rounded-md shadow-lg py-1.5 z-30"
-                data-testid="studio-user-menu-panel"
-              >
-                <div className="px-3 py-2 border-b border-zinc-100">
-                  <div className="text-[12px] font-medium text-zinc-900 truncate">{user?.name}</div>
-                  <div className="text-[11px] text-zinc-500 truncate">{user?.email}</div>
-                  {user?.is_admin && (
-                    <span className="mt-1 inline-block text-[9px] font-bold tracking-[0.1em] uppercase text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
-                      Admin
-                    </span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => { setMenuOpen(false); logout(); }}
-                  data-testid="studio-logout-button"
-                  className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900"
-                >
-                  <LogOut className="w-3.5 h-3.5" strokeWidth={1.75} />
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
+          <UserMenu variant="compact" />
         </div>
       </header>
 

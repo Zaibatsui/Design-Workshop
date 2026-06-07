@@ -27,6 +27,7 @@ import {
   AdminPreviewOverrideToggle,
 } from "@/components/EditorBits";
 import StudioToggle from "@/components/studio/StudioToggle";
+import UserMenu from "@/components/UserMenu";
 
 const AUTOSAVE_MS = 1500;
 // Iframe-preview debounce window. While a slider is being dragged the
@@ -426,6 +427,7 @@ export default function Editor() {
               <Copy className="w-4 h-4 mr-2" />
               Copy HTML Snippet
             </Button>
+            <UserMenu />
           </div>
         </div>
 

@@ -13,6 +13,8 @@ import StudioEditor from "@/pages/studio/Editor";
 import StudioDashboard from "@/pages/studio/Dashboard";
 import StudioBrandKit from "@/pages/studio/BrandKit";
 import { StudioAdminTickets, StudioMyTickets } from "@/pages/studio/Tickets";
+import StudioGuide from "@/pages/studio/Guide";
+import StudioAdminUsers from "@/pages/studio/AdminUsers";
 import StudioOrClassic from "@/components/studio/StudioOrClassic";
 import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
@@ -118,7 +120,7 @@ function App() {
                 path="/guide"
                 element={
                   <ProtectedRoute>
-                    <UserGuide />
+                    <StudioOrClassic classic={UserGuide} studio={StudioGuide} />
                   </ProtectedRoute>
                 }
               />
@@ -126,7 +128,7 @@ function App() {
                 path="/admin/users"
                 element={
                   <ProtectedRoute requireAdmin>
-                    <AdminUsersPage />
+                    <StudioOrClassic classic={AdminUsersPage} studio={StudioAdminUsers} />
                   </ProtectedRoute>
                 }
               />

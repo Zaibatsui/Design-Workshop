@@ -39,7 +39,7 @@ const relativeTime = (iso) => {
   return fmtDate(iso);
 };
 
-export default function AdminUsersPage() {
+export default function AdminUsersPage({ chromeless = false }) {
   const { user } = useAuth();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -109,8 +109,9 @@ export default function AdminUsersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className={chromeless ? "" : "min-h-screen bg-slate-50"}>
+      {!chromeless && (
+        <header className="border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
           <Link
             to="/"
@@ -130,8 +131,9 @@ export default function AdminUsersPage() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className={chromeless ? "max-w-6xl mx-auto px-6 py-6" : "max-w-6xl mx-auto px-6 py-8"}>
         <div className="flex items-center gap-3 mb-5">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
