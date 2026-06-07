@@ -315,9 +315,13 @@ export function previewDoc(snippet, opts) {
   //   • jump to the matching settings group,
   //   • and EXPAND the specific list row that was clicked
   //     (e.g. clicking hero slide #2 opens its slide editor).
+  // When the click lands on a per-row marker we ALSO smoothly scroll
+  // that element into view inside the preview iframe — this is what
+  // makes "click a product card in the carousel → carousel snaps to
+  // that card" work, so the user can see what they're editing.
   // preventDefault stops <a>/<button> navigation inside the preview
   // (users want to edit, not navigate). Snippets copied out of the
   // editor never receive this script.
-  const clickBridgeJs = `<script>(function(){function up(el,attr){while(el&&el.nodeType===1){if(el.hasAttribute&&el.hasAttribute(attr))return el.getAttribute(attr);el=el.parentNode;}return null;}document.addEventListener("click",function(e){var blockId=up(e.target,"data-ns-block-id");var group=up(e.target,"data-ns-group");var list=up(e.target,"data-ns-list");var item=up(e.target,"data-ns-item");if(!blockId&&!group&&!list)return;e.preventDefault();e.stopPropagation();try{parent.postMessage({type:"ns-preview-click",blockId:blockId,group:group,list:list,itemIndex:item===null?null:parseInt(item,10)},"*");}catch(err){}},true);})();</script>`;
+  const clickBridgeJs = `<script>(function(){function up(el,attr){while(el&&el.nodeType===1){if(el.hasAttribute&&el.hasAttribute(attr))return el;el=el.parentNode;}return null;}document.addEventListener("click",function(e){var blockEl=up(e.target,"data-ns-block-id");var groupEl=up(e.target,"data-ns-group");var itemEl=up(e.target,"data-ns-item");var listEl=up(e.target,"data-ns-list");if(!blockEl&&!groupEl&&!itemEl&&!listEl)return;e.preventDefault();e.stopPropagation();var blockId=blockEl?blockEl.getAttribute("data-ns-block-id"):null;var group=groupEl?groupEl.getAttribute("data-ns-group"):null;var list=listEl?listEl.getAttribute("data-ns-list"):null;var item=itemEl?itemEl.getAttribute("data-ns-item"):null;if(itemEl&&typeof itemEl.scrollIntoView==="function"){try{itemEl.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});}catch(err){itemEl.scrollIntoView();}}try{parent.postMessage({type:"ns-preview-click",blockId:blockId,group:group,list:list,itemIndex:item===null?null:parseInt(item,10)},"*");}catch(err){}},true);})();</script>`;
   return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}[data-ns-group],[data-ns-item]{cursor:pointer}[data-ns-item]:hover{outline:2px solid rgba(59,130,246,.55);outline-offset:-2px}[data-ns-group]:hover{outline:2px dashed rgba(59,130,246,.4);outline-offset:-2px}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}${stateRestoreJs}${clickBridgeJs}</body></html>`;
 }

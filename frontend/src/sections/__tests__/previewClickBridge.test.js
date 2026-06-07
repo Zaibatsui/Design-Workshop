@@ -100,6 +100,11 @@ function expect(name, cond, extra) {
     doc.includes("data-ns-block-id") && doc.includes("data-ns-group"),
     "bridge must read both attributes off the click target's ancestors"
   );
+  expect(
+    "click bridge scrolls clicked [data-ns-item] into view so the carousel snaps to the card",
+    doc.includes("scrollIntoView") && /behavior\s*:\s*"smooth"/.test(doc),
+    "scrollIntoView call missing — click-to-edit won't centre the clicked card in horizontal carousels"
+  );
 }
 
 // ── 2. composePage wraps each block in a marker ───────────────────
