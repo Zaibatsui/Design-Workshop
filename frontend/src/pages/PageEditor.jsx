@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, FileStack, Plus, Save, Layers } from "lucide-react";
+import { ArrowLeft, Copy, FileStack, Plus, Save, Layers } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { richtext } from "@/sections/richtext";
 import { composePage } from "@/sections/pageSnippet";
@@ -395,7 +395,65 @@ export default function PageEditor({ studio = false }) {
       )}
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {!studio && (
+        {studio ? (
+          <div className="h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-4 gap-4 flex-shrink-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <button
+                onClick={() => navigate("/")}
+                data-testid="studio-page-back-to-dashboard"
+                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[12px] font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors flex-shrink-0"
+                title="Back to dashboard"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </button>
+              <div className="h-5 w-px bg-zinc-200 flex-shrink-0" />
+              <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 flex-shrink-0">
+                Page
+              </span>
+              <Input
+                value={page.name}
+                onChange={(e) => renamePage(e.target.value)}
+                data-testid="page-name-input"
+                className="font-medium text-[14px] tracking-tight border-0 px-2 h-7 py-0 shadow-none focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0 rounded-md min-w-[160px] max-w-[320px] bg-transparent hover:bg-zinc-50"
+                style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+              />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1 flex-shrink-0">
+                <FileStack className="w-3 h-3" />
+                {(page.blocks || []).length} block
+                {(page.blocks || []).length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <SaveIndicator status={saveStatus} savedAt={savedAt} />
+              <div className="h-5 w-px bg-zinc-200 mx-1" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTemplateDialogOpen(true)}
+                disabled={(page.blocks || []).length === 0}
+                data-testid="save-as-template-button"
+                className="h-8 text-[12px] text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 gap-1.5 font-medium"
+              >
+                <Save className="w-3.5 h-3.5" />
+                Save as template
+              </Button>
+              <div className="h-5 w-px bg-zinc-200 mx-1" />
+              <StudioToggle />
+              <div className="h-5 w-px bg-zinc-200 mx-1" />
+              <UserMenu variant="compact" />
+              <Button
+                data-testid="copy-page-snippet-button"
+                onClick={copySnippet}
+                disabled={(page.blocks || []).length === 0}
+                className="h-8 bg-zinc-900 hover:bg-zinc-800 text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                Copy snippet
+              </Button>
+            </div>
+          </div>
+        ) : (
         <div className="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 gap-4">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div

@@ -55,6 +55,7 @@ import {
 } from "@/components/EditorBits";
 import StudioToggle from "@/components/studio/StudioToggle";
 import StudioInspector from "@/components/studio/StudioInspector";
+import StudioOutline from "@/components/studio/StudioOutline";
 
 const AUTOSAVE_MS = 1500;
 const PREVIEW_DEBOUNCE_MS = 180;
@@ -77,6 +78,7 @@ export default function StudioEditor() {
 
   const { brandKit } = useBrandKit();
   const skipNextLoadRef = useRef(false);
+  const inspectorPanelRef = useRef(null);
 
   // ─── Section load / pristine init ──────────────────────────────
   useEffect(() => {
@@ -375,11 +377,12 @@ export default function StudioEditor() {
               </span>
               <Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" strokeWidth={2} />
             </button>
-            <p className="text-[11px] text-zinc-500 leading-relaxed px-2.5 mt-3">
-              Studio currently edits a single section at a time. Multi-section
-              page outlines are coming in Phase 2 — for now this rail mirrors
-              the section you opened from the dashboard.
-            </p>
+            <div className="pt-2">
+              <StudioOutline
+                panelRef={inspectorPanelRef}
+                signal={`${def.id}:${previewWidth}:${JSON.stringify(section.config).length}`}
+              />
+            </div>
           </div>
           <div className="border-t border-zinc-200 px-3 py-3">
             <AdminPreviewOverrideToggle section={section} />
@@ -447,6 +450,7 @@ export default function StudioEditor() {
             config={section.config}
             onUpdate={updateConfig}
             previewMode={previewWidth}
+            panelRef={inspectorPanelRef}
           />
         </aside>
       </div>

@@ -32,10 +32,12 @@ export default function StudioInspector({
   config,
   onUpdate,
   previewMode,
+  panelRef: externalPanelRef,
 }) {
   const [active, setActive] = useState("content");
   const [counts, setCounts] = useState({ content: 0, design: 0, advanced: 0 });
-  const panelRef = useRef(null);
+  const internalPanelRef = useRef(null);
+  const panelRef = externalPanelRef || internalPanelRef;
 
   // Recount groups whenever the panel re-renders. We schedule a single
   // microtask after each config change so we don't thrash setState
@@ -80,6 +82,39 @@ export default function StudioInspector({
   useEffect(() => {
     setActive("content");
   }, [sectionTypeKey]);
+
+  // Outline rail jump-to-group bridge. The outline dispatches a window
+  // event with `{ category, groupValue }`; we switch to that tab and
+  // simulate a click on the matching AccordionTrigger so the group
+  // expands. Done via the DOM because Shadcn's Accordion state is
+  // owned by `FormAccordion` (which is rendered deep inside the
+  // section's FormPanel) — clicking the trigger is the lowest-friction
+  // way to drive that state without a context refactor.
+  useEffect(() => {
+    const handler = (e) => {
+      const { category, groupValue } = e.detail || {};
+      if (category) setActive(category);
+      requestAnimationFrame(() => {
+        const root = panelRef.current;
+        if (!root || !groupValue) return;
+        const item = root.querySelector(
+          `[data-testid="form-group-${groupValue}"]`
+        );
+        if (!item) return;
+        const trigger = item.querySelector("button");
+        if (trigger && trigger.getAttribute("data-state") === "closed") {
+          trigger.click();
+        }
+        // Slight delay so the accordion expansion completes before scroll.
+        setTimeout(() => {
+          item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 80);
+      });
+    };
+    window.addEventListener("ns-studio-jump-to-group", handler);
+    return () =>
+      window.removeEventListener("ns-studio-jump-to-group", handler);
+  }, [panelRef]);
 
   if (!def) return null;
 
