@@ -301,8 +301,15 @@ export default function PageEditor({ studio = false }) {
     [page]
   );
   const previewHtml = useMemo(
-    () => previewDoc(deferredSnippet, { withVatToggle: hasProducts }),
-    [deferredSnippet, hasProducts]
+    () =>
+      previewDoc(deferredSnippet, {
+        withVatToggle: hasProducts,
+        // Click-to-edit affordances are Studio-only. In Classic mode
+        // the page preview matches the exported snippet behaviour
+        // (no hover outlines, no click-to-jump, no postMessage chatter).
+        withClickBridge: studio,
+      }),
+    [deferredSnippet, hasProducts, studio]
   );
 
   // ── Click-to-edit bridge ─────────────────────────────────────────

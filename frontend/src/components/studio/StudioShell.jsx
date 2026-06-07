@@ -33,6 +33,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { BRAND } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
 import StudioToggle from "@/components/studio/StudioToggle";
+import OnboardingTour from "@/components/studio/OnboardingTour";
 import TicketDialog from "@/components/TicketDialog";
 import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
 import UserMenu from "@/components/UserMenu";
@@ -174,6 +175,7 @@ export default function StudioShell({ active, children, headerActions = null }) 
         onOpenChange={setTicketOpen}
         defaultType="bug"
       />
+      <OnboardingTour />
     </div>
   );
 }

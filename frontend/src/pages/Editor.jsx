@@ -285,6 +285,9 @@ export default function Editor() {
         // Non-reactive read — keeps doc identity stable when only the
         // slide index changes (postMessage handles that case).
         heroIndex: heroIndexRef.current,
+        // Classic editor: no click-to-edit affordances — preview behaves
+        // identically to the exported snippet.
+        withClickBridge: false,
       }),
     [debouncedSnippet, section?.type]
   );

@@ -112,6 +112,32 @@ function expect(name, cond, extra) {
   );
 }
 
+// ── 1b. Click bridge is OFF when `withClickBridge: false` ─────────
+{
+  // Classic mode passes `withClickBridge: false` so the preview
+  // matches the exported snippet behaviour — no hover outlines, no
+  // click-to-jump, no focus-bridge postMessage. Snippet content is
+  // still rendered, only the editor-only affordances are stripped.
+  const doc = previewDoc("<section><h1>hi</h1></section>", {
+    withClickBridge: false,
+  });
+  expect(
+    "withClickBridge:false strips the click bridge",
+    !doc.includes("ns-preview-click"),
+    "Classic preview leaked the click-to-edit bridge"
+  );
+  expect(
+    "withClickBridge:false strips the focus bridge",
+    !doc.includes('"ns-focus-item"'),
+    "Classic preview leaked the editor→preview focus bridge"
+  );
+  expect(
+    "withClickBridge:false strips the hover-outline CSS",
+    !/\[data-ns-group\][^{]*\{cursor:pointer/.test(doc),
+    "Classic preview is still showing the dashed hover outline"
+  );
+}
+
 // ── 2. composePage wraps each block in a marker ───────────────────
 {
   const blocks = [

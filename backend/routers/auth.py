@@ -130,14 +130,12 @@ async def update_ui_mode(
     payload: UIModeUpdate,
     current_user: User = Depends(get_current_user),
 ):
-    """Admin-only switch between the Classic and Studio UI shells.
+    """Switch between the Classic and Studio UI shells.
 
+    Studio is the default for every user; Classic is an opt-out path.
     The choice is persisted on the user document so it sticks across
-    sessions and browsers. Non-admins are 403'd here even though the
-    toggle UI isn't surfaced to them — defence in depth.
+    sessions and browsers.
     """
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
     if payload.ui_mode not in ("classic", "studio"):
         raise HTTPException(
             status_code=400, detail="ui_mode must be 'classic' or 'studio'"
@@ -145,6 +143,24 @@ async def update_ui_mode(
     await db.users.update_one(
         {"user_id": current_user.user_id},
         {"$set": {"ui_mode": payload.ui_mode}},
+    )
+    updated = await db.users.find_one(
+        {"user_id": current_user.user_id}, {"_id": 0}
+    )
+    updated["is_admin"] = current_user.is_admin
+    return User(**updated)
+
+
+@router.post("/me/onboarded", response_model=User)
+async def mark_onboarded(current_user: User = Depends(get_current_user)):
+    """Flip the user's `onboarded` flag to True.
+
+    Called by the frontend exactly once — when the user finishes (or
+    explicitly skips) the first-login Studio walkthrough. Idempotent.
+    """
+    await db.users.update_one(
+        {"user_id": current_user.user_id},
+        {"$set": {"onboarded": True}},
     )
     updated = await db.users.find_one(
         {"user_id": current_user.user_id}, {"_id": 0}

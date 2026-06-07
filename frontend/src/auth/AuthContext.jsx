@@ -132,9 +132,36 @@ export function AuthProvider({ children }) {
     [user]
   );
 
+  /**
+   * Mark the user as having completed (or skipped) the first-login
+   * Studio walkthrough. Optimistic + idempotent — calling repeatedly
+   * has no extra effect. The flag persists per-user so the tour fires
+   * exactly once across all devices.
+   */
+  const markOnboarded = useCallback(async () => {
+    if (!user || user.onboarded) return true;
+    setUser({ ...user, onboarded: true });
+    try {
+      const r = await fetch(`${API}/api/auth/me/onboarded`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const fresh = await r.json();
+      setUser(fresh);
+      return true;
+    } catch (e) {
+      if (process.env.NODE_ENV !== "production")
+        console.warn("onboarded update failed:", e);
+      // Best-effort: keep optimistic value rather than rolling back —
+      // worst case the tour shows once more next session, no real harm.
+      return false;
+    }
+  }, [user]);
+
   return (
     <AuthCtx.Provider
-      value={{ user, loading, setUser, checkAuth, logout, setUiMode, setIdleMinutes }}
+      value={{ user, loading, setUser, checkAuth, logout, setUiMode, setIdleMinutes, markOnboarded }}
     >
       {children}
     </AuthCtx.Provider>

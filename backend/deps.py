@@ -71,6 +71,10 @@ class User(BaseModel):
     # the user record so the choice survives across sessions. Toggled
     # via PATCH /api/auth/me/ui-mode and surfaced in the header pill.
     ui_mode: str = "studio"
+    # Whether the user has completed the first-login onboarding tour
+    # (the 4-step "what's in Studio" walkthrough shown to new accounts).
+    # Persisted so the tour fires exactly once across all devices.
+    onboarded: bool = False
     # Idle-timeout window in minutes (between SESSION_IDLE_MIN and
     # SESSION_IDLE_MAX). Per-user override of the default
     # SESSION_IDLE_MINUTES — lets users with longer concentration

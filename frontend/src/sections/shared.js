@@ -257,6 +257,13 @@ export function footerLinkCss(cls, accentColor = "#E01839", prefixColor = "#6474
 }
 
 export function previewDoc(snippet, opts) {
+  // Click-to-edit / focus-bridge plumbing is a Studio-mode feature.
+  // Classic preview iframes should render the snippet exactly as the
+  // exported HTML would behave — no clickable affordances, no
+  // postMessage chatter, no scroll-into-view hijacks on link clicks.
+  // Default `withClickBridge: true` keeps the Studio behaviour for
+  // call sites that don't pass an explicit flag.
+  const withClickBridge = !opts || opts.withClickBridge !== false;
   // Editor-only "LIVE" badge: every card with data-ns-src (a fetched product
   // wired up for live price refresh) gets a small ribbon in the editor preview.
   // This style only lives in the editor iframe — copied snippets do NOT include it.
@@ -330,5 +337,9 @@ export function previewDoc(snippet, opts) {
   // both directions. No-op for snippets exported out of the editor
   // (the script only listens for postMessages, never originates them).
   const focusBridgeJs = `<script>(function(){window.addEventListener("message",function(e){var d=e&&e.data;if(!d||d.type!=="ns-focus-item"||!d.list)return;var el=document.querySelector('[data-ns-list="'+CSS.escape(d.list)+'"][data-ns-item="'+(d.index|0)+'"]');if(!el||typeof el.scrollIntoView!=="function")return;try{el.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});}catch(err){el.scrollIntoView();}});})();</script>`;
-  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}[data-ns-group],[data-ns-item]{cursor:pointer}[data-ns-item]:hover{outline:2px solid rgba(59,130,246,.55);outline-offset:-2px}[data-ns-group]:hover{outline:2px dashed rgba(59,130,246,.4);outline-offset:-2px}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}${stateRestoreJs}${clickBridgeJs}${focusBridgeJs}</body></html>`;
+  const clickAffordanceCss = withClickBridge
+    ? `[data-ns-group],[data-ns-item]{cursor:pointer}[data-ns-item]:hover{outline:2px solid rgba(59,130,246,.55);outline-offset:-2px}[data-ns-group]:hover{outline:2px dashed rgba(59,130,246,.4);outline-offset:-2px}`
+    : "";
+  const bridges = withClickBridge ? `${clickBridgeJs}${focusBridgeJs}` : "";
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>html,body{margin:0;padding:0;background:#ffffff;font-family:"Poppins",sans-serif}${editorBadgeCss}${vatToggleCss}${clickAffordanceCss}</style>${heroLockJs}</head><body>${vatToggleHtml}${snippet}${vatToggleJs}${stateRestoreJs}${bridges}</body></html>`;
 }
