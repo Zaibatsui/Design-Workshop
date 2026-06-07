@@ -643,10 +643,12 @@ export default function BrandKitPage({ chromeless = false }) {
         {user?.is_admin && <LandingDemoPicker />}
         {user?.is_admin && <LandingSpotlightsPicker />}
 
-        <section data-testid="brand-kit-image-library">
-          <SectionHeader Icon={Library} title="Image library" />
-          <ImageLibrarySection />
-        </section>
+        {!hideImageLibrary && (
+          <section id="image-library" data-testid="brand-kit-image-library">
+            <SectionHeader Icon={Library} title="Image library" />
+            <ImageLibrarySection />
+          </section>
+        )}
       </main>
 
       <Toaster richColors position="top-center" />

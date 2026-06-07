@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import "@/App.css";
 import { AuthProvider } from "@/auth/AuthContext";
@@ -15,6 +15,7 @@ import StudioBrandKit from "@/pages/studio/BrandKit";
 import { StudioAdminTickets, StudioMyTickets } from "@/pages/studio/Tickets";
 import StudioGuide from "@/pages/studio/Guide";
 import StudioAdminUsers from "@/pages/studio/AdminUsers";
+import StudioImageLibrary from "@/pages/studio/ImageLibrary";
 import StudioOrClassic from "@/components/studio/StudioOrClassic";
 import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
@@ -22,6 +23,17 @@ import UserGuide from "@/pages/UserGuide";
 import AdminUsersPage from "@/pages/AdminUsers";
 import AdminTicketsPage from "@/pages/AdminTickets";
 import MyTicketsPage from "@/pages/MyTickets";
+
+/**
+ * Classic-mode fallback for the new `/images` route. The image library
+ * only got promoted to its own page in Studio; in Classic it still
+ * lives inside `/brand` (Brand Kit). Send the user there with a tiny
+ * hash anchor so they land on the section if their browser respects
+ * it.
+ */
+function ClassicImageLibraryRedirect() {
+  return <Navigate to="/brand#image-library" replace />;
+}
 
 /**
  * Surfaces runtime errors that bypass the render-time ErrorBoundary as
@@ -113,6 +125,17 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <StudioOrClassic classic={BrandKitPage} studio={StudioBrandKit} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/images"
+                element={
+                  <ProtectedRoute>
+                    <StudioOrClassic
+                      classic={ClassicImageLibraryRedirect}
+                      studio={StudioImageLibrary}
+                    />
                   </ProtectedRoute>
                 }
               />

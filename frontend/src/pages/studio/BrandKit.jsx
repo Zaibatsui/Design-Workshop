@@ -11,7 +11,7 @@ import BrandKitPage from "@/pages/BrandKit";
 export default function StudioBrandKit() {
   return (
     <StudioShell active="brand-kit">
-      <BrandKitPage chromeless />
+      <BrandKitPage chromeless hideImageLibrary />
     </StudioShell>
   );
 }
