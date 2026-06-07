@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import {
   Copy,
   Palette,
+  Pencil,
   RotateCcw,
   ArrowLeft,
   Monitor,
@@ -336,13 +337,23 @@ export default function StudioEditor() {
             <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 flex-shrink-0">
               {def.name}
             </span>
-            <Input
-              value={section.name}
-              onChange={(e) => renameSection(e.target.value)}
-              data-testid="studio-section-name-input"
-              className="font-medium text-[14px] tracking-tight border-0 px-2 h-7 py-0 shadow-none focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0 rounded-md min-w-[160px] max-w-[320px] bg-transparent hover:bg-zinc-50"
-              style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
-            />
+            <div
+              className="group relative flex items-center"
+              data-testid="studio-section-name-field"
+            >
+              <Input
+                value={section.name}
+                onChange={(e) => renameSection(e.target.value)}
+                data-testid="studio-section-name-input"
+                placeholder="Untitled section"
+                className="font-semibold text-[14px] tracking-tight border border-transparent hover:border-zinc-300 focus-visible:border-blue-500 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 h-8 py-0 shadow-none rounded-md min-w-[160px] max-w-[320px] bg-transparent hover:bg-zinc-50 transition-colors"
+                style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+              />
+              <Pencil
+                className="w-3 h-3 text-zinc-400 absolute right-2 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-0 transition-opacity"
+                strokeWidth={2}
+              />
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
@@ -372,7 +383,7 @@ export default function StudioEditor() {
           <Button
             data-testid="studio-copy-snippet-button"
             onClick={copySnippet}
-            className="h-8 bg-zinc-900 hover:bg-zinc-800 text-white text-[12px] font-medium gap-1.5 px-3"
+            className="h-8 bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3"
           >
             <Copy className="w-3.5 h-3.5" />
             Copy snippet

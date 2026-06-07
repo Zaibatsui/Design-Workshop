@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Copy, FileStack, Monitor, Plus, Save, Smartphone, Tablet, Layers } from "lucide-react";
+import { ArrowLeft, Copy, FileStack, Monitor, Pencil, Plus, Save, Smartphone, Tablet, Layers } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { richtext } from "@/sections/richtext";
 import { composePage } from "@/sections/pageSnippet";
@@ -458,16 +458,23 @@ export default function PageEditor({ studio = false }) {
                 <span className="hidden sm:inline">Dashboard</span>
               </button>
               <div className="h-5 w-px bg-zinc-200 flex-shrink-0" />
-              <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 flex-shrink-0">
-                Page
-              </span>
-              <Input
-                value={page.name}
-                onChange={(e) => renamePage(e.target.value)}
-                data-testid="page-name-input"
-                className="font-medium text-[14px] tracking-tight border-0 px-2 h-7 py-0 shadow-none focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0 rounded-md min-w-[160px] max-w-[320px] bg-transparent hover:bg-zinc-50"
-                style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
-              />
+              <div
+                className="group relative flex items-center"
+                data-testid="page-name-field"
+              >
+                <Input
+                  value={page.name}
+                  onChange={(e) => renamePage(e.target.value)}
+                  data-testid="page-name-input"
+                  placeholder="Untitled page"
+                  className="font-semibold text-[14px] tracking-tight border border-transparent hover:border-zinc-300 focus-visible:border-blue-500 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 h-8 py-0 shadow-none rounded-md min-w-[160px] max-w-[320px] bg-transparent hover:bg-zinc-50 transition-colors"
+                  style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+                />
+                <Pencil
+                  className="w-3 h-3 text-zinc-400 absolute right-2 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-0 transition-opacity"
+                  strokeWidth={2}
+                />
+              </div>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1 flex-shrink-0">
                 <FileStack className="w-3 h-3" />
                 {(page.blocks || []).length} block
@@ -496,7 +503,7 @@ export default function PageEditor({ studio = false }) {
                 data-testid="copy-page-snippet-button"
                 onClick={copySnippet}
                 disabled={(page.blocks || []).length === 0}
-                className="h-8 bg-zinc-900 hover:bg-zinc-800 text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
+                className="h-8 bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
               >
                 <Copy className="w-3.5 h-3.5" />
                 Copy snippet
