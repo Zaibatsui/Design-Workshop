@@ -1,23 +1,48 @@
 /**
- * BlockEditorDrawer — right-hand panel in the page editor. Renders either
- * the richtext form or a section's own FormPanel, with a name/close header.
+ * BlockEditorDrawer — right-pane block settings for the page editor.
+ *
+ * Two modes:
+ *   • Classic (`studio={false}`)  → renders the section's FormPanel
+ *     directly inside a slate-bordered drawer (legacy behaviour).
+ *   • Studio (`studio={true}`)    → wraps the FormPanel in
+ *     `<StudioInspector>` so the user gets the same Content / Design /
+ *     Advanced tab UI that StudioEditor uses, plus a `<StudioOutline>`
+ *     quick-jump rail above it for fast navigation across FormGroups.
+ *
+ * Rich-text blocks share the same chrome but skip both wrappers and
+ * fall back to `RichTextBlockForm` since they don't expose FormGroups.
  */
+import { useRef } from "react";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { blockTypeLabel } from "@/sections/pageSnippet";
 import RichTextBlockForm from "./RichTextBlockForm";
+import StudioInspector from "@/components/studio/StudioInspector";
+import StudioOutline from "@/components/studio/StudioOutline";
 
-export default function BlockEditorDrawer({ studio = false, block, onUpdate, onClose }) {
+export default function BlockEditorDrawer({
+  studio = false,
+  block,
+  onUpdate,
+  onClose,
+}) {
   const isRichText = block.type === "richtext";
   const def = !isRichText ? SECTIONS_BY_ID[block.section_type] : null;
   const typeLabel = blockTypeLabel(block);
+  const inspectorPanelRef = useRef(null);
 
+  // Outer aside skips its own left border in Studio + section-block
+  // mode because the embedded <StudioInspector> already paints one;
+  // doubling them up would draw a 2px hairline.
+  const studioSectionMode = studio && !isRichText && !!def;
   const asideCls = studio
-    ? "w-96 flex-shrink-0 border-l border-zinc-200 bg-white h-screen overflow-y-auto"
+    ? studioSectionMode
+      ? "w-96 flex-shrink-0 bg-white h-screen overflow-hidden flex flex-col"
+      : "w-96 flex-shrink-0 border-l border-zinc-200 bg-white h-screen overflow-hidden flex flex-col"
     : "w-96 flex-shrink-0 border-l border-slate-200 bg-white h-screen overflow-y-auto";
   const headerCls = studio
-    ? "px-5 py-4 border-b border-zinc-200 sticky top-0 bg-white z-10 flex items-start justify-between"
+    ? "px-5 py-4 border-b border-zinc-200 bg-white flex items-start justify-between flex-shrink-0"
     : "px-5 py-4 border-b border-slate-200 sticky top-0 bg-white z-10 flex items-start justify-between";
   const eyebrowCls = studio
     ? "text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-0.5"
@@ -26,13 +51,21 @@ export default function BlockEditorDrawer({ studio = false, block, onUpdate, onC
     ? "p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors flex-shrink-0"
     : "p-1.5 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0";
 
+  // FormPanel onUpdate adapter — page blocks store config under
+  // `block.config` and propagate replacements via `replaceConfig`.
+  const formOnUpdate = (patch) =>
+    onUpdate({
+      replaceConfig:
+        typeof patch === "function"
+          ? patch(block.config || {})
+          : { ...(block.config || {}), ...patch },
+    });
+
   return (
     <aside data-testid="block-editor-drawer" className={asideCls}>
       <div className={headerCls}>
         <div className="min-w-0 flex-1 pr-3">
-          <div className={eyebrowCls}>
-            Editing · {typeLabel}
-          </div>
+          <div className={eyebrowCls}>Editing · {typeLabel}</div>
           <Input
             value={block.name || ""}
             onChange={(e) => onUpdate({ name: e.target.value })}
@@ -51,27 +84,48 @@ export default function BlockEditorDrawer({ studio = false, block, onUpdate, onC
           <X className="w-4 h-4" />
         </button>
       </div>
-      <div className="p-4 space-y-4">
-        {isRichText ? (
-          <RichTextBlockForm block={block} onUpdate={onUpdate} />
-        ) : def ? (
-          <def.FormPanel
-            config={block.config || {}}
-            onUpdate={(patch) =>
-              onUpdate({
-                replaceConfig:
-                  typeof patch === "function"
-                    ? patch(block.config || {})
-                    : { ...(block.config || {}), ...patch },
-              })
-            }
-          />
-        ) : (
-          <p className="text-xs text-slate-500">
-            Unknown section type: {block.section_type}
-          </p>
-        )}
-      </div>
+
+      {studio && def ? (
+        // Studio: outline quick-jump + StudioInspector (Content / Design /
+        // Advanced tabs) — same chrome as the standalone section editor.
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div
+            className="px-3 pt-3 pb-2 border-b border-zinc-200 max-h-48 overflow-y-auto"
+            data-testid="block-editor-outline"
+          >
+            <StudioOutline
+              panelRef={inspectorPanelRef}
+              signal={`${def.id}:${JSON.stringify(block.config || {}).length}`}
+            />
+          </div>
+          <div className="flex-1 min-h-0">
+            <StudioInspector
+              def={def}
+              config={block.config || {}}
+              onUpdate={formOnUpdate}
+              panelRef={inspectorPanelRef}
+              hideHeader
+            />
+          </div>
+        </div>
+      ) : (
+        // Classic mode OR rich-text block in Studio: render the legacy
+        // form-panel surface directly.
+        <div className={studio ? "flex-1 overflow-y-auto p-4 space-y-4" : "p-4 space-y-4"}>
+          {isRichText ? (
+            <RichTextBlockForm block={block} onUpdate={onUpdate} />
+          ) : def ? (
+            <def.FormPanel
+              config={block.config || {}}
+              onUpdate={formOnUpdate}
+            />
+          ) : (
+            <p className="text-xs text-slate-500">
+              Unknown section type: {block.section_type}
+            </p>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

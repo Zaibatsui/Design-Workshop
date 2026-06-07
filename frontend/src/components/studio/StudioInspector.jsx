@@ -33,6 +33,7 @@ export default function StudioInspector({
   onUpdate,
   previewMode,
   panelRef: externalPanelRef,
+  hideHeader = false,
 }) {
   const [active, setActive] = useState("content");
   const [counts, setCounts] = useState({ content: 0, design: 0, advanced: 0 });
@@ -123,19 +124,21 @@ export default function StudioInspector({
       className="flex flex-col h-full bg-white border-l border-zinc-200"
       data-testid="studio-inspector"
     >
-      <div className="flex items-center justify-between px-4 h-12 border-b border-zinc-200 flex-shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          {def.icon ? (
-            <def.icon
-              className="h-3.5 w-3.5 text-zinc-500 flex-shrink-0"
-              strokeWidth={1.75}
-            />
-          ) : null}
-          <h2 className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 truncate">
-            {def.name} settings
-          </h2>
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-4 h-12 border-b border-zinc-200 flex-shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            {def.icon ? (
+              <def.icon
+                className="h-3.5 w-3.5 text-zinc-500 flex-shrink-0"
+                strokeWidth={1.75}
+              />
+            ) : null}
+            <h2 className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 truncate">
+              {def.name} settings
+            </h2>
+          </div>
         </div>
-      </div>
+      )}
 
       <Tabs
         value={active}

@@ -382,19 +382,20 @@ export default function PageEditor({ studio = false }) {
         onRenameBlock={(blockId, name) => updateBlock(blockId, { name })}
       />
 
-      {/* Left sidebar: block editor drawer when a block is selected, else
-          a helpful empty state. Mirrors the Section editor's form-on-left
-          layout for consistency. */}
-      {selectedBlock ? (
+      {/* Classic mode keeps the form drawer pinned to the LEFT (between
+          PageRail and the canvas) — mirrors the original layout. Studio
+          mode moves the drawer to the RIGHT for parity with StudioEditor
+          (rendered after the <main> below). */}
+      {!studio && (selectedBlock ? (
         <BlockEditorDrawer
-          studio={studio}
+          studio={false}
           block={selectedBlock}
           onUpdate={(patch) => updateBlock(selectedBlock.block_id, patch)}
           onClose={() => setSelectedBlockId(null)}
         />
       ) : (
-        <EmptyBlockEditor studio={studio} onAdd={() => setAdder(true)} />
-      )}
+        <EmptyBlockEditor studio={false} onAdd={() => setAdder(true)} />
+      ))}
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {studio ? (
@@ -523,6 +524,19 @@ export default function PageEditor({ studio = false }) {
           </div>
         </div>
       </main>
+
+      {/* Studio mode: block editor lives on the RIGHT for parity with
+          StudioEditor's Outline · Canvas · Inspector layout. */}
+      {studio && (selectedBlock ? (
+        <BlockEditorDrawer
+          studio
+          block={selectedBlock}
+          onUpdate={(patch) => updateBlock(selectedBlock.block_id, patch)}
+          onClose={() => setSelectedBlockId(null)}
+        />
+      ) : (
+        <EmptyBlockEditor studio onAdd={() => setAdder(true)} />
+      ))}
 
       {adder && (
         <BlockAdder
