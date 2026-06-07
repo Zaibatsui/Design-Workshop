@@ -26,6 +26,7 @@ import {
   Users as UsersIcon,
   MessageSquarePlus,
   Library,
+  FileStack,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
@@ -38,6 +39,7 @@ import UserMenu from "@/components/UserMenu";
 
 const NAV_ITEMS = [
   { id: "sections", label: "Library", icon: LayoutGrid, href: "/", testid: "studio-nav-library" },
+  { id: "templates", label: "Templates", icon: FileStack, href: "/templates", testid: "studio-nav-templates" },
   { id: "brand-kit", label: "Brand kit", icon: Palette, href: "/brand", testid: "studio-nav-brand" },
   { id: "image-library", label: "Image library", icon: Library, href: "/images", testid: "studio-nav-images" },
   { id: "tickets", label: "Tickets", icon: ClipboardList, href: "/my-tickets", testid: "studio-nav-tickets" },

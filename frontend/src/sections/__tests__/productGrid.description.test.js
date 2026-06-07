@@ -348,5 +348,34 @@ function cfgWith(description) {
   );
 }
 
+// ── 10. Empty title suppresses the .ns-h heading element ───────────
+{
+  // Whitespace-only or empty title → no <h2 class="ns-h"> emitted so
+  // its 28px margin-bottom doesn't leave a phantom gap above the grid
+  // when authors deliberately omit a heading.
+  const cfg = productGrid.defaults();
+  cfg.title = "";
+  const empty = productGrid.render(cfg);
+  expect(
+    "empty title suppresses the .ns-h element entirely",
+    !empty.includes('class="ns-h"'),
+    '.ns-h leaked into render even though title was ""'
+  );
+  const cfgWS = productGrid.defaults();
+  cfgWS.title = "   ";
+  expect(
+    "whitespace-only title suppresses the .ns-h element",
+    !productGrid.render(cfgWS).includes('class="ns-h"'),
+    '.ns-h leaked into render even though title was whitespace-only'
+  );
+  const cfgFull = productGrid.defaults();
+  cfgFull.title = "Featured products";
+  expect(
+    "populated title still renders the .ns-h element",
+    productGrid.render(cfgFull).includes('class="ns-h"'),
+    '.ns-h should render when a non-empty title is supplied'
+  );
+}
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : `${failed} FAILED`}`);
 process.exit(failed ? 1 : 0);

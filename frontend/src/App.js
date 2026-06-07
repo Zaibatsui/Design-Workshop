@@ -16,6 +16,8 @@ import { StudioAdminTickets, StudioMyTickets } from "@/pages/studio/Tickets";
 import StudioGuide from "@/pages/studio/Guide";
 import StudioAdminUsers from "@/pages/studio/AdminUsers";
 import StudioImageLibrary from "@/pages/studio/ImageLibrary";
+import StudioTemplates from "@/pages/studio/Templates";
+import StudioPageEditor from "@/pages/studio/PageEditor";
 import StudioOrClassic from "@/components/studio/StudioOrClassic";
 import PageEditor from "@/pages/PageEditor";
 import BrandKitPage from "@/pages/BrandKit";
@@ -33,6 +35,16 @@ import MyTicketsPage from "@/pages/MyTickets";
  */
 function ClassicImageLibraryRedirect() {
   return <Navigate to="/brand#image-library" replace />;
+}
+
+/**
+ * Classic-mode fallback for the new `/templates` route. The full
+ * Templates browser is Studio-only — Classic users still pick a
+ * template via the "New page" modal on the Dashboard, so we redirect
+ * back there to keep the flow consistent.
+ */
+function ClassicTemplatesRedirect() {
+  return <Navigate to="/" replace />;
 }
 
 /**
@@ -140,6 +152,17 @@ function App() {
                 }
               />
               <Route
+                path="/templates"
+                element={
+                  <ProtectedRoute>
+                    <StudioOrClassic
+                      classic={ClassicTemplatesRedirect}
+                      studio={StudioTemplates}
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/guide"
                 element={
                   <ProtectedRoute>
@@ -183,7 +206,7 @@ function App() {
                 path="/edit/page/:pageId"
                 element={
                   <ProtectedRoute>
-                    <PageEditor />
+                    <StudioOrClassic classic={PageEditor} studio={StudioPageEditor} />
                   </ProtectedRoute>
                 }
               />

@@ -31,7 +31,7 @@ import SaveAsTemplateDialog from "./page-editor/SaveAsTemplateDialog";
 
 const AUTOSAVE_MS = 1500;
 
-export default function PageEditor() {
+export default function PageEditor({ studio = false }) {
   const { pageId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -363,7 +363,13 @@ export default function PageEditor() {
   );
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-body text-slate-900">
+    <div
+      className={`flex h-screen w-screen overflow-hidden ${
+        studio ? "bg-zinc-50 text-zinc-900" : "bg-slate-50 font-body text-slate-900"
+      }`}
+      style={studio ? { fontFamily: "'IBM Plex Sans', system-ui, sans-serif" } : undefined}
+      data-testid={studio ? "studio-page-editor" : undefined}
+    >
       <PageRail
         activePageId={page.page_id}
         blocks={page.blocks || []}
@@ -389,6 +395,7 @@ export default function PageEditor() {
       )}
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        {!studio && (
         <div className="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 gap-4">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
@@ -433,8 +440,9 @@ export default function PageEditor() {
             <UserMenu />
           </div>
         </div>
+        )}
 
-        <div className="flex-1 overflow-auto p-6 bg-slate-50">
+        <div className={`flex-1 overflow-auto p-6 ${studio ? "bg-zinc-100" : "bg-slate-50"}`}>
           <div
             className="mx-auto bg-white rounded-md border border-slate-200 overflow-hidden"
             style={{ maxWidth: "100%", width: "100%" }}
