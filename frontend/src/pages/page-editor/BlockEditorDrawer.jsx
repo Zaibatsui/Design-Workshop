@@ -13,7 +13,7 @@
  * fall back to `RichTextBlockForm` since they don't expose FormGroups.
  */
 import { useRef } from "react";
-import { X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { blockTypeLabel } from "@/sections/pageSnippet";
@@ -65,13 +65,32 @@ export default function BlockEditorDrawer({
       <div className={headerCls}>
         <div className="min-w-0 flex-1 pr-3">
           <div className={eyebrowCls}>Editing · {typeLabel}</div>
-          <Input
-            value={block.name || ""}
-            onChange={(e) => onUpdate({ name: e.target.value })}
-            placeholder={typeLabel}
-            data-testid="block-name-input"
-            className="font-heading text-base font-semibold tracking-tight border-0 px-0 h-auto py-0 shadow-none focus-visible:ring-0 truncate placeholder:text-slate-300"
-          />
+          {studio ? (
+            <div
+              className="group relative flex items-center"
+              data-testid="block-name-field"
+            >
+              <Input
+                value={block.name || ""}
+                onChange={(e) => onUpdate({ name: e.target.value })}
+                placeholder={typeLabel}
+                data-testid="block-name-input"
+                className="font-heading text-base font-semibold tracking-tight border border-zinc-200 hover:border-[#E01839] focus-visible:border-[#E01839] focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-8 py-0 shadow-none rounded-md bg-white hover:bg-red-50/40 transition-colors pr-8 placeholder:text-zinc-300"
+              />
+              <Pencil
+                className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#E01839] group-focus-within:text-[#E01839] absolute right-2.5 pointer-events-none transition-colors"
+                strokeWidth={2}
+              />
+            </div>
+          ) : (
+            <Input
+              value={block.name || ""}
+              onChange={(e) => onUpdate({ name: e.target.value })}
+              placeholder={typeLabel}
+              data-testid="block-name-input"
+              className="font-heading text-base font-semibold tracking-tight border-0 px-0 h-auto py-0 shadow-none focus-visible:ring-0 truncate placeholder:text-slate-300"
+            />
+          )}
         </div>
         <button
           type="button"
