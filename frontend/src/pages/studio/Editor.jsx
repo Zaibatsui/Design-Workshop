@@ -356,7 +356,6 @@ export default function StudioEditor() {
           >
             <RotateCcw className="w-4 h-4" strokeWidth={1.75} />
           </button>
-          <div className="h-5 w-px bg-zinc-200 mx-1" />
           <SaveIndicator status={saveStatus} savedAt={savedAt} variant="studio" />
           <div className="h-5 w-px bg-zinc-200 mx-1" />
           <StudioToggle />
