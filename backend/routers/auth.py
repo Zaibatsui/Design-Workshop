@@ -16,7 +16,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from db import db
-from deps import SESSION_COOKIE, SESSION_TTL_DAYS, User, get_current_user
+from deps import SESSION_COOKIE, SESSION_TTL_DAYS, SESSION_IDLE_MINUTES, User, get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -88,12 +88,15 @@ async def google_callback(request: Request):
         })
 
     session_token = secrets.token_urlsafe(48)
-    expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_TTL_DAYS)
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(days=SESSION_TTL_DAYS)
+    idle_expires_at = now + timedelta(minutes=SESSION_IDLE_MINUTES)
     await db.user_sessions.insert_one({
         "session_token": session_token,
         "user_id": user_id,
         "expires_at": expires_at,
-        "created_at": datetime.now(timezone.utc),
+        "idle_expires_at": idle_expires_at,
+        "created_at": now,
     })
 
     response = RedirectResponse(url="/", status_code=302)

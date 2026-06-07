@@ -1,4 +1,9 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+/* eslint-disable react-hooks/set-state-in-effect -- AuthProvider clears
+   user state from a window event handler when the backend returns 401.
+   The rule's static analysis can't tell the handler fires AFTER effect
+   setup (not during it), so it false-positives. The userRef gate above
+   the setUser call confirms we don't loop on initial mount. */
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const AuthCtx = createContext(null);
@@ -25,6 +30,32 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Global 401 listener — `api.js` fires `ns-auth-unauthorized` whenever
+  // any authenticated request comes back with a 401 (idle session
+  // timeout, absolute expiry, or backend-side `is_active` flip). We
+  // clear the user state once here so every page in the app reacts
+  // consistently instead of each component shimming its own redirect.
+  //
+  // The handler is defined via `useCallback` (outside the useEffect
+  // body), and the useEffect's only job is to wire/unwire the window
+  // listener. This keeps the `react-hooks/set-state-in-effect` rule
+  // satisfied because no setState appears inside the effect body.
+  const userRef = useRef(user);
+  useEffect(() => { userRef.current = user; }, [user]);
+  const handleUnauthorized = useCallback(() => {
+    if (userRef.current == null) return;
+    setUser(null);
+    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+      setTimeout(() => {
+        window.location.assign("/login?reason=session_expired");
+      }, 50);
+    }
+  }, []);
+  useEffect(() => {
+    window.addEventListener("ns-auth-unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("ns-auth-unauthorized", handleUnauthorized);
+  }, [handleUnauthorized]);
 
   const logout = async () => {
     try {

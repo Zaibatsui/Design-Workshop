@@ -38,6 +38,15 @@ async function req(path, opts = {}) {
     clearTimeout(timer);
   }
   if (r.status === 401) {
+    // Tell every interested listener (chiefly AuthContext) that our
+    // session just died — so the global app state clears, the user
+    // gets redirected to /login, and individual components don't
+    // each have to handle the doom-loop on their own. CustomEvent
+    // is the cleanest cross-module signal for an in-tab broadcast
+    // without coupling this fetch helper to React.
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("ns-auth-unauthorized"));
+    }
     const err = new Error("unauthorized");
     err.status = 401;
     throw err;

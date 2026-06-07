@@ -10,7 +10,7 @@ doesn't ship with anyone's email pre-promoted; an empty/missing var
 simply means "no admin" — never "everyone is admin".
 """
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Cookie, Depends, HTTPException, Request
@@ -20,6 +20,12 @@ from db import db
 
 SESSION_COOKIE = "session_token"
 SESSION_TTL_DAYS = 7
+# Sliding inactivity timeout. Independent of the 7-day absolute TTL —
+# a session is invalid if EITHER limit lapses. 30 minutes mirrors the
+# Google Workspace / Linear default for admin SaaS tools: short enough
+# that an unattended laptop in a coffee shop is reasonably safe, long
+# enough that an author taking a call doesn't get logged out mid-edit.
+SESSION_IDLE_MINUTES = 30
 
 
 def _load_admin_emails() -> frozenset:
@@ -86,8 +92,28 @@ async def get_current_user(
         expires_at = datetime.fromisoformat(expires_at)
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at < datetime.now(timezone.utc):
+    now = datetime.now(timezone.utc)
+    if expires_at < now:
         raise HTTPException(status_code=401, detail="Session expired")
+
+    # Idle (sliding) expiry — `idle_expires_at` is bumped to
+    # now + SESSION_IDLE_MINUTES on every authenticated request. If the
+    # user has been inactive long enough that this stamp is in the past,
+    # the session is dead even if the absolute `expires_at` is still
+    # comfortably in the future. Sessions created before this field was
+    # introduced (back-compat) are treated as freshly active so existing
+    # users aren't kicked out the moment the upgrade ships.
+    idle_at = session_doc.get("idle_expires_at")
+    if idle_at is not None:
+        if isinstance(idle_at, str):
+            idle_at = datetime.fromisoformat(idle_at)
+        if idle_at.tzinfo is None:
+            idle_at = idle_at.replace(tzinfo=timezone.utc)
+        if idle_at < now:
+            # Drop the row eagerly — keeps the collection from
+            # accumulating long-dead idle sessions.
+            await db.user_sessions.delete_one({"session_token": token})
+            raise HTTPException(status_code=401, detail="Session timed out")
 
     user_doc = await db.users.find_one(
         {"user_id": session_doc["user_id"]}, {"_id": 0}
@@ -104,6 +130,18 @@ async def get_current_user(
         raise HTTPException(status_code=403, detail="Account has been deactivated")
 
     user_doc["is_admin"] = is_admin_email(user_doc.get("email"))
+
+    # Bump the sliding idle stamp on the way out so successful traffic
+    # keeps the session alive. One write per authenticated request is
+    # acceptable for an admin SaaS app at this scale; if traffic grows
+    # we can debounce (e.g. only bump if the stamp is older than a
+    # minute) without changing the contract.
+    await db.user_sessions.update_one(
+        {"session_token": token},
+        {"$set": {
+            "idle_expires_at": now + timedelta(minutes=SESSION_IDLE_MINUTES),
+        }},
+    )
     return User(**user_doc)
 
 

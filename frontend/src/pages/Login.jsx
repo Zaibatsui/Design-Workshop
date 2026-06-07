@@ -43,6 +43,13 @@ export default function Login() {
       next.delete("error");
       setParams(next, { replace: true });
     }
+    const reason = params.get("reason");
+    if (reason === "session_expired") {
+      toast.info("Your session expired. Sign in again to keep going.");
+      const next = new URLSearchParams(params);
+      next.delete("reason");
+      setParams(next, { replace: true });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
