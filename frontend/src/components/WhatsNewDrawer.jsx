@@ -17,7 +17,7 @@
  *     clicked through that specific version yet.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, MousePointerClick, FileStack, LayoutGrid } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -53,7 +53,34 @@ const PLATFORM_UPDATES = [
     icon: Sparkles,
     addedOn: "2026-02-07",
     whatsNew:
-      "Brand-new Workspace + Inspector layout with Content / Design / Advanced tabs, click-to-edit anywhere in the preview, and a one-time guided tour. Studio is now the default — switch back to Classic any time from your user menu.",
+      "Brand-new Workspace + Inspector layout with Content / Design / Advanced tabs and a one-time guided tour. Studio is now the default — switch back to Classic any time from your user menu, or replay the tour whenever you like.",
+    kind: "major",
+  },
+  {
+    id: "click-to-edit",
+    name: "Click anything to edit it",
+    icon: MousePointerClick,
+    addedOn: "2026-02-07",
+    whatsNew:
+      "Click any heading, card, slide or row in the live preview — the editor jumps straight to its settings and (for carousels) snaps to the card you clicked. Works across every section in your library.",
+    kind: "major",
+  },
+  {
+    id: "page-editor-studio",
+    name: "Studio page editor",
+    icon: LayoutGrid,
+    addedOn: "2026-02-07",
+    whatsNew:
+      "Building multi-section pages now uses the same right-pane Inspector you have on individual sections — Content / Design / Advanced tabs, neutral palette, viewport switcher (Desktop / Tablet / Mobile) above the canvas. Click any block in the rail or any element in the preview to edit it.",
+    kind: "major",
+  },
+  {
+    id: "templates-page",
+    name: "Templates page",
+    icon: FileStack,
+    addedOn: "2026-02-07",
+    whatsNew:
+      "Browse every built-in page template plus your own saved templates from a dedicated page in Studio. NEW / UPDATED badges show what's recent, and one click spins up a fresh page from the template's block stack.",
     kind: "major",
   },
 ];
