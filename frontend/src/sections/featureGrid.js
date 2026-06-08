@@ -1,10 +1,21 @@
 /**
- * Feature Grid — N feature cards with optional icon, title and body.
- * Use cases: "Why choose us", "What's included", value props.
+ * Feature Grid — N feature cards with optional icon/image, title,
+ * short intro and rich-text body.
  *
- * Self-contained: no JS, just scoped CSS and inline SVG icons drawn
- * from the in-tree ICON_LIBRARY (no external icon set required at
- * runtime in the embedded site).
+ * Self-contained: no JS, just scoped CSS. Icons can be drawn from the
+ * in-tree ICON_LIBRARY OR replaced per-card with an uploaded image
+ * (same ImageUpload component used elsewhere). The body is authored
+ * via the shared RichTextEditor so authors can bold / italicise / list
+ * / link / align per-paragraph — same toolset and trust model as the
+ * FAQ answer field.
+ *
+ * Alignment is layered:
+ *   1. `textAlign`             — section header default (desktop)
+ *   2. `textAlignMobile`       — override for ≤640px
+ *   3. `cardTextAlign`         — card body default (desktop), "" inherits header
+ *   4. `cardTextAlignMobile`   — card body override on mobile, "" inherits desktop card
+ *   5. Per-paragraph `<p style="text-align:right">` inside the rich-text body
+ *      beats everything else because inline styles win the cascade.
  */
 import { LayoutGrid } from "lucide-react";
 import {
@@ -32,20 +43,40 @@ import {
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
 import ListEditor from "@/components/ListEditor";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Label } from "@/components/ui/label";
 
 import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 import PaddingFields from "@/components/PaddingFields";
 const ID = "feature-grid";
 
+/**
+ * Body-content coercion: lifted from FAQ. Anything that already looks
+ * like HTML passes through; plain-text (saved by older Feature Grids
+ * before this field was a rich-text editor) is split on blank lines
+ * into `<p>` paragraphs with `<br/>`s for soft breaks. Means existing
+ * snippets keep rendering byte-identically.
+ */
+function coerceBodyHtml(body) {
+  const s = String(body || "");
+  if (!s.trim()) return "";
+  if (/<\/?[a-z][\s\S]*>/i.test(s)) return s;
+  return s
+    .split(/\n{2,}/)
+    .map((para) => `<p>${escHtml(para).replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+}
+
 const sampleFeature = (i) => ({
   id: makeUid(),
   // Both `icon` and `image` are persisted on every feature so switching
-  // `cardLayout` back and forth doesn't lose previously-entered data.
+  // `cardLayout` or `iconSource` back and forth never loses data.
+  iconSource: "library", // "library" | "image"
   icon: ["zap", "shield", "layers", "code"][i % 4],
   image: "",
   imageAlt: "",
   title: ["Lightning fast", "Secure by default", "Composable", "Developer-friendly"][i % 4],
+  intro: "",
   body: "Short paragraph that backs up the title — keep it under 25 words for visual rhythm across cards.",
 });
 
@@ -72,7 +103,10 @@ const defaults = () => ({
   // mental model as Insights Grid but with the cleaner value-prop
   // headline rhythm Feature Grid is built around.
   cardLayout: "icon", // "icon" | "image-top" | "image-left"
-  textAlign: "left", // "left" | "center"
+  textAlign: "left", // "left" | "center" | "right" — header default (desktop)
+  textAlignMobile: "", // "" inherits desktop · "left" | "center" | "right"
+  cardTextAlign: "", // "" inherits header · "left" | "center" | "right"
+  cardTextAlignMobile: "", // "" inherits desktop card align
   features: [sampleFeature(0), sampleFeature(1), sampleFeature(2), sampleFeature(3)],
 });
 
@@ -100,22 +134,34 @@ const render = (cfg) => {
 
   const featuresHtml = (cfg.features || [])
     .map((f, idx) => {
+      const introHtml = f.intro
+        ? `<p class="ns-intro">${escHtml(f.intro)}</p>`
+        : "";
+      const titleHtml = `<h3 class="ns-title">${escHtml(f.title || "")}</h3>`;
+      const bodyHtml = `<div class="ns-body">${coerceBodyHtml(f.body)}</div>`;
+
       if (cardLayout !== "icon") {
         const imgUrl = safeUrl(f.image);
         const imgHtml = imgUrl
           ? `<img src="${escAttr(imgUrl)}" alt="${escAttr(f.imageAlt || f.title || "")}"/>`
           : "";
-        return `<article class="ns-card${layoutMod}" data-ns-list="feature" data-ns-item="${idx}"><div class="ns-image-wrap">${imgHtml}</div><div class="ns-card-body"><h3 class="ns-title">${escHtml(
-          f.title || ""
-        )}</h3><p class="ns-body">${escHtml(f.body || "")}</p></div></article>`;
+        return `<article class="ns-card${layoutMod}" data-ns-list="feature" data-ns-item="${idx}"><div class="ns-image-wrap">${imgHtml}</div><div class="ns-card-body">${titleHtml}${introHtml}${bodyHtml}</div></article>`;
       }
-      const iconHtml = svgIcon(f.icon || "none", 18);
-      const iconBox = iconHtml
-        ? `<div class="ns-icon-box" aria-hidden="true">${iconHtml}</div>`
-        : "";
-      return `<article class="ns-card" data-ns-list="feature" data-ns-item="${idx}">${iconBox}<h3 class="ns-title">${escHtml(
-        f.title || ""
-      )}</h3><p class="ns-body">${escHtml(f.body || "")}</p></article>`;
+      // Icon-mode card. `iconSource` decides whether the 36×36 box
+      // shows a library SVG or the per-card uploaded image — the box
+      // chrome stays put either way so cards stay visually aligned.
+      const useImg = f.iconSource === "image";
+      const customImgUrl = useImg ? safeUrl(f.image) : "";
+      let iconBox = "";
+      if (useImg && customImgUrl) {
+        iconBox = `<div class="ns-icon-box is-img" aria-hidden="true"><img src="${escAttr(
+          customImgUrl
+        )}" alt="${escAttr(f.imageAlt || f.title || "")}"/></div>`;
+      } else if (!useImg) {
+        const iconHtml = svgIcon(f.icon || "none", 18);
+        if (iconHtml) iconBox = `<div class="ns-icon-box" aria-hidden="true">${iconHtml}</div>`;
+      }
+      return `<article class="ns-card" data-ns-list="feature" data-ns-item="${idx}">${iconBox}${titleHtml}${introHtml}${bodyHtml}</article>`;
     })
     .join("");
 
@@ -136,7 +182,13 @@ const render = (cfg) => {
   const textColor = safeColor(cfg.textColor, "#1f2937");
   const accent = safeColor(cfg.accentColor, "#E01839");
   const bodyColor = safeColor(cfg.bodyColor, "#64748b");
-  const align = cfg.textAlign === "center" ? "center" : "left";
+  // Alignment cascade: header → card body, desktop → mobile. Empty
+  // string at any level means "inherit from the layer above".
+  const allowedAligns = new Set(["left", "center", "right"]);
+  const headAlign = allowedAligns.has(cfg.textAlign) ? cfg.textAlign : "left";
+  const headAlignM = allowedAligns.has(cfg.textAlignMobile) ? cfg.textAlignMobile : headAlign;
+  const cardAlign = allowedAligns.has(cfg.cardTextAlign) ? cfg.cardTextAlign : headAlign;
+  const cardAlignM = allowedAligns.has(cfg.cardTextAlignMobile) ? cfg.cardTextAlignMobile : cardAlign;
   const padTop = padTopOf(cfg, 80);
   const padBot = padBotOf(cfg, 80);
   const padX = padXOf(cfg);
@@ -145,28 +197,36 @@ const render = (cfg) => {
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:${padTop}px ${padX}px ${padBot}px;background:${bg};color:${textColor}}
-.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align}}
+.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${headAlign}}
 .${cls} .ns-head{margin-bottom:48px}
-.${cls} .ns-head-inner{max-width:720px;${align === "center" ? "margin:0 auto;" : ""}}
+.${cls} .ns-head-inner{max-width:720px;${headAlign === "center" ? "margin:0 auto;" : headAlign === "right" ? "margin:0 0 0 auto;" : ""}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
 .${cls} .ns-heading{font-size:${num(cfg.headingSize, 32)}px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px}
-.${cls} .ns-card{${cardBase};border-radius:8px;padding:28px;text-align:left;transition:border-color .18s ease,transform .18s ease}
+.${cls} .ns-card{${cardBase};border-radius:8px;padding:28px;text-align:${cardAlign};transition:border-color .18s ease,transform .18s ease}
 .${cls} .ns-card:hover{${cardHover};transform:translateY(-2px)}
-.${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${accent}1a;color:${accent};margin-bottom:20px}
-.${cls} .ns-card .ns-title{font-size:16px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:${isSolid ? "#fff" : textColor};margin-bottom:8px}
+.${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${accent}1a;color:${accent};margin-bottom:20px;overflow:hidden;${cardAlign === "center" ? "margin-left:auto;margin-right:auto;" : cardAlign === "right" ? "margin-left:auto;" : ""}}
+.${cls} .ns-icon-box.is-img{background:transparent;padding:0}
+.${cls} .ns-icon-box.is-img img{width:100%;height:100%;object-fit:cover;display:block}
+.${cls} .ns-card .ns-title{font-size:16px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:${isSolid ? "#fff" : textColor};margin-bottom:6px}
+.${cls} .ns-card .ns-intro{font-size:14px;font-weight:500;line-height:1.45;color:${isSolid ? "rgba(255,255,255,0.85)" : textColor};margin:0 0 10px 0}
 .${cls} .ns-card .ns-body{font-size:14px;line-height:1.6;color:${isSolid ? "rgba(255,255,255,0.7)" : bodyColor}}
+.${cls} .ns-card .ns-body p{margin:0 0 10px 0}
+.${cls} .ns-card .ns-body p:last-child{margin-bottom:0}
+.${cls} .ns-card .ns-body ul,.${cls} .ns-card .ns-body ol{margin:0 0 10px 1.25em;padding:0}
+.${cls} .ns-card .ns-body li{margin-bottom:4px}
+.${cls} .ns-card .ns-body a{color:${accent};text-decoration:underline}
 .${cls} .ns-card.is-image-top,.${cls} .ns-card.is-image-left{padding:0;overflow:hidden}
 .${cls} .ns-card.is-image-top{display:flex;flex-direction:column}
 .${cls} .ns-card.is-image-top .ns-image-wrap{width:100%;aspect-ratio:16/9;background:#f1f5f9;overflow:hidden}
-.${cls} .ns-card.is-image-top .ns-card-body{padding:24px 24px 26px}
+.${cls} .ns-card.is-image-top .ns-card-body{padding:24px 24px 26px;text-align:${cardAlign}}
 .${cls} .ns-card.is-image-left{display:flex;flex-direction:row;align-items:stretch}
 .${cls} .ns-card.is-image-left .ns-image-wrap{flex:0 0 130px;align-self:stretch;background:#f1f5f9;overflow:hidden}
-.${cls} .ns-card.is-image-left .ns-card-body{padding:22px 24px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.${cls} .ns-card.is-image-left .ns-card-body{padding:22px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;text-align:${cardAlign}}
 .${cls} .ns-card.is-image-top .ns-image-wrap img,.${cls} .ns-card.is-image-left .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 @media (max-width:1024px){.${cls} .ns-grid{grid-template-columns:repeat(${Math.min(cols, 2)},minmax(0,1fr))}}
-@media (max-width:640px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-card.is-image-left{flex-direction:column}.${cls} .ns-card.is-image-left .ns-image-wrap{flex-basis:auto;width:100%;aspect-ratio:16/9}}
+@media (max-width:640px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-inner{text-align:${headAlignM}}.${cls} .ns-head-inner{${headAlignM === "center" ? "margin:0 auto;" : headAlignM === "right" ? "margin:0 0 0 auto;" : "margin:0;"}}.${cls} .ns-card{text-align:${cardAlignM}}.${cls} .ns-card .ns-icon-box{${cardAlignM === "center" ? "margin-left:auto;margin-right:auto;" : cardAlignM === "right" ? "margin-left:auto;margin-right:0;" : "margin-left:0;margin-right:auto;"}}.${cls} .ns-card.is-image-left{flex-direction:column}.${cls} .ns-card.is-image-left .ns-image-wrap{flex-basis:auto;width:100%;aspect-ratio:16/9}}
 `.trim();
 
   return wrapSnippet({ html, css, js: "" });
@@ -250,8 +310,45 @@ function FormPanel({ config, onUpdate }) {
           options={[
             { value: "left", label: "Left" },
             { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
           ]}
           testid="fg-text-align"
+        />
+        <SelectField
+          label="Header alignment (mobile)"
+          value={config.textAlignMobile || ""}
+          onChange={(v) => onUpdate({ textAlignMobile: v })}
+          options={[
+            { value: "", label: "Inherit from desktop" },
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="fg-text-align-mobile"
+        />
+        <SelectField
+          label="Card text alignment"
+          value={config.cardTextAlign || ""}
+          onChange={(v) => onUpdate({ cardTextAlign: v })}
+          options={[
+            { value: "", label: "Inherit from header" },
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="fg-card-align"
+        />
+        <SelectField
+          label="Card text alignment (mobile)"
+          value={config.cardTextAlignMobile || ""}
+          onChange={(v) => onUpdate({ cardTextAlignMobile: v })}
+          options={[
+            { value: "", label: "Inherit from desktop" },
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="fg-card-align-mobile"
         />
         <SliderField
           label="Heading size"
@@ -319,52 +416,116 @@ function FormPanel({ config, onUpdate }) {
               {f.title || "Untitled feature"}
             </div>
           )}
-          renderForm={(f) => (
-            <>
-              {(config.cardLayout || "icon") === "icon" ? (
-                <SelectField
-                  label="Icon"
-                  value={f.icon || "none"}
-                  onChange={(v) => updateFeature(f.id, { icon: v })}
-                  options={ICON_OPTIONS}
-                  testid={`fg-icon-${f.id}`}
-                />
-              ) : (
-                <>
-                  <div>
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Image
-                    </Label>
-                    <ImageUpload
-                      value={f.image || ""}
-                      onChange={(v) => updateFeature(f.id, { image: v })}
-                      testid={`fg-image-${f.id}`}
-                      compact
+          renderForm={(f) => {
+            // Effective card body alignment for the RichTextEditor's
+            // toolbar default. Mirrors the same cascade the renderer
+            // uses so the editor's "align" indicator matches what the
+            // visitor will see.
+            const allowed = new Set(["left", "center", "right"]);
+            const headA = allowed.has(config.textAlign) ? config.textAlign : "left";
+            const cardA = allowed.has(config.cardTextAlign) ? config.cardTextAlign : headA;
+            const layout = config.cardLayout || "icon";
+            const useImage = layout === "icon" && f.iconSource === "image";
+            return (
+              <>
+                {layout === "icon" ? (
+                  <>
+                    <SelectField
+                      label="Icon source"
+                      value={f.iconSource || "library"}
+                      onChange={(v) => updateFeature(f.id, { iconSource: v })}
+                      options={[
+                        { value: "library", label: "Library icon" },
+                        { value: "image", label: "Custom image (upload or URL)" },
+                      ]}
+                      testid={`fg-icon-source-${f.id}`}
                     />
-                  </div>
-                  <TextField
-                    label="Image alt (optional)"
-                    value={f.imageAlt || ""}
-                    onChange={(v) => updateFeature(f.id, { imageAlt: v })}
-                    placeholder="Falls back to the title"
-                    testid={`fg-image-alt-${f.id}`}
+                    {useImage ? (
+                      <>
+                        <div>
+                          <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Icon image
+                          </Label>
+                          <ImageUpload
+                            value={f.image || ""}
+                            onChange={(v) => updateFeature(f.id, { image: v })}
+                            testid={`fg-icon-image-${f.id}`}
+                            compact
+                          />
+                          <p className="text-[11px] text-slate-500 mt-1">
+                            Renders inside the existing 36×36 box. Square images look best.
+                          </p>
+                        </div>
+                        <TextField
+                          label="Image alt (optional)"
+                          value={f.imageAlt || ""}
+                          onChange={(v) => updateFeature(f.id, { imageAlt: v })}
+                          placeholder="Falls back to the title"
+                          testid={`fg-icon-image-alt-${f.id}`}
+                        />
+                      </>
+                    ) : (
+                      <SelectField
+                        label="Icon"
+                        value={f.icon || "none"}
+                        onChange={(v) => updateFeature(f.id, { icon: v })}
+                        options={ICON_OPTIONS}
+                        testid={`fg-icon-${f.id}`}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        Image
+                      </Label>
+                      <ImageUpload
+                        value={f.image || ""}
+                        onChange={(v) => updateFeature(f.id, { image: v })}
+                        testid={`fg-image-${f.id}`}
+                        compact
+                      />
+                    </div>
+                    <TextField
+                      label="Image alt (optional)"
+                      value={f.imageAlt || ""}
+                      onChange={(v) => updateFeature(f.id, { imageAlt: v })}
+                      placeholder="Falls back to the title"
+                      testid={`fg-image-alt-${f.id}`}
+                    />
+                  </>
+                )}
+                <TextField
+                  label="Title"
+                  value={f.title}
+                  onChange={(v) => updateFeature(f.id, { title: v })}
+                  testid={`fg-title-${f.id}`}
+                />
+                <TextField
+                  label="Intro (optional)"
+                  value={f.intro || ""}
+                  onChange={(v) => updateFeature(f.id, { intro: v })}
+                  placeholder="Short lead-in line between title and body"
+                  testid={`fg-intro-${f.id}`}
+                />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-slate-700">Body</Label>
+                  <RichTextEditor
+                    html={coerceBodyHtml(f.body)}
+                    onChange={(v) => updateFeature(f.id, { body: v })}
+                    tools={["bold", "italic", "ul", "ol", "link", "align"]}
+                    inheritedAlign={cardA}
                   />
-                </>
-              )}
-              <TextField
-                label="Title"
-                value={f.title}
-                onChange={(v) => updateFeature(f.id, { title: v })}
-                testid={`fg-title-${f.id}`}
-              />
-              <TextAreaField
-                label="Body"
-                value={f.body}
-                onChange={(v) => updateFeature(f.id, { body: v })}
-                testid={`fg-body-${f.id}`}
-              />
-            </>
-          )}
+                  <p className="text-[11px] text-slate-500">
+                    Select text and use the toolbar to add links, bold, italics or
+                    per-paragraph alignment. Per-paragraph align overrides the
+                    card-level alignment.
+                  </p>
+                </div>
+              </>
+            );
+          }}
         />
       </Group>
     </FormAccordion>
