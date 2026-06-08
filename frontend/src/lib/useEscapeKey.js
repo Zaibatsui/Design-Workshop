@@ -9,7 +9,7 @@ import { useEffect } from "react";
  */
 export function useEscapeKey(onEscape, active = true) {
   useEffect(() => {
-    if (!active) return undefined;
+    if (!active || typeof onEscape !== "function") return undefined;
     const handler = (e) => {
       if (e.key === "Escape") {
         e.stopPropagation();

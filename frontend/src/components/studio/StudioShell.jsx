@@ -239,7 +239,7 @@ export default function StudioShell({ active, children, headerActions = null }) 
 
       <TicketDialog
         open={ticketOpen}
-        onOpenChange={setTicketOpen}
+        onClose={() => setTicketOpen(false)}
         defaultType="bug"
       />
       <OnboardingTour />
