@@ -79,15 +79,16 @@ export default function StudioEditor() {
   const [savedAt, setSavedAt] = useState(null);
   const [previewWidth, setPreviewWidth] = useState("desktop");
 
-  // Outline column starts collapsed (matches the Page Editor's rail
-  // pattern — users opt-in to expand by clicking the panel-toggle).
+  // Outline column starts expanded (mirrors the Page Editor's rail
+  // default — users opt-in to collapse via the panel-toggle).
   // Persisted so it survives reloads.
   const [outlineExpanded, setOutlineExpanded] = useState(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined") return true;
     try {
-      return window.localStorage.getItem("ns-studio-outline-expanded") === "1";
+      const v = window.localStorage.getItem("ns-studio-outline-expanded");
+      return v === null ? true : v === "1";
     } catch {
-      return false;
+      return true;
     }
   });
   useEffect(() => {

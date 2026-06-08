@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Copy, FileStack, Monitor, Pencil, Plus, Save, Smartphone, Tablet, Layers } from "lucide-react";
+import { Copy, FileStack, Monitor, Pencil, Plus, Save, Smartphone, Tablet, Layers } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { richtext } from "@/sections/richtext";
 import { composePage } from "@/sections/pageSnippet";
@@ -448,16 +448,6 @@ export default function PageEditor({ studio = false }) {
         {studio ? (
           <div className="h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-4 gap-4 flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <button
-                onClick={() => navigate("/")}
-                data-testid="studio-page-back-to-dashboard"
-                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[12px] font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors flex-shrink-0"
-                title="Back to dashboard"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </button>
-              <div className="h-5 w-px bg-zinc-200 flex-shrink-0" />
               <div
                 className="group relative flex items-center"
                 data-testid="page-name-field"
@@ -497,8 +487,6 @@ export default function PageEditor({ studio = false }) {
               </Button>
               <div className="h-5 w-px bg-zinc-200 mx-1" />
               <StudioToggle />
-              <div className="h-5 w-px bg-zinc-200 mx-1" />
-              <UserMenu variant="compact" />
               <Button
                 data-testid="copy-page-snippet-button"
                 onClick={copySnippet}
