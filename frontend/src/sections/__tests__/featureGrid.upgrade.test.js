@@ -213,6 +213,23 @@ function renderWith(overrides) {
   );
 }
 
+// ─── 7. richBodyResetCss helper smoke — emits all expected rules ──────
+{
+  const { richBodyResetCss } = require("../shared.js");
+  const out = richBodyResetCss(".foo .ns-body", { paraSpacing: 12, linkColor: "#E01839" });
+  expect("helper: emits paragraph spacing", /\.foo \.ns-body p\{margin:0 0 12px\}/.test(out));
+  expect("helper: emits last-child p reset", /p:last-child\{margin-bottom:0\}/.test(out));
+  expect("helper: emits ul/ol list-style-position", /\.foo \.ns-body ul,\.foo \.ns-body ol\{margin:0 0 12px;padding-left:0;list-style-position:inside\}/.test(out));
+  expect("helper: emits ul disc rule", /\.foo \.ns-body ul\{list-style:disc inside!important\}/.test(out));
+  expect("helper: emits ol decimal rule", /\.foo \.ns-body ol\{list-style:decimal inside!important\}/.test(out));
+  expect("helper: emits inline li>p rule", /\.foo \.ns-body li p\{display:inline;margin:0\}/.test(out));
+  expect("helper: emits anchor rule when linkColor set", /\.foo \.ns-body a\{color:#E01839;text-decoration:underline\}/.test(out));
+
+  const noLink = richBodyResetCss(".foo .ns-body");
+  expect("helper: omits anchor rule when linkColor not set", !/\.foo \.ns-body a\{color/.test(noLink));
+  expect("helper: defaults paraSpacing to 10", /\.foo \.ns-body p\{margin:0 0 10px\}/.test(noLink));
+}
+
 if (failed === 0) {
   console.log(`\nALL PASSED (${passed} assertions)`);
   process.exit(0);

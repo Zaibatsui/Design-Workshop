@@ -197,6 +197,49 @@ export function wrapSnippet({ html, css, js }) {
 }
 
 /**
+ * CSS rules that restore sane defaults inside a rich-text body
+ * authored via <RichTextEditor>. Should be appended INSIDE the
+ * section's CSS template — `scope` is the parent selector that
+ * wraps the editor output (e.g. `` `.${cls} .ns-body` ``).
+ *
+ * Restores:
+ *   - paragraph spacing
+ *   - bold/italic (defensive against aggressive host-site resets)
+ *   - bullet / number list markers (defeats `baseReset`'s
+ *     `list-style:none!important` host-site protection rule)
+ *   - inline `<p>` inside `<li>` so bullets sit next to their text
+ *     rather than on a separate line above. Tiptap wraps every
+ *     list-item's text in `<p>` which is normally block-level.
+ *
+ * @param scope       Parent selector — every emitted rule is
+ *                    prefixed with this string. Typically
+ *                    `` `.${cls} .ns-body` `` or `` `.${cls} .ns-desc` ``.
+ *                    Pass `` `.${cls}` `` for sections whose root *is*
+ *                    the rich-text container (Rich Text block).
+ * @param paraSpacing Bottom margin in px between paragraphs / after
+ *                    lists. Default 10.
+ * @param linkColor   When set, also emits an `${scope} a` rule with
+ *                    that colour + underline.
+ *
+ * Returns a newline-joined CSS string with no trailing newline,
+ * suitable for direct interpolation into a section's css template.
+ */
+export function richBodyResetCss(scope, { paraSpacing = 10, linkColor = "" } = {}) {
+  const link = linkColor
+    ? `\n${scope} a{color:${linkColor};text-decoration:underline}`
+    : "";
+  return `${scope} p{margin:0 0 ${paraSpacing}px}
+${scope} p:last-child{margin-bottom:0}
+${scope} strong{font-weight:600}
+${scope} em{font-style:italic}
+${scope} ul,${scope} ol{margin:0 0 ${paraSpacing}px;padding-left:0;list-style-position:inside}
+${scope} ul{list-style:disc inside!important}
+${scope} ol{list-style:decimal inside!important}
+${scope} li{margin-bottom:4px}
+${scope} li p{display:inline;margin:0}${link}`;
+}
+
+/**
  * Footer link — small "View all →" / "Sign in to continue →" inline link
  * shipped under section content (CTA buttons, grids of cards/logos, etc.).
  * Always-optional: returns "" if no label or href is set, so omitting it

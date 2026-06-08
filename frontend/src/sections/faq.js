@@ -159,6 +159,7 @@ ${dividerCss}
 .${cls} .ns-a ul,.${cls} .ns-a ol{margin:0 0 10px;padding-left:0;list-style-position:inside}
 .${cls} .ns-a ul{list-style:disc inside!important}
 .${cls} .ns-a ol{list-style:decimal inside!important}
+.${cls} .ns-a li p{display:inline;margin:0}
 .${cls} .ns-a li{margin:0 0 4px}
 .${cls} .ns-a li>p{display:inline;margin:0}
 .${cls} .ns-a a{color:${accent};text-decoration:underline;text-underline-offset:2px}

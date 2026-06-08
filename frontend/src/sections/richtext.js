@@ -83,6 +83,7 @@ ${w(`.${cls} a:hover`)}{opacity:.8}
 .${cls} ul,.${cls} ol{margin:0 0 14px 0;padding-left:0;list-style-position:inside}
 .${cls} ul{list-style:disc inside!important}
 .${cls} ol{list-style:decimal inside!important}
+.${cls} li p{display:inline;margin:0}
 .${cls} li>p{display:inline;margin:0}
 .${cls} li{margin:0 0 6px;line-height:1.6}
 .${cls} .ns-inner > :first-child{margin-top:0}

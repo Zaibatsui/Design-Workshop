@@ -28,6 +28,7 @@ import {
   padTopOf,
   padBotOf,
   padXOf,
+  richBodyResetCss,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -212,14 +213,7 @@ ${baseReset(cls)}
 .${cls} .ns-card .ns-title{font-size:16px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:${isSolid ? "#fff" : textColor};margin-bottom:6px}
 .${cls} .ns-card .ns-intro{font-size:14px;font-weight:500;line-height:1.45;color:${isSolid ? "rgba(255,255,255,0.85)" : textColor};margin:0 0 10px 0}
 .${cls} .ns-card .ns-body{font-size:14px;line-height:1.6;color:${isSolid ? "rgba(255,255,255,0.7)" : bodyColor}}
-.${cls} .ns-card .ns-body p{margin:0 0 10px 0}
-.${cls} .ns-card .ns-body p:last-child{margin-bottom:0}
-.${cls} .ns-card .ns-body ul,.${cls} .ns-card .ns-body ol{margin:0 0 10px;padding-left:0;list-style-position:inside}
-.${cls} .ns-card .ns-body ul{list-style:disc inside!important}
-.${cls} .ns-card .ns-body ol{list-style:decimal inside!important}
-.${cls} .ns-card .ns-body li{margin-bottom:4px}
-.${cls} .ns-card .ns-body li p{display:inline;margin:0}
-.${cls} .ns-card .ns-body a{color:${accent};text-decoration:underline}
+${richBodyResetCss(`.${cls} .ns-card .ns-body`, { linkColor: accent })}
 .${cls} .ns-card.is-image-top,.${cls} .ns-card.is-image-left{padding:0;overflow:hidden}
 .${cls} .ns-card.is-image-top{display:flex;flex-direction:column}
 .${cls} .ns-card.is-image-top .ns-image-wrap{width:100%;aspect-ratio:16/9;background:#f1f5f9;overflow:hidden}

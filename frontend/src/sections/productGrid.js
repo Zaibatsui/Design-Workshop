@@ -270,6 +270,7 @@ ${baseReset(cls)}
 .${cls} .ns-desc ul,.${cls} .ns-desc ol{margin:0 0 ${num(cfg.descSpacing, 6)}px;padding-left:0;list-style-position:inside}
 .${cls} .ns-desc ul{list-style:disc inside!important}
 .${cls} .ns-desc ol{list-style:decimal inside!important}
+.${cls} .ns-desc li p{display:inline;margin:0}
 .${cls} .ns-desc li{display:list-item;margin:0 0 ${num(cfg.descSpacing, 6)}px}
 .${cls} .ns-desc li>p{display:inline;margin:0}
 .${cls} .ns-desc a{color:var(--ns-price-color);text-decoration:underline;text-underline-offset:2px}
