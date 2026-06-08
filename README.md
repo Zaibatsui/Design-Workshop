@@ -6,7 +6,7 @@
 
 Build hero banners, product carousels, FAQs, testimonials, stat counters and more — theme them with a Brand Kit, drag-stack them into Pages, then drop the resulting standalone HTML into Shopify, WordPress, Squarespace, Wix, Webflow, BigCommerce, Magento, Nettailer or any other tool that accepts a custom HTML block. No React, no jQuery, no CDN calls at runtime. Just markup.
 
-[Why this exists](#why-this-exists) · [Features](#features) · [Architecture](#architecture) · [Local development](#local-development) · [Self-hosted production](#production-deployment)
+[Why this exists](#why-this-exists) · [Features](#features) · [Studio mode](#studio-mode) · [Architecture](#architecture) · [Local development](#local-development) · [Self-hosted production](#production-deployment)
 
 </div>
 
@@ -51,8 +51,8 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 | **Steps** | Numbered process strip. Horizontal or vertical, big editorial numerals or compact inline. |
 | **Testimonials** | Auto-scrolling quote carousel with avatars + 0–5 star ratings. Optional platform-logo badges (G2, Trustpilot, Capterra). Pauses on hover, respects `prefers-reduced-motion`. |
 | **FAQ** | Collapsible Q+A accordion. Native `<details>` / `<summary>` for zero-JS accessibility. Rich-text answer editor with inline link panel — web or email, per-link colour, underline toggle and "Open in a new tab" choice. Scheme-less URLs (`example.com`) auto-resolve to `https://`. |
-| **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides. New: inline email-capture form mode. Optional mobile-only centre-text override. |
-| **Logo Strip** | Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle. New: edge-fade gradients mode for a softer marquee. |
+| **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides. Inline email-capture form mode. Optional mobile-only centre-text override. |
+| **Logo Strip** | Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle. Edge-fade gradients mode for a softer marquee. |
 | **Break Banner** | Full-bleed parallax break with overlaid heading. Use it to chapter long pages. |
 | **Tabs** | Tabbed content panel with a side image. Configurable tab alignment and image position. Optional per-tab image link. |
 | **Grid** | 2×2 / 2×3 image grid with optional links per cell. |
@@ -65,10 +65,6 @@ Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to
 ### Brand Kit
 
 Single source of truth for **colours** (primary, secondary, text, body, background + per-role overrides for link / button / accent and eyebrow), **brand logos** (dark + light, auto-seeded into Hero / Welcome / Split Banner), **typography** (heading + body fonts from 12 curated Google fonts, or "Inherit from site"), and a global **button radius** (sharp ↔ pill) that propagates to every CTA across every section. One click re-skins every existing section in your library without touching their content. "Inherit from site" ships snippets without a font import so the host page's typography wins.
-
-### Compact editor UI
-
-Every section editor uses Shadcn accordions. Most sections expose just two groups — **Header** (copy) and a single **Defaults** group that bundles layout (padding, alignment, widths, sizes) and theme (colours, backgrounds). Hero is richer with **Section / Carousel · Slide defaults · Slides** for per-slide overrides. Long sections still collapse to one screenful — no endless vertical scroll to reach the colour pickers.
 
 ### Image library
 
@@ -86,11 +82,15 @@ Admins can pick any saved library section as the **global hover-preview source**
 
 Both the section picker and the page-template picker render small **NEW** and **UPDATED** chips automatically, driven by hour-precision `addedOn` / `updatedOn` ISO datetimes in `sections/sectionMeta.js` and `sections/pageTemplateMeta.js`. NEW lasts 14 days from `addedOn`; UPDATED uses a 7-day rolling window. NEW trumps UPDATED — a still-new block keeps its NEW chip even if it gets follow-up improvements within the window.
 
-A dashboard-header **"What's new"** sheet lists every currently-badged section and template alongside a plain-English note describing what shipped or what changed, sorted newest-first by the actual datetime. An unread-dot indicator on the trigger button stays lit until the user opens the sheet, and re-lights whenever any badged date is bumped.
+A header **"What's new"** sheet lists every currently-badged section and template alongside a plain-English note describing what shipped or what changed, sorted newest-first by the actual datetime. An unread-dot indicator on the trigger button stays lit until the user opens the sheet, and re-lights whenever any badged date is bumped.
 
 ### Internal ticketing
 
-Built-in **Report a bug / Request a feature** flow from the User Guide and Dashboard header. Tickets live in MongoDB, admins see them at `/admin/tickets`, users see their own at `/me/tickets`. Statuses: **Open**, **Complete**, **Rejected**. Mutual soft-delete (a ticket is only hard-deleted from the DB once both the reporter AND an admin have dismissed it from their respective inboxes). Unread badge in the dashboard header re-lights whenever a status changes.
+Built-in **Report a bug / Request a feature** flow from the header of every Studio / Classic screen. Tickets live in MongoDB; admins triage them at `/admin/tickets`, users see their own at `/my-tickets`. Statuses: **Open**, **Complete**, **Rejected** — the admin can flip any ticket to any status, and the reporter sees a coloured pill on their My Tickets page when something moves.
+
+Both sidebar entries in Studio mode (`Tickets` for the caller and `Admin · Tickets` for admins) render a red count pill driven by `GET /api/tickets/mine/notifications` and `GET /api/tickets/count`. The user's pill clears the moment they visit `/my-tickets` (a `POST /api/tickets/mine/seen` resets the per-row `reporter_seen` flag); the admin's pill tracks "open" tickets and decrements when a ticket is flipped to Complete / Rejected.
+
+**Mutual soft-delete** keeps abandoned tickets out of either inbox without losing the audit trail: either side can dismiss a row, but the document only hard-deletes from Mongo when both the reporter AND an admin have dismissed it.
 
 ### Marketing landing page · admin-curated demos
 
@@ -117,6 +117,30 @@ The Product Carousel scraper handles VAT-toggling storefronts as a first-class c
 
 Long-form documentation at `/guide` with a scroll-spy table of contents, organised by user goal rather than feature taxonomy. Includes Quickstart (5 min), Dashboard tour, section-by-section reference, Brand Kit walkthrough, image hosting guidance, copy-and-paste flow, page templates, and a tips list.
 
+## Studio mode
+
+Studio is the cleaner, opinionated UI that ships as the **default for every new user**. Existing users can flip between Studio and Classic via the `Studio` / `Classic` pill in the top-right of any screen; the preference persists via `PATCH /api/auth/me/ui-mode` and survives sign-out / sign-in. A one-screen **first-login onboarding tour** walks new users through the rail, the canvas and the inspector — dismissable, never replayed (the user record carries an `onboarded` flag).
+
+### Click-to-edit bridge
+
+The biggest difference vs. Classic mode is a **bidirectional click-to-edit** bridge between the preview iframe and the inspector:
+
+- **Preview → editor.** Every section's `render()` decorates its DOM with `data-ns-group`, `data-ns-list` and `data-ns-item` markers (these are stripped on snippet export — they only exist inside the editor's iframe). Clicking any decorated element posts `{type: "ns-preview-click", group, list, itemIndex}` to the parent window, which opens the matching accordion in the inspector and scrolls the field into view. Clicking a product card in a carousel, a slide in the hero, or a Q in the FAQ jumps the inspector straight to that row's editor.
+- **Editor → preview.** Opening a list row in the inspector posts `{type: "ns-focus-item", list, index}` back into the iframe, which scrolls the matching DOM node into view. So when you expand "Slide 3" in the inspector, the hero preview slides to slide 3.
+- **`<summary>` / `<details>` interplay.** The click bridge skips `preventDefault()` whenever the click target sits inside a `<summary>`, so the FAQ accordion's native open / close still fires alongside the editor jump. (You get both behaviours from one click — the answer expands AND the question's editor row opens.)
+
+The bridge code lives in `frontend/src/sections/shared.js` (`clickBridgeJs` + `focusBridgeJs`) and is gated by `withClickBridge: true`, which is only set when the editor renders the preview. Exported snippets ship with the bridge code absent — a copy-pasted snippet on a live storefront is fully inert.
+
+### Studio chrome
+
+Both the Section editor (`/edit/section/:id`) and the Page editor (`/edit/page/:id`) in Studio mode use the same three-column shell:
+
+- **Left rail** — full-height, collapsible outline column. The PanelLeft icon flips it between a w-64 outline (with the section's anchor groups + active-section indicator) and a w-16 icon-only rail; preference persists in `localStorage`.
+- **Centre canvas** — single h-14 header bar with editable section / page name, type label, action buttons (`Apply brand kit`, `Reset to defaults`, `SaveIndicator`, `Studio / Classic` toggle) and a 200px **Copy snippet** primary button. Below it: a "Canvas" toolbar with the Desktop / Tablet / Mobile viewport switcher, then the live-preview iframe.
+- **Right inspector** — 350px-wide full-height column with the section / block's settings accordion. Drag-resizable preview height (Section editor) is kept in `localStorage`.
+
+The Studio shell itself (`StudioShell`) wraps every non-editor page — Library, Templates, Brand Kit, Image library, Tickets, Admin · Tickets, Admin · Users, Guide — with a slim header (Design Workshop wordmark, What's new, Report, Studio / Classic toggle, user menu) and a 56px-wide workspace sidebar. Sidebar items render badge counts where relevant (tickets) and become active based on the current route.
+
 ## Architecture
 
 ```
@@ -133,6 +157,7 @@ Long-form documentation at `/guide` with a scroll-spy table of contents, organis
 - **Backend** — FastAPI + Motor (async MongoDB). Direct Google OAuth via Authlib + a custom `ForwardedHostMiddleware` that rewrites the ASGI scope from `X-Forwarded-Host` / `X-Forwarded-Proto` so OAuth `redirect_uri` resolves to the public hostname even behind a Cloudflare / k8s-ingress / nginx-proxy split-host setup.
 - **Storage** — pluggable. Local filesystem volume (`/var/uploads`) by default; swap `backend/storage.py` to point at S3 / R2 / B2 without touching upload routes.
 - **Database** — MongoDB. Pinned to **mongo:4.4** so it runs on CPUs without AVX support (older Xeons / Atoms / homelab Proxmox hosts).
+- **Scraper** — Playwright Chromium is baked into the backend image at build time (`RUN python -m playwright install --with-deps chromium`) so a fresh `docker compose up --build` never crashes the Product scraper with a "browser executable doesn't exist" error.
 
 ### Self-contained snippet generation
 
@@ -144,6 +169,8 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 <section class="ns-hero ns-hero-Ab1cD2"> … </section>
 <script>(function(){ var root=document.querySelector(".ns-hero-Ab1cD2"); /* … */ })();</script>
 ```
+
+The Studio click-to-edit bridge attaches an extra `<script>` to the preview iframe (only when `withClickBridge: true` is passed to `wrapSnippet`). The bridge is omitted from any snippet that's copied or exported, so a snippet pasted into a live storefront never contains the editor's interactivity glue.
 
 ### Tech stack
 
@@ -166,7 +193,7 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 │   ├── deps.py                  # get_current_user / require_admin / ADMIN_EMAILS env-driven allowlist
 │   ├── storage.py               # local-fs object storage (pluggable)
 │   ├── routers/
-│   │   ├── auth.py              # /api/auth/google/{login,callback,logout,me}
+│   │   ├── auth.py              # /api/auth/google/{login,callback,logout,me}, ui-mode + onboarded
 │   │   ├── sections.py          # /api/sections CRUD + duplicate + reorder
 │   │   ├── pages.py             # /api/pages CRUD + duplicate + reorder
 │   │   ├── page_templates.py    # custom user templates
@@ -176,30 +203,48 @@ Every section's `render(config)` function emits a `{ html, css, js }` triple wra
 │   │   ├── landing_spotlights.py # /api/{public/,}landing-spotlights
 │   │   ├── image_library.py     # /api/image-library (per-user image library)
 │   │   ├── admin.py             # /api/admin/users
-│   │   ├── tickets.py           # /api/tickets (bug / feature inbox)
+│   │   ├── tickets.py           # /api/tickets (mutual soft-delete, reporter_seen, /count, /mine, /mine/notifications)
 │   │   ├── preview_overrides.py # /api/preview_overrides (admin curated hover thumbnails)
 │   │   └── scraper.py           # /api/scrape-product
 │   ├── tests_tickets_flow.py    # native-pytest backend tests
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── pages/               # Dashboard, Editor, PageEditor, BrandKit, Login, UserGuide,
-│   │   │                          AdminTickets, MyTickets
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx               # classic mode
+│   │   │   ├── Editor.jsx                  # classic section editor
+│   │   │   ├── PageEditor.jsx              # studio + classic page editor (shared)
+│   │   │   ├── BrandKit.jsx, ImageLibrary.jsx, UserGuide.jsx
+│   │   │   ├── AdminTickets.jsx, MyTickets.jsx, AdminUsers.jsx
+│   │   │   └── studio/                     # Studio-mode wrappers
+│   │   │       ├── Dashboard.jsx           # Library, wrapped in <StudioShell>
+│   │   │       ├── Editor.jsx              # Studio section editor (3-col w/ collapsible outline)
+│   │   │       ├── PageEditor.jsx          # passes `studio` prop to shared PageEditor
+│   │   │       ├── Templates.jsx           # /templates (Studio only)
+│   │   │       ├── Tickets.jsx             # exports StudioMyTickets + StudioAdminTickets
+│   │   │       └── BrandKit, ImageLibrary, UserGuide, AdminUsers (all chromeless shells)
 │   │   ├── pages/login/         # Marketing sub-components (Hero, FAQ, LiveDemo, Spotlights, …)
 │   │   ├── pages/brand-kit/     # LandingDemoPicker, LandingSpotlightsPicker
 │   │   ├── pages/dashboard/     # SectionsTab, PagesTab, RecentStrip
-│   │   ├── pages/page-editor/   # PageRail, BlockEditorDrawer, SaveIndicator, BlockAdder
-│   │   ├── components/          # FormFields, ImageUpload, ListEditor, SectionPreviewPopover,
-│   │   │                          TicketDialog, WhatsNewDrawer, ErrorBoundary
+│   │   ├── pages/page-editor/   # PageRail, BlockEditorDrawer (350px studio drawer), EmptyBlockEditor, SaveIndicator, BlockAdder
+│   │   ├── components/
+│   │   │   ├── FormFields, ImageUpload, ListEditor, SectionPreviewPopover, TicketDialog,
+│   │   │   ├── WhatsNewDrawer, ErrorBoundary, UserMenu, EditorBits
+│   │   │   └── studio/
+│   │   │       ├── StudioShell.jsx         # top-bar + sidebar + nav + ticket badges
+│   │   │       ├── StudioToggle.jsx        # Studio / Classic switcher pill
+│   │   │       ├── StudioOutline.jsx       # left-rail outline jump-to-group
+│   │   │       ├── StudioInspector.jsx     # right-rail accordion settings host
+│   │   │       └── OnboardingTour.jsx      # one-screen first-login walkthrough
 │   │   ├── components/ui/       # Shadcn primitives
 │   │   ├── sections/            # registry.js + 22 section modules + iconLib + shared helpers
 │   │   │                          + sectionMeta / pageTemplateMeta / pageTemplates
-│   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests
-│   │   ├── lib/                 # api client, BrandKitContext, sectionBadges, brand colours
+│   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests (488 assertions across 13 files)
+│   │   ├── lib/                 # api client, BrandKitContext, sectionBadges, brand colours, useEscapeKey
 │   │   └── auth/                # AuthContext + startLogin
 │   └── package.json
 ├── deploy/                      # Self-host artefacts
-│   ├── backend.Dockerfile
+│   ├── backend.Dockerfile       # bakes `playwright install --with-deps chromium`
 │   ├── frontend.Dockerfile
 │   ├── nginx.conf
 │   ├── .env.example
@@ -248,6 +293,8 @@ yarn start                                 # http://localhost:3000
 
 **Admin gating**: set `ADMIN_EMAILS=you@example.com` in `backend/.env` (comma-separated for multiple admins). Empty / unset means no admins — fail-closed so a forgotten env var never accidentally promotes every user. Admin-only routes: `/brand` (Brand Kit + landing demo / spotlights pickers), `/admin/users`, `/admin/tickets`.
 
+**Studio vs Classic**: new users default to Studio. To preview the Classic UI, flip the `Studio` / `Classic` pill in the top-right of any screen — the preference round-trips through `PATCH /api/auth/me/ui-mode`.
+
 ## Production deployment
 
 **One host, Docker, behind your own reverse proxy** — see [`deploy/PROXMOX-INSTALL.md`](deploy/PROXMOX-INSTALL.md) for the full SSH walkthrough (LXC create, Docker install, env config, reverse-proxy snippets for Caddy / nginx / NPM / Traefik, troubleshooting).
@@ -268,6 +315,7 @@ docker compose up -d --build
 - Mongo runs on the internal Docker network only, never reachable from the host.
 - Uploads persist in a named Docker volume.
 - TLS terminates on your existing reverse proxy. The internal nginx honours `X-Forwarded-Proto` / `X-Forwarded-Host` so OAuth callbacks resolve correctly.
+- The backend image bakes `playwright install --with-deps chromium`; no post-deploy step is required to get the Product scraper Playwright fallback working.
 
 See [`deploy/README.md`](deploy/README.md) for reverse-proxy snippets, day-2 ops, and the Mongo + uploads migration scripts.
 
@@ -297,7 +345,7 @@ cd frontend && yarn build
 cd frontend && yarn test:snippets
 ```
 
-The snippet tests live in `frontend/src/sections/__tests__/` and verify the runtime behaviours that ship inside every snippet — same-origin session pricing, gate-phrase harmonisation, VAT-suffix hide-on-gate, price-magnitude sanity checks, hero mobile overrides, video-embed lightbox behaviour, story-page template composition, and more. The suite currently locks in 298 assertions across 12 test files. Run them before opening a PR that touches anything under `frontend/src/sections/`.
+The snippet tests live in `frontend/src/sections/__tests__/` and verify the runtime behaviours that ship inside every snippet — same-origin session pricing, gate-phrase harmonisation, VAT-suffix hide-on-gate, price-magnitude sanity checks, hero mobile overrides, video-embed lightbox behaviour, story-page template composition, the Studio click-to-edit / focus-bridge round-trip, and more. The suite currently locks in **488 assertions across 13 test files**. Run them before opening a PR that touches anything under `frontend/src/sections/`.
 
 ## Contributing
 
@@ -307,7 +355,8 @@ Pull requests welcome. The codebase is small enough (one router file per resourc
 2. Register it in `frontend/src/sections/registry.js`
 3. Add a recommended preview height in `frontend/src/sections/previewHeights.js`
 4. Add a `sectionMeta` entry with an `addedOn` ISO datetime so the NEW badge fires for 14 days
-5. Add a `__tests__/<name>.test.js` jsdom snippet test that locks in the rendered output shape
+5. Decorate the rendered DOM with `data-ns-group` / `data-ns-list` / `data-ns-item` markers on every editable region so the Studio click-to-edit bridge can route clicks back to the inspector
+6. Add a `__tests__/<name>.test.js` jsdom snippet test that locks in the rendered output shape
 
 The XSS hardening helpers (`escHtml` / `escAttr` / `safeUrl` / `safeColor` / `num` from `frontend/src/sections/shared.js`) are mandatory for every `${cfg.*}` template-literal interpolation in your `render()`.
 
