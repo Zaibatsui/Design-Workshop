@@ -29,6 +29,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -115,6 +116,7 @@ const defaults = () => ({
 function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-split-banner-${uid}`;
+  const padX = padXOf(cfg, 48);
 
   const imageSide = cfg.imageSide === "left" ? "left" : "right";
   const ratio = Math.max(30, Math.min(70, num(cfg.panelRatio, 50)));
@@ -196,7 +198,7 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;background:#fff;overflow:hidden}
 .${cls} .ns-grid{display:grid;grid-template-columns:${gridCols};height:${height}px;min-height:${height}px;align-items:stretch;border-radius:${num(cfg.borderRadius, 0)}px;overflow:hidden}
-.${cls} .ns-panel{background:${panelBg};color:${safeColor(cfg.titleColor, "#ffffff")};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;height:100%}
+.${cls} .ns-panel{background:${panelBg};color:${safeColor(cfg.titleColor, "#ffffff")};display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px ${padX}px;overflow:hidden;height:100%}
 .${cls} .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 12px;object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 8px;opacity:.9}
@@ -217,8 +219,8 @@ ${baseReset(cls)}
 .${cls} .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden;height:100%}
 .${cls} .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls}:not(.is-full) .ns-grid{max-width:${contentMax}px;margin:0 auto}
-.${cls}.is-full .ns-panel.is-side-left{padding-left:max(20px,calc((100vw - ${contentMax}px) / 2));padding-right:48px}
-.${cls}.is-full .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
+.${cls}.is-full .ns-panel.is-side-left{padding-left:max(${padX}px,calc((100vw - ${contentMax}px) / 2));padding-right:${padX}px}
+.${cls}.is-full .ns-panel.is-side-right{padding-right:max(${padX}px,calc((100vw - ${contentMax}px) / 2));padding-left:${padX}px}
 .${cls}.is-full .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
 @media (max-width:767px){.${cls} .ns-grid{grid-template-columns:1fr;height:auto;min-height:auto;max-width:none}.${cls} .ns-image-wrap{order:1;min-height:220px;height:220px}.${cls} .ns-panel{order:2;padding:32px 24px!important;height:auto}.${cls} .ns-panel-inner{max-width:none;margin:0!important}.${cls} .ns-panel.is-m-center .ns-panel-inner{text-align:center}.${cls} .ns-panel.is-m-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls} .ns-panel.is-m-center .ns-logo{margin-left:auto;margin-right:auto}.${cls} .ns-panel.is-m-center .ns-pt{justify-content:center;text-align:left}}
@@ -472,9 +474,9 @@ function FormPanel({ config, onUpdate, previewMode }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={0}
-          min={0}
           max={160}
           testidPrefix="split"
+          sideDefault={48}
         />
         <SliderField
           label="Content max width"

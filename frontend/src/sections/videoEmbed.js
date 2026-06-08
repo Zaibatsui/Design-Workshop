@@ -29,6 +29,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -192,6 +193,7 @@ function render(cfg = {}) {
   const accent = safeColor(c.accentColor, "#E01839");
   const padTop = padTopOf(c, 80);
   const padBot = padBotOf(c, 80);
+  const padX = padXOf(cfg);
   const ASPECTS = { "16/9": "16/9", "4/3": "4/3", "1/1": "1/1", "21/9": "21/9" };
   const aspect = ASPECTS[c.aspect] || "16/9";
   const posterAspect = ASPECTS[c.posterAspect] || aspect;
@@ -270,7 +272,7 @@ function render(cfg = {}) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:${padTop}px 20px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-text)}
+.${cls}{padding:${padTop}px ${padX}px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-text)}
 .${cls} .ns-video-wrap{max-width:1200px;margin:0 auto;text-align:${align}}
 .${cls} .ns-video-header{margin:0 auto 32px;max-width:680px;text-align:${align}}
 .${cls} .ns-video-eyebrow{margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-accent)}
@@ -480,7 +482,6 @@ function FormPanel({ config, onUpdate }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={80}
-          min={20}
           max={160}
           testidPrefix="video"
         />

@@ -84,6 +84,16 @@ export const padTopOf = (cfg, fallback = 80) =>
 export const padBotOf = (cfg, fallback = 80) =>
   num(cfg && cfg.paddingBottom != null && cfg.paddingBottom !== "" ? cfg.paddingBottom : cfg && cfg.paddingY, fallback);
 
+/**
+ * Horizontal (side) padding. Sits next to `padTopOf` / `padBotOf` so a
+ * section's renderer can swap a hardcoded `20px` left/right inset for
+ * `${padXOf(cfg)}px` without touching anything else. Default 20px
+ * preserves byte-identical output for snippets saved before this knob
+ * existed; the editor's "Side padding" slider exposes it as 0–80px.
+ */
+export const padXOf = (cfg, fallback = 20) =>
+  num(cfg && cfg.paddingX != null && cfg.paddingX !== "" ? cfg.paddingX : fallback, fallback);
+
 
 /**
  * Base reset scoped to a section root. Prevents host site bleed

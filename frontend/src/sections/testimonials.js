@@ -14,6 +14,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -118,7 +119,7 @@ function render(cfg) {
     `--ns-speed:${num(cfg.speedSeconds, 50)}s`,
     `--ns-card-w:${num(cfg.cardWidth, 340)}px`,
     `--ns-gap:${num(cfg.cardGap, 24)}px`,
-    `--ns-pad-t:${padTopOf(cfg, 72)}px;--ns-pad-b:${padBotOf(cfg, 72)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 72)}px;--ns-pad-b:${padBotOf(cfg, 72)}px;--ns-pad-x:${padXOf(cfg)}px`,
     `--ns-heading-size:${num(cfg.headingSize, 32)}px`,
   ].join(";");
 
@@ -176,7 +177,7 @@ function render(cfg) {
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad-t) 0 var(--ns-pad-b);width:100%;background:var(--ns-bg);overflow:hidden}
-.${cls} .ns-head-wrap{max-width:1200px;margin:0 auto;padding:0 20px;text-align:${align}}
+.${cls} .ns-head-wrap{max-width:1200px;margin:0 auto;padding:0 var(--ns-pad-x);text-align:${align}}
 .${cls} .ns-head{margin-bottom:40px}
 .${cls} .ns-head-inner{max-width:720px;${headInnerAlign}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-accent);margin-bottom:14px}

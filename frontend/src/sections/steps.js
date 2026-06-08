@@ -12,6 +12,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   wrapSnippet,
 } from "./shared";
@@ -103,10 +104,11 @@ const render = (cfg) => {
   const align = cfg.textAlign === "center" ? "center" : "left";
   const padTop = padTopOf(cfg, 80);
   const padBot = padBotOf(cfg, 80);
+  const padX = padXOf(cfg);
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:${padTop}px 20px ${padBot}px;background:${bg};color:${textColor}}
+.${cls}{padding:${padTop}px ${padX}px ${padBot}px;background:${bg};color:${textColor}}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align}}
 .${cls} .ns-head{margin-bottom:40px}
 .${cls} .ns-head-inner{max-width:720px;${align === "center" ? "margin:0 auto;" : ""}}

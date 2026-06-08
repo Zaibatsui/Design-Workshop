@@ -14,6 +14,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -628,6 +629,7 @@ function renderSlide(cfg) {
   const t = cfg.theme;
   const l = cfg.layout;
   const s = cfg.settings;
+  const padX = padXOf(l || {}, 56);
   const slides = (cfg.slides || []).filter(Boolean);
   // Per-slide layout — back-compat: a slide without an explicit
   // `layout` field inherits the legacy top-level `cfg.slideLayout` if
@@ -745,7 +747,7 @@ function renderSlide(cfg) {
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius,0);color:var(--ns-title)}
 .${cls} .ns-track{display:flex;height:100%;transition:transform .6s ease;will-change:transform;touch-action:pan-y}
-.${cls} .ns-slide{flex:0 0 100%;height:100%;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;padding:48px 56px;position:relative}
+.${cls} .ns-slide{flex:0 0 100%;height:100%;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;padding:48px ${padX}px;position:relative}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay-bg);opacity:var(--ns-overlay-op,1);pointer-events:none}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:var(--ns-text-align,left)}
 .${cls} .ns-content[data-align="center"], .${cls} .ns-content{}
@@ -762,7 +764,7 @@ ${baseReset(cls)}
 .${cls} .ns-dot{width:10px;height:10px;border-radius:50%;border:1px solid #fff;background:transparent;padding:0;cursor:pointer;transition:background .15s ease}
 .${cls} .ns-dot.is-active{background:#fff}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
-.${cls}.is-full .ns-slide{padding-left:max(20px,calc((100vw - var(--ns-content-max)) / 2));padding-right:max(20px,calc((100vw - var(--ns-content-max)) / 2))}
+.${cls}.is-full .ns-slide{padding-left:max(${padX}px,calc((100vw - var(--ns-content-max)) / 2));padding-right:max(${padX}px,calc((100vw - var(--ns-content-max)) / 2))}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:24px;padding-right:24px}}
 @media (max-width:767px){.${cls}{height:var(--ns-height-m, var(--ns-height));border-radius:var(--ns-radius-m, var(--ns-radius))}.${cls} .ns-content{max-width:var(--ns-content-max-m, var(--ns-content-max))}.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
 @media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
@@ -789,6 +791,7 @@ function renderFade(cfg) {
   const t = cfg.theme;
   const l = cfg.layout;
   const s = cfg.settings;
+  const padX = padXOf(l || {}, 56);
   const slides = (cfg.slides || []).filter(Boolean);
   const slideMode = (slide) =>
     slide.layout || cfg.slideLayout || "standard";
@@ -894,7 +897,7 @@ function renderFade(cfg) {
   const css = `
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;height:var(--ns-height);overflow:hidden;border-radius:var(--ns-radius);color:var(--ns-title);isolation:isolate;touch-action:pan-y}
-.${cls} .ns-slide{position:absolute;inset:0;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;opacity:0;transition:opacity .6s ease;pointer-events:none;display:flex;align-items:center;padding:48px 56px}
+.${cls} .ns-slide{position:absolute;inset:0;background-image:var(--ns-bg);background-size:cover;background-position:center;background-repeat:no-repeat;opacity:0;transition:opacity .6s ease;pointer-events:none;display:flex;align-items:center;padding:48px ${padX}px}
 .${cls} .ns-slide.is-active{opacity:1;pointer-events:auto;z-index:1}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay-bg);opacity:var(--ns-overlay-op,1);pointer-events:none}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);width:100%;text-align:var(--ns-text-align)}
@@ -915,7 +918,7 @@ ${baseReset(cls)}
 .${cls} .ns-dot{width:8px;height:8px;padding:0;border-radius:9999px;border:none;background:rgba(255,255,255,.5);cursor:pointer;transition:background .15s ease,width .15s ease}
 .${cls} .ns-dot.is-active{background:#fff;width:22px}
 @media (max-width:640px){.${cls} .ns-slide{padding:28px 24px}.${cls} .ns-arrow{width:36px;height:36px}.${cls} .ns-title{font-size:min(${num(cfg.headingSize, 48)}px, 7vw)}}
-.${cls}.is-full .ns-slide{padding-left:max(20px,calc((100vw - var(--ns-content-max)) / 2));padding-right:max(20px,calc((100vw - var(--ns-content-max)) / 2))}
+.${cls}.is-full .ns-slide{padding-left:max(${padX}px,calc((100vw - var(--ns-content-max)) / 2));padding-right:max(${padX}px,calc((100vw - var(--ns-content-max)) / 2))}
 @media (max-width:640px){.${cls}.is-full .ns-slide{padding-left:24px;padding-right:24px}}
 @media (max-width:767px){.${cls}{height:var(--ns-height-m, var(--ns-height));border-radius:var(--ns-radius-m, var(--ns-radius))}.${cls} .ns-content{max-width:var(--ns-content-max-m, var(--ns-content-max))}.${cls} .ns-slide{background-image:var(--ns-bg-m, var(--ns-bg))}.${cls} .ns-overlay{background:var(--ns-overlay-bg-m, var(--ns-overlay-bg));opacity:var(--ns-overlay-op-m, var(--ns-overlay-op, 1))}.${cls} .ns-content{text-align:var(--ns-text-align-m, var(--ns-text-align, left))}.${cls}.has-dots .ns-content{padding-bottom:48px}.${cls}.has-dots .ns-slide.is-split .ns-panel-inner{padding-bottom:32px}.${cls}.is-mobile-center .ns-content{margin-left:auto;margin-right:auto;text-align:center}.${cls}.is-mobile-center .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner{text-align:center;margin-left:auto!important;margin-right:auto!important}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-logo{margin-left:auto;margin-right:auto}.${cls}.is-mobile-center .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin-left:auto;margin-right:auto}.${cls}.is-arrows-desktop .ns-arrow{display:none}}
 @media (min-width:768px){.${cls}.is-arrows-mobile .ns-arrow{display:none}}
@@ -1335,9 +1338,9 @@ function LayoutControlsDesktop({ layout, setLayout }) {
         config={layout}
         onUpdate={setLayout}
         defaultValue={0}
-        min={0}
         max={160}
         testidPrefix="hero"
+        sideDefault={56}
       />
     </>
   );

@@ -301,9 +301,9 @@ function FormPanel({ config, onUpdate, previewMode }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={0}
-          min={0}
           max={160}
           testidPrefix="welcome"
+          showSide={false}
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>

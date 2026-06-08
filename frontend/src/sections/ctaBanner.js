@@ -14,6 +14,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -252,11 +253,12 @@ const render = (cfg) => {
   const align = cfg.textAlign === "left" ? "left" : "center";
   const padTop = padTopOf(cfg, 96);
   const padBot = padBotOf(cfg, 96);
+  const padX = padXOf(cfg);
   const logoMaxW = num(cfg.logoMaxWidth, 150);
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:${padTop}px 20px ${padBot}px;background:${bg};color:${textColor};border-radius:${num(cfg.borderRadius, 0)}px;overflow:hidden}
+.${cls}{padding:${padTop}px ${padX}px ${padBot}px;background:${bg};color:${textColor};border-radius:${num(cfg.borderRadius, 0)}px;overflow:hidden}
 .${cls} .ns-inner{max-width:760px;margin:0 auto;text-align:${align}}
 .${cls} .ns-logo{display:block;max-width:${logoMaxW}px;max-height:64px;width:auto;height:auto;margin:0 0 20px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
@@ -564,7 +566,6 @@ function FormPanel({ config, onUpdate, previewMode }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={96}
-          min={40}
           max={160}
           testidPrefix="cta"
         />

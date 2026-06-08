@@ -14,6 +14,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -95,7 +96,7 @@ function render(cfg) {
     `--ns-size:${num(cfg.fontSize, 28)}px`,
     `--ns-weight:${num(cfg.fontWeight, 600)}`,
     `--ns-align:${cfg.textAlign === "right" || cfg.textAlign === "center" ? cfg.textAlign : "left"}`,
-    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px;--ns-pad-x:${padXOf(cfg)}px`,
     `--ns-max:${num(cfg.maxWidth, 1200)}px`,
   ].join(";");
 
@@ -127,7 +128,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad-t) 20px var(--ns-pad-b);width:100%;background:var(--ns-bg)}
+.${cls}{padding:var(--ns-pad-t) var(--ns-pad-x) var(--ns-pad-b);width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{max-width:var(--ns-max);margin:0 auto;text-align:var(--ns-align)}
 .${cls} .ns-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color)}
 .${cls} .ns-h{margin:0 0 14px;font-size:var(--ns-size);font-weight:var(--ns-weight);line-height:1.3;color:var(--ns-h-color)}
@@ -236,7 +237,6 @@ function FormPanel({ config, onUpdate, previewMode }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={60}
-          min={10}
           max={140}
           testidPrefix="content"
         />

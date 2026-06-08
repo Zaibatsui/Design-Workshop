@@ -12,6 +12,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -56,6 +57,7 @@ const defaults = () => ({
 function render(cfg) {
   const uid = cfg.uid || makeUid();
   const cls = `ns-break-${uid}`;
+  const padX = padXOf(cfg, 20);
   const bgMode =
     cfg.backgroundType === "solid" || cfg.backgroundType === "gradient"
       ? cfg.backgroundType
@@ -86,7 +88,7 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{position:relative;width:100%;min-height:var(--ns-h);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--ns-text)}
 .${cls} .ns-overlay{position:absolute;inset:0;background:var(--ns-overlay);opacity:var(--ns-overlay-op);pointer-events:none}
-.${cls} .ns-inner{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:40px 20px;text-align:center}
+.${cls} .ns-inner{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:40px ${padX}px;text-align:center}
 .${cls} .ns-eyebrow{margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow);opacity:0.9}
 .${cls} .ns-h{margin:0;color:var(--ns-text);font-size:var(--ns-size);line-height:1.3;font-weight:600}
 @media (max-width:640px){.${cls} .ns-h{font-size:calc(var(--ns-size) * .75)}}

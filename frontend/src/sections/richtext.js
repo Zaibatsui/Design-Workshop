@@ -5,7 +5,8 @@
  * Kept intentionally separate from registry.js SECTIONS: rich text is only a
  * block type inside Pages (not a standalone library section).
  */
-import { FONT_IMPORT, baseReset, escHtml, fullBleedClass, makeUid, padTopOf, padBotOf, wrapSnippet } from "./shared";
+import { FONT_IMPORT, baseReset, escHtml, fullBleedClass, makeUid, padTopOf, padBotOf,
+  padXOf, wrapSnippet } from "./shared";
 
 const ID = "richtext";
 
@@ -46,6 +47,7 @@ function render(cfg = {}) {
   const padCfg = { ...cfg, paddingY: cfg.paddingY ?? cfg.padY };
   const padTop = padTopOf(padCfg, 48);
   const padBot = padBotOf(padCfg, 48);
+  const padX = padXOf(cfg);
 
   // !important is appended on the relevant declarations only when the user
   // chose to ignore inline styles. With the default (respect) we additionally
@@ -66,7 +68,7 @@ function render(cfg = {}) {
 
   const css = `
 ${baseReset(cls, { lowSpecificity: respectInlineStyles })}
-.${cls}{background:${bg};padding:${padTop}px 20px ${padBot}px}
+.${cls}{background:${bg};padding:${padTop}px ${padX}px ${padBot}px}
 ${w(`.${cls}`)}{color:${fg}${bang}}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}

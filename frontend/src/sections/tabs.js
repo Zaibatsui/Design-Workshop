@@ -12,6 +12,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -92,7 +93,7 @@ function render(cfg) {
     `--ns-bg:${safeColor(cfg.bgColor, "#ffffff")}`,
     `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
     `--ns-body:${safeColor(cfg.bodyColor, "#1f2937")}`,
-    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px;--ns-pad-x:${padXOf(cfg)}px`,
     `--ns-heading-size:${num(cfg.headingSize, 30)}px`,
   ].join(";");
 
@@ -188,7 +189,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad-t) 20px var(--ns-pad-b);width:100%;background:var(--ns-bg)}
+.${cls}{padding:var(--ns-pad-t) var(--ns-pad-x) var(--ns-pad-b);width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto}
 .${cls} .ns-tabs-row{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap;justify-content:${tabsAlign}}
 .${cls} .ns-tab{border:1px solid #e4e4e7;background:#fff;color:var(--ns-accent);padding:12px 18px;border-radius:6px;font-weight:600;font-size:14px;transition:background .15s ease,color .15s ease}
@@ -294,7 +295,6 @@ function FormPanel({ config, onUpdate }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={60}
-          min={20}
           max={120}
           testidPrefix="tabs"
         />

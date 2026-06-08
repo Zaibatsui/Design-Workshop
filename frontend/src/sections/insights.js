@@ -15,6 +15,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -108,7 +109,7 @@ function render(cfg) {
     `--ns-accent:${safeColor(cfg.accentColor, "#E01839")}`,
     `--ns-heading-size:${num(cfg.headingSize, 30)}px`,
     `--ns-card-h-color:${safeColor(cfg.cardHeadingColor, "#1f1f1f")}`,
-    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px`,
+    `--ns-pad-t:${padTopOf(cfg, 60)}px;--ns-pad-b:${padBotOf(cfg, 60)}px;--ns-pad-x:${padXOf(cfg)}px`,
     `--ns-cols:${cols}`,
     `--ns-img-w:${imageWidth}px`,
   ].join(";");
@@ -176,7 +177,7 @@ function render(cfg) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:var(--ns-pad-t) 20px var(--ns-pad-b);width:100%;background:#fff}
+.${cls}{padding:var(--ns-pad-t) var(--ns-pad-x) var(--ns-pad-b);width:100%;background:#fff}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto;text-align:${align}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 10px}
 .${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);margin:0 0 28px}
@@ -309,7 +310,6 @@ function FormPanel({ config, onUpdate }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={60}
-          min={20}
           max={120}
           testidPrefix="insights"
         />

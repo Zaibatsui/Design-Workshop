@@ -33,6 +33,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -132,6 +133,7 @@ function render(cfg = {}) {
   const bg = safeColor(c.bgColor, "#ffffff");
   const padTop = padTopOf(c, 80);
   const padBot = padBotOf(c, 80);
+  const padX = padXOf(cfg);
 
   const styleVars = [
     `--ns-bg:${bg}`,
@@ -211,7 +213,7 @@ function render(cfg = {}) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:${padTop}px 20px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-title)}
+.${cls}{padding:${padTop}px ${padX}px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-title)}
 .${cls} .ns-wrap{max-width:1100px;margin:0 auto;text-align:${align}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow);margin:0 0 10px}
 .${cls} .ns-title{font-size:var(--ns-heading-size,36px);font-weight:700;line-height:1.15;letter-spacing:-0.02em;color:var(--ns-title);margin:0 0 12px;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:${align}}
@@ -495,7 +497,6 @@ function FormPanel({ config, onUpdate }) {
           config={config}
           onUpdate={onUpdate}
           defaultValue={80}
-          min={20}
           max={160}
           testidPrefix="compare"
         />

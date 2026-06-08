@@ -18,6 +18,7 @@ import {
   num,
   padTopOf,
   padBotOf,
+  padXOf,
   safeColor,
   wrapSnippet,
 } from "./shared";
@@ -75,6 +76,7 @@ function render(cfg = {}) {
   const accent = safeColor(c.accentColor, "#E01839");
   const padTop = padTopOf(c, 30);
   const padBot = padBotOf(c, 30);
+  const padX = padXOf(cfg);
 
   const styleVars = [
     `--ns-bg:${safeColor(c.bgColor, "#ffffff")}`,
@@ -110,7 +112,7 @@ function render(cfg = {}) {
 
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:${padTop}px 20px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-text)}
+.${cls}{padding:${padTop}px ${padX}px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-text)}
 .${cls} .ns-wrap{max-width:1200px;margin:0 auto;text-align:${align}}
 .${cls} .ns-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--ns-cols), minmax(0, 1fr));gap:24px;align-items:start}
 .${cls} .ns-item{display:flex;flex-direction:${align === "center" ? "column" : "row"};gap:14px;align-items:${align === "center" ? "center" : "flex-start"};text-align:${align}}
