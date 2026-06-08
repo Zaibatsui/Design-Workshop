@@ -214,7 +214,9 @@ ${baseReset(cls)}
 .${cls} .ns-card .ns-body{font-size:14px;line-height:1.6;color:${isSolid ? "rgba(255,255,255,0.7)" : bodyColor}}
 .${cls} .ns-card .ns-body p{margin:0 0 10px 0}
 .${cls} .ns-card .ns-body p:last-child{margin-bottom:0}
-.${cls} .ns-card .ns-body ul,.${cls} .ns-card .ns-body ol{margin:0 0 10px 1.25em;padding:0}
+.${cls} .ns-card .ns-body ul,.${cls} .ns-card .ns-body ol{margin:0 0 10px;padding-left:0;list-style-position:inside}
+.${cls} .ns-card .ns-body ul{list-style:disc inside!important}
+.${cls} .ns-card .ns-body ol{list-style:decimal inside!important}
 .${cls} .ns-card .ns-body li{margin-bottom:4px}
 .${cls} .ns-card .ns-body a{color:${accent};text-decoration:underline}
 .${cls} .ns-card.is-image-top,.${cls} .ns-card.is-image-left{padding:0;overflow:hidden}
@@ -232,7 +234,7 @@ ${baseReset(cls)}
   return wrapSnippet({ html, css, js: "" });
 };
 
-function FormPanel({ config, onUpdate }) {
+function FormPanel({ config, onUpdate, previewMode }) {
   const features = config.features || [];
   const updateFeature = (id, patch) =>
     onUpdate({
@@ -314,18 +316,20 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="fg-text-align"
         />
-        <SelectField
-          label="Header alignment (mobile)"
-          value={config.textAlignMobile || ""}
-          onChange={(v) => onUpdate({ textAlignMobile: v })}
-          options={[
-            { value: "", label: "Inherit from desktop" },
-            { value: "left", label: "Left" },
-            { value: "center", label: "Center" },
-            { value: "right", label: "Right" },
-          ]}
-          testid="fg-text-align-mobile"
-        />
+        {previewMode === "mobile" && (
+          <SelectField
+            label="Header alignment (mobile)"
+            value={config.textAlignMobile || ""}
+            onChange={(v) => onUpdate({ textAlignMobile: v })}
+            options={[
+              { value: "", label: "Inherit from desktop" },
+              { value: "left", label: "Left" },
+              { value: "center", label: "Center" },
+              { value: "right", label: "Right" },
+            ]}
+            testid="fg-text-align-mobile"
+          />
+        )}
         <SelectField
           label="Card text alignment"
           value={config.cardTextAlign || ""}
@@ -338,18 +342,20 @@ function FormPanel({ config, onUpdate }) {
           ]}
           testid="fg-card-align"
         />
-        <SelectField
-          label="Card text alignment (mobile)"
-          value={config.cardTextAlignMobile || ""}
-          onChange={(v) => onUpdate({ cardTextAlignMobile: v })}
-          options={[
-            { value: "", label: "Inherit from desktop" },
-            { value: "left", label: "Left" },
-            { value: "center", label: "Center" },
-            { value: "right", label: "Right" },
-          ]}
-          testid="fg-card-align-mobile"
-        />
+        {previewMode === "mobile" && (
+          <SelectField
+            label="Card text alignment (mobile)"
+            value={config.cardTextAlignMobile || ""}
+            onChange={(v) => onUpdate({ cardTextAlignMobile: v })}
+            options={[
+              { value: "", label: "Inherit from desktop" },
+              { value: "left", label: "Left" },
+              { value: "center", label: "Center" },
+              { value: "right", label: "Right" },
+            ]}
+            testid="fg-card-align-mobile"
+          />
+        )}
         <SliderField
           label="Heading size"
           value={Number(config.headingSize) || 32}
