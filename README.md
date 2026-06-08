@@ -356,9 +356,21 @@ Pull requests welcome. The codebase is small enough (one router file per resourc
 3. Add a recommended preview height in `frontend/src/sections/previewHeights.js`
 4. Add a `sectionMeta` entry with an `addedOn` ISO datetime so the NEW badge fires for 14 days
 5. Decorate the rendered DOM with `data-ns-group` / `data-ns-list` / `data-ns-item` markers on every editable region so the Studio click-to-edit bridge can route clicks back to the inspector
-6. Add a `__tests__/<name>.test.js` jsdom snippet test that locks in the rendered output shape
+6. If the section ships a **rich-text body** (anything that mounts `<RichTextEditor>`), append `richBodyResetCss(scope, { paraSpacing, linkColor })` from `sections/shared.js` to your CSS template. The helper restores paragraph spacing, list markers (UA defaults are nuked by `baseReset`'s `list-style:none!important` host-site protection rule) and — critically — collapses Tiptap's per-item `<p>` wrapper to `display:inline` so bullets sit next to their text rather than on a separate line above it. Skipping this is the single most common bug introduced by new rich-text sections.
+7. Add a `__tests__/<name>.test.js` jsdom snippet test that locks in the rendered output shape
 
-The XSS hardening helpers (`escHtml` / `escAttr` / `safeUrl` / `safeColor` / `num` from `frontend/src/sections/shared.js`) are mandatory for every `${cfg.*}` template-literal interpolation in your `render()`.
+Example for step 6:
+
+```js
+// inside your section's render() — after the rest of your CSS
+const css = `
+${baseReset(cls)}
+.${cls} .ns-body { font-size:14px; line-height:1.6; color:${bodyColor} }
+${richBodyResetCss(`.${cls} .ns-body`, { linkColor: accent })}
+`.trim();
+```
+
+The XSS hardening helpers (`escHtml` / `escAttr` / `safeUrl` / `safeColor` / `num` from `frontend/src/sections/shared.js`) are mandatory for every `${cfg.*}` template-literal interpolation in your `render()`. Rich-text containers must additionally use `richBodyResetCss()` from the same file (step 6 above).
 
 ## Status
 
