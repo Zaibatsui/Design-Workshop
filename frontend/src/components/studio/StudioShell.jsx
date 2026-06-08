@@ -28,7 +28,7 @@ import {
   Library,
   FileStack,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { BRAND } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import OnboardingTour from "@/components/studio/OnboardingTour";
 import TicketDialog from "@/components/TicketDialog";
 import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
 import UserMenu from "@/components/UserMenu";
+import { api } from "@/lib/api";
 
 const NAV_ITEMS = [
   { id: "sections", label: "Library", icon: LayoutGrid, href: "/", testid: "studio-nav-library" },
@@ -58,9 +59,57 @@ export default function StudioShell({ active, children, headerActions = null }) 
   const navigate = useNavigate();
   const [ticketOpen, setTicketOpen] = useState(false);
 
+  // Ticket badge counts:
+  //   - myTicketCount: complete/rejected tickets the caller hasn't
+  //     acknowledged → red dot next to "Tickets" in the workspace nav.
+  //   - openTicketCount: total open tickets across the platform →
+  //     red dot next to "Admin · Tickets" (admins only).
+  // Both refresh on mount, when the ticket dialog closes (newly filed
+  // tickets bump the admin count), and whenever the route changes
+  // (visiting /my-tickets POSTs /mine/seen which clears the user
+  // badge — we re-fetch so the UI mirrors the server state).
+  const [myTicketCount, setMyTicketCount] = useState(0);
+  const [openTicketCount, setOpenTicketCount] = useState(0);
+  useEffect(() => {
+    if (!user?.email) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.myTicketNotifications();
+        if (!cancelled) setMyTicketCount(data?.count ?? 0);
+      } catch {
+        /* best-effort badge */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.email, location.pathname, ticketOpen]);
+  useEffect(() => {
+    if (!user?.is_admin) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.ticketCount();
+        if (!cancelled) setOpenTicketCount(data?.open ?? 0);
+      } catch {
+        /* best-effort badge */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.is_admin, location.pathname, ticketOpen]);
+
   const isActive = (item) => {
     if (active) return active === item.id;
     return location.pathname === item.href;
+  };
+
+  const badgeFor = (id) => {
+    if (id === "tickets") return myTicketCount;
+    if (id === "admin-tickets") return openTicketCount;
+    return 0;
   };
 
   return (
@@ -118,6 +167,7 @@ export default function StudioShell({ active, children, headerActions = null }) 
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isOn = isActive(item);
+              const badge = badgeFor(item.id);
               return (
                 <button
                   key={item.id}
@@ -131,7 +181,15 @@ export default function StudioShell({ active, children, headerActions = null }) 
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={isOn ? 2 : 1.75} />
-                  <span>{item.label}</span>
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {badge > 0 && (
+                    <span
+                      data-testid={`${item.testid}-badge`}
+                      className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold tracking-tight bg-[#E01839] text-white rounded-full"
+                    >
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -143,6 +201,7 @@ export default function StudioShell({ active, children, headerActions = null }) 
                 {ADMIN_NAV_ITEMS.map((item) => {
                   const Icon = item.icon;
                   const isOn = isActive(item);
+                  const badge = badgeFor(item.id);
                   return (
                     <button
                       key={item.id}
@@ -156,7 +215,15 @@ export default function StudioShell({ active, children, headerActions = null }) 
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={isOn ? 2 : 1.75} />
-                      <span>{item.label}</span>
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {badge > 0 && (
+                        <span
+                          data-testid={`${item.testid}-badge`}
+                          className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold tracking-tight bg-[#E01839] text-white rounded-full"
+                        >
+                          {badge > 99 ? "99+" : badge}
+                        </span>
+                      )}
                     </button>
                   );
                 })}

@@ -327,9 +327,12 @@ export function previewDoc(snippet, opts) {
   // makes "click a product card in the carousel → carousel snaps to
   // that card" work, so the user can see what they're editing.
   // preventDefault stops <a>/<button> navigation inside the preview
-  // (users want to edit, not navigate). Snippets copied out of the
-  // editor never receive this script.
-  const clickBridgeJs = `<script>(function(){function up(el,attr){while(el&&el.nodeType===1){if(el.hasAttribute&&el.hasAttribute(attr))return el;el=el.parentNode;}return null;}document.addEventListener("click",function(e){var blockEl=up(e.target,"data-ns-block-id");var groupEl=up(e.target,"data-ns-group");var itemEl=up(e.target,"data-ns-item");var listEl=up(e.target,"data-ns-list");if(!blockEl&&!groupEl&&!itemEl&&!listEl)return;e.preventDefault();e.stopPropagation();var blockId=blockEl?blockEl.getAttribute("data-ns-block-id"):null;var group=groupEl?groupEl.getAttribute("data-ns-group"):null;var list=listEl?listEl.getAttribute("data-ns-list"):null;var item=itemEl?itemEl.getAttribute("data-ns-item"):null;if(itemEl&&typeof itemEl.scrollIntoView==="function"){try{itemEl.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});}catch(err){itemEl.scrollIntoView();}}try{parent.postMessage({type:"ns-preview-click",blockId:blockId,group:group,list:list,itemIndex:item===null?null:parseInt(item,10)},"*");}catch(err){}},true);})();</script>`;
+  // (users want to edit, not navigate). EXCEPTION: when the click
+  // target is inside a <summary> we let the browser fire its native
+  // <details> toggle so FAQ-style accordions still expand/collapse on
+  // click while ALSO opening the matching editor row. Snippets copied
+  // out of the editor never receive this script.
+  const clickBridgeJs = `<script>(function(){function up(el,attr){while(el&&el.nodeType===1){if(el.hasAttribute&&el.hasAttribute(attr))return el;el=el.parentNode;}return null;}function inSummary(el){while(el&&el.nodeType===1){if(el.tagName==="SUMMARY")return true;el=el.parentNode;}return false;}document.addEventListener("click",function(e){var blockEl=up(e.target,"data-ns-block-id");var groupEl=up(e.target,"data-ns-group");var itemEl=up(e.target,"data-ns-item");var listEl=up(e.target,"data-ns-list");if(!blockEl&&!groupEl&&!itemEl&&!listEl)return;if(!inSummary(e.target)){e.preventDefault();e.stopPropagation();}var blockId=blockEl?blockEl.getAttribute("data-ns-block-id"):null;var group=groupEl?groupEl.getAttribute("data-ns-group"):null;var list=listEl?listEl.getAttribute("data-ns-list"):null;var item=itemEl?itemEl.getAttribute("data-ns-item"):null;if(itemEl&&typeof itemEl.scrollIntoView==="function"){try{itemEl.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});}catch(err){itemEl.scrollIntoView();}}try{parent.postMessage({type:"ns-preview-click",blockId:blockId,group:group,list:list,itemIndex:item===null?null:parseInt(item,10)},"*");}catch(err){}},true);})();</script>`;
   // Editor → preview focus bridge. Inverse of the click bridge: when
   // the user opens a list row in the inspector, the editor sends us a
   // `{type:"ns-focus-item", list, index}` postMessage and we scroll
