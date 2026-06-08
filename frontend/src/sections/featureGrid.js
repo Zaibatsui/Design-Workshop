@@ -218,6 +218,7 @@ ${baseReset(cls)}
 .${cls} .ns-card .ns-body ul{list-style:disc inside!important}
 .${cls} .ns-card .ns-body ol{list-style:decimal inside!important}
 .${cls} .ns-card .ns-body li{margin-bottom:4px}
+.${cls} .ns-card .ns-body li p{display:inline;margin:0}
 .${cls} .ns-card .ns-body a{color:${accent};text-decoration:underline}
 .${cls} .ns-card.is-image-top,.${cls} .ns-card.is-image-left{padding:0;overflow:hidden}
 .${cls} .ns-card.is-image-top{display:flex;flex-direction:column}
