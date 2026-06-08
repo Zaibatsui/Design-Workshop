@@ -504,10 +504,11 @@ export default function StudioEditor() {
             <SaveIndicator status={saveStatus} savedAt={savedAt} variant="studio" />
             <div className="h-5 w-px bg-zinc-200 mx-1" />
             <StudioToggle />
+            <div className="h-5 w-px bg-zinc-200 mx-1" />
             <Button
               data-testid="studio-copy-snippet-button"
               onClick={copySnippet}
-              className="h-8 bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
+              className="h-8 w-[200px] justify-center bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
             >
               <Copy className="w-3.5 h-3.5" />
               Copy snippet
@@ -557,7 +558,7 @@ export default function StudioEditor() {
       </main>
 
       {/* ── RIGHT — inspector (full height) ──────────────────────── */}
-      <aside className="w-80 flex-shrink-0 h-screen flex flex-col bg-white border-l border-zinc-200">
+      <aside className="w-[350px] flex-shrink-0 h-screen flex flex-col bg-white border-l border-zinc-200">
         <StudioInspector
           def={def}
           config={section.config}

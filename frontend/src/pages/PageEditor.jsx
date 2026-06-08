@@ -473,7 +473,6 @@ export default function PageEditor({ studio = false }) {
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <SaveIndicator status={saveStatus} savedAt={savedAt} />
-              <div className="h-5 w-px bg-zinc-200 mx-1" />
               <Button
                 variant="ghost"
                 size="sm"
@@ -487,11 +486,12 @@ export default function PageEditor({ studio = false }) {
               </Button>
               <div className="h-5 w-px bg-zinc-200 mx-1" />
               <StudioToggle />
+              <div className="h-5 w-px bg-zinc-200 mx-1" />
               <Button
                 data-testid="copy-page-snippet-button"
                 onClick={copySnippet}
                 disabled={(page.blocks || []).length === 0}
-                className="h-8 bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
+                className="h-8 w-[200px] justify-center bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
               >
                 <Copy className="w-3.5 h-3.5" />
                 Copy snippet

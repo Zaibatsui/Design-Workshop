@@ -10,10 +10,10 @@ export default function EmptyBlockEditor({ studio = false, onAdd }) {
   return (
     <aside
       data-testid="empty-block-editor"
-      className={`w-96 flex-shrink-0 h-screen flex flex-col items-center justify-center p-8 text-center ${
+      className={`flex-shrink-0 h-screen flex flex-col items-center justify-center p-8 text-center ${
         studio
-          ? "bg-white border-l border-zinc-200"
-          : "bg-white border-r border-slate-200"
+          ? "w-[350px] bg-white border-l border-zinc-200"
+          : "w-96 bg-white border-r border-slate-200"
       }`}
     >
       <div

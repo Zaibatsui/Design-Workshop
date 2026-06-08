@@ -37,8 +37,8 @@ export default function BlockEditorDrawer({
   const studioSectionMode = studio && !isRichText && !!def;
   const asideCls = studio
     ? studioSectionMode
-      ? "w-96 flex-shrink-0 bg-white h-screen overflow-hidden flex flex-col"
-      : "w-96 flex-shrink-0 border-l border-zinc-200 bg-white h-screen overflow-hidden flex flex-col"
+      ? "w-[350px] flex-shrink-0 bg-white h-screen overflow-hidden flex flex-col"
+      : "w-[350px] flex-shrink-0 border-l border-zinc-200 bg-white h-screen overflow-hidden flex flex-col"
     : "w-96 flex-shrink-0 border-l border-slate-200 bg-white h-screen overflow-y-auto";
   const headerCls = studio
     ? "px-5 py-4 border-b border-zinc-200 bg-white flex items-start justify-between flex-shrink-0"
