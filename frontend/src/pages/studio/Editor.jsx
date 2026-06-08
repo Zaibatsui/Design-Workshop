@@ -40,6 +40,8 @@ import {
   Tablet,
   Smartphone,
   Sparkles,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
@@ -76,6 +78,29 @@ export default function StudioEditor() {
   const [saveStatus, setSaveStatus] = useState("idle");
   const [savedAt, setSavedAt] = useState(null);
   const [previewWidth, setPreviewWidth] = useState("desktop");
+
+  // Outline column starts collapsed (matches the Page Editor's rail
+  // pattern — users opt-in to expand by clicking the panel-toggle).
+  // Persisted so it survives reloads.
+  const [outlineExpanded, setOutlineExpanded] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return window.localStorage.getItem("ns-studio-outline-expanded") === "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        "ns-studio-outline-expanded",
+        outlineExpanded ? "1" : "0"
+      );
+    } catch {
+      /* ignore quota / disabled storage */
+    }
+  }, [outlineExpanded]);
 
   const { brandKit } = useBrandKit();
   const skipNextLoadRef = useRef(false);
@@ -316,180 +341,230 @@ export default function StudioEditor() {
 
   return (
     <div
-      className="flex flex-col h-screen w-screen overflow-hidden bg-zinc-50 text-zinc-900"
+      className="flex h-screen w-screen overflow-hidden bg-zinc-50 text-zinc-900"
       style={{ fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}
       data-testid="studio-editor"
     >
-      {/* ── Top header (h-14, dense, Linear-flavour) ─────────────── */}
-      <header className="flex items-center justify-between h-14 px-4 bg-white border-b border-zinc-200 flex-shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
+      {/* ── LEFT RAIL — collapsible outline (full height) ─────────── */}
+      <aside
+        data-testid="studio-outline"
+        className={`flex-shrink-0 h-screen flex flex-col bg-white border-r border-zinc-200 overflow-hidden transition-[width] duration-200 ease-out ${
+          outlineExpanded ? "w-64" : "w-16"
+        }`}
+      >
+        {/* Top: back + collapse toggle */}
+        <div
+          className={`flex items-center py-3 ${
+            outlineExpanded
+              ? "px-3 justify-between"
+              : "px-0 justify-center flex-col gap-1"
+          }`}
+        >
           <button
+            type="button"
             onClick={() => navigate("/")}
             data-testid="studio-back-to-dashboard"
-            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[12px] font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+            className="w-9 h-9 rounded-md flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
             title="Back to dashboard"
+            aria-label="Back to dashboard"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </button>
-          <div className="h-5 w-px bg-zinc-200" />
-          <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500 flex-shrink-0">
-            {def.name}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={resetToBrandKit}
-            data-testid="studio-apply-brand-kit"
-            className="inline-flex items-center justify-center h-8 w-8 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-            title="Apply brand kit colours and fonts"
-          >
-            <Palette className="w-4 h-4" strokeWidth={1.75} />
+            <ArrowLeft className="w-4 h-4" />
           </button>
           <button
             type="button"
-            onClick={resetSection}
-            data-testid="studio-reset-section"
-            className="inline-flex items-center justify-center h-8 w-8 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-            title="Reset to defaults"
+            data-testid="studio-outline-toggle"
+            onClick={() => setOutlineExpanded((v) => !v)}
+            className="w-9 h-9 rounded-md flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+            title={outlineExpanded ? "Collapse outline" : "Expand outline"}
+            aria-label={outlineExpanded ? "Collapse outline" : "Expand outline"}
           >
-            <RotateCcw className="w-4 h-4" strokeWidth={1.75} />
+            {outlineExpanded ? (
+              <PanelLeftClose className="w-4 h-4" />
+            ) : (
+              <PanelLeftOpen className="w-4 h-4" />
+            )}
           </button>
-          <SaveIndicator status={saveStatus} savedAt={savedAt} variant="studio" />
-          <div className="h-5 w-px bg-zinc-200 mx-1" />
-          <StudioToggle />
-          <div className="h-5 w-px bg-zinc-200 mx-1" />
-          <Button
-            data-testid="studio-copy-snippet-button"
-            onClick={copySnippet}
-            className="h-8 bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            Copy snippet
-          </Button>
         </div>
-      </header>
 
-      {/* ── Workspace: 3-pane layout ───────────────────────────────── */}
-      <div className="flex-1 flex min-h-0">
-        {/* LEFT — outline / section context */}
-        <aside
-          data-testid="studio-outline"
-          className="w-64 flex-shrink-0 bg-white border-r border-zinc-200 flex flex-col"
-        >
-          <div className="flex items-center px-4 h-12 border-b border-zinc-200 flex-shrink-0">
+        {/* Outline header label (expanded only) */}
+        {outlineExpanded && (
+          <div className="px-4 pb-2 flex-shrink-0">
             <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500">
               Outline
             </span>
           </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        )}
+
+        {/* Active section indicator + jump-to-group list */}
+        <div
+          className={`flex-1 min-h-0 overflow-y-auto ${
+            outlineExpanded ? "px-3 pb-2 space-y-2" : "px-0 pb-2 flex flex-col items-center gap-1"
+          }`}
+        >
+          {outlineExpanded ? (
+            <>
+              <button
+                type="button"
+                data-testid="studio-outline-active"
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md bg-blue-50 text-blue-900 border border-blue-200"
+              >
+                {def.icon ? (
+                  <def.icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} />
+                ) : null}
+                <span className="text-[13px] font-medium truncate flex-1 text-left">
+                  {def.name}
+                </span>
+                <Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" strokeWidth={2} />
+              </button>
+              <div className="pt-2">
+                <StudioOutline
+                  panelRef={inspectorPanelRef}
+                  signal={`${def.id}:${previewWidth}:${JSON.stringify(section.config).length}`}
+                />
+              </div>
+            </>
+          ) : (
             <button
               type="button"
               data-testid="studio-outline-active"
-              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md bg-blue-50 text-blue-900 border border-blue-200"
+              title={def.name}
+              aria-label={def.name}
+              className="w-9 h-9 rounded-md flex items-center justify-center bg-blue-50 text-blue-900 border border-blue-200"
             >
               {def.icon ? (
-                <def.icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} />
-              ) : null}
-              <span className="text-[13px] font-medium truncate flex-1 text-left">
-                {def.name}
-              </span>
-              <Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" strokeWidth={2} />
+                <def.icon className="w-4 h-4" strokeWidth={1.75} />
+              ) : (
+                <Sparkles className="w-4 h-4" strokeWidth={2} />
+              )}
             </button>
-            <div className="pt-2">
-              <StudioOutline
-                panelRef={inspectorPanelRef}
-                signal={`${def.id}:${previewWidth}:${JSON.stringify(section.config).length}`}
-              />
-            </div>
-          </div>
-          <div className="border-t border-zinc-200 px-3 py-3">
+          )}
+        </div>
+
+        {/* Footer: admin override (expanded only) */}
+        {outlineExpanded && (
+          <div className="border-t border-zinc-200 px-3 py-3 flex-shrink-0">
             <AdminPreviewOverrideToggle section={section} />
           </div>
-        </aside>
+        )}
+      </aside>
 
-        {/* CENTER — canvas */}
-        <main className="flex-1 flex flex-col min-w-0 bg-zinc-100">
-          <div className="flex items-center justify-between h-12 px-4 bg-white border-b border-zinc-200 flex-shrink-0">
-            <div className="flex items-center gap-3 min-w-0">
-              <div
-                className="group relative flex items-center"
-                data-testid="studio-section-name-field"
-              >
-                <Input
-                  value={section.name}
-                  onChange={(e) => renameSection(e.target.value)}
-                  data-testid="studio-section-name-input"
-                  placeholder="Untitled section"
-                  className="font-semibold text-[14px] tracking-tight border border-zinc-200 hover:border-[#E01839] focus-visible:border-[#E01839] focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-8 py-0 shadow-none rounded-md min-w-[180px] max-w-[360px] bg-white hover:bg-red-50/40 transition-colors pr-8"
-                  style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
-                />
-                <Pencil
-                  className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#E01839] group-focus-within:text-[#E01839] absolute right-2.5 pointer-events-none transition-colors"
-                  strokeWidth={2}
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center bg-zinc-100 rounded-md p-0.5">
-                {["desktop", "tablet", "mobile"].map((w) => {
-                  const Icon = VIEWPORT_ICONS[w];
-                  return (
-                    <button
-                      key={w}
-                      data-testid={`studio-viewport-${w}`}
-                      onClick={() => setPreviewWidth(w)}
-                      title={w.charAt(0).toUpperCase() + w.slice(1)}
-                      className={`flex items-center justify-center h-7 w-9 rounded transition-colors ${
-                        previewWidth === w
-                          ? "bg-white text-zinc-900 shadow-sm"
-                          : "text-zinc-500 hover:text-zinc-700"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" strokeWidth={2} />
-                    </button>
-                  );
-                })}
-              </div>
-              {section.type === "hero" && (
-                <HeroPreviewToggle
-                  heroIndex={heroIndex}
-                  setHeroIndex={updateHeroIndex}
-                  slideCount={section.config.slides?.length || 0}
-                />
-              )}
-            </div>
-            <div className="text-[11px] text-zinc-500">
-              {previewWidth === "desktop"
-                ? "Click an element below to fine-tune it on the right."
-                : `Previewing ${previewWidth} — viewport-specific controls are highlighted in the inspector.`}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-auto p-8">
+      {/* ── CENTER — canvas with consolidated header ─────────────── */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+        <div className="h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-4 gap-4 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
-              className="mx-auto bg-white rounded-xl border border-zinc-200 overflow-hidden transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_30px_rgba(0,0,0,0.06)]"
-              style={{ maxWidth: VIEWPORT_WIDTHS[previewWidth], width: "100%" }}
-              data-testid="studio-preview-container"
+              className="group relative flex items-center"
+              data-testid="studio-section-name-field"
             >
-              <PreviewFrame doc={previewHtml} sectionId={section.type} heroIndex={heroIndex} />
+              <Input
+                value={section.name}
+                onChange={(e) => renameSection(e.target.value)}
+                data-testid="studio-section-name-input"
+                placeholder="Untitled section"
+                className="font-semibold text-[14px] tracking-tight border border-zinc-200 hover:border-[#E01839] focus-visible:border-[#E01839] focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-8 py-0 shadow-none rounded-md min-w-[180px] max-w-[360px] bg-white hover:bg-red-50/40 transition-colors pr-8"
+                style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+              />
+              <Pencil
+                className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#E01839] group-focus-within:text-[#E01839] absolute right-2.5 pointer-events-none transition-colors"
+                strokeWidth={2}
+              />
             </div>
-            <SnippetDrawer snippet={snippet} onCopy={copySnippet} />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1 flex-shrink-0">
+              {def.icon ? <def.icon className="w-3 h-3" strokeWidth={2} /> : null}
+              {def.name}
+            </span>
           </div>
-        </main>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {section.type === "hero" && (
+              <HeroPreviewToggle
+                heroIndex={heroIndex}
+                setHeroIndex={updateHeroIndex}
+                slideCount={section.config.slides?.length || 0}
+              />
+            )}
+            <button
+              type="button"
+              onClick={resetToBrandKit}
+              data-testid="studio-apply-brand-kit"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+              title="Apply brand kit colours and fonts"
+            >
+              <Palette className="w-4 h-4" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              onClick={resetSection}
+              data-testid="studio-reset-section"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+              title="Reset to defaults"
+            >
+              <RotateCcw className="w-4 h-4" strokeWidth={1.75} />
+            </button>
+            <SaveIndicator status={saveStatus} savedAt={savedAt} variant="studio" />
+            <div className="h-5 w-px bg-zinc-200 mx-1" />
+            <StudioToggle />
+            <Button
+              data-testid="studio-copy-snippet-button"
+              onClick={copySnippet}
+              className="h-8 bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Copy snippet
+            </Button>
+          </div>
+        </div>
 
-        {/* RIGHT — inspector */}
-        <aside className="w-80 flex-shrink-0 flex flex-col bg-white">
-          <StudioInspector
-            def={def}
-            config={section.config}
-            onUpdate={updateConfig}
-            previewMode={previewWidth}
-            panelRef={inspectorPanelRef}
-          />
-        </aside>
-      </div>
+        <div className="flex-1 overflow-auto p-6 bg-zinc-100">
+          <div
+            className="max-w-7xl mx-auto mb-3 flex items-center justify-between"
+            data-testid="studio-canvas-toolbar"
+          >
+            <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-zinc-500">
+              Canvas
+            </span>
+            <div className="flex items-center bg-white rounded-md p-0.5 border border-zinc-200">
+              {["desktop", "tablet", "mobile"].map((w) => {
+                const Icon = VIEWPORT_ICONS[w];
+                return (
+                  <button
+                    key={w}
+                    type="button"
+                    data-testid={`studio-viewport-${w}`}
+                    onClick={() => setPreviewWidth(w)}
+                    title={w.charAt(0).toUpperCase() + w.slice(1)}
+                    className={`flex items-center justify-center h-7 w-9 rounded transition-colors ${
+                      previewWidth === w
+                        ? "bg-zinc-100 text-zinc-900 shadow-sm"
+                        : "text-zinc-500 hover:text-zinc-700"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div
+            className="mx-auto bg-white rounded-xl border border-zinc-200 overflow-hidden transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_30px_rgba(0,0,0,0.06)]"
+            style={{ maxWidth: VIEWPORT_WIDTHS[previewWidth], width: "100%" }}
+            data-testid="studio-preview-container"
+          >
+            <PreviewFrame doc={previewHtml} sectionId={section.type} heroIndex={heroIndex} />
+          </div>
+          <SnippetDrawer snippet={snippet} onCopy={copySnippet} />
+        </div>
+      </main>
+
+      {/* ── RIGHT — inspector (full height) ──────────────────────── */}
+      <aside className="w-80 flex-shrink-0 h-screen flex flex-col bg-white border-l border-zinc-200">
+        <StudioInspector
+          def={def}
+          config={section.config}
+          onUpdate={updateConfig}
+          previewMode={previewWidth}
+          panelRef={inspectorPanelRef}
+        />
+      </aside>
 
       <Toaster richColors position="top-center" />
     </div>
