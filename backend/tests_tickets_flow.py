@@ -14,9 +14,8 @@ Run with:
     cd /app/backend && bash -c 'set -a; source .env; set +a; python tests_tickets_flow.py'
 """
 import asyncio
-import os
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from db import db
 from routers.tickets import (
@@ -146,18 +145,23 @@ async def main():
     check("DB: document removed after mutual hide", doc is None)
 
     # 8. Ticket count excludes admin-hidden — extra safety: create another
-    # ticket, admin hides, count should not include it.
+    # ticket, admin hides, the count should return to its prior baseline
+    # (admin-hidden tickets do not contribute to the badge).
+    baseline_count = (await ticket_count(admin))["open"]
     other = await create_ticket(
         TicketCreate(type="feature", title="Hidden", description="x"), reporter
     )
+    after_create = (await ticket_count(admin))["open"]
     await delete_ticket(other.id, admin)  # admin soft-hides
     count = await ticket_count(admin)
     admin_list2 = await list_tickets(admin)
     check(
         "admin count + list exclude admin-hidden tickets",
         all(t.id != other.id for t in admin_list2)
-        and count["open"] == 0,
-        f"count={count}, hidden_ticket_in_list={any(t.id == other.id for t in admin_list2)}",
+        and count["open"] == baseline_count
+        and after_create == baseline_count + 1,
+        f"baseline={baseline_count} after_create={after_create} after_hide={count['open']} "
+        f"hidden_in_list={any(t.id == other.id for t in admin_list2)}",
     )
     # Cleanup: reporter also hides → hard delete.
     await delete_ticket(other.id, reporter)

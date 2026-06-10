@@ -1,0 +1,24 @@
+# Minimal Ruff config — keeps the lint gate fast and focused on
+# real-bug categories (pyflakes + syntax). Stylistic checks (E501,
+# W, etc) are intentionally NOT enabled here so a hot fix doesn't
+# get blocked over a stray long line. Re-enable as the codebase
+# tolerates.
+
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = [
+  "F",   # pyflakes — undefined names, unused imports, etc
+  "E9",  # syntax errors
+]
+ignore = [
+  "F403",  # `from x import *` — used intentionally in a couple of
+           # router barrel files
+  "F405",  # corollary to F403
+]
+
+[lint.per-file-ignores]
+# Test scripts are run directly (not via pytest) and sometimes shadow
+# globals via setup blocks; loosen lint there.
+"tests_*.py" = ["F841"]

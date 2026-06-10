@@ -138,6 +138,10 @@ export default function StudioEditor() {
         setLoadError(e.status === 404 ? "not_found" : "error");
       });
     return () => { cancelled = true; };
+    // brandKit is intentionally omitted — it's only consulted to seed
+    // the *initial* draft of a new section; a Brand Kit edit shouldn't
+    // re-fetch the existing section the user is mid-editing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionId, isNewDraft, newType]);
 
   const def = section ? SECTIONS_BY_ID[section.type] : null;

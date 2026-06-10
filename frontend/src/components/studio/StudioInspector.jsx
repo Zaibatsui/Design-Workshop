@@ -56,7 +56,7 @@ export default function StudioInspector({
       setCounts(next);
     });
     return () => cancelAnimationFrame(id);
-  }, [config, def?.id, previewMode]);
+  }, [config, def?.id, previewMode, panelRef]);
 
   // After counts settle, if the currently-active tab has 0 groups,
   // auto-switch to the first non-empty one. Stops the user landing on

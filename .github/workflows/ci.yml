@@ -1,0 +1,106 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+# Cancel in-flight runs for the same PR/branch when a new commit lands —
+# the latest commit is the one we care about.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Backend: ruff lint + Python behavioural tests ──────────────────
+  backend:
+    name: Backend (ruff + tests)
+    runs-on: ubuntu-latest
+
+    # Mongo 4.4 mirrors the production target (AVX-free for old hosts).
+    services:
+      mongo:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+
+    env:
+      MONGO_URL: mongodb://localhost:27017
+      DB_NAME: design_workshop_ci
+      APP_NAME: Design Workshop CI
+      OAUTH_STATE_SECRET: ci-test-only-not-a-real-secret
+      CORS_ORIGINS: "*"
+      GOOGLE_CLIENT_ID: ci-not-used
+      GOOGLE_CLIENT_SECRET: ci-not-used
+      ADMIN_EMAILS: admin@ci.local
+      EMERGENT_LLM_KEY: ci-not-used
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend deps + dev tools
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff
+
+      - name: Ruff lint
+        working-directory: backend
+        run: ruff check .
+
+      - name: Backend behavioural tests
+        working-directory: backend
+        run: |
+          # Each script is a self-contained smoke test that exits non-zero
+          # on first failure. Some need Mongo (tickets, preview-overrides);
+          # inline-image only exercises the FastAPI handler.
+          python tests_inline_image.py
+          python tests_tickets_flow.py
+          python tests_preview_overrides.py
+
+  # ─── Frontend: snippet behavioural tests + CRA build (which runs the
+  # bundled eslint check via react-scripts) ────────────────────────────
+  frontend:
+    name: Frontend (snippets + build)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install frontend deps
+        run: yarn install --frozen-lockfile
+
+      - name: Snippet behavioural tests
+        run: yarn test:snippets
+
+      - name: Production build (also runs CRA's bundled eslint)
+        # CI=true turns CRA lint warnings into hard errors.
+        run: CI=true yarn build
+        env:
+          # Build only — never hits this URL at compile time.
+          REACT_APP_BACKEND_URL: https://ci.local
