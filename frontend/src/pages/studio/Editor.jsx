@@ -281,7 +281,12 @@ export default function StudioEditor() {
         withVatToggle: section?.type === "products" || section?.type === "productGrid",
         heroIndex: heroIndexRef.current,
       }),
-    [debouncedSnippet, section?.type]
+    // heroIndex IS a dep even though we read it via ref: re-baking
+    // `__nsHeroIndex` into the iframe doc the moment the lock changes
+    // means the slide IIFE boots locked on first paint instead of
+    // briefly flashing slide 0 before postMessage catches up.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [debouncedSnippet, section?.type, heroIndex]
   );
 
   // Preview click-to-edit bridge. Each section renders its own
