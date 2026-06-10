@@ -524,5 +524,36 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Regression: split-slide mobile grid carries `grid-template-rows:auto 1fr`
+// (without this, leftover space between the 200px image row and the
+// content-sized panel renders as a visible white strip — see Feb 2026
+// "Mobile gap 0px still shows a gap" bug).
+{
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides[0].layout = "split";
+  cfg.slides[0].imageUrl = "https://a.test/split.jpg";
+  const code = hero.render(cfg);
+  expect(
+    "Split slide mobile grid declares grid-template-rows:auto 1fr",
+    /@media\s*\(max-width:767px\)[^}]*\.ns-split-grid\{[^}]*grid-template-rows:auto 1fr/.test(
+      code
+    )
+  );
+}
+
+// Same regression for fade mode (uses the same shared CSS function).
+{
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.slides[0].layout = "split";
+  cfg.slides[0].imageUrl = "https://a.test/split.jpg";
+  const code = hero.render(cfg);
+  expect(
+    "Fade split slide mobile grid declares grid-template-rows:auto 1fr",
+    /@media\s*\(max-width:767px\)[^}]*\.ns-split-grid\{[^}]*grid-template-rows:auto 1fr/.test(
+      code
+    )
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
