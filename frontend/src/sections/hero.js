@@ -2068,6 +2068,21 @@ function FormPanel({ config, onUpdate, previewMode }) {
         />
         <div className="pt-2 border-t border-slate-200 mt-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+            Default overlay
+          </p>
+          <p className="text-[11px] text-slate-500 mb-2 leading-snug">
+            Tints applied on top of every slide&apos;s image. Individual
+            slides can override these under &quot;Slides → Overlay
+            (this slide)&quot;.
+          </p>
+          {previewMode === "mobile" ? (
+            <OverlayControlsMobile theme={t} setTheme={setTheme} />
+          ) : (
+            <OverlayControlsDesktop theme={t} setTheme={setTheme} />
+          )}
+        </div>
+        <div className="pt-2 border-t border-slate-200 mt-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
             Layout
           </p>
           {previewMode === "mobile" ? (
