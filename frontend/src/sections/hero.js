@@ -619,7 +619,7 @@ function splitCss(cls, cfg) {
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
-@media (max-width:767px){.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:var(--ns-mig, ${mobileGap}px)}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;grid-row:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;grid-row:2;padding:24px!important;background:var(--ns-pb-m, var(--ns-pb))}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
+@media (max-width:767px){.${cls} .ns-slide.is-split{height:auto;min-height:var(--ns-height-m, var(--ns-height))}.${cls}:has(.ns-slide.is-split){height:auto;min-height:var(--ns-height-m, var(--ns-height))}.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100%;align-content:start;gap:0}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;grid-row:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;grid-row:2;padding:24px!important;background:var(--ns-pb-m, var(--ns-pb));overflow:visible;height:auto;min-height:auto}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
 `.trim();
 }
 
@@ -1759,7 +1759,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
                 </div>
               ) : null}
 
-              {slideMode(slide) === "split" && (
+              {slideMode(slide) === "split" && previewMode !== "mobile" && (
                 <div className="pt-2 border-t border-slate-200 mt-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
                     Split panel layout (this slide)
@@ -1790,22 +1790,6 @@ function FormPanel({ config, onUpdate, previewMode }) {
                       { value: "60", label: "60% — text dominant" },
                     ]}
                     testid={`hero-slide-panel-ratio-${slide.id}`}
-                  />
-                  <SliderField
-                    label="Mobile gap (image ↔ panel)"
-                    value={
-                      slide.mobileImagePanelGap != null &&
-                      slide.mobileImagePanelGap !== ""
-                        ? Number(slide.mobileImagePanelGap)
-                        : Number(l.mobileImagePanelGap) || 0
-                    }
-                    min={0}
-                    max={48}
-                    suffix="px"
-                    onChange={(v) =>
-                      updateSlide(slide.id, { mobileImagePanelGap: v })
-                    }
-                    testid={`hero-slide-mobile-gap-${slide.id}`}
                   />
                 </div>
               )}

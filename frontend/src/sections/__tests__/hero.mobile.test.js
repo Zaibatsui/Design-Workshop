@@ -201,18 +201,19 @@ function baseCfg(overrides = {}) {
   );
 }
 
-// ─── Test 6: mobile image-panel gap (split) ──────────────────────────
-// The section-level `mobileImagePanelGap` still flows through as the
-// fallback inside the @media rule's `var(--ns-mig, <gap>px)` syntax —
-// per-slide overrides set `--ns-mig` on the slide root.
+// ─── Test 6: mobile image-panel gap was deprecated in Feb 2026 ───────
+// The gap CSS is now hardcoded to 0 since the explicit grid-row pinning
+// makes image and panel flush by design. Existing snippets stay valid;
+// the field is kept on the config schema for back-compat but no longer
+// surfaces in the editor UI.
 {
   const cfg = baseCfg({ transition: "slide" });
   cfg.slides[0].layout = "split";
   cfg.layout.mobileImagePanelGap = 16;
   const code = hero.render(cfg);
   expect(
-    "Section mobile gap=16px shows up as @media fallback var(--ns-mig, 16px)",
-    code.includes("gap:var(--ns-mig, 16px)")
+    "Section mobile gap is now hardcoded 0 (slider deprecated)",
+    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100%;align-content:start;gap:0}")
   );
 }
 {
@@ -524,20 +525,27 @@ function baseCfg(overrides = {}) {
   );
 }
 
-// ─── Regression: split-slide mobile grid carries `grid-template-rows:auto 1fr`
-// (without this, leftover space between the 200px image row and the
-// content-sized panel renders as a visible white strip — see Feb 2026
-// "Mobile gap 0px still shows a gap" bug).
+// ─── Regression: split-slide mobile grid pins each item to a row via
+// `grid-row` (and uses `grid-template-rows: auto auto` so both items
+// size to their natural content). This guards against future
+// refactors regressing back to `auto 1fr` (which made the image
+// stretch when imageSide="right" reversed the source order).
 {
   const cfg = baseCfg({ transition: "slide" });
   cfg.slides[0].layout = "split";
   cfg.slides[0].imageUrl = "https://a.test/split.jpg";
   const code = hero.render(cfg);
   expect(
-    "Split slide mobile grid declares grid-template-rows:auto 1fr",
-    /@media\s*\(max-width:767px\)[^}]*\.ns-split-grid\{[^}]*grid-template-rows:auto 1fr/.test(
-      code
-    )
+    "Split slide mobile grid declares grid-template-rows:auto auto",
+    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto auto")
+  );
+  expect(
+    "Split slide mobile pins image-wrap to grid-row:1",
+    code.includes(".ns-image-wrap{order:1;grid-row:1")
+  );
+  expect(
+    "Split slide mobile pins panel to grid-row:2",
+    code.includes(".ns-panel{order:2;grid-row:2")
   );
 }
 
@@ -548,10 +556,8 @@ function baseCfg(overrides = {}) {
   cfg.slides[0].imageUrl = "https://a.test/split.jpg";
   const code = hero.render(cfg);
   expect(
-    "Fade split slide mobile grid declares grid-template-rows:auto 1fr",
-    /@media\s*\(max-width:767px\)[^}]*\.ns-split-grid\{[^}]*grid-template-rows:auto 1fr/.test(
-      code
-    )
+    "Fade split slide mobile grid declares grid-template-rows:auto auto",
+    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto auto")
   );
 }
 
