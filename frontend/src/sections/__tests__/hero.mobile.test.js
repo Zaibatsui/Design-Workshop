@@ -213,7 +213,7 @@ function baseCfg(overrides = {}) {
   const code = hero.render(cfg);
   expect(
     "Section mobile gap is now hardcoded 0 (slider deprecated)",
-    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto auto;height:100%;align-content:start;gap:0}")
+    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100%;align-content:start;gap:0}")
   );
 }
 {
@@ -526,18 +526,18 @@ function baseCfg(overrides = {}) {
 }
 
 // ─── Regression: split-slide mobile grid pins each item to a row via
-// `grid-row` (and uses `grid-template-rows: auto auto` so both items
-// size to their natural content). This guards against future
-// refactors regressing back to `auto 1fr` (which made the image
-// stretch when imageSide="right" reversed the source order).
+// `grid-row` and uses `grid-template-rows: auto 1fr` so all slides in
+// a carousel stay the same height — the panel stretches to fill the
+// section's `min-height`. This guards against regressing back to
+// content-sized rows (which made each slide a different height).
 {
   const cfg = baseCfg({ transition: "slide" });
   cfg.slides[0].layout = "split";
   cfg.slides[0].imageUrl = "https://a.test/split.jpg";
   const code = hero.render(cfg);
   expect(
-    "Split slide mobile grid declares grid-template-rows:auto auto",
-    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto auto")
+    "Split slide mobile grid declares grid-template-rows:auto 1fr",
+    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr")
   );
   expect(
     "Split slide mobile pins image-wrap to grid-row:1",
@@ -556,8 +556,8 @@ function baseCfg(overrides = {}) {
   cfg.slides[0].imageUrl = "https://a.test/split.jpg";
   const code = hero.render(cfg);
   expect(
-    "Fade split slide mobile grid declares grid-template-rows:auto auto",
-    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto auto")
+    "Fade split slide mobile grid declares grid-template-rows:auto 1fr",
+    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr")
   );
 }
 
