@@ -2,6 +2,9 @@
 
 # Design Workshop
 
+[![ci](https://github.com/Zaibatsui/Design-Workshop/actions/workflows/ci.yml/badge.svg)](https://github.com/Zaibatsui/Design-Workshop/actions/workflows/ci.yml)
+[![licence](https://img.shields.io/badge/licence-AGPL--3.0--or--later-blue.svg)](LICENSE)
+
 **A no-code section builder for websites. Design beautiful content blocks, copy a single block of HTML, paste it into your shop or CMS.**
 
 Build hero banners, product carousels, FAQs, testimonials, stat counters and more — theme them with a Brand Kit, drag-stack them into Pages, then drop the resulting standalone HTML into Shopify, WordPress, Squarespace, Wix, Webflow, BigCommerce, Magento, Nettailer or any other tool that accepts a custom HTML block. No React, no jQuery, no CDN calls at runtime. Just markup.
@@ -302,7 +305,7 @@ yarn start                                 # http://localhost:3000
 The short version:
 
 ```bash
-git clone https://github.com/<you>/<repo>.git design-workshop
+git clone https://github.com/Zaibatsui/Design-Workshop.git design-workshop
 cd design-workshop
 cp deploy/.env.example deploy/.env
 ${EDITOR} deploy/.env                      # set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
