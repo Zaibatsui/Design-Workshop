@@ -1882,8 +1882,9 @@ function FormPanel({ config, onUpdate, previewMode }) {
                     * back to the section's mobile panel BG, and if
                     * none, the slide's desktop panel BG. Setting a
                     * type here gives this slide a distinct mobile
-                    * look. */}
-                  <div className="pt-2 border-t border-slate-200 mt-2">
+                    * look. Surfaced only in mobile preview mode. */}
+                  {previewMode === "mobile" && (
+                    <div className="pt-2 border-t border-slate-200 mt-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
                       Mobile panel BG (≤767px)
                     </p>
@@ -1993,7 +1994,8 @@ function FormPanel({ config, onUpdate, previewMode }) {
                         />
                       </>
                     )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
 
