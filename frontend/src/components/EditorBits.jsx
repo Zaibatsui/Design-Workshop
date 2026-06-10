@@ -53,25 +53,31 @@ export function SaveIndicator({ status, savedAt, variant = "default" }) {
 
   if (status === "saving") {
     return (
-      <span data-testid="save-indicator" className={baseCls}>
+      <span data-testid="save-indicator" title="Saving…" className={baseCls}>
         <Loader2 className="w-3 h-3 animate-spin" />
-        Saving…
+        <span className="hidden xl:inline">Saving…</span>
       </span>
     );
   }
   if (status === "error") {
     return (
-      <span data-testid="save-indicator" className={baseCls + " text-red-600"}>
-        Save failed
+      <span
+        data-testid="save-indicator"
+        title="Save failed"
+        className={baseCls + " text-red-600"}
+      >
+        <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+        <span className="hidden xl:inline">Save failed</span>
       </span>
     );
   }
   if (status === "saved" && savedAt) {
     const sec = Math.floor((Date.now() - savedAt) / 1000);
+    const label = `Saved ${sec < 5 ? "just now" : `${sec}s ago`}`;
     return (
-      <span data-testid="save-indicator" className={baseCls}>
+      <span data-testid="save-indicator" title={label} className={baseCls}>
         <Check className="w-3 h-3 text-emerald-500" />
-        Saved {sec < 5 ? "just now" : `${sec}s ago`}
+        <span className="hidden xl:inline">{label}</span>
       </span>
     );
   }

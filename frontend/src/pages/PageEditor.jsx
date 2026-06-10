@@ -465,7 +465,7 @@ export default function PageEditor({ studio = false }) {
                   strokeWidth={2}
                 />
               </div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1 flex-shrink-0">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 hidden lg:flex items-center gap-1 flex-shrink-0">
                 <FileStack className="w-3 h-3" />
                 {(page.blocks || []).length} block
                 {(page.blocks || []).length === 1 ? "" : "s"}
@@ -479,10 +479,11 @@ export default function PageEditor({ studio = false }) {
                 onClick={() => setTemplateDialogOpen(true)}
                 disabled={(page.blocks || []).length === 0}
                 data-testid="save-as-template-button"
+                title="Save as template"
                 className="h-8 text-[12px] text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 gap-1.5 font-medium"
               >
                 <Save className="w-3.5 h-3.5" />
-                Save as template
+                <span className="hidden xl:inline">Save as template</span>
               </Button>
               <div className="h-5 w-px bg-zinc-200 mx-1" />
               <StudioToggle />

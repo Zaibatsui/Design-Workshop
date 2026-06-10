@@ -479,7 +479,7 @@ export default function StudioEditor() {
                 strokeWidth={2}
               />
             </div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1 flex-shrink-0">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 hidden lg:flex items-center gap-1 flex-shrink-0">
               {def.icon ? <def.icon className="w-3 h-3" strokeWidth={2} /> : null}
               {def.name}
             </span>
