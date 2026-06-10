@@ -213,7 +213,7 @@ function baseCfg(overrides = {}) {
   const code = hero.render(cfg);
   expect(
     "Section mobile gap is now hardcoded 0 (slider deprecated)",
-    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100%;align-content:start;gap:0}")
+    code.includes(".ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto auto;height:100%;align-content:start;gap:0}")
   );
 }
 {
