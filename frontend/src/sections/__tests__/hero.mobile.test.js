@@ -561,5 +561,25 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Regression: mixed-layout carousels on mobile must give every
+// slide the same height. When any split slide is present the
+// section is auto-height with a min, so standard slides (which
+// originally carried `height:100%`) need to stretch to match the
+// tallest split's content via `align-self:stretch`. Otherwise the
+// page bounces vertically as the carousel transitions between
+// short standard slides and tall split slides.
+{
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides[0].layout = "split";
+  cfg.slides[0].imageUrl = "https://a.test/split.jpg";
+  // Force second slide to be standard
+  cfg.slides[1] = { ...cfg.slides[1], layout: "standard", imageUrl: "https://a.test/std.jpg" };
+  const code = hero.render(cfg);
+  expect(
+    "Mixed carousel: any .ns-slide stretches to tallest when split is present",
+    code.includes(":has(.ns-slide.is-split) .ns-slide{height:auto;min-height:var(--ns-height-m, var(--ns-height));align-self:stretch}")
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
