@@ -619,7 +619,7 @@ function splitCss(cls, cfg) {
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right{padding-right:max(20px,calc((100vw - ${contentMax}px) / 2));padding-left:48px}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-left .ns-panel-inner{margin-left:0;margin-right:auto}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-right .ns-panel-inner{margin-left:auto;margin-right:0}
-@media (max-width:767px){.${cls} .ns-slide.is-split{height:auto;min-height:var(--ns-height-m, var(--ns-height))}.${cls}:has(.ns-slide.is-split){height:auto;min-height:var(--ns-height-m, var(--ns-height))}.${cls}:has(.ns-slide.is-split) .ns-slide{height:auto;min-height:var(--ns-height-m, var(--ns-height));align-self:stretch}.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100%;align-content:start;gap:0}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;grid-row:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;grid-row:2;padding:24px!important;background:var(--ns-pb-m, var(--ns-pb));overflow:visible;height:auto;min-height:auto}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
+@media (max-width:767px){.${cls} .ns-slide.is-split{height:auto;min-height:var(--ns-height-m, var(--ns-height))}.${cls}:has(.ns-slide.is-split){height:auto;min-height:var(--ns-height-m, var(--ns-height))}.${cls}:has(.ns-slide.is-split) .ns-slide{height:auto;min-height:var(--ns-height-m, var(--ns-height));align-self:stretch}.${cls}.is-fade:has(.ns-slide.is-split){display:grid;grid-template-columns:1fr}.${cls}.is-fade:has(.ns-slide.is-split) .ns-slide{position:relative;inset:auto;grid-area:1/1;align-self:stretch}.${cls} .ns-slide.is-split .ns-split-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100%;align-content:start;gap:0}.${cls} .ns-slide.is-split .ns-image-wrap{order:1;grid-row:1;min-height:200px;height:200px}.${cls} .ns-slide.is-split .ns-panel{order:2;grid-row:2;padding:24px!important;background:var(--ns-pb-m, var(--ns-pb));overflow:visible;height:auto;min-height:auto}.${cls} .ns-slide.is-split .ns-panel-inner{max-width:none!important;margin:0!important}}
 `.trim();
 }
 
@@ -925,7 +925,7 @@ ${baseReset(cls)}
 ${anySplit ? splitCss(cls, cfg) : ""}
 `.trim();
 
-  const html = `<section class="ns-hero ${cls}${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}" data-ns-group="section-carousel">
+  const html = `<section class="ns-hero ${cls} is-fade${fullBleedClass(cfg)}${arrowsCls}${dotsCls}${mobileCenterCls}" style="${styleVars}" data-ns-autoplay="${s.autoplay ? "1" : "0"}" data-ns-interval="${s.interval}" data-ns-poh="${s.pauseOnHover === false ? "0" : "1"}" data-ns-group="section-carousel">
 ${slidesHtml}
 ${arrowsHtml}
 ${dotsHtml}

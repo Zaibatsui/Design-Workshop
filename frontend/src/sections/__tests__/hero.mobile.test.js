@@ -581,5 +581,33 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Regression: fade carousels with split slides on mobile must
+// grow to fit the tallest panel content. Fade slides are normally
+// position:absolute, which means they contribute nothing to the
+// parent's height and tall panel content gets clipped to the
+// section min-height. Switching the section to a grid stack with
+// all slides at grid-area:1/1 lets the tallest slide drive the
+// cell height while preserving the opacity cross-fade. The marker
+// `.is-fade` class on the section root targets this rule to fade
+// renders only — the slide (translateX) variant keeps its track.
+{
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.slides[0].layout = "split";
+  cfg.slides[0].imageUrl = "https://a.test/split.jpg";
+  const code = hero.render(cfg);
+  expect(
+    "Fade section root carries `is-fade` marker class",
+    code.includes('class="ns-hero ') && /class="ns-hero [^"]*is-fade/.test(code)
+  );
+  expect(
+    "Fade mixed carousel: section becomes display:grid when split present",
+    code.includes(".is-fade:has(.ns-slide.is-split){display:grid;grid-template-columns:1fr}")
+  );
+  expect(
+    "Fade mixed carousel: slides stack at grid-area:1/1 with align-self:stretch",
+    code.includes(".is-fade:has(.ns-slide.is-split) .ns-slide{position:relative;inset:auto;grid-area:1/1;align-self:stretch}")
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
