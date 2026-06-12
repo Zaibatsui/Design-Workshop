@@ -142,6 +142,13 @@ export default function PageEditor({ studio = false }) {
         blocks: page.blocks || [],
         ...dirty.current,
       };
+      // Carry through the "save into collection" hint set by the
+      // dashboard at the New-page click. The collection_id is verified
+      // on the server; bad values 422.
+      const newCollectionId = location.state?.collection_id || null;
+      if (newCollectionId) {
+        snapshot.collection_id = newCollectionId;
+      }
       dirty.current = null;
       try {
         const created = await api.createPage(snapshot);

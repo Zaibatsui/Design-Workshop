@@ -93,8 +93,15 @@ export default function Dashboard({ chromeless = false }) {
     if (!def) return;
     setPicker(false);
     // Deferred creation: open a pristine in-memory draft. The DB record is
-    // only POSTed when the user makes their first edit.
-    navigate(`/edit/section/new?type=${encodeURIComponent(typeId)}`);
+    // only POSTed when the user makes their first edit. If the user is
+    // currently filtering by a real collection, propagate that as a
+    // create-time hint so the new section lands inside the user's
+    // current "place" instead of falling into Unfiled.
+    const params = new URLSearchParams({ type: typeId });
+    if (activeCollectionId && activeCollectionId !== "__unfiled__") {
+      params.set("collection_id", activeCollectionId);
+    }
+    navigate(`/edit/section/new?${params.toString()}`);
   };
 
   const createPage = (template) => {
@@ -104,7 +111,11 @@ export default function Dashboard({ chromeless = false }) {
     const safe = template
       ? { id: template.id, name: template.name, blocks: template.blocks || [] }
       : null;
-    navigate("/edit/page/new", { state: { template: safe } });
+    const collectionId =
+      activeCollectionId && activeCollectionId !== "__unfiled__"
+        ? activeCollectionId
+        : null;
+    navigate("/edit/page/new", { state: { template: safe, collection_id: collectionId } });
   };
 
   // Filter helpers — keep the active-collection logic in one place so

@@ -56,51 +56,83 @@ export default function CollectionsBar({
   onManage,
   countByCollection, // { [collection_id]: number, _all: number, _unfiled: number }
 }) {
+  // Resolve the human label of the currently-active chip so the
+  // helper text under the bar can name where new items will land.
+  const activeLabel =
+    activeId === null
+      ? "All items"
+      : activeId === "__unfiled__"
+        ? "Unfiled"
+        : collections.find((c) => c.collection_id === activeId)?.name || "Unfiled";
+  const willSaveToActive =
+    activeId && activeId !== "__unfiled__"
+      ? `New items will be saved to "${activeLabel}".`
+      : null;
   return (
     <div
-      className="max-w-7xl mx-auto px-6 mt-4 flex items-center gap-2 flex-wrap"
-      data-testid="collections-bar"
+      className="border-t border-b border-slate-200 bg-slate-50/60 mt-4"
+      data-testid="collections-bar-strip"
     >
-      <Chip
-        active={activeId === null}
-        onClick={() => onChange(null)}
-        testid="collections-chip-all"
-      >
-        <FolderOpen className="w-3.5 h-3.5 text-slate-500" />
-        All items
-        <Count n={countByCollection?._all ?? 0} />
-      </Chip>
-      <Chip
-        active={activeId === "__unfiled__"}
-        onClick={() => onChange("__unfiled__")}
-        testid="collections-chip-unfiled"
-      >
-        <span className="w-2 h-2 rounded-full border border-slate-300" />
-        Unfiled
-        <Count n={countByCollection?._unfiled ?? 0} />
-      </Chip>
-      {collections.map((c) => (
-        <Chip
-          key={c.collection_id}
-          active={activeId === c.collection_id}
-          onClick={() => onChange(c.collection_id)}
-          testid={`collections-chip-${c.collection_id}`}
+      <div className="max-w-7xl mx-auto px-6 py-3">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400">
+            Collections
+          </span>
+        </div>
+        <div
+          className="flex items-center gap-2 flex-wrap"
+          data-testid="collections-bar"
         >
-          <span className={`w-2 h-2 rounded-full ${colorDotClass(c.color)}`} />
-          <span className="truncate max-w-[140px]">{c.name}</span>
-          <Count n={countByCollection?.[c.collection_id] ?? 0} />
-        </Chip>
-      ))}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onManage}
-        data-testid="collections-manage-button"
-        className="h-8 text-xs text-slate-500 hover:text-slate-900 ml-1"
-      >
-        <Settings2 className="w-3.5 h-3.5 mr-1" />
-        Manage
-      </Button>
+          <Chip
+            active={activeId === null}
+            onClick={() => onChange(null)}
+            testid="collections-chip-all"
+          >
+            <FolderOpen className="w-3.5 h-3.5 text-slate-500" />
+            All items
+            <Count n={countByCollection?._all ?? 0} />
+          </Chip>
+          <Chip
+            active={activeId === "__unfiled__"}
+            onClick={() => onChange("__unfiled__")}
+            testid="collections-chip-unfiled"
+          >
+            <span className="w-2 h-2 rounded-full border border-slate-300" />
+            Unfiled
+            <Count n={countByCollection?._unfiled ?? 0} />
+          </Chip>
+          {collections.map((c) => (
+            <Chip
+              key={c.collection_id}
+              active={activeId === c.collection_id}
+              onClick={() => onChange(c.collection_id)}
+              testid={`collections-chip-${c.collection_id}`}
+            >
+              <span className={`w-2 h-2 rounded-full ${colorDotClass(c.color)}`} />
+              <span className="truncate max-w-[140px]">{c.name}</span>
+              <Count n={countByCollection?.[c.collection_id] ?? 0} />
+            </Chip>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onManage}
+            data-testid="collections-manage-button"
+            className="h-8 text-xs text-slate-500 hover:text-slate-900 ml-1"
+          >
+            <Settings2 className="w-3.5 h-3.5 mr-1" />
+            Manage
+          </Button>
+        </div>
+        {willSaveToActive && (
+          <p
+            className="text-[11px] text-slate-500 mt-2"
+            data-testid="collections-create-hint"
+          >
+            {willSaveToActive}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

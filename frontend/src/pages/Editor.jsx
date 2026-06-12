@@ -45,6 +45,12 @@ export default function Editor() {
   const [searchParams] = useSearchParams();
   const isNewDraft = sectionId === "new";
   const newType = isNewDraft ? searchParams.get("type") : null;
+  // Read the "save into this collection" hint from the dashboard's
+  // active-chip context. Empty / null = leave unfiled. Validated
+  // server-side on create — bad/unknown ids 422 there.
+  const newCollectionId = isNewDraft
+    ? searchParams.get("collection_id") || null
+    : null;
 
   const [section, setSection] = useState(null); // { section_id, name, type, config, ... }
   const [loadError, setLoadError] = useState(null);
@@ -130,6 +136,9 @@ export default function Editor() {
         config: section.config,
         ...dirty.current,
       };
+      if (newCollectionId) {
+        snapshot.collection_id = newCollectionId;
+      }
       dirty.current = null;
       try {
         const created = await api.createSection(snapshot);

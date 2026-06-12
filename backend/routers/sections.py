@@ -22,6 +22,10 @@ class SectionIn(BaseModel):
     name: str = Field(default="Untitled section")
     type: str
     config: Dict[str, Any]
+    # Optional file-on-create: drops the new section straight into the
+    # given collection so users don't have to file it as a second step.
+    # Null (default) = leave unfiled.
+    collection_id: Optional[str] = None
 
 
 class SectionUpdate(BaseModel):
@@ -77,6 +81,22 @@ async def list_sections(current_user: User = Depends(get_current_user)):
 async def create_section(
     payload: SectionIn, current_user: User = Depends(get_current_user)
 ):
+    # If the client asked to file the section on creation, validate
+    # ownership of the target collection up-front (mirrors the move
+    # endpoint contract — 422 on unknown / cross-tenant).
+    if payload.collection_id:
+        exists = await db.collections.count_documents(
+            {
+                "collection_id": payload.collection_id,
+                "user_id": current_user.user_id,
+            },
+            limit=1,
+        )
+        if not exists:
+            raise HTTPException(
+                status_code=422,
+                detail="Collection not found or not owned by user",
+            )
     now = datetime.now(timezone.utc)
     section = {
         "section_id": f"sec_{uuid.uuid4().hex[:12]}",
@@ -84,6 +104,7 @@ async def create_section(
         "name": payload.name,
         "type": payload.type,
         "config": payload.config,
+        "collection_id": payload.collection_id,
         "position": await _next_head_position(current_user.user_id),
         "created_at": now,
         "updated_at": now,

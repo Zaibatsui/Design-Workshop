@@ -55,6 +55,8 @@ class BlockIn(BaseModel):
 class PageIn(BaseModel):
     name: str = Field(default="Untitled page")
     blocks: List[BlockIn] = Field(default_factory=list)
+    # Optional file-on-create — same contract as SectionIn.collection_id.
+    collection_id: Optional[str] = None
 
 
 class PageUpdate(BaseModel):
@@ -119,12 +121,26 @@ async def list_pages(current_user: User = Depends(get_current_user)):
 async def create_page(
     payload: PageIn, current_user: User = Depends(get_current_user)
 ):
+    if payload.collection_id:
+        exists = await db.collections.count_documents(
+            {
+                "collection_id": payload.collection_id,
+                "user_id": current_user.user_id,
+            },
+            limit=1,
+        )
+        if not exists:
+            raise HTTPException(
+                status_code=422,
+                detail="Collection not found or not owned by user",
+            )
     now = datetime.now(timezone.utc)
     page = {
         "page_id": f"pg_{uuid.uuid4().hex[:12]}",
         "user_id": current_user.user_id,
         "name": payload.name,
         "blocks": _normalize_blocks(payload.blocks),
+        "collection_id": payload.collection_id,
         "position": await _next_head_position(current_user.user_id),
         "created_at": now,
         "updated_at": now,

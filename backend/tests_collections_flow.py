@@ -162,8 +162,49 @@ async def run():
         all(c.collection_id != arc.collection_id for c in listed),
     )
 
-    # 10. Cleanup.
+    # 10. Create-time collection_id: a new section should land directly
+    # inside the target collection (skip the move-after-create step).
+    arc2 = await create_collection(
+        CollectionIn(name="Arcserve 2", color="amber"), user
+    )
+    sec2 = await create_section(
+        SectionIn(
+            name="Pre-filed section",
+            type="hero",
+            config={"slides": []},
+            collection_id=arc2.collection_id,
+        ),
+        user,
+    )
+    check(
+        "create_section honours payload.collection_id (pre-filed)",
+        sec2.collection_id == arc2.collection_id,
+        f"got {sec2.collection_id}",
+    )
+
+    # 11. Create-time collection_id pointing at a non-existent / other
+    # user's collection → 422 (mirrors move endpoint contract).
+    try:
+        await create_section(
+            SectionIn(
+                name="Should fail",
+                type="hero",
+                config={"slides": []},
+                collection_id="col_doesnotexist",
+            ),
+            user,
+        )
+        check("create_section rejects unknown collection_id", False, "no exception")
+    except HTTPException as e:
+        check(
+            "create_section rejects unknown collection_id (422)",
+            e.status_code == 422,
+            f"got {e.status_code}",
+        )
+
+    # 12. Cleanup the extras.
     await db.sections.delete_one({"section_id": sec.section_id})
+    await db.sections.delete_one({"section_id": sec2.section_id})
     await db.collections.delete_many({"user_id": user.user_id})
     await db.collections.delete_many({"user_id": other.user_id})
 
