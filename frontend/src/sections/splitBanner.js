@@ -354,6 +354,15 @@ function FormPanel({ config, onUpdate, previewMode }) {
               onRemove={(id) =>
                 onUpdate({ points: (config.points || []).filter((p) => p.id !== id) })
               }
+              onDuplicate={(id) => {
+                const arr = config.points || [];
+                const idx = arr.findIndex((p) => p.id === id);
+                if (idx < 0) return;
+                const clone = { ...arr[idx], id: makeUid() };
+                const next = [...arr];
+                next.splice(idx + 1, 0, clone);
+                onUpdate({ points: next });
+              }}
               onAdd={() =>
                 onUpdate({
                   points: [

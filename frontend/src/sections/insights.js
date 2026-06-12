@@ -229,6 +229,14 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({
       cards: config.cards.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     });
+  const duplicateCard = (id) => {
+    const idx = config.cards.findIndex((c) => c.id === id);
+    if (idx < 0) return;
+    const clone = { ...config.cards[idx], id: makeUid() };
+    const arr = [...config.cards];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ cards: arr });
+  };
 
   return (
     <FormAccordion sectionType="insights">
@@ -360,6 +368,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addCard}
           onRemove={removeCard}
           onMove={moveCard}
+          onDuplicate={duplicateCard}
           addLabel="Add card"
           testidPrefix="insight"
           renderRow={(c) => (

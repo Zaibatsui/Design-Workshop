@@ -159,6 +159,14 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({
       logos: config.logos.map((l) => (l.id === id ? { ...l, ...patch } : l)),
     });
+  const duplicateLogo = (id) => {
+    const idx = config.logos.findIndex((l) => l.id === id);
+    if (idx < 0) return;
+    const clone = { ...config.logos[idx], id: makeUid() };
+    const arr = [...config.logos];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ logos: arr });
+  };
 
   return (
     <FormAccordion sectionType="logos">
@@ -269,6 +277,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addLogo}
           onRemove={removeLogo}
           onMove={moveLogo}
+          onDuplicate={duplicateLogo}
           addLabel="Add logo"
           testidPrefix="logo"
           renderRow={(l) => (

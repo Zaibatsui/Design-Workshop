@@ -139,6 +139,14 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({ steps: [...steps, sampleStep(steps.length)] });
   const removeStep = (id) =>
     onUpdate({ steps: steps.filter((s) => s.id !== id) });
+  const duplicateStep = (id) => {
+    const idx = steps.findIndex((s) => s.id === id);
+    if (idx < 0) return;
+    const clone = { ...steps[idx], id: makeUid() };
+    const arr = [...steps];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ steps: arr });
+  };
   const reorderSteps = (next) => onUpdate({ steps: next });
 
   return (
@@ -264,6 +272,7 @@ function FormPanel({ config, onUpdate }) {
           onReorder={reorderSteps}
           onRemove={removeStep}
           onAdd={addStep}
+          onDuplicate={duplicateStep}
           itemLabel={(s) => s.title || "Untitled step"}
           addLabel="Add step"
           testid="steps-list"

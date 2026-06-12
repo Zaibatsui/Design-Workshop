@@ -296,6 +296,14 @@ function FormPanel({ config, onUpdate }) {
       ],
     });
   const remove = (id) => onUpdate({ rows: rows.filter((r) => r.id !== id) });
+  const duplicate = (id) => {
+    const idx = rows.findIndex((r) => r.id === id);
+    if (idx < 0) return;
+    const clone = { ...rows[idx], id: makeUid() };
+    const arr = [...rows];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ rows: arr });
+  };
   const reorder = (next) => onUpdate({ rows: next });
 
   return (
@@ -398,6 +406,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={add}
           onRemove={remove}
           onReorder={reorder}
+          onDuplicate={duplicate}
           itemLabel={(r) => r.feature || "Untitled row"}
           addLabel="Add row"
           testid="compare-rows"

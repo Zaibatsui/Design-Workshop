@@ -329,6 +329,14 @@ function FormPanel({ config, onUpdate }) {
         p.id === id ? { ...p, ...patch } : p
       ),
     });
+  const duplicateProduct = (id) => {
+    const idx = config.products.findIndex((p) => p.id === id);
+    if (idx < 0) return;
+    const clone = { ...config.products[idx], id: makeUid() };
+    const arr = [...config.products];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ products: arr });
+  };
 
   const fetchFromUrl = async () => {
     const url = fetchUrl.trim();
@@ -596,6 +604,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addProduct}
           onRemove={removeProduct}
           onMove={moveProduct}
+          onDuplicate={duplicateProduct}
           addLabel="Add product"
           testidPrefix="product"
           renderRow={(p) => (

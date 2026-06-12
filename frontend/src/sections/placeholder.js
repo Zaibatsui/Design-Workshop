@@ -155,6 +155,14 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({
       items: items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
     });
+  const duplicateItem = (id) => {
+    const idx = items.findIndex((i) => i.id === id);
+    if (idx < 0) return;
+    const clone = { ...items[idx], id: makeUid() };
+    const arr = [...items];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ items: arr });
+  };
 
   return (
     <div className="space-y-5">
@@ -260,6 +268,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addItem}
           onRemove={removeItem}
           onMove={moveItem}
+          onDuplicate={duplicateItem}
           addLabel="Add cell"
           testidPrefix="grid-cell"
           renderRow={(item, i) => (

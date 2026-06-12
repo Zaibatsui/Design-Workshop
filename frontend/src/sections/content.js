@@ -309,6 +309,14 @@ function ButtonsList({ config, onUpdate }) {
   };
   const updateButton = (id, patch) =>
     commit(items.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+  const duplicateButton = (id) => {
+    const idx = items.findIndex((b) => b.id === id);
+    if (idx < 0) return;
+    const clone = { ...items[idx], id: `btn_${Math.random().toString(36).slice(2, 8)}` };
+    const arr = [...items];
+    arr.splice(idx + 1, 0, clone);
+    commit(arr);
+  };
 
   return (
     <ListEditor
@@ -316,6 +324,7 @@ function ButtonsList({ config, onUpdate }) {
       onAdd={addButton}
       onRemove={removeButton}
       onMove={moveButton}
+      onDuplicate={duplicateButton}
       addLabel="Add button"
       testidPrefix="content-btn"
       renderRow={(b) => (

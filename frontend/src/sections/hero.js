@@ -1499,6 +1499,18 @@ function FormPanel({ config, onUpdate, previewMode }) {
     onUpdate({
       slides: config.slides.map((x) => (x.id === id ? { ...x, ...patch } : x)),
     });
+  // Duplicate inserts a clone with a fresh id directly AFTER the
+  // source slide so users see the copy adjacent (not pushed to the
+  // end of the carousel). ListEditor's "newly added id" detection
+  // auto-expands the clone and scrolls it into view.
+  const duplicateSlide = (id) => {
+    const idx = config.slides.findIndex((x) => x.id === id);
+    if (idx < 0) return;
+    const clone = { ...config.slides[idx], id: makeUid() };
+    const arr = [...config.slides];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ slides: arr });
+  };
 
   const isFade = config.transition === "fade";
   // Per-slide layout selection lives inside each slide's form so a
@@ -1601,6 +1613,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
           onAdd={addSlide}
           onRemove={removeSlide}
           onMove={moveSlide}
+          onDuplicate={duplicateSlide}
           addLabel="Add slide"
           testidPrefix="hero-slide"
           defaultOpenFirst={false}

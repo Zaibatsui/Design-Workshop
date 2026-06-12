@@ -257,6 +257,14 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({
       tabs: config.tabs.map((t) => (t.id === id ? { ...t, ...patch } : t)),
     });
+  const duplicateTab = (id) => {
+    const idx = config.tabs.findIndex((t) => t.id === id);
+    if (idx < 0) return;
+    const clone = { ...config.tabs[idx], id: makeUid() };
+    const arr = [...config.tabs];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ tabs: arr });
+  };
 
   return (
     <FormAccordion sectionType="tabs">
@@ -337,6 +345,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addTab}
           onRemove={removeTab}
           onMove={moveTab}
+          onDuplicate={duplicateTab}
           addLabel="Add tab"
           testidPrefix="tab"
           renderRow={(t) => (

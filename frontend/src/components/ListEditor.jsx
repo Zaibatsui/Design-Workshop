@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, ArrowUp, ArrowDown, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
  * Each item is rendered as a collapsible row using `renderRow` for the
  * compact summary and `renderForm` for the expanded form.
  *
- * UX detail: when a new item is added (the items array grows), the
- * newly-appended row auto-expands AND scrolls into view, so users can
- * start editing it immediately instead of scrolling down and hunting
- * for the new (collapsed) row. Reorder / remove operations don't
- * trigger this behaviour.
+ * UX detail: when a new item is added (either via Add or Duplicate)
+ * the new row auto-expands AND scrolls into view, so users can start
+ * editing it immediately. Detection is by NEW id (not length growth),
+ * which means a duplicate inserted mid-list opens correctly too.
+ * Reorder / remove operations don't trigger this behaviour.
  *
  * Props:
  *   - `defaultOpenFirst` (bool, default true): opens the first row on
@@ -20,12 +20,17 @@ import { Button } from "@/components/ui/button";
  *   - `onOpenChange(id|null)`: optional callback fired whenever the
  *     active row changes. Lets parents synchronise other UI (e.g.
  *     hero live-preview slide index) with the editor state.
+ *   - `onDuplicate(id)` (optional): if provided, an extra "duplicate"
+ *     button is rendered between the move-down and trash icons. The
+ *     parent is responsible for cloning the item with a fresh id —
+ *     the ListEditor only needs to know which item is being copied.
  */
 export default function ListEditor({
   items,
   onAdd,
   onRemove,
   onMove,
+  onDuplicate,
   renderRow,
   renderForm,
   addLabel = "Add item",
@@ -36,26 +41,26 @@ export default function ListEditor({
   const [openId, setOpenId] = useState(
     defaultOpenFirst ? items[0]?.id || null : null
   );
-  const prevLen = useRef(items.length);
+  const prevIds = useRef(items.map((i) => i.id));
   const rowRefs = useRef({});
 
   useEffect(() => {
-    if (items.length > prevLen.current) {
-      const last = items[items.length - 1];
-      if (last) {
-        setOpenId(last.id);
-        // Scroll the new row into view once it has rendered expanded.
-        // `block: "center"` so the top edge of the now-tall row doesn't
-        // butt up against the editor toolbar / sticky header.
-        requestAnimationFrame(() => {
-          const el = rowRefs.current[last.id];
-          if (el && typeof el.scrollIntoView === "function") {
-            el.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        });
-      }
+    const currentIds = items.map((i) => i.id);
+    const newIds = currentIds.filter((id) => !prevIds.current.includes(id));
+    // Auto-expand + scroll-to when exactly one item is newly added.
+    // Covers both Add-at-end and Duplicate-mid-list. Skips bulk inserts
+    // so a paste of many rows doesn't yank the user to the last one.
+    if (newIds.length === 1) {
+      const newId = newIds[0];
+      setOpenId(newId);
+      requestAnimationFrame(() => {
+        const el = rowRefs.current[newId];
+        if (el && typeof el.scrollIntoView === "function") {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
     }
-    prevLen.current = items.length;
+    prevIds.current = currentIds;
   }, [items]);
 
   // Notify parents (e.g. hero editor) when the active row changes so
@@ -169,6 +174,17 @@ export default function ListEditor({
                 >
                   <ArrowDown className="w-3.5 h-3.5 text-slate-500" />
                 </button>
+                {onDuplicate && (
+                  <button
+                    type="button"
+                    data-testid={`${testidPrefix}-duplicate-${idx}`}
+                    onClick={() => onDuplicate(item.id)}
+                    title="Duplicate"
+                    className="p-1 rounded hover:bg-slate-100"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                  </button>
+                )}
                 <button
                   type="button"
                   data-testid={`${testidPrefix}-remove-${idx}`}

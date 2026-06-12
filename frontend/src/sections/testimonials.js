@@ -247,6 +247,15 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({
       items: config.items.map((t) => (t.id === id ? { ...t, ...patch } : t)),
     });
+  const duplicateItem = (id) => {
+    const arr = config.items || [];
+    const idx = arr.findIndex((t) => t.id === id);
+    if (idx < 0) return;
+    const clone = { ...arr[idx], id: makeUid() };
+    const next = [...arr];
+    next.splice(idx + 1, 0, clone);
+    onUpdate({ items: next });
+  };
 
   return (
     <FormAccordion sectionType="testimonials">
@@ -387,6 +396,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addItem}
           onRemove={removeItem}
           onMove={moveItem}
+          onDuplicate={duplicateItem}
           addLabel="Add testimonial"
           testidPrefix="testi"
           renderRow={(t) => (

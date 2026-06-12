@@ -219,6 +219,14 @@ function FormPanel({ config, onUpdate }) {
     onUpdate({ points: [...points, samplePoint(points.length)] });
   const removePoint = (id) =>
     onUpdate({ points: points.filter((p) => p.id !== id) });
+  const duplicatePoint = (id) => {
+    const idx = points.findIndex((p) => p.id === id);
+    if (idx < 0) return;
+    const clone = { ...points[idx], id: makeUid() };
+    const arr = [...points];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ points: arr });
+  };
   const reorderPoints = (next) => onUpdate({ points: next });
 
   return (
@@ -371,6 +379,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addPoint}
           onRemove={removePoint}
           onReorder={reorderPoints}
+          onDuplicate={duplicatePoint}
           itemLabel={(p) => p.title || "Untitled point"}
           addLabel="Add point"
           testid="fc-points"

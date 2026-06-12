@@ -207,6 +207,14 @@ function FormPanel({ config, onUpdate }) {
         r.id === id ? { ...r, ...patch } : r
       ),
     });
+  const duplicateResource = (id) => {
+    const idx = config.resources.findIndex((r) => r.id === id);
+    if (idx < 0) return;
+    const clone = { ...config.resources[idx], id: makeUid() };
+    const arr = [...config.resources];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ resources: arr });
+  };
 
   return (
     <FormAccordion sectionType="resources">
@@ -354,6 +362,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={addResource}
           onRemove={removeResource}
           onMove={moveResource}
+          onDuplicate={duplicateResource}
           addLabel="Add resource"
           testidPrefix="resource"
           renderRow={(r) => (

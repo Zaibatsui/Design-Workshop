@@ -155,6 +155,14 @@ function FormPanel({ config, onUpdate }) {
       ],
     });
   const remove = (id) => onUpdate({ items: items.filter((it) => it.id !== id) });
+  const duplicate = (id) => {
+    const idx = items.findIndex((it) => it.id === id);
+    if (idx < 0) return;
+    const clone = { ...items[idx], id: makeUid() };
+    const arr = [...items];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ items: arr });
+  };
   const reorder = (next) => onUpdate({ items: next });
 
   return (
@@ -165,6 +173,7 @@ function FormPanel({ config, onUpdate }) {
           onAdd={add}
           onRemove={remove}
           onReorder={reorder}
+          onDuplicate={duplicate}
           itemLabel={(it) => it.title || "Untitled item"}
           addLabel="Add item"
           testidPrefix="trust-item"

@@ -241,6 +241,14 @@ function FormPanel({ config, onUpdate, previewMode }) {
     });
   const removeFeature = (id) =>
     onUpdate({ features: features.filter((f) => f.id !== id) });
+  const duplicateFeature = (id) => {
+    const idx = features.findIndex((f) => f.id === id);
+    if (idx < 0) return;
+    const clone = { ...features[idx], id: makeUid() };
+    const next = [...features];
+    next.splice(idx + 1, 0, clone);
+    onUpdate({ features: next });
+  };
   const reorderFeatures = (next) => onUpdate({ features: next });
 
   return (
@@ -409,6 +417,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
           onReorder={reorderFeatures}
           onRemove={removeFeature}
           onAdd={addFeature}
+          onDuplicate={duplicateFeature}
           itemLabel={(f) => f.title || "Untitled feature"}
           addLabel="Add feature"
           testidPrefix="feature"
