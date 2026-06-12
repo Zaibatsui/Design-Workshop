@@ -55,6 +55,16 @@ const defaults = () => ({
   bgColor: "#f7f7f8",
   accentColor: "#E01839",
   bodyColor: "#333333",
+  // Section header (eyebrow + heading + intro) — all optional. When
+  // none are set the renderer drops the header block entirely so the
+  // section starts straight at the tabs row (current behaviour).
+  eyebrow: "",
+  heading: "",
+  subheading: "",
+  // Header alignment (desktop): "left" | "center" | "right". Keeps
+  // `tabsAlign` independent so the tab row and the section title can
+  // align differently.
+  headerAlign: "left",
   paddingY: 60,
   paddingTop: 60,
   paddingBottom: 60,
@@ -182,6 +192,36 @@ function render(cfg) {
       ? "flex-end"
       : "flex-start";
 
+  // Section header (eyebrow + title + intro). Each field is optional;
+  // the whole `<header>` is dropped when none are set so existing
+  // configurations render identically to before. Each paragraph in
+  // the intro is split on a blank line so users can write multi-para
+  // intros in the textarea.
+  const eyebrowHtml = cfg.eyebrow
+    ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>`
+    : "";
+  const sectionHeadingHtml = cfg.heading
+    ? `<h2 class="ns-section-heading">${escHtml(cfg.heading)}</h2>`
+    : "";
+  const subHtml = cfg.subheading
+    ? String(cfg.subheading)
+        .split(/\n\s*\n/)
+        .filter((p) => p.trim())
+        .map((p) => `<p class="ns-section-sub">${escHtml(p)}</p>`)
+        .join("")
+    : "";
+  const headerHtml =
+    eyebrowHtml || sectionHeadingHtml || subHtml
+      ? `<header class="ns-section-head" data-ns-group="header"><div class="ns-section-head-inner">${eyebrowHtml}${sectionHeadingHtml}${subHtml}</div></header>`
+      : "";
+
+  const headerAlign =
+    cfg.headerAlign === "center"
+      ? "center"
+      : cfg.headerAlign === "right"
+        ? "right"
+        : "left";
+
   // When image lives on the left we flip the two grid columns. We keep
   // the source order copy → image (same as before) so the snippet's DOM
   // remains stable for analytics/SEO; CSS does the visual swap.
@@ -191,6 +231,12 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad-t) var(--ns-pad-x) var(--ns-pad-b);width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto}
+.${cls} .ns-section-head{margin-bottom:32px;text-align:${headerAlign}}
+.${cls} .ns-section-head-inner{max-width:720px;${headerAlign === "center" ? "margin:0 auto;" : headerAlign === "right" ? "margin:0 0 0 auto;" : ""}}
+.${cls} .ns-section-head .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-accent);margin:0 0 12px}
+.${cls} .ns-section-heading{font-size:var(--ns-heading-size,30px);font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:var(--ns-accent);margin:0 0 12px}
+.${cls} .ns-section-sub{font-size:16px;line-height:1.6;color:var(--ns-body);margin:0 0 10px}
+.${cls} .ns-section-sub:last-child{margin-bottom:0}
 .${cls} .ns-tabs-row{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap;justify-content:${tabsAlign}}
 .${cls} .ns-tab{border:1px solid #e4e4e7;background:#fff;color:var(--ns-accent);padding:12px 18px;border-radius:6px;font-weight:600;font-size:14px;transition:background .15s ease,color .15s ease}
 .${cls} .ns-tab:hover{background:#f9fafb}
@@ -216,7 +262,7 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 
   const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-inner">
-    <div class="ns-tabs-row">${buttonsHtml}</div>
+    ${headerHtml}<div class="ns-tabs-row">${buttonsHtml}</div>
     <div class="ns-panels">${panelsHtml}</div>
   </div>
 </section>`;
@@ -268,6 +314,46 @@ function FormPanel({ config, onUpdate }) {
 
   return (
     <FormAccordion sectionType="tabs">
+      <Group title="Section header" value="section-header">
+        <p className="text-[11px] text-slate-500 mb-2 leading-snug">
+          Optional eyebrow / title / intro shown above the tab row.
+          Leave all three empty to hide the header entirely.
+        </p>
+        <TextField
+          label="Eyebrow (small label above title)"
+          value={config.eyebrow || ""}
+          onChange={(v) => onUpdate({ eyebrow: v })}
+          placeholder="e.g. Compare plans"
+          testid="tabs-eyebrow"
+        />
+        <TextField
+          label="Title"
+          value={config.heading || ""}
+          onChange={(v) => onUpdate({ heading: v })}
+          placeholder="e.g. Choose the right plan for you"
+          testid="tabs-heading"
+        />
+        <TextAreaField
+          label="Intro"
+          value={config.subheading || ""}
+          onChange={(v) => onUpdate({ subheading: v })}
+          placeholder="One or two short sentences. Leave a blank line between paragraphs to split."
+          rows={3}
+          testid="tabs-subheading"
+        />
+        <SelectField
+          label="Header alignment"
+          value={config.headerAlign || "left"}
+          onChange={(v) => onUpdate({ headerAlign: v })}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          testid="tabs-header-align"
+        />
+      </Group>
+
       <Group title="Defaults" value="defaults">
         <SelectField
           label="Tab alignment"
