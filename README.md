@@ -9,7 +9,7 @@
 
 Build hero banners, product carousels, FAQs, testimonials, stat counters and more — theme them with a Brand Kit, drag-stack them into Pages, then drop the resulting standalone HTML into Shopify, WordPress, Squarespace, Wix, Webflow, BigCommerce, Magento, Nettailer or any other tool that accepts a custom HTML block. No React, no jQuery, no CDN calls at runtime. Just markup.
 
-[Why this exists](#why-this-exists) · [Features](#features) · [Studio mode](#studio-mode) · [Architecture](#architecture) · [Local development](#local-development) · [Self-hosted production](#production-deployment)
+[Why this exists](#why-this-exists) · [Features](#features) · [Studio mode](#studio-mode) · [Architecture](#architecture) · [Local development](#local-development) · [Self-hosted production](#production-deployment) · [Changelog](CHANGELOG.md)
 
 </div>
 
