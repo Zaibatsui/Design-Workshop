@@ -716,7 +716,12 @@ function renderSlide(cfg) {
     })
     .join("");
 
-  const dotsHtml = s.showDots
+  // Carousel chrome (arrows + dots) is meaningless with a single
+  // slide — suppress both the HTML and the CSS class hooks so the
+  // section doesn't reserve dot-row spacing for nothing.
+  const isCarousel = slides.length > 1;
+
+  const dotsHtml = s.showDots && isCarousel
     ? `<div class="ns-dots" role="tablist">${slides
         .map(
           (_, i) =>
@@ -725,7 +730,7 @@ function renderSlide(cfg) {
         .join("")}</div>`
     : "";
 
-  const arrowsHtml = arrowsVisibility !== "never"
+  const arrowsHtml = arrowsVisibility !== "never" && isCarousel
     ? `<button class="ns-arrow ns-prev" type="button" data-ns-prev aria-label="Previous">‹</button>
 <button class="ns-arrow ns-next" type="button" data-ns-next aria-label="Next">›</button>`
     : "";
@@ -735,12 +740,14 @@ function renderSlide(cfg) {
   // it; "always" / "never" get no class (always shown / never
   // rendered respectively).
   const arrowsCls =
-    arrowsVisibility === "desktop"
-      ? " is-arrows-desktop"
-      : arrowsVisibility === "mobile"
-        ? " is-arrows-mobile"
-        : "";
-  const dotsCls = s.showDots ? " has-dots" : "";
+    !isCarousel || arrowsVisibility === "always" || arrowsVisibility === "never"
+      ? ""
+      : arrowsVisibility === "desktop"
+        ? " is-arrows-desktop"
+        : arrowsVisibility === "mobile"
+          ? " is-arrows-mobile"
+          : "";
+  const dotsCls = s.showDots && isCarousel ? " has-dots" : "";
   const mobileCenterCls = isMobileCenter ? " is-mobile-center" : "";
 
   const css = `
@@ -871,7 +878,12 @@ function renderFade(cfg) {
     })
     .join("");
 
-  const dotsHtml = s.showDots
+  // Carousel chrome (arrows + dots) is meaningless with a single
+  // slide — suppress both the HTML and the CSS class hooks so the
+  // section doesn't reserve dot-row spacing for nothing.
+  const isCarousel = slides.length > 1;
+
+  const dotsHtml = s.showDots && isCarousel
     ? `<div class="ns-dots" role="tablist">${slides
         .map(
           (_, i) =>
@@ -880,18 +892,24 @@ function renderFade(cfg) {
         .join("")}</div>`
     : "";
 
-  const arrowsHtml = arrowsVisibility !== "never"
+  const arrowsHtml = arrowsVisibility !== "never" && isCarousel
     ? `<button class="ns-arrow ns-prev" type="button" data-ns-prev aria-label="Previous">‹</button>
 <button class="ns-arrow ns-next" type="button" data-ns-next aria-label="Next">›</button>`
     : "";
 
+  // Class hooks for CSS toggles. `is-arrows-desktop` hides arrows
+  // under (max-width:767px); `is-arrows-mobile` hides them above
+  // it; "always" / "never" get no class (always shown / never
+  // rendered respectively).
   const arrowsCls =
-    arrowsVisibility === "desktop"
-      ? " is-arrows-desktop"
-      : arrowsVisibility === "mobile"
-        ? " is-arrows-mobile"
-        : "";
-  const dotsCls = s.showDots ? " has-dots" : "";
+    !isCarousel || arrowsVisibility === "always" || arrowsVisibility === "never"
+      ? ""
+      : arrowsVisibility === "desktop"
+        ? " is-arrows-desktop"
+        : arrowsVisibility === "mobile"
+          ? " is-arrows-mobile"
+          : "";
+  const dotsCls = s.showDots && isCarousel ? " has-dots" : "";
   const mobileCenterCls = isMobileCenter ? " is-mobile-center" : "";
 
   const css = `

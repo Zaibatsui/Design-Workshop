@@ -609,5 +609,62 @@ function baseCfg(overrides = {}) {
   );
 }
 
+// ─── Regression: with only one slide, dots and arrows must be
+// suppressed entirely (no `ns-dots` block, no `ns-arrow` buttons,
+// no `has-dots` class hook reserving dot-row padding). The
+// carousel chrome is meaningless for a single slide.
+{
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.slides = [cfg.slides[0]]; // single-slide
+  cfg.showDots = true;
+  cfg.arrowsVisibility = "always";
+  const code = hero.render(cfg);
+  expect(
+    "Single-slide carousel (slide): no <div class=\"ns-dots\"> emitted",
+    !code.includes('class="ns-dots"')
+  );
+  expect(
+    "Single-slide carousel (slide): no ns-arrow buttons emitted",
+    !code.includes('class="ns-arrow')
+  );
+  expect(
+    "Single-slide carousel (slide): no `has-dots` class on root section",
+    !/<section class="ns-hero [^"]*has-dots/.test(code)
+  );
+}
+
+// Same regression for the fade-transition variant.
+{
+  const cfg = baseCfg({ transition: "fade" });
+  cfg.slides = [cfg.slides[0]];
+  cfg.showDots = true;
+  cfg.arrowsVisibility = "always";
+  const code = hero.render(cfg);
+  expect(
+    "Single-slide carousel (fade): no dots emitted",
+    !code.includes('class="ns-dots"')
+  );
+  expect(
+    "Single-slide carousel (fade): no arrows emitted",
+    !code.includes('class="ns-arrow')
+  );
+}
+
+// Sanity guard: with 2+ slides, the chrome should still appear.
+{
+  const cfg = baseCfg({ transition: "slide" });
+  cfg.showDots = true;
+  cfg.arrowsVisibility = "always";
+  const code = hero.render(cfg);
+  expect(
+    "Multi-slide carousel still renders dots",
+    code.includes('class="ns-dots"')
+  );
+  expect(
+    "Multi-slide carousel still renders arrows",
+    code.includes('class="ns-arrow ns-prev"') && code.includes('class="ns-arrow ns-next"')
+  );
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
