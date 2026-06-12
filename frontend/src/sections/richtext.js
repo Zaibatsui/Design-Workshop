@@ -68,7 +68,7 @@ function render(cfg = {}) {
 
   const css = `
 ${baseReset(cls, { lowSpecificity: respectInlineStyles })}
-.${cls}{background:${bg};padding:${padTop}px ${padX}px ${padBot}px}
+.${cls}{background:${bg};padding:${padTop}px ${padX}px ${padBot}px;display:flow-root}
 ${w(`.${cls}`)}{color:${fg}${bang}}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
