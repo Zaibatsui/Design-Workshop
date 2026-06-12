@@ -63,7 +63,11 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 
 ### Hybrid Page Builder
 
-Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder. Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Ten page templates ship out of the box: **Landing**, **Product detail**, **Category hub**, **About us**, **Pricing**, **Blog post**, **Brand page**, **Service landing**, **Story page** (Hero → Video Embed → Stat Counter → Trust Strip → CTA Banner), plus **Blank**.
+Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder, **duplicate** any block in place (the same one-click duplicate is available on every list editor inside sections — Hero slides, Tabs tabs, FAQ items, Feature Grid cards, Products, etc.). Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Ten page templates ship out of the box: **Landing**, **Product detail**, **Category hub**, **About us**, **Pricing**, **Blog post**, **Brand page**, **Service landing**, **Story page** (Hero → Video Embed → Stat Counter → Trust Strip → CTA Banner), plus **Blank**.
+
+### Collections (folders)
+
+A user-scoped, flat folder system for organising your library as it grows. Both sections and pages can be filed into one collection at a time; unfiled items show under **Unfiled**. The dashboard surfaces a colour-coded chip row above the Sections / Pages tabs — click a chip to filter both tabs simultaneously, click **Manage** to create / rename / recolour / delete from a small modal. Eight curated dot colours, 1–40 character names. Items get a **Move to…** dropdown on every dashboard card; moves are optimistic with rollback-on-failure. If you click **New section** or **New page** while a chip is active the new item is filed there automatically (a contextual hint underneath the chip row confirms where it'll land). Deleting a collection cascade-NULLs `collection_id` on every owned section + page — items are never silently lost.
 
 ### Brand Kit
 

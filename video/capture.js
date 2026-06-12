@@ -7,7 +7,10 @@ const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
 
-const BASE = process.env.BASE_URL || "https://content-forge-1039.preview.emergentagent.com";
+// Override at run-time with: BASE_URL=https://your.app/ node capture.js
+// Falls back to localhost so the script works out-of-the-box in a fresh
+// local clone without exposing any hosted preview URL.
+const BASE = process.env.BASE_URL || "http://localhost:3000";
 const OUT = path.resolve(__dirname, "frames");
 
 (async () => {

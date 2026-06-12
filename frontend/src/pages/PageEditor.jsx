@@ -492,17 +492,18 @@ export default function PageEditor({ studio = false }) {
                 <Save className="w-3.5 h-3.5" />
                 <span className="hidden xl:inline">Save as template</span>
               </Button>
-              <div className="h-5 w-px bg-zinc-200 mx-1" />
+              <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
               <StudioToggle />
-              <div className="h-5 w-px bg-zinc-200 mx-1" />
+              <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
               <Button
                 data-testid="copy-page-snippet-button"
                 onClick={copySnippet}
                 disabled={(page.blocks || []).length === 0}
-                className="h-8 w-[200px] justify-center bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
+                title="Copy snippet"
+                className="h-8 xl:w-[200px] justify-center bg-[#E01839] hover:bg-[#c01530] text-white text-[12px] font-medium gap-1.5 px-3 ml-1"
               >
                 <Copy className="w-3.5 h-3.5" />
-                Copy snippet
+                <span className="hidden xl:inline">Copy snippet</span>
               </Button>
             </div>
           </div>

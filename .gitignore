@@ -86,21 +86,12 @@ dump.rdb
 # --- Generated promo video assets (regenerate with /video/build.sh) ---
 /video/frames/
 /video/output/
+
+# --- Build / dev caches (covered by node_modules above, but the
+# webpack cache occasionally ends up tracked when node_modules is
+# stashed; this catches stragglers explicitly) ---
+**/node_modules/.cache/
 frontend/node_modules/.cache/default-development/29.pack
-frontend/node_modules/.cache/default-development/5.pack
 frontend/node_modules/.cache/default-development/1.pack
-frontend/node_modules/.cache/default-development/2.pack
-frontend/node_modules/.cache/default-development/4.pack
-frontend/node_modules/.cache/default-development/6.pack
-frontend/node_modules/.cache/default-development/6.pack
-frontend/node_modules/.cache/default-development/11.pack
-frontend/node_modules/.cache/default-development/8.pack
-frontend/node_modules/.cache/default-development/12.pack
-frontend/node_modules/.cache/default-development/3.pack
 frontend/node_modules/.cache/default-development/14.pack
-frontend/node_modules/.cache/default-development/16.pack
-frontend/node_modules/.cache/default-development/0.pack
-frontend/node_modules/.cache/default-development/10.pack
-frontend/node_modules/.cache/default-development/7.pack
-frontend/node_modules/.cache/default-development/9.pack
 frontend/node_modules/.cache/default-development/18.pack

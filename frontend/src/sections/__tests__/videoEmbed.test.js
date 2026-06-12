@@ -83,7 +83,7 @@ const URL_CASES = [
   { in: "https://vimeo.com/76979871", type: "iframe", expectId: "76979871", host: "player.vimeo.com" },
   { in: "https://player.vimeo.com/video/76979871", type: "iframe", expectId: "76979871", host: "player.vimeo.com" },
   // Direct video files — should route through HTML5 <video>, not iframe.
-  { in: "https://content-forge-1039.preview.emergentagent.com/_dws_video/design-workshop-30s.mp4", type: "video", expectId: "design-workshop-30s.mp4", host: "content-forge" },
+  { in: "https://media.example.com/_dws_video/design-workshop-30s.mp4", type: "video", expectId: "design-workshop-30s.mp4", host: "media.example.com" },
   { in: "https://cdn.example.com/path/foo.webm", type: "video", expectId: "foo.webm", host: "cdn.example.com" },
   { in: "https://cdn.example.com/path/foo.mp4?cache=123", type: "video", expectId: "foo.mp4", host: "cdn.example.com" },
 ];

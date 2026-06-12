@@ -32,7 +32,7 @@ import { BRAND } from "@/lib/brand";
 import TicketDialog from "@/components/TicketDialog";
 import { Button } from "@/components/ui/button";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
-import { Columns3, Hash, PlayCircle } from "lucide-react";
+import { Columns3, Hash, PlayCircle, FolderOpen } from "lucide-react";
 
 /**
  * UserGuide — the in-app reference manual. Long-form, opinionated,
@@ -46,6 +46,7 @@ const SECTIONS = [
   { id: "quickstart", label: "Quickstart (5 min)", Icon: Clock },
   { id: "getting-started", label: "Getting started", Icon: Rocket },
   { id: "dashboard", label: "Dashboard tour", Icon: LayoutGrid },
+  { id: "collections", label: "Collections (folders)", Icon: FolderOpen },
   { id: "section-editor", label: "Building a section", Icon: PenLine },
   { id: "section-types", label: "Section types", Icon: Layers },
   { id: "page-builder", label: "Hybrid page builder", Icon: FileStack },
@@ -263,17 +264,75 @@ export default function UserGuide({ chromeless = false }) {
                   persists to your library.
                 </>,
                 <>
-                  Hover a card to reveal <strong>Duplicate</strong> and{" "}
+                  Hover a card to reveal <strong>Move to&hellip;</strong>{" "}
+                  (file into a collection), <strong>Duplicate</strong> and{" "}
                   <strong>Delete</strong> actions.
                 </>,
                 <>
                   <strong>"+ New section"</strong> opens the section-type
                   picker. <strong>"+ New page"</strong> opens the template
-                  picker (start blank or pick one).
+                  picker (start blank or pick one). If a collection chip is
+                  active, the new item is filed there automatically.
                 </>,
                 <>
                   Click a card title to{" "}
                   <strong>rename inline</strong> — autosaves on blur or Enter.
+                </>,
+              ]}
+            />
+          </Section>
+
+          <Section id="collections" Icon={FolderOpen} title="Collections (folders)">
+            <P>
+              Once your library grows past a handful of items, collections
+              keep it tidy. A collection is a flat folder — sections and
+              pages can be filed into one, items without one show under
+              <strong> "Unfiled"</strong>. Each user has their own private
+              set of collections.
+            </P>
+            <P>
+              The <strong>Collections</strong> strip sits just above the
+              Sections / Pages tabs on the dashboard. Click a chip to
+              filter both tabs simultaneously to items in that collection.
+              Each chip carries a colour dot and a count of how many
+              items live inside.
+            </P>
+            <Bullets
+              items={[
+                <>
+                  <strong>Create a collection</strong> via the{" "}
+                  <Kbd>Manage</Kbd> button at the end of the strip. Pick
+                  a name (1–40 chars) and one of eight colours.
+                </>,
+                <>
+                  <strong>File an item</strong> from the dashboard card —
+                  hover, click the folder icon, pick a target. The move
+                  is optimistic so it feels instant; we roll back with
+                  a toast if the server rejects it.
+                </>,
+                <>
+                  <strong>Save-on-create</strong>: if you click "New
+                  section" or "New page" <em>while</em> a collection chip
+                  is active, the new item lands directly inside that
+                  collection. The strip shows a hint —{" "}
+                  <em>"New items will be saved to 'Arcserve'."</em> — so
+                  you know where it's going.
+                </>,
+                <>
+                  <strong>Rename or recolour</strong> from the Manage
+                  dialog. Items inside the collection update instantly.
+                </>,
+                <>
+                  <strong>Delete a collection</strong> from the Manage
+                  dialog. The items inside are <strong>not</strong>{" "}
+                  deleted — they become Unfiled. We treat this as a
+                  one-way operation: if you really want them gone,
+                  delete the items individually first.
+                </>,
+                <>
+                  <strong>"All items"</strong> always shows everything
+                  regardless of filing; <strong>"Unfiled"</strong> shows
+                  only items not yet filed.
                 </>,
               ]}
             />
@@ -551,6 +610,10 @@ export default function UserGuide({ chromeless = false }) {
                 <>Set a testimonial's rating to <strong>0</strong> to hide its stars individually, or toggle "Show star ratings" off to hide them across the whole block.</>,
                 <>The Grid section starts with neutral sample photos — swap each cell's image for your own via the editor's image picker.</>,
                 <>Toggle the preview between <strong>Desktop</strong> and <strong>Mobile</strong> in the editor's preview header — Hero exposes mobile-specific overlay, gradient and alignment overrides that only appear when the preview is in mobile mode.</>,
+                <>Every list row (Hero slides, Tabs tabs, Feature Grid cards, Products, FAQ items, etc.) now has a <strong>Duplicate</strong> icon between the move-down arrow and the trash icon. The clone lands directly under the original with a fresh id and the form auto-opens it.</>,
+                <>A Hero with only <strong>one slide</strong> automatically hides arrows and dots. They reappear the moment you add a second slide.</>,
+                <>The Hero carousel <strong>preview lock</strong> (opening a slide row in the inspector pins the carousel to that slide) now survives device-toggle and pause-on-hover. Previously a quick mouse-out could silently restart autoplay.</>,
+                <>Tabs sections now support an optional <strong>section header</strong> (eyebrow / title / intro) above the tab row — useful when you want the section to introduce itself before the tabs do.</>,
                 <>Hit <strong>"Report a bug"</strong> or <strong>"Request a feature"</strong> in the sidebar or page footer to file a ticket directly — admins can mark it Complete, Reject, or reopen it, and you'll see a red badge in the dashboard header when there's an update on your tickets.</>,
               ]}
             />
@@ -584,7 +647,7 @@ export default function UserGuide({ chromeless = false }) {
           </Section>
 
           <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-3">
-            <span>Last updated: 2026-06-02 ·</span>
+            <span>Last updated: 2026-02-13 ·</span>
             <span>Want a feature documented?</span>
             <Button
               type="button"
