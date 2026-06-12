@@ -68,6 +68,8 @@ class Page(BaseModel):
     name: str
     blocks: List[Dict[str, Any]]
     position: int = 0
+    # Optional folder this page is filed under. Null = "unfiled".
+    collection_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -101,6 +103,7 @@ async def _next_head_position(user_id: str) -> int:
 
 def _coerce_page(doc: Dict[str, Any]) -> Page:
     doc.setdefault("position", 0)
+    doc.setdefault("collection_id", None)
     return Page(**doc)
 
 

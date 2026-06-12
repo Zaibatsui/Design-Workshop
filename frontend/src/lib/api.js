@@ -92,6 +92,28 @@ export const api = {
       body: JSON.stringify({ page_ids: ids }),
     }),
 
+  // ─── Collections (folders) ─────────────────────────────────────────
+  // Sections + pages can be filed into a user-owned collection.
+  // `collection_id = null` means the item is unfiled (still visible
+  // under the dashboard's "All items" view).
+  listCollections: () => req("/collections"),
+  createCollection: (data) =>
+    req("/collections", { method: "POST", body: JSON.stringify(data) }),
+  updateCollection: (id, data) =>
+    req(`/collections/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteCollection: (id) =>
+    req(`/collections/${id}`, { method: "DELETE" }),
+  moveSectionToCollection: (sectionId, collectionId) =>
+    req(`/collections/move/section/${sectionId}`, {
+      method: "PUT",
+      body: JSON.stringify({ collection_id: collectionId }),
+    }),
+  movePageToCollection: (pageId, collectionId) =>
+    req(`/collections/move/page/${pageId}`, {
+      method: "PUT",
+      body: JSON.stringify({ collection_id: collectionId }),
+    }),
+
   listPageTemplates: () => req("/page-templates"),
   createPageTemplate: (data) =>
     req("/page-templates", { method: "POST", body: JSON.stringify(data) }),

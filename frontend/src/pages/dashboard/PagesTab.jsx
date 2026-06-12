@@ -23,6 +23,7 @@ import { Copy, FileStack, Trash2, GripVertical } from "lucide-react";
 import { previewDoc } from "@/sections/shared";
 import { composePage } from "@/sections/pageSnippet";
 import { api } from "@/lib/api";
+import MoveToCollectionMenu from "./MoveToCollectionMenu";
 import {
   EmptyState,
   mergeRefs,
@@ -37,7 +38,15 @@ import {
   useIframeScale,
 } from "./common";
 
-export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
+export default function PagesTab({
+  pages,
+  setPages,
+  onCreateClick,
+  loading,
+  collections = [],
+  onMove,
+  onManageCollections,
+}) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
 
@@ -142,6 +151,9 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
                 page={p}
                 onDelete={removePage}
                 onDuplicate={duplicatePage}
+                collections={collections}
+                onMove={onMove}
+                onManageCollections={onManageCollections}
               />
             ))}
           </div>
@@ -159,7 +171,14 @@ export default function PagesTab({ pages, setPages, onCreateClick, loading }) {
   );
 }
 
-const PageCard = memo(function PageCard({ page, onDelete, onDuplicate }) {
+const PageCard = memo(function PageCard({
+  page,
+  onDelete,
+  onDuplicate,
+  collections,
+  onMove,
+  onManageCollections,
+}) {
   const { wrapRef, iframeRef, scale, contentHeight, visible } = useIframeScale();
   const { measureRef, span } = useGridRowSpan();
   const {
@@ -260,6 +279,15 @@ const PageCard = memo(function PageCard({ page, onDelete, onDuplicate }) {
           </p>
         </Link>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onMove && (
+            <MoveToCollectionMenu
+              collections={collections || []}
+              currentId={page.collection_id ?? null}
+              onMove={(cid) => onMove(page.page_id, cid)}
+              onManage={onManageCollections}
+              testidPrefix={`page-${page.page_id}`}
+            />
+          )}
           <button
             type="button"
             onClick={(e) => {

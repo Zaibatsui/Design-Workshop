@@ -23,6 +23,7 @@ import { Copy, Layers, Trash2, GripVertical } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
 import { api } from "@/lib/api";
+import MoveToCollectionMenu from "./MoveToCollectionMenu";
 import {
   EmptyState,
   mergeRefs,
@@ -42,6 +43,9 @@ export default function SectionsTab({
   setSections,
   onCreateClick,
   loading,
+  collections = [],
+  onMove,
+  onManageCollections,
 }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -150,6 +154,9 @@ export default function SectionsTab({
                 section={s}
                 onDelete={removeSection}
                 onDuplicate={duplicateSection}
+                collections={collections}
+                onMove={onMove}
+                onManageCollections={onManageCollections}
               />
             ))}
           </div>
@@ -167,7 +174,14 @@ export default function SectionsTab({
   );
 }
 
-const SectionCard = memo(function SectionCard({ section, onDelete, onDuplicate }) {
+const SectionCard = memo(function SectionCard({
+  section,
+  onDelete,
+  onDuplicate,
+  collections,
+  onMove,
+  onManageCollections,
+}) {
   const def = SECTIONS_BY_ID[section.type];
   const { wrapRef, iframeRef, scale, contentHeight, visible } = useIframeScale();
   const { measureRef, span } = useGridRowSpan();
@@ -277,6 +291,15 @@ const SectionCard = memo(function SectionCard({ section, onDelete, onDuplicate }
           </p>
         </Link>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onMove && (
+            <MoveToCollectionMenu
+              collections={collections || []}
+              currentId={section.collection_id ?? null}
+              onMove={(cid) => onMove(section.section_id, cid)}
+              onManage={onManageCollections}
+              testidPrefix={`section-${section.section_id}`}
+            />
+          )}
           <button
             type="button"
             onClick={(e) => {

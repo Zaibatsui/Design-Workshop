@@ -25,6 +25,7 @@ load_dotenv(ROOT_DIR / ".env")
 from routers import admin as admin_router  # noqa: E402
 from routers import auth as auth_router  # noqa: E402
 from routers import brand_kit as brand_kit_router  # noqa: E402
+from routers import collections as collections_router  # noqa: E402
 from routers import landing_demo as landing_demo_router  # noqa: E402
 from routers import landing_spotlights as landing_spotlights_router  # noqa: E402
 from routers import preview_overrides as preview_overrides_router  # noqa: E402
@@ -127,6 +128,7 @@ api_router.include_router(image_library_router.router)
 api_router.include_router(inline_image_router.router)
 api_router.include_router(admin_router.router)
 api_router.include_router(tickets_router.router)
+api_router.include_router(collections_router.router)
 
 app.include_router(api_router)
 

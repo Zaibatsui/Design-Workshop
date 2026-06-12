@@ -36,6 +36,9 @@ class Section(BaseModel):
     type: str
     config: Dict[str, Any]
     position: int = 0
+    # Optional folder this section is filed under. Null = "unfiled" /
+    # appears in the dashboard's "All items" view.
+    collection_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -190,4 +193,5 @@ async def reorder_sections(
 
 def _coerce_section(doc: Dict[str, Any]) -> Section:
     doc.setdefault("position", 0)
+    doc.setdefault("collection_id", None)
     return Section(**doc)

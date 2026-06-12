@@ -11,6 +11,7 @@ import { BRAND } from "@/lib/brand";
 import SectionsTab from "./dashboard/SectionsTab";
 import PagesTab from "./dashboard/PagesTab";
 import RecentStrip from "./dashboard/RecentStrip";
+import CollectionsBar, { ManageCollectionsDialog } from "./dashboard/CollectionsBar";
 import { SectionPicker, Tabs } from "./dashboard/common";
 import PageTemplatePicker from "./dashboard/PageTemplatePicker";
 import TicketDialog from "@/components/TicketDialog";
@@ -24,6 +25,11 @@ export default function Dashboard({ chromeless = false }) {
   const [tab, setTab] = useState("sections");
   const [sections, setSections] = useState([]);
   const [pages, setPages] = useState([]);
+  const [collections, setCollections] = useState([]);
+  // Active collection filter. `null` = "All items", "__unfiled__" = items
+  // with no collection_id, any other string = that collection's id.
+  const [activeCollectionId, setActiveCollectionId] = useState(null);
+  const [manageOpen, setManageOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
   const [pagePicker, setPagePicker] = useState(false);
@@ -58,9 +64,14 @@ export default function Dashboard({ chromeless = false }) {
   useEffect(() => {
     (async () => {
       try {
-        const [s, p] = await Promise.all([api.listSections(), api.listPages()]);
+        const [s, p, c] = await Promise.all([
+          api.listSections(),
+          api.listPages(),
+          api.listCollections(),
+        ]);
         setSections(s);
         setPages(p);
+        setCollections(c);
       } catch {
         toast.error("Could not load your library");
       } finally {
@@ -94,6 +105,52 @@ export default function Dashboard({ chromeless = false }) {
       ? { id: template.id, name: template.name, blocks: template.blocks || [] }
       : null;
     navigate("/edit/page/new", { state: { template: safe } });
+  };
+
+  // Filter helpers — keep the active-collection logic in one place so
+  // the two tabs (sections/pages) stay consistent. `__unfiled__` is a
+  // synthetic id meaning "any item whose collection_id is null".
+  const filterByCollection = (items) => {
+    if (activeCollectionId === null) return items;
+    if (activeCollectionId === "__unfiled__")
+      return items.filter((it) => !it.collection_id);
+    return items.filter((it) => it.collection_id === activeCollectionId);
+  };
+  const filteredSections = filterByCollection(sections);
+  const filteredPages = filterByCollection(pages);
+  // Counts displayed in the chip row — combined across sections + pages
+  // because the bar filters both tabs simultaneously.
+  const allItems = [...sections, ...pages];
+  const countByCollection = { _all: allItems.length, _unfiled: 0 };
+  for (const it of allItems) {
+    if (!it.collection_id) countByCollection._unfiled += 1;
+    else
+      countByCollection[it.collection_id] =
+        (countByCollection[it.collection_id] || 0) + 1;
+  }
+
+  // Optimistic move: update the item's `collection_id` in local state
+  // immediately, then POST. Roll back on failure. The Tabs that own
+  // their own derived state still read from `sections` / `pages`, so
+  // they re-derive without needing extra wiring.
+  const moveItem = async (kind, id, collectionId) => {
+    const setter = kind === "section" ? setSections : setPages;
+    const idKey = kind === "section" ? "section_id" : "page_id";
+    let snapshot;
+    setter((arr) => {
+      snapshot = arr;
+      return arr.map((x) =>
+        x[idKey] === id ? { ...x, collection_id: collectionId } : x
+      );
+    });
+    try {
+      if (kind === "section")
+        await api.moveSectionToCollection(id, collectionId);
+      else await api.movePageToCollection(id, collectionId);
+    } catch {
+      toast.error("Move failed");
+      setter(snapshot);
+    }
   };
 
   return (
@@ -242,26 +299,42 @@ export default function Dashboard({ chromeless = false }) {
 
         {!loading && <RecentStrip sections={sections} pages={pages} />}
 
+        {!loading && (
+          <CollectionsBar
+            collections={collections}
+            activeId={activeCollectionId}
+            onChange={setActiveCollectionId}
+            onManage={() => setManageOpen(true)}
+            countByCollection={countByCollection}
+          />
+        )}
+
         <Tabs
           tab={tab}
           onChange={setTab}
-          sections={sections.length}
-          pages={pages.length}
+          sections={filteredSections.length}
+          pages={filteredPages.length}
         />
 
         {tab === "sections" ? (
           <SectionsTab
-            sections={sections}
+            sections={filteredSections}
             setSections={setSections}
             onCreateClick={() => setPicker(true)}
             loading={loading}
+            collections={collections}
+            onMove={(id, cid) => moveItem("section", id, cid)}
+            onManageCollections={() => setManageOpen(true)}
           />
         ) : (
           <PagesTab
-            pages={pages}
+            pages={filteredPages}
             setPages={setPages}
             onCreateClick={() => setPagePicker(true)}
             loading={loading}
+            collections={collections}
+            onMove={(id, cid) => moveItem("page", id, cid)}
+            onManageCollections={() => setManageOpen(true)}
           />
         )}
       </main>
@@ -285,6 +358,24 @@ export default function Dashboard({ chromeless = false }) {
           setTicketOpen(false);
           // Refresh in case the user (if admin) just filed one themselves.
           refreshTicketCount();
+        }}
+      />
+      <ManageCollectionsDialog
+        open={manageOpen}
+        onClose={() => setManageOpen(false)}
+        collections={collections}
+        setCollections={setCollections}
+        onDirty={() => {
+          // If the active chip's underlying collection was deleted,
+          // pop the filter back to "All items" so the user isn't
+          // staring at an empty view they can't escape.
+          if (
+            activeCollectionId &&
+            activeCollectionId !== "__unfiled__" &&
+            !collections.some((c) => c.collection_id === activeCollectionId)
+          ) {
+            setActiveCollectionId(null);
+          }
         }}
       />
       <Toaster richColors position="top-center" />
