@@ -249,6 +249,8 @@ function FormPanel({ config, onUpdate, previewMode }) {
           onUpdate={onUpdate}
           defaultValue={60}
           max={140}
+          sideMax={240}
+          sideDescription="Indents the content inward from the section edge. Because the inner content has a max width of 1200px, you'll only see it visibly shrink on wide screens once side padding exceeds roughly (viewport − 1200) ÷ 2."
           testidPrefix="content"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">

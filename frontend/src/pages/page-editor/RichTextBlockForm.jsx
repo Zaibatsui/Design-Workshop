@@ -104,6 +104,8 @@ function LayoutFields({ cfg, setCfg }) {
         defaultValue={48}
         min={0}
         max={160}
+        sideMax={240}
+        sideDescription="Indents the text column inward from the section edge. Because the inner content has a max width of 1200px, you'll only see the column visibly shrink on wide screens once side padding exceeds roughly (viewport − 1200) ÷ 2."
         testidPrefix="rt"
       />
       <SelectField

@@ -26,6 +26,7 @@ export default function PaddingFields({
   showSide = true,
   sideDefault = 20,
   sideMax = 80,
+  sideDescription,
 }) {
   const fallback = config.paddingY ?? defaultValue;
   const top = config.paddingTop ?? fallback;
@@ -60,6 +61,7 @@ export default function PaddingFields({
           suffix="px"
           onChange={(v) => onUpdate({ paddingX: v })}
           testid={`${testidPrefix}-pad-x`}
+          description={sideDescription}
         />
       )}
     </>

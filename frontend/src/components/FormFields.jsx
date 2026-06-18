@@ -57,6 +57,7 @@ export function SliderField({
   onChange,
   testid,
   disabled,
+  description,
 }) {
   return (
     // SliderField root gets a small `pb-1.5` so the visible rail
@@ -81,6 +82,9 @@ export function SliderField({
         max={max}
         step={step}
       />
+      {description && (
+        <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">{description}</p>
+      )}
     </div>
   );
 }
