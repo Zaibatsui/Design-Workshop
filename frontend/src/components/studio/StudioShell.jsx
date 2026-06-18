@@ -91,7 +91,7 @@ export default function StudioShell({ active, children, headerActions = null }) 
     (async () => {
       try {
         const data = await api.ticketCount();
-        if (!cancelled) setOpenTicketCount(data?.open ?? 0);
+        if (!cancelled) setOpenTicketCount(data?.unread ?? data?.open ?? 0);
       } catch {
         /* best-effort badge */
       }

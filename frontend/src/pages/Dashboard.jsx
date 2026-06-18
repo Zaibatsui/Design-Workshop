@@ -46,7 +46,7 @@ export default function Dashboard({ chromeless = false }) {
     if (!user?.is_admin) return;
     try {
       const data = await api.ticketCount();
-      setOpenTicketCount(data?.open ?? 0);
+      setOpenTicketCount(data?.unread ?? data?.open ?? 0);
     } catch {
       // best-effort badge; silent on failure so the dashboard isn't disturbed
     }

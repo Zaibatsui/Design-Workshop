@@ -178,6 +178,13 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+  replyTicket: (ticketId, body) =>
+    req(`/tickets/${ticketId}/replies`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
+  markAdminTicketsSeen: () =>
+    req(`/tickets/admin/seen`, { method: "POST" }),
   deleteTicket: (ticketId) =>
     req(`/tickets/${ticketId}`, { method: "DELETE" }),
 

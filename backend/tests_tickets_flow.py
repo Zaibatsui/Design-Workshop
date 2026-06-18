@@ -20,13 +20,16 @@ from datetime import datetime, timezone
 from db import db
 from routers.tickets import (
     TicketCreate,
+    TicketReplyCreate,
     TicketStatusUpdate,
     create_ticket,
     delete_ticket,
     list_my_tickets,
     list_tickets,
+    mark_admin_tickets_seen,
     mark_my_tickets_seen,
     my_ticket_notifications,
+    reply_to_ticket,
     ticket_count,
     update_ticket,
 )
@@ -167,6 +170,118 @@ async def main():
     await delete_ticket(other.id, reporter)
     doc2 = await db.tickets.find_one({"id": other.id})
     check("cleanup: hidden-then-hidden hard-deletes", doc2 is None)
+
+    # 9. Reply thread + strict turn-taking enforcement.
+    fresh = await create_ticket(
+        TicketCreate(type="bug", title="Reply test", description="initial body"),
+        reporter,
+    )
+    rid = fresh.id
+    check(
+        "fresh ticket: next_turn=admin (reporter just submitted)",
+        fresh.next_turn == "admin",
+    )
+    check("fresh ticket: replies=[]", fresh.replies == [])
+    # Count reflects the fresh ticket as unread for admin.
+    count = await ticket_count(admin)
+    check("count: unread bumps for new ticket", count["unread"] >= 1)
+
+    # Reporter cannot reply yet — it's the admin's turn.
+    from fastapi import HTTPException
+
+    try:
+        await reply_to_ticket(rid, TicketReplyCreate(body="too soon"), reporter)
+        check("reporter cannot reply on their own turn", False, "expected 409")
+    except HTTPException as e:
+        check(
+            "reporter cannot reply on their own turn (409)",
+            e.status_code == 409,
+            f"got {e.status_code}",
+        )
+
+    # Admin replies → turn flips to reporter, reporter_seen flips to False.
+    after_admin = await reply_to_ticket(
+        rid, TicketReplyCreate(body="thanks for the report"), admin
+    )
+    check("after admin reply: next_turn=reporter", after_admin.next_turn == "reporter")
+    check(
+        "after admin reply: 1 reply, author=admin",
+        len(after_admin.replies) == 1 and after_admin.replies[0].author == "admin",
+    )
+    notif = await my_ticket_notifications(reporter)
+    check(
+        "after admin reply: reporter notif=1 (reporter_seen False)",
+        notif.count == 1,
+        f"got {notif.count}",
+    )
+
+    # Admin cannot post a second time without reporter going first.
+    try:
+        await reply_to_ticket(rid, TicketReplyCreate(body="bumping"), admin)
+        check("admin cannot double-reply", False, "expected 409")
+    except HTTPException as e:
+        check(
+            "admin cannot double-reply (409)",
+            e.status_code == 409,
+            f"got {e.status_code}",
+        )
+
+    # Reporter replies → turn flips back to admin, admin_seen flips to False.
+    await mark_admin_tickets_seen(admin)
+    count = (await ticket_count(admin))["unread"]
+    after_reporter = await reply_to_ticket(
+        rid, TicketReplyCreate(body="any update?"), reporter
+    )
+    check(
+        "after reporter reply: next_turn=admin",
+        after_reporter.next_turn == "admin",
+    )
+    check(
+        "after reporter reply: 2 replies in order admin/reporter",
+        [r.author for r in after_reporter.replies] == ["admin", "reporter"],
+    )
+    new_count = (await ticket_count(admin))["unread"]
+    check(
+        "after reporter reply: admin unread badge bumps",
+        new_count == count + 1,
+        f"was {count} now {new_count}",
+    )
+
+    # Reporter cannot post a second reply now — turn flipped to admin.
+    try:
+        await reply_to_ticket(rid, TicketReplyCreate(body="another"), reporter)
+        check("reporter cannot double-reply", False, "expected 409")
+    except HTTPException as e:
+        check(
+            "reporter cannot double-reply (409)",
+            e.status_code == 409,
+            f"got {e.status_code}",
+        )
+
+    # A non-admin, non-reporter user can never reply.
+    stranger = fake_user("stranger@example.test", "Stranger", is_admin=False)
+    try:
+        await reply_to_ticket(rid, TicketReplyCreate(body="hi"), stranger)
+        check("stranger cannot reply", False, "expected 403")
+    except HTTPException as e:
+        check(
+            "stranger cannot reply (403)",
+            e.status_code == 403,
+            f"got {e.status_code}",
+        )
+
+    # Admin clears their badge → unread drops to baseline.
+    await mark_admin_tickets_seen(admin)
+    after_seen = (await ticket_count(admin))["unread"]
+    check(
+        "mark_admin_tickets_seen clears unread",
+        after_seen < new_count,
+        f"was {new_count} now {after_seen}",
+    )
+
+    # Cleanup.
+    await delete_ticket(rid, reporter)
+    await delete_ticket(rid, admin)
 
     print(f"\n{passed} passed, {failed} failed")
     return failed

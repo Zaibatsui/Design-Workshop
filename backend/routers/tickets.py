@@ -59,6 +59,23 @@ class TicketStatusUpdate(BaseModel):
     status: Literal["open", "complete", "rejected"]
 
 
+class TicketReplyCreate(BaseModel):
+    """Free-text follow-up posted by either the admin or the original
+    reporter on an existing ticket. Replies enforce strict turn-taking:
+    once you've spoken, you can't post again until the OTHER side
+    responds (see POST /tickets/{id}/replies)."""
+    body: str = Field(..., min_length=1, max_length=8000)
+
+
+class TicketReplyOut(BaseModel):
+    id: str
+    author: Literal["admin", "reporter"]
+    author_email: Optional[str] = None
+    author_name: Optional[str] = None
+    body: str
+    created_at: str
+
+
 class TicketOut(BaseModel):
     id: str
     type: str
@@ -75,6 +92,17 @@ class TicketOut(BaseModel):
     # Only meaningful on the `/mine` endpoint — `/admin` callers get
     # `False` here because admins are the originator of status flips.
     unread: bool = False
+    # Conversation thread. The original ticket title/description count
+    # as the reporter's first turn — turn-taking is computed off the
+    # last entry in `replies` (or, when empty, the original submission
+    # which is implicitly the reporter's turn).
+    replies: List[TicketReplyOut] = Field(default_factory=list)
+    # Whose turn it is to speak next. "admin" means a reporter just
+    # spoke (either the original submission or their last reply) and
+    # the admin is expected to respond; "reporter" means the admin
+    # just replied and the reporter may now respond. Drives the
+    # disabled state of the reply box on the front-end.
+    next_turn: Literal["admin", "reporter"] = "admin"
 
 
 class NotificationsOut(BaseModel):
@@ -87,7 +115,34 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _last_speaker(doc: dict) -> str:
+    """Return "reporter" or "admin" — whichever side posted the most
+    recent message in the thread. The original ticket counts as the
+    reporter's first turn, so an empty `replies` array yields
+    "reporter"."""
+    replies = doc.get("replies") or []
+    if not replies:
+        return "reporter"
+    return replies[-1].get("author") or "reporter"
+
+
+def _next_turn(doc: dict) -> str:
+    return "admin" if _last_speaker(doc) == "reporter" else "reporter"
+
+
+def _reply_to_out(r: dict) -> TicketReplyOut:
+    return TicketReplyOut(
+        id=r.get("id", ""),
+        author=r.get("author", "reporter"),
+        author_email=r.get("author_email"),
+        author_name=r.get("author_name"),
+        body=r.get("body", ""),
+        created_at=r.get("created_at", ""),
+    )
+
+
 def _doc_to_out(doc: dict, *, unread: bool = False) -> TicketOut:
+    replies = [_reply_to_out(r) for r in (doc.get("replies") or [])]
     return TicketOut(
         id=doc["id"],
         type=doc.get("type", "bug"),
@@ -100,6 +155,8 @@ def _doc_to_out(doc: dict, *, unread: bool = False) -> TicketOut:
         created_at=doc.get("created_at", ""),
         updated_at=doc.get("updated_at", ""),
         unread=unread,
+        replies=replies,
+        next_turn=_next_turn(doc),
     )
 
 
@@ -142,6 +199,13 @@ async def create_ticket(payload: TicketCreate, user: User = Depends(get_current_
         "hidden_for_reporter": False,
         # Reporter has seen their own submission by definition.
         "reporter_seen": True,
+        # Admin has NOT seen a brand-new submission yet — drives the
+        # admin badge counter via /tickets/count → `unread`.
+        "admin_seen": False,
+        # Empty conversation thread. The original ticket title/body
+        # counts as the reporter's "first turn" implicitly — see
+        # _last_speaker() / _next_turn() helpers.
+        "replies": [],
     }
     await db.tickets.insert_one(doc)
     logger.info("ticket created: %s by %s", doc["id"], user.email)
@@ -150,12 +214,17 @@ async def create_ticket(payload: TicketCreate, user: User = Depends(get_current_
 
 @router.get("/count")
 async def ticket_count(_user: User = Depends(require_admin)):
-    """Admin only — lightweight open-ticket counter for the dashboard badge.
-    Excludes tickets the admin has soft-hidden."""
-    open_count = await db.tickets.count_documents(
-        {"status": "open", "hidden_for_admin": {"$ne": True}}
+    """Admin only — lightweight badge counters for the dashboard.
+    `open` = count of open tickets (legacy, kept for back-compat).
+    `unread` = count of tickets that need the admin's attention:
+    brand-new submissions PLUS tickets where the reporter just
+    posted a reply. Excludes tickets the admin has soft-hidden."""
+    base = {"hidden_for_admin": {"$ne": True}}
+    open_count = await db.tickets.count_documents({**base, "status": "open"})
+    unread_count = await db.tickets.count_documents(
+        {**base, "admin_seen": False}
     )
-    return {"open": open_count}
+    return {"open": open_count, "unread": unread_count}
 
 
 @router.get("", response_model=List[TicketOut])
@@ -189,10 +258,12 @@ async def list_my_tickets(user: User = Depends(get_current_user)):
     return [
         _doc_to_out(
             d,
-            unread=(
-                d.get("status") in ("complete", "rejected")
-                and not d.get("reporter_seen", True)
-            ),
+            # Ticket is "unread" for the reporter whenever
+            # `reporter_seen` is False — which is set False either by
+            # a status flip (complete/rejected) OR by an admin reply
+            # landing in the thread. Either way the reporter has
+            # something new to look at, so the badge fires.
+            unread=not d.get("reporter_seen", True),
         )
         for d in rows
     ]
@@ -200,13 +271,12 @@ async def list_my_tickets(user: User = Depends(get_current_user)):
 
 @router.get("/mine/notifications", response_model=NotificationsOut)
 async def my_ticket_notifications(user: User = Depends(get_current_user)):
-    """Count of caller's tickets that have a recent admin-driven status
-    change (complete/rejected) and haven't been seen yet. Drives the
-    red badge on the My Tickets header link."""
+    """Count of caller's tickets that have a recent admin-driven
+    change (status flip OR a fresh reply) and haven't been seen yet.
+    Drives the red badge on the My Tickets header link."""
     count = await db.tickets.count_documents(
         {
             "created_by_email": user.email,
-            "status": {"$in": ["complete", "rejected"]},
             "reporter_seen": False,
             "hidden_for_reporter": {"$ne": True},
         }
@@ -224,6 +294,96 @@ async def mark_my_tickets_seen(user: User = Depends(get_current_user)):
         {"$set": {"reporter_seen": True}},
     )
     return {"updated": res.modified_count}
+
+
+@router.post("/admin/seen")
+async def mark_admin_tickets_seen(_user: User = Depends(require_admin)):
+    """Admin-side counterpart to /mine/seen. Bulk-clears the
+    `admin_seen` flag on every visible ticket so the dashboard badge
+    drops the moment admin opens the inbox."""
+    res = await db.tickets.update_many(
+        {"admin_seen": False, "hidden_for_admin": {"$ne": True}},
+        {"$set": {"admin_seen": True}},
+    )
+    return {"updated": res.modified_count}
+
+
+# ---- Reply thread (turn-taking enforced) ---------------------------
+
+@router.post("/{ticket_id}/replies", response_model=TicketOut)
+async def reply_to_ticket(
+    ticket_id: str,
+    payload: TicketReplyCreate,
+    user: User = Depends(get_current_user),
+):
+    """Append a reply to an existing ticket. Strict ping-pong rules:
+
+      * The original ticket counts as the reporter's first turn.
+      * Whichever side posted the most recent message holds the floor;
+        the OTHER side must reply before they can post again.
+      * Admins can reply to any ticket (they are the "other side" by
+        default). Reporters can only reply to tickets they filed.
+      * Other users get 403 — they have no view of the ticket anyway.
+
+    When admin replies → reporter_seen flips to False so the reporter
+    gets a "New" badge. When reporter replies → admin_seen flips to
+    False so the admin badge fires.
+    """
+    doc = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    is_admin = bool(user.is_admin)
+    is_reporter = doc.get("created_by_email") == user.email
+    if not is_admin and not is_reporter:
+        raise HTTPException(status_code=403, detail="Not allowed")
+
+    # Admins outrank reporters: if the caller is the admin role, treat
+    # the reply as admin even when they also happen to be the reporter
+    # (edge case for self-filed admin tickets). Otherwise, the reporter
+    # path applies.
+    author = "admin" if is_admin else "reporter"
+
+    last = _last_speaker(doc)
+    # The same side can't speak twice in a row.
+    if last == author:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "It's not your turn — wait for the other side to reply "
+                "before posting again."
+            ),
+        )
+
+    now = _now_iso()
+    reply_doc = {
+        "id": str(uuid.uuid4()),
+        "author": author,
+        "author_email": user.email,
+        "author_name": user.name,
+        "body": payload.body.strip(),
+        "created_at": now,
+    }
+
+    # Flip the OTHER side's seen flag so the right badge lights up.
+    update_set = {"updated_at": now}
+    if author == "admin":
+        update_set["reporter_seen"] = False
+    else:
+        update_set["admin_seen"] = False
+
+    await db.tickets.update_one(
+        {"id": ticket_id},
+        {"$push": {"replies": reply_doc}, "$set": update_set},
+    )
+    doc = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
+    logger.info(
+        "ticket reply by %s on %s: +%d chars",
+        author,
+        ticket_id,
+        len(payload.body),
+    )
+    return _doc_to_out(doc)
 
 
 # ---- Admin status mutation -----------------------------------------

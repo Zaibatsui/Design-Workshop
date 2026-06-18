@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import TicketThread from "@/components/TicketThread";
 
 const fmtDate = (iso) => {
   if (!iso) return "—";
@@ -84,6 +85,10 @@ export default function AdminTicketsPage({ chromeless = false }) {
 
   useEffect(() => {
     reload();
+    // Bulk-clear admin_seen on mount so the dashboard badge drops the
+    // moment the admin actually opens the inbox. Fire-and-forget — a
+    // failure here doesn't break the page.
+    api.markAdminTicketsSeen().catch(() => {});
   }, []);
 
   const setStatus = async (row, next) => {
@@ -334,6 +339,15 @@ export default function AdminTicketsPage({ chromeless = false }) {
                       ))}
                     </div>
                   )}
+                  <TicketThread
+                    ticket={row}
+                    viewerRole="admin"
+                    onReplied={(fresh) =>
+                      setRows((prev) =>
+                        prev.map((r) => (r.id === fresh.id ? fresh : r))
+                      )
+                    }
+                  />
                 </div>
               );
             })}

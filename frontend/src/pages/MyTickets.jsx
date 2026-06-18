@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import TicketThread from "@/components/TicketThread";
 
 const fmtDate = (iso) => {
   if (!iso) return "—";
@@ -300,6 +301,15 @@ export default function MyTicketsPage({ chromeless = false }) {
                       ))}
                     </div>
                   )}
+                  <TicketThread
+                    ticket={row}
+                    viewerRole="reporter"
+                    onReplied={(fresh) =>
+                      setRows((prev) =>
+                        prev.map((r) => (r.id === fresh.id ? fresh : r))
+                      )
+                    }
+                  />
                 </div>
               );
             })}
