@@ -44,6 +44,13 @@ class BrandKit(BaseModel):
     # conversion. Saved kits from before this field default to 8 px so
     # behaviour stays consistent with the previous hardcoded value.
     button_radius: int = Field(default=8, ge=0, le=9999)
+    # Global title line-height applied to .ns-title across Hero and
+    # Split Banner. Defaults to 1.2 — the value most users land on
+    # after tweaking in DevTools. Stored as a float so the slider can
+    # do fine-grained 0.05 steps (1.0 → 1.6 covers tight display
+    # headlines through editorial layouts). Saved kits from before
+    # this field default to 1.2 so behaviour is byte-identical.
+    title_line_height: float = Field(default=1.2, ge=0.8, le=2.0)
 
 
 DEFAULT_KIT = BrandKit().model_dump()

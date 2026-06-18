@@ -529,6 +529,59 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
           </div>
         </section>
 
+        <section data-testid="brand-kit-title-line-height">
+          <SectionHeader title="Title line-height" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <p className="text-xs text-slate-500">
+                  Applied to every Hero and Split Banner title. 1.0 reads
+                  tight (display-headline style); 1.2 is the sweet spot;
+                  1.4 + suits editorial layouts. Watch the headline in
+                  the Preview below as you drag.
+                </p>
+              </div>
+              <span
+                data-testid="brand-title-line-height-value"
+                className="text-sm tabular-nums text-slate-700 whitespace-nowrap"
+              >
+                {Number(draft.title_line_height ?? 1.2).toFixed(2)}
+              </span>
+            </div>
+            <input
+              data-testid="brand-title-line-height"
+              type="range"
+              min={0.9}
+              max={1.6}
+              step={0.05}
+              value={Number(draft.title_line_height ?? 1.2)}
+              onChange={(e) =>
+                set({ title_line_height: Number(e.target.value) })
+              }
+              className="w-full"
+            />
+            <div className="flex gap-2 pt-1">
+              {[1.0, 1.1, 1.2, 1.3, 1.4].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => set({ title_line_height: r })}
+                  data-testid={`brand-title-line-height-preset-${r.toFixed(1)}`}
+                  className={`text-xs px-3 py-1.5 border rounded transition-colors ${
+                    Math.abs(
+                      Number(draft.title_line_height ?? 1.2) - r
+                    ) < 0.001
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 hover:border-slate-400 text-slate-600"
+                  }`}
+                >
+                  {r.toFixed(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section data-testid="brand-kit-preview">
           <SectionHeader title="Preview" />
           <div
@@ -554,6 +607,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               {draft.eyebrow_text || "Your eyebrow text here"}
             </p>
             <h2
+              data-testid="brand-headline-preview"
               className="text-3xl mb-3"
               style={{
                 color: draft.primary_color,
@@ -562,9 +616,12 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                     ? "inherit"
                     : `"${draft.heading_font}", sans-serif`,
                 fontWeight: 600,
+                lineHeight: Number(draft.title_line_height ?? 1.2),
               }}
             >
               Tailor-made for your brand
+              <br />
+              across every page
             </h2>
             <p
               className="text-base max-w-xl mb-6"

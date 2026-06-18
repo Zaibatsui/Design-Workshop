@@ -62,6 +62,12 @@ export const DEFAULT_BRAND_KIT = {
   // every section so buttons stay visually consistent across an entire
   // page or page-group. 0 = sharp, 9999 = pill.
   button_radius: 8,
+  // Global title line-height for Hero + Split Banner titles. 1.2 reads
+  // tight enough for display headlines while still leaving room for
+  // descenders. Users can drop to 1.0 for tight display fonts or push
+  // to 1.4 for editorial layouts. Saved kits from before this field
+  // default to 1.2 (matches the previous hardcoded value).
+  title_line_height: 1.2,
 };
 
 /**
@@ -131,6 +137,7 @@ function applyToHero(cfg, b) {
     ...cfg,
     font: b.heading_font,
     buttonRadius: b.button_radius ?? 8,
+    titleLineHeight: b.title_line_height ?? 1.2,
     theme: {
       ...(cfg.theme || {}),
       titleColor: b.background_color,        // light text on photo bg
@@ -284,6 +291,7 @@ const FIELD_MAP = {
     ctaBg: pick(b, "button_color"),
     ctaTextColor: b.background_color,
     buttonRadius: b.button_radius ?? 8,
+    titleLineHeight: b.title_line_height ?? 1.2,
     font: b.heading_font,
   }),
   "featured-card": (cfg, b) => ({

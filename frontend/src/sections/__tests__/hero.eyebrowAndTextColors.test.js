@@ -113,9 +113,12 @@ expect(
 );
 
 // ─── Line-height bumped to 1.2 (was 1.1) per user feedback ────────
-const lh12 = src.match(/\.ns-title\{[^\n]*line-height:1\.2/g) || [];
+// (Now driven by `num(cfg.titleLineHeight, 1.2)` via the Brand Kit —
+//  the fallback inside `num()` is the 1.2 default that locks in the
+//  back-compat behaviour for sections that pre-date the kit field.)
+const lh12 = src.match(/line-height:\$\{num\(cfg\.titleLineHeight, 1\.2\)\}/g) || [];
 expect(
-  "Both ns-title CSS rules in hero use line-height:1.2",
+  "Both ns-title CSS rules in hero read titleLineHeight (fallback 1.2)",
   lh12.length === 2
 );
 expect(

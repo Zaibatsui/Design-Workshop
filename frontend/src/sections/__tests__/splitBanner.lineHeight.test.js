@@ -27,13 +27,15 @@ function expect(label, cond) {
 }
 
 expect(
-  "pageHeader branch declares line-height:1.2",
-  /font-weight:700;line-height:1\.2;letter-spacing:-\.02em/.test(src)
+  "pageHeader branch declares line-height via brand-kit titleLineHeight (fallback 1.2)",
+  /font-weight:700;line-height:\$\{num\(cfg\.titleLineHeight, 1\.2\)\};letter-spacing:-\.02em/.test(
+    src
+  )
 );
 
 expect(
-  "Non-pageHeader branch also declares line-height:1.2",
-  /:\s*`font-size:\$\{num\(cfg\.headingSize, 30\)\}px;font-weight:600;line-height:1\.2;/.test(
+  "Non-pageHeader branch also declares line-height via brand-kit titleLineHeight",
+  /:\s*`font-size:\$\{num\(cfg\.headingSize, 30\)\}px;font-weight:600;line-height:\$\{num\(cfg\.titleLineHeight, 1\.2\)\};/.test(
     src
   )
 );
