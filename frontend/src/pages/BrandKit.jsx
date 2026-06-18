@@ -181,7 +181,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
     <div className={chromeless ? "" : "min-h-screen bg-slate-50"}>
       {!chromeless && (
         <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               to="/"
@@ -239,7 +239,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
       </header>
       )}
 
-      <main className={chromeless ? "max-w-5xl mx-auto px-6 py-10 space-y-10" : "max-w-5xl mx-auto px-6 py-10 space-y-10"}>
+      <main className={chromeless ? "max-w-7xl mx-auto px-6 py-10 space-y-10" : "max-w-7xl mx-auto px-6 py-10 space-y-10"}>
         {chromeless && (
           <div className="flex items-center justify-end gap-2 -mb-4">
             <Button
@@ -283,6 +283,9 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
             section in the editor.
           </p>
         </div>
+
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-8 lg:items-start">
+          <div className="space-y-10 min-w-0" data-testid="brand-kit-settings-col">
 
         <section data-testid="brand-kit-colors">
           <SectionHeader Icon={Palette} title="Identity · Brand colours" />
@@ -806,18 +809,36 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
           </div>
         </section>
 
+          </div>
+
+          <div
+            className="lg:sticky lg:top-24 self-start space-y-3"
+            data-testid="brand-kit-preview-col"
+          >
         <section data-testid="brand-kit-preview">
-          <SectionHeader title="Preview" />
+          <SectionHeader title="Live preview" />
           <div
             className="rounded-xl border border-slate-200 overflow-hidden"
             style={{ backgroundColor: draft.background_color }}
+            data-testid="brand-kit-preview-surface"
+            data-section-spacing={draft.section_spacing || "default"}
           >
-          <div className="p-10">
+          <div
+            style={{
+              padding: `${
+                draft.section_spacing === "compact"
+                  ? 24
+                  : draft.section_spacing === "spacious"
+                  ? 48
+                  : 36
+              }px 28px`,
+            }}
+          >
             <p
               data-testid="brand-eyebrow-preview"
-              className="mb-4"
+              className="mb-3"
               style={{
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: `${Number(
                   draft.eyebrow_letter_spacing ?? 0.18
@@ -837,7 +858,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
             </p>
             <h2
               data-testid="brand-headline-preview"
-              className="text-3xl mb-3"
+              className="text-2xl mb-2"
               style={{
                 color: draft.primary_color,
                 fontFamily:
@@ -856,7 +877,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               across every page
             </h2>
             <p
-              className="text-base max-w-xl mb-6"
+              className="text-sm mb-5"
               style={{
                 color: draft.text_color,
                 fontWeight: Number(draft.body_weight ?? 400),
@@ -870,14 +891,14 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               kit and watch the rest of your library stay on-brand without
               touching a single block.
             </p>
-            <div className="flex gap-3 flex-wrap items-center">
+            <div className="flex gap-2 flex-wrap items-center mb-6">
               <span
-                className="inline-flex items-center text-base font-semibold"
+                className="inline-flex items-center text-sm font-semibold"
                 style={{
                   backgroundColor: draft.button_color || draft.primary_color,
                   color: draft.background_color,
                   borderRadius: `${Number(draft.button_radius ?? 8)}px`,
-                  padding: "14px 28px",
+                  padding: "10px 20px",
                   fontFamily:
                     draft.heading_font === INHERIT_FONT
                       ? "inherit"
@@ -885,15 +906,15 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                 }}
                 data-testid="brand-preview-primary-btn"
               >
-                Primary CTA
+                {draft.default_cta_text || "Primary CTA"}
               </span>
               <span
-                className="inline-flex items-center text-base font-semibold border-2"
+                className="inline-flex items-center text-sm font-semibold border-2"
                 style={{
                   borderColor: draft.secondary_color,
                   color: draft.secondary_color,
                   borderRadius: `${Number(draft.button_radius ?? 8)}px`,
-                  padding: "12px 26px",
+                  padding: "8px 18px",
                   fontFamily:
                     draft.heading_font === INHERIT_FONT
                       ? "inherit"
@@ -903,32 +924,77 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               >
                 Secondary
               </span>
-              {/* Tall capsule — the same radius reads more dramatically
-                  on a taller surface, so users get instant feedback even
-                  for small px values. */}
-              <span
-                className="inline-flex items-center justify-center text-sm font-semibold"
+            </div>
+
+            {/* Card preview — reflects card_radius. Mirrors a typical
+                product / resource card so users see the radius land on
+                a real-world surface, not just the buttons. */}
+            <div
+              data-testid="brand-preview-card"
+              className="overflow-hidden flex"
+              style={{
+                border: "1px solid #f2f2f2",
+                borderRadius: `${Number(draft.card_radius ?? 8)}px`,
+                background: "#fff",
+              }}
+            >
+              <div
+                aria-hidden="true"
                 style={{
-                  backgroundColor: draft.secondary_color,
-                  color: draft.background_color,
-                  borderRadius: `${Number(draft.button_radius ?? 8)}px`,
-                  height: 56,
-                  minWidth: 120,
-                  padding: "0 24px",
-                  fontFamily:
-                    draft.heading_font === INHERIT_FONT
-                      ? "inherit"
-                      : `"${draft.heading_font}", sans-serif`,
+                  width: 96,
+                  flexShrink: 0,
+                  background: `linear-gradient(135deg, ${
+                    draft.primary_color
+                  } 0%, ${draft.secondary_color} 100%)`,
                 }}
-                data-testid="brand-preview-tall-btn"
-                title="Tall surface — exaggerates the radius for feedback"
-              >
-                Read more →
-              </span>
+              />
+              <div className="p-3 min-w-0">
+                <div
+                  className="text-[10px] mb-1"
+                  style={{
+                    fontWeight: 700,
+                    letterSpacing: `${Number(
+                      draft.eyebrow_letter_spacing ?? 0.18
+                    )}em`,
+                    textTransform:
+                      (draft.eyebrow_uppercase ?? true) === false
+                        ? "none"
+                        : "uppercase",
+                    color: draft.accent_color || draft.primary_color,
+                  }}
+                >
+                  Card sample
+                </div>
+                <div
+                  className="text-sm font-semibold mb-1 truncate"
+                  style={{
+                    color: draft.text_color,
+                    fontFamily:
+                      draft.heading_font === INHERIT_FONT
+                        ? "inherit"
+                        : `"${draft.heading_font}", sans-serif`,
+                  }}
+                >
+                  Featured item title
+                </div>
+                <div
+                  className="text-xs"
+                  style={{
+                    color: draft.body_color || draft.text_color,
+                    fontWeight: Number(draft.body_weight ?? 400),
+                  }}
+                >
+                  Card radius, body weight + accent colour all preview
+                  here.
+                </div>
+              </div>
             </div>
           </div>
           </div>
         </section>
+
+          </div>
+        </div>
 
         {user?.is_admin && <LandingDemoPicker />}
         {user?.is_admin && <LandingSpotlightsPicker />}
