@@ -122,6 +122,13 @@ function LayoutFields({ cfg, setCfg }) {
         onChange={(v) => setCfg({ fullBleed: v })}
         testid="rt-fullbleed"
       />
+      <ToggleField
+        label="Content full width"
+        description="Drops the 1200px max-width on the inner wrapper so wide custom HTML (e.g. an image carousel) can span the whole section. Leave off for plain reading content."
+        checked={!!cfg.contentFullWidth}
+        onChange={(v) => setCfg({ contentFullWidth: v })}
+        testid="rt-content-full-width"
+      />
     </div>
   );
 }

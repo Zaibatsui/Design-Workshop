@@ -18,6 +18,11 @@ const defaults = () => ({
   accent: "#E01839",
   align: "left", // left | center
   fullBleed: false,
+  // When true, the inner wrapper drops its 1200px max-width so custom
+  // HTML pasted into the block (e.g. a wide image carousel) can span
+  // the whole section width. Off by default so plain rich text keeps
+  // its comfortable reading column.
+  contentFullWidth: false,
   // Link style controls. Defaults preserve the original "branded + underlined"
   // behaviour so existing blocks keep rendering identically.
   underlineLinks: true,
@@ -36,6 +41,7 @@ function render(cfg = {}) {
     accent = "#E01839",
     align = "left",
     fullBleed = false,
+    contentFullWidth = false,
     underlineLinks = true,
     respectInlineStyles = true,
   } = cfg;
@@ -70,7 +76,7 @@ function render(cfg = {}) {
 ${baseReset(cls, { lowSpecificity: respectInlineStyles })}
 .${cls}{background:${bg};padding:${padTop}px ${padX}px ${padBot}px;display:flow-root}
 ${w(`.${cls}`)}{color:${fg}${bang}}
-.${cls} .ns-inner{max-width:1200px;margin:0 auto;text-align:${align === "center" ? "center" : "left"}}
+.${cls} .ns-inner{${contentFullWidth ? "max-width:none;width:100%;margin:0" : "max-width:1200px;margin:0 auto"};text-align:${align === "center" ? "center" : "left"}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
 .${cls} h2{font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.2;margin:24px 0 14px}
 .${cls} h3{font-size:18px;font-weight:600;letter-spacing:0;line-height:1.3;margin:18px 0 10px}
