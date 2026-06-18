@@ -53,6 +53,10 @@ const defaults = () => ({
   primaryColor: "#E01839",
   buttons: [],
   fullBleed: false,
+  // When true, the inner wrapper ignores `maxWidth` and stretches to
+  // 100% of the section. Useful for wide custom content; leave OFF
+  // for normal text so it keeps a comfortable reading column.
+  contentFullWidth: false,
   // Mobile-only override: when ON, the inner content + buttons sit
   // centred at ≤640px regardless of the desktop alignment setting.
   mobileCenterText: false,
@@ -129,7 +133,7 @@ function render(cfg) {
   const css = `
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad-t) var(--ns-pad-x) var(--ns-pad-b);width:100%;background:var(--ns-bg)}
-.${cls} .ns-inner{max-width:var(--ns-max);margin:0 auto;text-align:var(--ns-align)}
+.${cls} .ns-inner{${cfg.contentFullWidth ? "max-width:none;width:100%;margin:0" : "max-width:var(--ns-max);margin:0 auto"};text-align:var(--ns-align)}
 .${cls} .ns-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color)}
 .${cls} .ns-h{margin:0 0 14px;font-size:var(--ns-size);font-weight:var(--ns-weight);line-height:1.3;color:var(--ns-h-color)}
 .${cls} .ns-p{margin:0 0 24px;font-size:16px;line-height:1.55;color:var(--ns-b-color);white-space:pre-line}
@@ -218,11 +222,18 @@ function FormPanel({ config, onUpdate, previewMode }) {
           testid="content-size"
         />
         <ToggleField
-          label="Make wide"
-          description="Stretch background to full viewport width"
+          label="Background fills full width"
+          description="Stretches the background colour / image edge-to-edge of the browser, even on narrow embed containers."
           checked={config.fullBleed}
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="content-full-bleed"
+        />
+        <ToggleField
+          label="Stretch content to full width"
+          description="Let wide custom content (like an image gallery or carousel) fill the section. Leave off for normal text."
+          checked={!!config.contentFullWidth}
+          onChange={(v) => onUpdate({ contentFullWidth: v })}
+          testid="content-content-full-width"
         />
         {previewMode === "mobile" && (
           <ToggleField

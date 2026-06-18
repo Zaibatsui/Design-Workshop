@@ -117,14 +117,15 @@ function LayoutFields({ cfg, setCfg }) {
         testid="rt-align"
       />
       <ToggleField
-        label="Full-bleed background"
+        label="Background fills full width"
+        description="Stretches the background colour / image edge-to-edge of the browser, even on narrow embed containers."
         checked={!!cfg.fullBleed}
         onChange={(v) => setCfg({ fullBleed: v })}
         testid="rt-fullbleed"
       />
       <ToggleField
-        label="Content full width"
-        description="Drops the 1200px max-width on the inner wrapper so wide custom HTML (e.g. an image carousel) can span the whole section. Leave off for plain reading content."
+        label="Stretch content to full width"
+        description="Let wide custom content (like an image gallery or carousel) fill the section. Leave off for normal text."
         checked={!!cfg.contentFullWidth}
         onChange={(v) => setCfg({ contentFullWidth: v })}
         testid="rt-content-full-width"

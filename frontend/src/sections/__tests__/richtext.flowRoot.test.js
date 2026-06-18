@@ -60,6 +60,20 @@ expect(
   )
 );
 
+// ─── Same toggle on the Content section (parallel implementation,
+// different default max-width source — Content uses var(--ns-max)).
+const contentSrc = fs.readFileSync(path.join(__dirname, "../content.js"), "utf8");
+expect(
+  "Content section defaults() also includes contentFullWidth: false",
+  /contentFullWidth:\s*false/.test(contentSrc)
+);
+expect(
+  "Content section ns-inner branches on contentFullWidth",
+  /cfg\.contentFullWidth\s*\?\s*"max-width:none;width:100%;margin:0"\s*:\s*"max-width:var\(--ns-max\);margin:0 auto"/.test(
+    contentSrc
+  )
+);
+
 // ─── Regression: `contentFullWidth` toggle drops the 1200px constraint
 // on .ns-inner so users can paste wide custom HTML (e.g. an image
 // carousel) and have it span the whole section width. Default OFF
@@ -93,5 +107,5 @@ const richtextMod = require(path.join(__dirname, "../richtext.js"));
 if (process.exitCode) {
   console.log("\nrichtext.flowRoot regression FAILED");
 } else {
-  console.log("\nALL PASSED (5 assertions)");
+  console.log("\nALL PASSED (7 assertions)");
 }
