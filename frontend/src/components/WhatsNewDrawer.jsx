@@ -228,6 +228,9 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
   // Platform updates bypass `computeBadges` — each entry already
   // declares its own `kind` ("major") so it never expires out of
   // the NEW/UPDATED rotation and always carries the purple badge.
+  // Sorted newest-first by `updatedOn || addedOn` so the drawer
+  // always leads with the most recent release regardless of the
+  // declaration order in `PLATFORM_UPDATES`.
   const platformEntries = useMemo(
     () =>
       PLATFORM_UPDATES.map((p) => ({
@@ -238,7 +241,11 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
         addedOn: p.addedOn,
         updatedOn: p.updatedOn,
         note: p.whatsNew,
-      })),
+      })).sort(
+        (a, b) =>
+          new Date(b.updatedOn || b.addedOn || 0) -
+          new Date(a.updatedOn || a.addedOn || 0)
+      ),
     []
   );
   const allEntries = useMemo(
