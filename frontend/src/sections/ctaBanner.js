@@ -56,6 +56,12 @@ const defaults = () => ({
   textColor: "#ffffff",
   bodyColor: "#cbd5e1",
   accentColor: "#E01839",
+  // Primary button label text colour. Defaults to white so existing
+  // snippets render byte-identically; exposed as a field because users
+  // occasionally pick a white/very-light accent (e.g. on a deep brand
+  // background) and need the button label to switch to a dark colour
+  // for legibility — otherwise the button label vanishes.
+  buttonTextColor: "#ffffff",
   paddingY: 96,
   paddingTop: 96,
   paddingBottom: 96,
@@ -249,6 +255,7 @@ const render = (cfg) => {
       : safeColor(cfg.bgColor, "#0f172a");
   const textColor = safeColor(cfg.textColor, "#ffffff");
   const accent = safeColor(cfg.accentColor, "#E01839");
+  const buttonTextColor = safeColor(cfg.buttonTextColor, "#ffffff");
   const bodyColor = safeColor(cfg.bodyColor, "rgba(255,255,255,0.7)");
   const align = cfg.textAlign === "left" ? "left" : "center";
   const padTop = padTopOf(cfg, 96);
@@ -267,7 +274,7 @@ ${baseReset(cls)}
 .${cls} .ns-actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;${align === "center" ? "justify-content:center" : "justify-content:flex-start"}}
 .${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 24px;font-size:15px;font-weight:500;border-radius:${num(cfg.buttonRadius, 8)}px;text-decoration:none;transition:opacity .18s ease,transform .18s ease,background .18s ease,color .18s ease}
 .${cls} .ns-btn:hover{transform:translateY(-1px);opacity:0.92}
-.${cls} .ns-btn-primary{background:${accent};color:#fff}
+.${cls} .ns-btn-primary{background:${accent};color:${buttonTextColor}}
 .${cls} .ns-btn-secondary{background:transparent;color:${textColor};border:1px solid ${
     isDarkBg ? "rgba(255,255,255,0.25)" : "rgba(15,23,42,0.2)"
   }}
@@ -659,6 +666,12 @@ function FormPanel({ config, onUpdate, previewMode }) {
           value={config.accentColor}
           onChange={(v) => onUpdate({ accentColor: v })}
           testid="cta-accent"
+        />
+        <ColorField
+          label="Button text colour"
+          value={config.buttonTextColor || "#ffffff"}
+          onChange={(v) => onUpdate({ buttonTextColor: v })}
+          testid="cta-btn-text"
         />
       </Group>
     </FormAccordion>
