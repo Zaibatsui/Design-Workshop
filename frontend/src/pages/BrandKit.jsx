@@ -285,7 +285,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
         </div>
 
         <section data-testid="brand-kit-colors">
-          <SectionHeader Icon={Palette} title="Colors" />
+          <SectionHeader Icon={Palette} title="Identity · Brand colours" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white border border-slate-200 rounded-xl p-6">
             <ColorField
               label="Primary"
@@ -315,7 +315,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
         </section>
 
         <section data-testid="brand-kit-roles">
-          <SectionHeader Icon={Wand2} title="Action colours" />
+          <SectionHeader Icon={Wand2} title="Identity · Role overrides" />
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
             <p className="text-sm text-slate-500 -mt-1">
               Optional role-specific overrides. Leave blank to inherit
@@ -352,7 +352,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
         </section>
 
         <section data-testid="brand-kit-logos">
-          <SectionHeader Icon={ImageIcon} title="Brand logos" />
+          <SectionHeader Icon={ImageIcon} title="Identity · Brand logos" />
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
             <p className="text-sm text-slate-500 -mt-1">
               Two slots so the same kit works on light AND dark sections.
@@ -420,7 +420,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
         </section>
 
         <section data-testid="brand-kit-fonts">
-          <SectionHeader Icon={TypeIcon} title="Typography" />
+          <SectionHeader Icon={TypeIcon} title="Typography · Fonts" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white border border-slate-200 rounded-xl p-6">
             <FontField
               label="Heading font"
@@ -442,7 +442,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
         </section>
 
         <section data-testid="brand-kit-eyebrow">
-          <SectionHeader Icon={Sparkles} title="Eyebrow defaults" />
+          <SectionHeader Icon={Sparkles} title="Typography · Eyebrow defaults" />
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
             <p className="text-sm text-slate-500 -mt-1">
               An eyebrow is the small uppercase accent line above a section's
@@ -474,63 +474,66 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               The eyebrow inherits your brand <strong>heading font</strong> by
               default. See it live in the Preview below.
             </p>
-          </div>
-        </section>
-
-        <section data-testid="brand-kit-button-shape">
-          <SectionHeader title="Button shape" />
-          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
-            <div className="flex items-baseline justify-between">
-              <div>
-                <p className="text-xs text-slate-500">
-                  Drives every CTA / button across every section. 0 = sharp,
-                  9999 = full pill. Watch the buttons in the Preview below
-                  morph as you drag.
-                </p>
+            <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Uppercase
+                </Label>
+                <div className="flex gap-2">
+                  {[
+                    { label: "ON", v: true },
+                    { label: "off", v: false },
+                  ].map((opt) => (
+                    <button
+                      key={String(opt.v)}
+                      type="button"
+                      onClick={() => set({ eyebrow_uppercase: opt.v })}
+                      data-testid={`brand-eyebrow-uppercase-${opt.v}`}
+                      className={`text-xs px-3 py-1.5 border rounded transition-colors ${
+                        (draft.eyebrow_uppercase ?? true) === opt.v
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 hover:border-slate-400 text-slate-600"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <span
-                data-testid="brand-button-radius-value"
-                className="text-sm tabular-nums text-slate-700 whitespace-nowrap"
-              >
-                {Number(draft.button_radius ?? 8) >= 9999
-                  ? "Pill"
-                  : `${Number(draft.button_radius ?? 8)}px`}
-              </span>
-            </div>
-            <input
-              data-testid="brand-button-radius"
-              type="range"
-              min={0}
-              max={32}
-              step={1}
-              value={Math.min(Number(draft.button_radius ?? 8), 32)}
-              onChange={(e) =>
-                set({ button_radius: Number(e.target.value) })
-              }
-              className="w-full"
-            />
-            <div className="flex gap-2 pt-1">
-              {[0, 6, 8, 12, 9999].map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => set({ button_radius: r })}
-                  data-testid={`brand-button-radius-preset-${r}`}
-                  className={`text-xs px-3 py-1.5 border rounded transition-colors ${
-                    Number(draft.button_radius ?? 8) === r
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-200 hover:border-slate-400 text-slate-600"
-                  }`}
-                >
-                  {r === 9999 ? "Pill" : r === 0 ? "Sharp" : `${r}px`}
-                </button>
-              ))}
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Letter-spacing
+                  </Label>
+                  <span
+                    data-testid="brand-eyebrow-letter-spacing-value"
+                    className="text-sm tabular-nums text-slate-700"
+                  >
+                    {Number(draft.eyebrow_letter_spacing ?? 0.18).toFixed(2)}
+                    em
+                  </span>
+                </div>
+                <input
+                  data-testid="brand-eyebrow-letter-spacing"
+                  type="range"
+                  min={0}
+                  max={0.3}
+                  step={0.01}
+                  value={Number(draft.eyebrow_letter_spacing ?? 0.18)}
+                  onChange={(e) =>
+                    set({
+                      eyebrow_letter_spacing: Number(e.target.value),
+                    })
+                  }
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
         </section>
 
         <section data-testid="brand-kit-title-line-height">
-          <SectionHeader title="Title line-height" />
+          <SectionHeader title="Typography · Title line-height" />
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
             <div className="flex items-baseline justify-between">
               <div>
@@ -582,6 +585,227 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
           </div>
         </section>
 
+        <section data-testid="brand-kit-title-letter-spacing">
+          <SectionHeader title="Typography · Title letter-spacing" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <p className="text-xs text-slate-500">
+                  Tightens (negative) or loosens (positive) the title
+                  tracking on Hero and Split Banner. Display headlines
+                  usually want -0.02em or tighter; editorial layouts
+                  read better at 0.
+                </p>
+              </div>
+              <span
+                data-testid="brand-title-letter-spacing-value"
+                className="text-sm tabular-nums text-slate-700 whitespace-nowrap"
+              >
+                {Number(draft.title_letter_spacing ?? -0.02).toFixed(3)}em
+              </span>
+            </div>
+            <input
+              data-testid="brand-title-letter-spacing"
+              type="range"
+              min={-0.05}
+              max={0.05}
+              step={0.005}
+              value={Number(draft.title_letter_spacing ?? -0.02)}
+              onChange={(e) =>
+                set({ title_letter_spacing: Number(e.target.value) })
+              }
+              className="w-full"
+            />
+          </div>
+        </section>
+
+        <section data-testid="brand-kit-body-weight">
+          <SectionHeader title="Typography · Body weight" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+            <p className="text-xs text-slate-500">
+              Font weight of body copy inside Rich Text blocks. Lighter
+              fonts (Inter, Lato) read fine at 400. Heavier display
+              fonts (Manrope, Plus Jakarta) often look better at 500.
+            </p>
+            <div className="flex gap-2 pt-1">
+              {[300, 400, 500, 600].map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => set({ body_weight: w })}
+                  data-testid={`brand-body-weight-preset-${w}`}
+                  className={`text-xs px-3 py-1.5 border rounded transition-colors ${
+                    Number(draft.body_weight ?? 400) === w
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 hover:border-slate-400 text-slate-600"
+                  }`}
+                >
+                  {w}{w === 400 ? " (Regular)" : w === 500 ? " (Medium)" : ""}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section data-testid="brand-kit-button-shape">
+          <SectionHeader title="Components · Buttons" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+            <div>
+              <div className="flex items-baseline justify-between">
+                <p className="text-xs text-slate-500">
+                  Button corner radius. Drives every CTA / button across
+                  every section. 0 = sharp, 9999 = full pill.
+                </p>
+                <span
+                  data-testid="brand-button-radius-value"
+                  className="text-sm tabular-nums text-slate-700 whitespace-nowrap"
+                >
+                  {Number(draft.button_radius ?? 8) >= 9999
+                    ? "Pill"
+                    : `${Number(draft.button_radius ?? 8)}px`}
+                </span>
+              </div>
+              <input
+                data-testid="brand-button-radius"
+                type="range"
+                min={0}
+                max={32}
+                step={1}
+                value={Math.min(Number(draft.button_radius ?? 8), 32)}
+                onChange={(e) =>
+                  set({ button_radius: Number(e.target.value) })
+                }
+                className="w-full mt-2"
+              />
+              <div className="flex gap-2 pt-1">
+                {[0, 6, 8, 12, 9999].map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => set({ button_radius: r })}
+                    data-testid={`brand-button-radius-preset-${r}`}
+                    className={`text-xs px-3 py-1.5 border rounded transition-colors ${
+                      Number(draft.button_radius ?? 8) === r
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-200 hover:border-slate-400 text-slate-600"
+                    }`}
+                  >
+                    {r === 9999 ? "Pill" : r === 0 ? "Sharp" : `${r}px`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pt-4 border-t border-slate-100 space-y-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Default CTA microcopy (optional)
+              </Label>
+              <Input
+                value={draft.default_cta_text || ""}
+                onChange={(e) => set({ default_cta_text: e.target.value })}
+                placeholder="e.g. Shop now"
+                data-testid="brand-default-cta-text"
+              />
+              <p className="text-[11px] text-slate-500">
+                Pre-fills empty CTA text fields on every NEW section you
+                add (Hero, Split Banner, Featured Card, etc.). Existing
+                sections are never overwritten. Leave blank to disable.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section data-testid="brand-kit-card-shape">
+          <SectionHeader title="Components · Cards" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <p className="text-xs text-slate-500">
+                  Corner radius applied to product, resource, insight,
+                  feature, and testimonial cards. Keeps your card
+                  surfaces visually consistent across the library.
+                </p>
+              </div>
+              <span
+                data-testid="brand-card-radius-value"
+                className="text-sm tabular-nums text-slate-700 whitespace-nowrap"
+              >
+                {`${Number(draft.card_radius ?? 8)}px`}
+              </span>
+            </div>
+            <input
+              data-testid="brand-card-radius"
+              type="range"
+              min={0}
+              max={32}
+              step={1}
+              value={Number(draft.card_radius ?? 8)}
+              onChange={(e) =>
+                set({ card_radius: Number(e.target.value) })
+              }
+              className="w-full"
+            />
+            <div className="flex gap-2 pt-1">
+              {[0, 6, 8, 12, 16, 24].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => set({ card_radius: r })}
+                  data-testid={`brand-card-radius-preset-${r}`}
+                  className={`text-xs px-3 py-1.5 border rounded transition-colors ${
+                    Number(draft.card_radius ?? 8) === r
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 hover:border-slate-400 text-slate-600"
+                  }`}
+                >
+                  {r === 0 ? "Sharp" : `${r}px`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section data-testid="brand-kit-section-spacing">
+          <SectionHeader title="Layout · Section spacing" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
+            <p className="text-xs text-slate-500">
+              Sets the default top + bottom padding stamped onto every
+              new section. Choose a tighter or looser rhythm so your
+              pages read consistently without per-section tuning.
+              Existing sections are not touched.
+            </p>
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              {[
+                { v: "compact", label: "Compact", px: "40px" },
+                { v: "default", label: "Default", px: "Per-section" },
+                { v: "spacious", label: "Spacious", px: "96px" },
+              ].map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => set({ section_spacing: opt.v })}
+                  data-testid={`brand-section-spacing-${opt.v}`}
+                  className={`text-center px-3 py-3 border rounded-lg transition-colors ${
+                    (draft.section_spacing || "default") === opt.v
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 hover:border-slate-400 text-slate-600"
+                  }`}
+                >
+                  <div className="text-sm font-semibold">{opt.label}</div>
+                  <div
+                    className={`text-[11px] mt-0.5 ${
+                      (draft.section_spacing || "default") === opt.v
+                        ? "text-slate-300"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    {opt.px}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section data-testid="brand-kit-preview">
           <SectionHeader title="Preview" />
           <div
@@ -595,8 +819,13 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               style={{
                 fontSize: 12,
                 fontWeight: 700,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
+                letterSpacing: `${Number(
+                  draft.eyebrow_letter_spacing ?? 0.18
+                )}em`,
+                textTransform:
+                  (draft.eyebrow_uppercase ?? true) === false
+                    ? "none"
+                    : "uppercase",
                 color: draft.eyebrow_color || draft.primary_color,
                 fontFamily:
                   draft.heading_font === INHERIT_FONT
@@ -617,6 +846,9 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                     : `"${draft.heading_font}", sans-serif`,
                 fontWeight: 600,
                 lineHeight: Number(draft.title_line_height ?? 1.2),
+                letterSpacing: `${Number(
+                  draft.title_letter_spacing ?? -0.02
+                )}em`,
               }}
             >
               Tailor-made for your brand
@@ -627,6 +859,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               className="text-base max-w-xl mb-6"
               style={{
                 color: draft.text_color,
+                fontWeight: Number(draft.body_weight ?? 400),
                 fontFamily:
                   draft.body_font === INHERIT_FONT
                     ? "inherit"

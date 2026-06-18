@@ -134,7 +134,7 @@ function render(cfg) {
 ${baseReset(cls)}
 .${cls}{padding:var(--ns-pad-t) var(--ns-pad-x) var(--ns-pad-b);width:100%;background:var(--ns-bg)}
 .${cls} .ns-inner{${cfg.contentFullWidth ? "max-width:none;width:100%;margin:0" : "max-width:var(--ns-max);margin:0 auto"};text-align:var(--ns-align)}
-.${cls} .ns-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color)}
+.${cls} .ns-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:${num(cfg.eyebrowLetterSpacing, 0.18)}em;text-transform:${cfg.eyebrowUppercase === false ? "none" : "uppercase"};color:var(--ns-eyebrow-color)}
 .${cls} .ns-h{margin:0 0 14px;font-size:var(--ns-size);font-weight:var(--ns-weight);line-height:1.3;color:var(--ns-h-color)}
 .${cls} .ns-p{margin:0 0 24px;font-size:16px;line-height:1.55;color:var(--ns-b-color);white-space:pre-line}
 .${cls} .ns-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:var(--ns-btn-justify,center)}

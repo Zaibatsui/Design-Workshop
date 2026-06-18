@@ -152,7 +152,7 @@ ${baseReset(cls)}
 .${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);margin:0 0 28px}
 .${cls} .ns-track{display:flex;align-items:stretch;gap:var(--ns-gap);overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:10px 0;margin:-10px 0;text-align:left}
 .${cls} .ns-track::-webkit-scrollbar{display:none}
-.${cls} .ns-card{flex:0 0 calc((100% - (var(--ns-cols) - 1) * var(--ns-gap)) / var(--ns-cols));display:flex;flex-direction:column;border:1px solid #f2f2f2;border-radius:6px;background:#fff;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+.${cls} .ns-card{flex:0 0 calc((100% - (var(--ns-cols) - 1) * var(--ns-gap)) / var(--ns-cols));display:flex;flex-direction:column;border:1px solid #f2f2f2;border-radius:${num(cfg.cardRadius, 6)}px;background:#fff;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
 .${cls} .ns-card:hover{border-color:var(--ns-hover-border);box-shadow:0 4px 18px rgba(0,0,0,.06);transform:translateY(-2px)}
 .${cls} .ns-img{width:100%;height:170px;overflow:hidden;background:#fafafa}
 .${cls} .ns-img img{width:100%;height:100%;object-fit:cover;display:block}

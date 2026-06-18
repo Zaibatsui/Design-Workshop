@@ -791,8 +791,8 @@ ${baseReset(cls)}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:var(--ns-text-align,left)}
 .${cls} .ns-content[data-align="center"], .${cls} .ns-content{}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin:0 0 12px;color:var(--ns-title)}
-.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:${num(cfg.titleLineHeight, 1.2)};letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:${num(cfg.eyebrowLetterSpacing, 0.18)}em;text-transform:${cfg.eyebrowUppercase === false ? "none" : "uppercase"};margin:0 0 12px;color:var(--ns-title)}
+.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:${num(cfg.titleLineHeight, 1.2)};letter-spacing:${num(cfg.titleLetterSpacing, -0.02)}em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
@@ -956,9 +956,9 @@ ${baseReset(cls)}
 .${cls} .ns-content[data-align="center"]{margin-left:auto;margin-right:auto}
 .${cls} .ns-content[data-align="right"]{margin-left:auto}
 .${cls} .ns-logo{max-height:48px;max-width:190px;margin-bottom:20px;object-fit:contain}
-.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin:0 0 12px;color:var(--ns-title)}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:${num(cfg.eyebrowLetterSpacing, 0.18)}em;text-transform:${cfg.eyebrowUppercase === false ? "none" : "uppercase"};margin:0 0 12px;color:var(--ns-title)}
 .${cls} .ns-content[data-align="center"] .ns-logo{margin-left:auto;margin-right:auto}
-.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:${num(cfg.titleLineHeight, 1.2)};color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
+.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:${num(cfg.titleLineHeight, 1.2)};color:var(--ns-title);letter-spacing:${num(cfg.titleLetterSpacing, -0.02)}em;margin:0 0 12px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);max-width:560px;margin:0 0 24px}
 .${cls} .ns-content[data-align="center"] .ns-subtitle{margin-left:auto;margin-right:auto}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease}

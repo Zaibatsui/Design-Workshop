@@ -51,6 +51,34 @@ class BrandKit(BaseModel):
     # headlines through editorial layouts). Saved kits from before
     # this field default to 1.2 so behaviour is byte-identical.
     title_line_height: float = Field(default=1.2, ge=0.8, le=2.0)
+    # Title letter-spacing (tracking) applied to .ns-title across Hero
+    # and Split Banner. Stored as em (negative tightens, positive
+    # loosens). -0.02 matches the previous hardcoded value.
+    title_letter_spacing: float = Field(default=-0.02, ge=-0.05, le=0.05)
+    # Global card corner radius (px) for sections that render product /
+    # content / testimonial cards (products, productGrid, resources,
+    # insights, feature-grid, testimonials). 8 is the safest default —
+    # it lands between the previous 6px / 8px / 12px scattered values.
+    card_radius: int = Field(default=8, ge=0, le=32)
+    # Three preset section spacing scales: compact (40px),
+    # default (existing per-section values), spacious (96px). Stored
+    # as a string so it can extend later without a schema migration.
+    section_spacing: str = Field(
+        default="default", pattern="^(compact|default|spacious)$"
+    )
+    # Body copy font-weight. 400 is the previous hardcoded value.
+    # Some chunkier brand body fonts (Manrope, Plus Jakarta) read
+    # better at 500. Capped 300-700 so a malformed value can't
+    # break a snippet.
+    body_weight: int = Field(default=400, ge=300, le=700)
+    # Eyebrow style defaults. The previous hardcoded values are
+    # `text-transform: uppercase` + `letter-spacing: 0.18em`.
+    eyebrow_uppercase: bool = Field(default=True)
+    eyebrow_letter_spacing: float = Field(default=0.18, ge=0, le=0.3)
+    # Default CTA microcopy stamped into NEW sections' empty CTA text
+    # fields at section-creation time. Existing sections are not
+    # touched. Empty string disables the feature (back-compat).
+    default_cta_text: str = Field(default="")
 
 
 DEFAULT_KIT = BrandKit().model_dump()

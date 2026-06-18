@@ -248,7 +248,7 @@ ${baseReset(cls)}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 10px}
 .${cls} .ns-h{font-size:var(--ns-heading-size,32px);font-weight:600;color:var(--ns-title-color);margin:0 0 28px}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:var(--ns-gap);text-align:left}
-.${cls} .ns-card{border:1px solid #f2f2f2;border-radius:6px;background:#fff;overflow:hidden;transition:border-color .2s ease,box-shadow .2s ease;display:flex}
+.${cls} .ns-card{border:1px solid #f2f2f2;border-radius:${num(cfg.cardRadius, 6)}px;background:#fff;overflow:hidden;transition:border-color .2s ease,box-shadow .2s ease;display:flex}
 .${cls} .ns-card:hover{border-color:var(--ns-hover-border);box-shadow:0 4px 18px rgba(0,0,0,.06)}
 .${cls} .ns-card a{display:flex;flex-direction:column;width:100%;color:inherit;text-decoration:none}
 .${cls} .ns-image-wrap{position:relative;flex-shrink:0}

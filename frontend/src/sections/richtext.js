@@ -5,7 +5,7 @@
  * Kept intentionally separate from registry.js SECTIONS: rich text is only a
  * block type inside Pages (not a standalone library section).
  */
-import { FONT_IMPORT, baseReset, escHtml, fullBleedClass, makeUid, padTopOf, padBotOf,
+import { FONT_IMPORT, baseReset, escHtml, fullBleedClass, makeUid, num, padTopOf, padBotOf,
   padXOf, wrapSnippet } from "./shared";
 
 const ID = "richtext";
@@ -80,7 +80,8 @@ ${w(`.${cls}`)}{color:${fg}${bang}}
 .${cls} h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.01em;line-height:1.15;margin:0 0 18px}
 .${cls} h2{font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.2;margin:24px 0 14px}
 .${cls} h3{font-size:18px;font-weight:600;letter-spacing:0;line-height:1.3;margin:18px 0 10px}
-.${cls} p{font-size:16px;line-height:1.65;margin:0 0 14px}
+.${cls} p{font-size:16px;font-weight:${num(cfg.bodyWeight, 400)};line-height:1.65;margin:0 0 14px}
+.${cls} li{margin:0 0 6px;line-height:1.6;font-weight:${num(cfg.bodyWeight, 400)}}
 .${cls} strong{font-weight:600}
 .${cls} em{font-style:italic}
 ${w(`.${cls} a`)}{color:${accent}${bang};${linkDecoration}}
@@ -91,7 +92,7 @@ ${w(`.${cls} a:hover`)}{opacity:.8}
 .${cls} ol{list-style:decimal inside!important}
 .${cls} li p{display:inline;margin:0}
 .${cls} li>p{display:inline;margin:0}
-.${cls} li{margin:0 0 6px;line-height:1.6}
+.${cls} li{margin:0 0 6px;line-height:1.6;font-weight:${num(cfg.bodyWeight, 400)}}
 .${cls} .ns-inner > :first-child{margin-top:0}
 .${cls} .ns-inner > :last-child{margin-bottom:0}
 `.trim();

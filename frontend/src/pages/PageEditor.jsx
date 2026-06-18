@@ -219,7 +219,7 @@ export default function PageEditor({ studio = false }) {
       block_id: makeBlockId(),
       type: "section",
       section_type: typeId,
-      config: applyBrandKit(typeId, def.defaults(), brandKit, { seedLogos: true }),
+      config: applyBrandKit(typeId, def.defaults(), brandKit, { seedLogos: true, seedDefaults: true }),
     };
     setBlocks([...(page.blocks || []), newBlock]);
     setSelectedBlockId(newBlock.block_id);

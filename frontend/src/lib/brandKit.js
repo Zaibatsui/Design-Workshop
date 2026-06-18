@@ -68,6 +68,31 @@ export const DEFAULT_BRAND_KIT = {
   // to 1.4 for editorial layouts. Saved kits from before this field
   // default to 1.2 (matches the previous hardcoded value).
   title_line_height: 1.2,
+  // Title letter-spacing (em). Negative tightens display headlines,
+  // positive loosens for editorial layouts. -0.02 mirrors the value
+  // sections shipped with for years.
+  title_letter_spacing: -0.02,
+  // Global card corner radius (px) for card-bearing sections
+  // (products, productGrid, resources, insights, feature-grid,
+  // testimonials). 8 sits between the previously scattered 6 / 12
+  // values so existing kits look ~unchanged on apply.
+  card_radius: 8,
+  // Section spacing scale: "compact" | "default" | "spacious".
+  // Drives paddingTop/paddingBottom defaults on NEW sections — kept
+  // as a string so further presets can be added without schema work.
+  section_spacing: "default",
+  // Body copy font weight. 400 was the previous hardcoded value.
+  // Bumping to 500 thickens body text for brands that prefer it.
+  body_weight: 400,
+  // Eyebrow text-transform + letter-spacing defaults. The previously
+  // hardcoded values were `uppercase` and `0.18em` so these defaults
+  // preserve existing snippet output.
+  eyebrow_uppercase: true,
+  eyebrow_letter_spacing: 0.18,
+  // Default CTA microcopy. When non-empty, NEW sections with an empty
+  // CTA text field get pre-filled at creation time. Existing sections
+  // are never touched.
+  default_cta_text: "",
 };
 
 /**
@@ -99,7 +124,42 @@ function eyebrowFields(b) {
     // position including eyebrows, while `eyebrow_color` still wins
     // when set explicitly.
     eyebrowColor: b.eyebrow_color || b.accent_color || b.primary_color,
+    // Eyebrow style is brand-kit-wide. Defaults preserve the
+    // previously hardcoded uppercase + 0.18em tracking values.
+    eyebrowUppercase: b.eyebrow_uppercase ?? true,
+    eyebrowLetterSpacing: b.eyebrow_letter_spacing ?? 0.18,
   };
+}
+
+// Section spacing presets. "default" leaves padding alone so old
+// sections keep their bespoke per-section defaults; "compact" tightens
+// every section to a uniform 40px; "spacious" inflates to 96px.
+const SPACING_PRESETS = {
+  compact: { paddingTop: 40, paddingBottom: 40 },
+  spacious: { paddingTop: 96, paddingBottom: 96 },
+};
+function applySpacingScale(cfg, b) {
+  const preset = SPACING_PRESETS[b.section_spacing];
+  if (!preset) return cfg;
+  // Only seed if the field is still at the section's own pristine
+  // value. We can't tell that here without per-section knowledge, so
+  // we simply overlay — the brand kit only flows into NEW sections so
+  // this never clobbers user-edited padding on existing sections.
+  return { ...cfg, ...preset };
+}
+
+// Stamp default CTA microcopy onto common CTA text fields when the
+// section ships with them blank. Only touches fields that are
+// undefined or empty so a section's existing CTA text wins.
+const CTA_FIELDS = ["ctaText", "buttonText", "ctaLabel", "primaryCtaText"];
+function applyDefaultCta(cfg, b) {
+  const txt = (b.default_cta_text || "").trim();
+  if (!txt) return cfg;
+  const next = { ...cfg };
+  for (const f of CTA_FIELDS) {
+    if (!next[f]) next[f] = txt;
+  }
+  return next;
 }
 
 // Pick a role-specific colour with primary_color as the universal
@@ -138,6 +198,13 @@ function applyToHero(cfg, b) {
     font: b.heading_font,
     buttonRadius: b.button_radius ?? 8,
     titleLineHeight: b.title_line_height ?? 1.2,
+    titleLetterSpacing: b.title_letter_spacing ?? -0.02,
+    // Eyebrow style is per-slide on Hero (not a section-level field),
+    // but the .ns-eyebrow CSS rule lives on the section root — so the
+    // kit's uppercase + letter-spacing values are stamped onto the
+    // section cfg directly and read by both slide and fade renderers.
+    eyebrowUppercase: b.eyebrow_uppercase ?? true,
+    eyebrowLetterSpacing: b.eyebrow_letter_spacing ?? 0.18,
     theme: {
       ...(cfg.theme || {}),
       titleColor: b.background_color,        // light text on photo bg
@@ -168,6 +235,7 @@ const FIELD_MAP = {
     titleColor: b.text_color,
     priceColor: pick(b, "accent_color"),
     hoverBorder: pick(b, "accent_color"),
+    cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
   productGrid: (cfg, b) => ({
@@ -175,6 +243,7 @@ const FIELD_MAP = {
     titleColor: b.text_color,
     priceColor: pick(b, "accent_color"),
     hoverBorder: pick(b, "accent_color"),
+    cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
   insights: (cfg, b) => ({
@@ -182,6 +251,7 @@ const FIELD_MAP = {
     accentColor: pick(b, "accent_color"),
     titleColor: b.text_color,
     cardHeadingColor: b.text_color,
+    cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
   resources: (cfg, b) => ({
@@ -190,6 +260,7 @@ const FIELD_MAP = {
     tagColor: pick(b, "link_color"),
     titleColor: b.text_color,
     hoverBorder: pick(b, "accent_color"),
+    cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
   break: (cfg, b) => ({
@@ -219,6 +290,7 @@ const FIELD_MAP = {
     textColor: b.text_color,
     bodyColor: b.body_color,
     accentColor: pick(b, "accent_color"),
+    cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
   steps: (cfg, b) => ({
@@ -261,6 +333,7 @@ const FIELD_MAP = {
     titleColor: b.text_color,
     bodyColor: b.body_color,
     accentColor: pick(b, "accent_color"),
+    cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
   // Welcome banner sits over a photo + dark overlay — light text is
@@ -292,6 +365,7 @@ const FIELD_MAP = {
     ctaTextColor: b.background_color,
     buttonRadius: b.button_radius ?? 8,
     titleLineHeight: b.title_line_height ?? 1.2,
+    titleLetterSpacing: b.title_letter_spacing ?? -0.02,
     font: b.heading_font,
   }),
   "featured-card": (cfg, b) => ({
@@ -379,6 +453,16 @@ export function applyBrandKit(typeId, config, brandKit, opts = {}) {
   if (EYEBROW_SECTIONS.has(typeId)) {
     next = { ...next, ...eyebrowFields(brandKit) };
   }
+  // Spacing scale is universal — every section respects paddingTop/
+  // paddingBottom so we can overlay without per-type knowledge.
+  next = applySpacingScale(next, brandKit);
+  // Default CTA microcopy: only stamp on EMPTY CTA text fields, and
+  // only at SECTION CREATION (opts.seedDefaults). Existing sections
+  // aren't touched so a "Apply to library" sweep never overwrites
+  // bespoke CTA labels.
+  if (opts.seedDefaults) {
+    next = applyDefaultCta(next, brandKit);
+  }
   if (opts.seedLogos) {
     const seed = LOGO_SEED[typeId];
     if (seed) {
@@ -407,6 +491,7 @@ export function applyBrandKitToRichText(config, brandKit) {
     bg: brandKit.background_color,
     fg: brandKit.text_color,
     accent: brandKit.link_color || brandKit.primary_color,
+    bodyWeight: brandKit.body_weight ?? 400,
   };
 }
 

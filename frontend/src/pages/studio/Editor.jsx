@@ -123,7 +123,7 @@ export default function StudioEditor() {
         section_id: null,
         name: `New ${def.name}`,
         type: newType,
-        config: applyBrandKit(newType, def.defaults(), brandKit, { seedLogos: true }),
+        config: applyBrandKit(newType, def.defaults(), brandKit, { seedLogos: true, seedDefaults: true }),
       });
       setLoadError(null);
       return undefined;

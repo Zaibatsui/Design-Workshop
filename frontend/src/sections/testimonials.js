@@ -184,7 +184,7 @@ ${baseReset(cls)}
 .${cls} .ns-heading{font-size:var(--ns-heading-size,32px);font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:var(--ns-title-color)}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:var(--ns-body-color);line-height:1.6}
 .${cls} .ns-track{display:flex;width:max-content;animation:${animName} var(--ns-speed) linear infinite;will-change:transform}
-.${cls} .ns-item{flex:0 0 auto;width:var(--ns-card-w);margin:0 calc(var(--ns-gap) / 2);background:var(--ns-card-bg);border:1px solid #e5e7eb;border-radius:12px;padding:26px 26px 22px;display:flex;flex-direction:column;gap:18px;position:relative}
+.${cls} .ns-item{flex:0 0 auto;width:var(--ns-card-w);margin:0 calc(var(--ns-gap) / 2);background:var(--ns-card-bg);border:1px solid #e5e7eb;border-radius:${num(cfg.cardRadius, 12)}px;padding:26px 26px 22px;display:flex;flex-direction:column;gap:18px;position:relative}
 .${cls} .ns-item::before{content:"";position:absolute;top:0;left:26px;right:26px;height:3px;background:var(--ns-accent);border-radius:0 0 3px 3px;opacity:0.9}
 .${cls} .ns-rating{display:flex;gap:3px}
 .${cls} .ns-quote{font-size:15px;line-height:1.6;color:#374151;font-weight:400;flex:1;min-height:4.8em}

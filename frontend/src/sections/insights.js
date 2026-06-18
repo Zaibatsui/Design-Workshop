@@ -183,7 +183,7 @@ ${baseReset(cls)}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow-color);margin:0 0 10px}
 .${cls} .ns-h{font-size:var(--ns-heading-size,30px);font-weight:600;color:var(--ns-title-color);margin:0 0 28px}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(var(--ns-cols),1fr);gap:20px;text-align:left}
-.${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;${borderCss};border-radius:6px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
+.${cls} .ns-card{display:flex;align-items:stretch;min-height:175px;border:1px solid #f2f2f2;${borderCss};border-radius:${num(cfg.cardRadius, 6)}px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s ease,transform .2s ease}
 .${cls} .ns-card.is-link:hover{border-color:var(--ns-accent);transform:translateY(-2px)}
 .${cls} .ns-icon{background:#fafafa;overflow:hidden}
 .${cls} .ns-icon img{width:100%;height:100%;object-fit:cover;display:block}

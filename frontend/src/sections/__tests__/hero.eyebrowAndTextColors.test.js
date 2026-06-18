@@ -69,14 +69,16 @@ expect(
 );
 
 // ─── CSS rule for .ns-eyebrow exists in both flow and fade ────────
-const eyebrowCss = src.match(/\.ns-eyebrow\{[^}]*letter-spacing:\.18em[^}]*text-transform:uppercase/g) || [];
+// (Now driven by `num(cfg.eyebrowLetterSpacing, 0.18)` and the
+//  conditional uppercase ternary — brand-kit Wave 2 wiring.)
+const eyebrowCss = src.match(/\.ns-eyebrow\{[^}]*letter-spacing:\$\{num\(cfg\.eyebrowLetterSpacing/g) || [];
 expect(
   "Both slide + fade renderers emit a .ns-eyebrow CSS rule",
   eyebrowCss.length >= 2
 );
 expect(
   ".ns-eyebrow falls back to var(--ns-title) when no slide override is set",
-  /\.ns-eyebrow\{[^}]*color:var\(--ns-title\)\}/.test(src)
+  /\.ns-eyebrow\{[^\n]*color:var\(--ns-title\)\}/.test(src)
 );
 
 // ─── Form panel exposes the new fields ────────────────────────────

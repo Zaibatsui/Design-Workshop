@@ -205,7 +205,7 @@ ${baseReset(cls)}
 .${cls} .ns-heading{font-size:${num(cfg.headingSize, 32)}px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px}
-.${cls} .ns-card{${cardBase};border-radius:8px;padding:28px;text-align:${cardAlign};transition:border-color .18s ease,transform .18s ease}
+.${cls} .ns-card{${cardBase};border-radius:${num(cfg.cardRadius, 8)}px;padding:28px;text-align:${cardAlign};transition:border-color .18s ease,transform .18s ease}
 .${cls} .ns-card:hover{${cardHover};transform:translateY(-2px)}
 .${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${accent}1a;color:${accent};margin-bottom:20px;overflow:hidden;${cardAlign === "center" ? "margin-left:auto;margin-right:auto;" : cardAlign === "right" ? "margin-left:auto;" : ""}}
 .${cls} .ns-icon-box.is-img{background:transparent;padding:0}

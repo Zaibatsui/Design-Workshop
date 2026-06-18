@@ -28,7 +28,7 @@ function expect(label, cond) {
 
 expect(
   "pageHeader branch declares line-height via brand-kit titleLineHeight (fallback 1.2)",
-  /font-weight:700;line-height:\$\{num\(cfg\.titleLineHeight, 1\.2\)\};letter-spacing:-\.02em/.test(
+  /font-weight:700;line-height:\$\{num\(cfg\.titleLineHeight, 1\.2\)\};letter-spacing:\$\{num\(cfg\.titleLetterSpacing, -0\.02\)\}em/.test(
     src
   )
 );
