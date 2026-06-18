@@ -278,6 +278,35 @@ function slideCtaStyle(slide, cfg) {
   return ` style="background:${bg};color:${fg}"`;
 }
 
+// Per-slide copy colour helpers. Each slide may carry its own
+// `titleColor`, `subtitleColor`, and `eyebrowColor` to support
+// carousels with mixed light + dark backgrounds (e.g. a slide on a
+// pale photo needs near-black text; an adjacent slide on a dark
+// product shot needs white text). When a field is blank/undefined
+// the colour inherits from the section theme via CSS variables, so
+// existing snippets render byte-identically.
+function slideTitleStyle(slide) {
+  const c = (slide && slide.titleColor || "").trim();
+  return c ? ` style="color:${safeColor(c, "#ffffff")}"` : "";
+}
+function slideSubtitleStyle(slide) {
+  const c = (slide && slide.subtitleColor || "").trim();
+  return c ? ` style="color:${safeColor(c, "#ffffff")}"` : "";
+}
+function slideEyebrowStyle(slide, t) {
+  const c =
+    (slide && slide.eyebrowColor || "").trim() ||
+    (t && t.eyebrowColor || "").trim();
+  return c ? ` style="color:${safeColor(c, "#ffffff")}"` : "";
+}
+// Render the per-slide eyebrow above the title. Empty string when
+// the slide has no eyebrow text (back-compat: no extra DOM emitted).
+function slideEyebrowHtml(slide, t) {
+  const eb = (slide && slide.eyebrow || "").trim();
+  if (!eb) return "";
+  return `<p class="ns-eyebrow"${slideEyebrowStyle(slide, t)}>${escHtml(eb)}</p>`;
+}
+
 // ──────────────────────────────────────────────────────────────────────
 // Overlay resolver. Returns { bg, opacity } for the dark shaded layer
 // behind slide copy.
@@ -547,8 +576,9 @@ function splitSlideInner(slide, cfg) {
   const panelHtml = `<div class="ns-panel is-side-${panelSide}" style="${panelStyle}">
     <div class="ns-panel-inner">
       ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}
-      ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
-      ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
+      ${slideEyebrowHtml(slide, cfg.theme)}
+      ${slide.title ? `<h2 class="ns-title"${slideTitleStyle(slide)}>${escHtml(slide.title)}</h2>` : ""}
+      ${slide.subtitle ? `<p class="ns-subtitle"${slideSubtitleStyle(slide)}>${escHtml(slide.subtitle)}</p>` : ""}
       ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
     </div>
   </div>`;
@@ -611,6 +641,7 @@ function splitCss(cls, cfg) {
 .${cls} .ns-slide.is-split .ns-panel{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;background:var(--ns-pb)}
 .${cls} .ns-slide.is-split .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 0 12px;object-fit:contain}
+.${cls} .ns-slide.is-split .ns-panel-inner .ns-eyebrow{margin:0 0 10px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-title{margin:0 0 8px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin:0 0 14px}
 .${cls} .ns-slide.is-split .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden;height:100%}
@@ -708,8 +739,9 @@ function renderSlide(cfg) {
       <div class="ns-overlay"></div>
       <div class="ns-content">
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}
-        ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
-        ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
+        ${slideEyebrowHtml(slide, cfg.theme)}
+        ${slide.title ? `<h2 class="ns-title"${slideTitleStyle(slide)}>${escHtml(slide.title)}</h2>` : ""}
+        ${slide.subtitle ? `<p class="ns-subtitle"${slideSubtitleStyle(slide)}>${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
       </div>
     </div>`;
@@ -759,6 +791,7 @@ ${baseReset(cls)}
 .${cls} .ns-content{position:relative;z-index:2;max-width:var(--ns-content-max);text-align:var(--ns-text-align,left)}
 .${cls} .ns-content[data-align="center"], .${cls} .ns-content{}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin:0 0 12px;color:var(--ns-title)}
 .${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease}
@@ -870,8 +903,9 @@ function renderFade(cfg) {
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
         ${logo ? `<img class="ns-logo" src="${escAttr(logo)}" alt="${escAttr(slide.logoAlt || "")}"${slide.logoAlt ? "" : ' aria-hidden="true"'} style="height:${num(slide.logoMaxHeight, 48)}px;max-height:none;max-width:none;width:auto"/>` : ""}
-        ${slide.title ? `<h2 class="ns-title">${escHtml(slide.title)}</h2>` : ""}
-        ${slide.subtitle ? `<p class="ns-subtitle">${escHtml(slide.subtitle)}</p>` : ""}
+        ${slideEyebrowHtml(slide, cfg.theme)}
+        ${slide.title ? `<h2 class="ns-title"${slideTitleStyle(slide)}>${escHtml(slide.title)}</h2>` : ""}
+        ${slide.subtitle ? `<p class="ns-subtitle"${slideSubtitleStyle(slide)}>${escHtml(slide.subtitle)}</p>` : ""}
         ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
       </div>
     </div>`;
@@ -922,6 +956,7 @@ ${baseReset(cls)}
 .${cls} .ns-content[data-align="center"]{margin-left:auto;margin-right:auto}
 .${cls} .ns-content[data-align="right"]{margin-left:auto}
 .${cls} .ns-logo{max-height:48px;max-width:190px;margin-bottom:20px;object-fit:contain}
+.${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin:0 0 12px;color:var(--ns-title)}
 .${cls} .ns-content[data-align="center"] .ns-logo{margin-left:auto;margin-right:auto}
 .${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.1;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);max-width:560px;margin:0 0 24px}
@@ -1717,6 +1752,13 @@ function FormPanel({ config, onUpdate, previewMode }) {
                 </>
               ) : null}
               <TextField
+                label="Eyebrow (optional)"
+                value={slide.eyebrow || ""}
+                onChange={(v) => updateSlide(slide.id, { eyebrow: v })}
+                placeholder="Small label above the title"
+                testid={`hero-slide-eyebrow-${slide.id}`}
+              />
+              <TextField
                 label="Title"
                 value={slide.title}
                 onChange={(v) => updateSlide(slide.id, { title: v })}
@@ -1728,6 +1770,38 @@ function FormPanel({ config, onUpdate, previewMode }) {
                 onChange={(v) => updateSlide(slide.id, { subtitle: v })}
                 testid={`hero-slide-subtitle-${slide.id}`}
               />
+
+              <div className="pt-2 border-t border-slate-200 mt-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  Text colour override (this slide only)
+                </p>
+                <p className="text-[11px] text-slate-500 mb-2 leading-snug">
+                  Leave blank to inherit the section title / subtitle
+                  colours. Set per slide when a carousel mixes light and
+                  dark backgrounds.
+                </p>
+                {slide.eyebrow ? (
+                  <ColorField
+                    label="Eyebrow colour"
+                    value={slide.eyebrowColor || ""}
+                    onChange={(v) => updateSlide(slide.id, { eyebrowColor: v })}
+                    testid={`hero-slide-eyebrow-color-${slide.id}`}
+                  />
+                ) : null}
+                <ColorField
+                  label="Title colour"
+                  value={slide.titleColor || ""}
+                  onChange={(v) => updateSlide(slide.id, { titleColor: v })}
+                  testid={`hero-slide-title-color-${slide.id}`}
+                />
+                <ColorField
+                  label="Subtitle colour"
+                  value={slide.subtitleColor || ""}
+                  onChange={(v) => updateSlide(slide.id, { subtitleColor: v })}
+                  testid={`hero-slide-subtitle-color-${slide.id}`}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <TextField
                   label="CTA text"
