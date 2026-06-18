@@ -93,6 +93,15 @@ export const DEFAULT_BRAND_KIT = {
   // CTA text field get pre-filled at creation time. Existing sections
   // are never touched.
   default_cta_text: "",
+  // Default gradient applied to CTA Banner / Split Banner / Hero
+  // split-panel whenever the section's background is set to "gradient".
+  // Blank `gradient_from` / `gradient_to` fall back to primary →
+  // secondary, so kits without these fields look unchanged. Per-section
+  // overrides on the section's own form still win — this is just the
+  // default that lands at section-creation time.
+  gradient_from: "",
+  gradient_to: "",
+  gradient_angle: 135,
 };
 
 /**
@@ -167,6 +176,14 @@ function applyDefaultCta(cfg, b) {
 // blank and still get a consistent palette out of the box.
 const pick = (b, key) => b[key] || b.primary_color;
 
+// Gradient defaults. Empty kit values fall back to primary → secondary
+// so older kits look unchanged. Single source of truth for every
+// gradient surface across the library (CTA Banner, Split Banner, Hero
+// split-panel) so the gradient stays consistent everywhere.
+const gradFrom = (b) => b.gradient_from || b.primary_color;
+const gradTo = (b) => b.gradient_to || b.secondary_color;
+const gradAngle = (b) => b.gradient_angle ?? 135;
+
 /**
  * Build the Google Fonts @import URL for a given font name. The returned
  * URL bundles the same weight set Poppins originally shipped (300–700).
@@ -213,8 +230,9 @@ function applyToHero(cfg, b) {
       ctaText: b.background_color,           // CTA button text
       overlayColor: b.text_color,            // dark slate tint over photo
       panelBg: b.secondary_color,            // split: solid panel
-      panelGradientFrom: b.primary_color,    // split: gradient from
-      panelGradientTo: b.secondary_color,    // split: gradient to
+      panelGradientFrom: gradFrom(b),        // split: gradient from
+      panelGradientTo: gradTo(b),            // split: gradient to
+      panelGradientAngle: gradAngle(b),
     },
   };
 }
@@ -318,8 +336,9 @@ const FIELD_MAP = {
     // Gradient stops mirror Split Banner: primary → secondary so the
     // CTA gradient stays on-brand whenever the user (or a template)
     // flips `backgroundType` to "gradient".
-    gradientFrom: b.primary_color,
-    gradientTo: b.secondary_color,
+    gradientFrom: gradFrom(b),
+    gradientTo: gradTo(b),
+    gradientAngle: gradAngle(b),
     textColor: b.background_color,
     bodyColor: b.body_color,
     accentColor: pick(b, "button_color"),
@@ -357,8 +376,9 @@ const FIELD_MAP = {
   "split-banner": (cfg, b) => ({
     ...cfg,
     panelBg: b.secondary_color,
-    gradientFrom: b.primary_color,
-    gradientTo: b.secondary_color,
+    gradientFrom: gradFrom(b),
+    gradientTo: gradTo(b),
+    gradientAngle: gradAngle(b),
     titleColor: b.background_color,
     subtitleColor: b.background_color,
     ctaBg: pick(b, "button_color"),

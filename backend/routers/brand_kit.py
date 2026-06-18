@@ -79,6 +79,14 @@ class BrandKit(BaseModel):
     # fields at section-creation time. Existing sections are not
     # touched. Empty string disables the feature (back-compat).
     default_cta_text: str = Field(default="")
+    # Default gradient. Used by CTA Banner / Split Banner / Hero
+    # split-panel whenever the user (or template) flips a section's
+    # background to "gradient". Empty strings fall back to
+    # primary_color → secondary_color so kits that pre-date these
+    # fields behave byte-identically.
+    gradient_from: str = Field(default="")
+    gradient_to: str = Field(default="")
+    gradient_angle: int = Field(default=135, ge=0, le=360)
 
 
 DEFAULT_KIT = BrandKit().model_dump()

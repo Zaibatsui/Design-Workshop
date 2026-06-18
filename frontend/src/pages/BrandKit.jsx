@@ -358,6 +358,72 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
           </div>
         </section>
 
+        <section data-testid="brand-kit-gradient">
+          <SectionHeader Icon={Palette} title="Identity · Gradient" />
+          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+            <p className="text-sm text-slate-500 -mt-1">
+              The default gradient used by CTA Banner, Split Banner and
+              Hero split-panel surfaces. Leave the stops blank to inherit
+              your primary → secondary palette automatically — per-section
+              overrides on each block's own form still win.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <RoleColorField
+                label="Gradient from"
+                value={draft.gradient_from}
+                fallback={draft.primary_color}
+                onChange={(v) => set({ gradient_from: v })}
+                testid="brand-gradient-from"
+                help="Blank = inherit primary colour."
+              />
+              <RoleColorField
+                label="Gradient to"
+                value={draft.gradient_to}
+                fallback={draft.secondary_color}
+                onChange={(v) => set({ gradient_to: v })}
+                testid="brand-gradient-to"
+                help="Blank = inherit secondary colour."
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Angle
+                </Label>
+                <span
+                  data-testid="brand-gradient-angle-value"
+                  className="text-sm tabular-nums text-slate-700"
+                >
+                  {Number(draft.gradient_angle ?? 135)}°
+                </span>
+              </div>
+              <input
+                data-testid="brand-gradient-angle"
+                type="range"
+                min={0}
+                max={360}
+                step={5}
+                value={Number(draft.gradient_angle ?? 135)}
+                onChange={(e) =>
+                  set({ gradient_angle: Number(e.target.value) })
+                }
+                className="w-full"
+              />
+            </div>
+            <div
+              data-testid="brand-gradient-swatch"
+              className="h-16 rounded-lg border border-slate-200"
+              style={{
+                background: `linear-gradient(${Number(
+                  draft.gradient_angle ?? 135
+                )}deg, ${
+                  draft.gradient_from || draft.primary_color
+                } 0%, ${draft.gradient_to || draft.secondary_color} 100%)`,
+              }}
+            />
+          </div>
+        </section>
+
         <section data-testid="brand-kit-logos">
           <SectionHeader Icon={ImageIcon} title="Identity · Brand logos" />
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
@@ -974,9 +1040,13 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                 style={{
                   width: 96,
                   flexShrink: 0,
-                  background: `linear-gradient(135deg, ${
-                    draft.primary_color
-                  } 0%, ${draft.secondary_color} 100%)`,
+                  background: `linear-gradient(${Number(
+                    draft.gradient_angle ?? 135
+                  )}deg, ${
+                    draft.gradient_from || draft.primary_color
+                  } 0%, ${
+                    draft.gradient_to || draft.secondary_color
+                  } 100%)`,
                 }}
               />
               <div className="p-3 min-w-0">
@@ -1042,12 +1112,17 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                       aria-hidden="true"
                       style={{
                         aspectRatio: "4 / 3",
-                        background:
+                        background: `linear-gradient(${Number(
+                          draft.gradient_angle ?? 135
+                        )}deg, ${
                           i === 0
-                            ? `linear-gradient(135deg, ${draft.primary_color} 0%, ${draft.secondary_color} 100%)`
-                            : `linear-gradient(135deg, ${
-                                draft.accent_color || draft.primary_color
-                              } 0%, ${draft.secondary_color} 100%)`,
+                            ? draft.gradient_from || draft.primary_color
+                            : draft.accent_color ||
+                              draft.gradient_from ||
+                              draft.primary_color
+                        } 0%, ${
+                          draft.gradient_to || draft.secondary_color
+                        } 100%)`,
                       }}
                     />
                     <div className="p-3">
@@ -1102,7 +1177,13 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                 data-testid="brand-preview-cta"
                 className="rounded-xl overflow-hidden"
                 style={{
-                  background: `linear-gradient(135deg, ${draft.primary_color} 0%, ${draft.secondary_color} 100%)`,
+                  background: `linear-gradient(${Number(
+                    draft.gradient_angle ?? 135
+                  )}deg, ${
+                    draft.gradient_from || draft.primary_color
+                  } 0%, ${
+                    draft.gradient_to || draft.secondary_color
+                  } 100%)`,
                   padding: "28px 24px",
                   textAlign: "center",
                 }}
