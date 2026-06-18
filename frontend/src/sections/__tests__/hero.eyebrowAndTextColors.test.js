@@ -112,5 +112,16 @@ expect(
   /slide\.titleColor[\s\S]*?\.trim\(\)[\s\S]*?return c \?/.test(src)
 );
 
+// ─── Line-height bumped to 1.2 (was 1.1) per user feedback ────────
+const lh12 = src.match(/\.ns-title\{[^\n]*line-height:1\.2/g) || [];
+expect(
+  "Both ns-title CSS rules in hero use line-height:1.2",
+  lh12.length === 2
+);
+expect(
+  "No ns-title rule still uses the old line-height:1.1",
+  !/\.ns-title\{[^\n]*line-height:1\.1/.test(src)
+);
+
 console.log(`\n${failed === 0 ? "ALL PASSED" : "FAILED"} (${passed} passed, ${failed} failed)`);
 if (failed > 0) process.exit(1);

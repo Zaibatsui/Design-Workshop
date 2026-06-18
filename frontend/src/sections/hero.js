@@ -792,7 +792,7 @@ ${baseReset(cls)}
 .${cls} .ns-content[data-align="center"], .${cls} .ns-content{}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 auto 22px 0;object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin:0 0 12px;color:var(--ns-title)}
-.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
+.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.2;letter-spacing:-.02em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
@@ -958,7 +958,7 @@ ${baseReset(cls)}
 .${cls} .ns-logo{max-height:48px;max-width:190px;margin-bottom:20px;object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin:0 0 12px;color:var(--ns-title)}
 .${cls} .ns-content[data-align="center"] .ns-logo{margin-left:auto;margin-right:auto}
-.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.1;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
+.${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:1.2;color:var(--ns-title);letter-spacing:-.02em;margin:0 0 12px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);max-width:560px;margin:0 0 24px}
 .${cls} .ns-content[data-align="center"] .ns-subtitle{margin-left:auto;margin-right:auto}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease}
@@ -1776,27 +1776,27 @@ function FormPanel({ config, onUpdate, previewMode }) {
                   Text colour override (this slide only)
                 </p>
                 <p className="text-[11px] text-slate-500 mb-2 leading-snug">
-                  Leave blank to inherit the section title / subtitle
-                  colours. Set per slide when a carousel mixes light and
-                  dark backgrounds.
+                  Pre-filled with the section default. Pick a new colour
+                  to override just this slide — useful when a carousel
+                  mixes light and dark backgrounds.
                 </p>
                 {slide.eyebrow ? (
                   <ColorField
                     label="Eyebrow colour"
-                    value={slide.eyebrowColor || ""}
+                    value={slide.eyebrowColor || t.titleColor || "#ffffff"}
                     onChange={(v) => updateSlide(slide.id, { eyebrowColor: v })}
                     testid={`hero-slide-eyebrow-color-${slide.id}`}
                   />
                 ) : null}
                 <ColorField
                   label="Title colour"
-                  value={slide.titleColor || ""}
+                  value={slide.titleColor || t.titleColor || "#ffffff"}
                   onChange={(v) => updateSlide(slide.id, { titleColor: v })}
                   testid={`hero-slide-title-color-${slide.id}`}
                 />
                 <ColorField
                   label="Subtitle colour"
-                  value={slide.subtitleColor || ""}
+                  value={slide.subtitleColor || t.subtitleColor || "#ffffff"}
                   onChange={(v) => updateSlide(slide.id, { subtitleColor: v })}
                   testid={`hero-slide-subtitle-color-${slide.id}`}
                 />

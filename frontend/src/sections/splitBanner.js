@@ -203,7 +203,7 @@ ${baseReset(cls)}
 .${cls} .ns-logo{display:block;max-height:48px;max-width:${logoMaxW}px;width:auto;height:auto;margin:0 0 12px;object-fit:contain}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${safeColor(cfg.eyebrowColor, "#ffffff")};margin:0 0 8px;opacity:.9}
 .${cls} .ns-title{${cfg.pageHeader
-    ? `font-size:${cfg.headingSize ? `${num(cfg.headingSize, 36)}px` : "clamp(1.4rem,3vw,2.4rem)"};font-weight:700;line-height:1.15;letter-spacing:-.02em;`
+    ? `font-size:${cfg.headingSize ? `${num(cfg.headingSize, 36)}px` : "clamp(1.4rem,3vw,2.4rem)"};font-weight:700;line-height:1.2;letter-spacing:-.02em;`
     : `font-size:${num(cfg.headingSize, 30)}px;font-weight:600;`
   }color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
 .${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
