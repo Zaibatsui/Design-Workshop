@@ -248,11 +248,24 @@ ${scope} li p{display:inline;margin:0}${link}`;
  * Markup:
  *   <p class="ns-footer-link"><span class="ns-fl-prefix">…</span>
  *     <a class="ns-fl-a" href="…"><span>label</span>
- *       <span aria-hidden="true">→</span></a></p>
+ *       <svg aria-hidden="true">…→…</svg></a></p>
  *
  * @param cfg     section config object containing `footerLink: { prefix, label, href, openInNewTab }`
  * @param align   "left" | "center" | "right" — defaults to "center"
  */
+/**
+ * Default arrow glyph used by footer-link and inline-link affordances.
+ * Inline SVG (not a Unicode char) so it always renders regardless of
+ * the host page's font stack — Unicode `→` (U+2192) silently falls
+ * back to `?` / tofu on sites whose primary font has no glyph for
+ * that codepoint, which we hit in the wild on a few customer pages.
+ *
+ * Sized via `1em` and stroked with `currentColor` so it scales with
+ * the surrounding text and picks up the link colour automatically.
+ */
+export const DEFAULT_ARROW_SVG =
+  '<svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;display:inline-block"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+
 export function footerLinkHtml(cfg, align = "center") {
   const fl = cfg && cfg.footerLink;
   if (!fl) return "";
@@ -276,7 +289,7 @@ export function footerLinkHtml(cfg, align = "center") {
       arrowHtml = `<img class="ns-fl-arrow ns-fl-arrow-img" src="${escAttr(arrowImg)}" alt="" aria-hidden="true"/>`;
     }
   } else {
-    arrowHtml = `<span class="ns-fl-arrow" aria-hidden="true">→</span>`;
+    arrowHtml = `<span class="ns-fl-arrow" aria-hidden="true">${DEFAULT_ARROW_SVG}</span>`;
   }
   return `<p class="ns-footer-link${alignClass}">${prefixHtml}<a class="ns-fl-a" href="${escAttr(href)}"${target}><span>${escHtml(label)}</span>${arrowHtml}</a></p>`;
 }

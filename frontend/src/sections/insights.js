@@ -5,6 +5,7 @@
 import { LayoutGrid } from "lucide-react";
 import {
   baseReset,
+  DEFAULT_ARROW_SVG,
   escAttr,
   escHtml,
   footerLinkCss,
@@ -136,7 +137,7 @@ function render(cfg) {
     ${logoHtml}
     <h3 class="ns-ch"${headingStyle}>${escHtml(c.heading || "")}</h3>
     <p class="ns-cp">${escHtml(c.body || "")}</p>
-    ${c.linkText ? `<span class="ns-link">${escHtml(c.linkText)} →</span>` : ""}
+    ${c.linkText ? `<span class="ns-link">${escHtml(c.linkText)} ${DEFAULT_ARROW_SVG}</span>` : ""}
   </div>`;
       const interactive = rawLink !== "";
       const itemAttrs = ` data-ns-list="insight" data-ns-item="${idx}"`;
