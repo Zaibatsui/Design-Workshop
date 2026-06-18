@@ -40,13 +40,15 @@ const sharedExec = stripComments(sharedSrc);
 const insightsExec = stripComments(insightsSrc);
 
 expect(
-  "shared.js exports DEFAULT_ARROW_SVG",
-  /export const DEFAULT_ARROW_SVG\s*=\s*'<svg/.test(sharedSrc)
+  "shared.js exports DEFAULT_ARROW_HTML (compact span markup)",
+  /export const DEFAULT_ARROW_HTML\s*=\s*'<span class="ns-arrow-default"/.test(
+    sharedSrc
+  )
 );
 
 expect(
-  "shared.js footerLinkHtml uses DEFAULT_ARROW_SVG (not literal arrow)",
-  /\$\{DEFAULT_ARROW_SVG\}/.test(sharedSrc)
+  "shared.js footerLinkHtml uses DEFAULT_ARROW_HTML (not literal arrow)",
+  /\$\{DEFAULT_ARROW_HTML\}/.test(sharedSrc)
 );
 
 expect(
@@ -56,13 +58,13 @@ expect(
 );
 
 expect(
-  "insights.js imports DEFAULT_ARROW_SVG",
-  /DEFAULT_ARROW_SVG,/.test(insightsSrc)
+  "insights.js imports DEFAULT_ARROW_HTML",
+  /DEFAULT_ARROW_HTML,/.test(insightsSrc)
 );
 
 expect(
-  "insights.js card link uses DEFAULT_ARROW_SVG (not literal arrow)",
-  /\$\{DEFAULT_ARROW_SVG\}/.test(insightsSrc)
+  "insights.js card link uses DEFAULT_ARROW_HTML (not literal arrow)",
+  /\$\{DEFAULT_ARROW_HTML\}/.test(insightsSrc)
 );
 
 expect(
@@ -70,21 +72,27 @@ expect(
   !/→/.test(insightsExec)
 );
 
-// SVG content sanity — keeps the path simple and uses currentColor so
-// it inherits link colour automatically. A future refactor swapping
-// to a different glyph should still keep these properties.
+// CSS-mask rule sanity — the actual glyph is painted by a CSS rule
+// emitted via `defaultArrowCss(cls)`. Asserts the rule uses
+// `currentColor` and `1em` so colour inheritance + text-scaling work
+// the same as the previous inline-SVG approach.
 expect(
-  "DEFAULT_ARROW_SVG uses currentColor stroke (inherits link colour)",
-  /stroke="currentColor"/.test(sharedSrc)
+  "defaultArrowCss exists and is exported",
+  /export function defaultArrowCss\(cls\)/.test(sharedSrc)
 );
 
 expect(
-  "DEFAULT_ARROW_SVG sized via 1em (scales with surrounding text)",
-  /width="1em" height="1em"/.test(sharedSrc)
+  "defaultArrowCss paints via background-color:currentColor (inherits link colour)",
+  /background-color:currentColor/.test(sharedSrc)
+);
+
+expect(
+  "defaultArrowCss is wired into footerLinkCss so every section using footer links gets the rule",
+  /\$\{defaultArrowCss\(cls\)\}/.test(sharedSrc)
 );
 
 if (process.exitCode) {
   console.log("\nlinkArrow regression FAILED");
 } else {
-  console.log("\nALL PASSED (8 assertions)");
+  console.log("\nALL PASSED (9 assertions)");
 }

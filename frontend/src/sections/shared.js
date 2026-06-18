@@ -254,17 +254,41 @@ ${scope} li p{display:inline;margin:0}${link}`;
  * @param align   "left" | "center" | "right" — defaults to "center"
  */
 /**
- * Default arrow glyph used by footer-link and inline-link affordances.
- * Inline SVG (not a Unicode char) so it always renders regardless of
- * the host page's font stack — Unicode `→` (U+2192) silently falls
- * back to `?` / tofu on sites whose primary font has no glyph for
- * that codepoint, which we hit in the wild on a few customer pages.
+ * Default arrow affordance markup — a 1-line span. The actual glyph
+ * comes from a CSS background-mask rule defined inside
+ * `footerLinkCss()` (and re-used by sections like Insights), so this
+ * markup ships ~50 bytes per occurrence vs. ~210 for full inline SVG.
+ * The mask data-URI is identical across the snippet, so even when
+ * three or four arrows appear in one section the bytes only land once.
  *
- * Sized via `1em` and stroked with `currentColor` so it scales with
- * the surrounding text and picks up the link colour automatically.
+ * Why a mask + currentColor: the same approach the user-uploaded
+ * `fl-arrow-mask` already used, so we get free colour inheritance,
+ * 1em scaling, and host-font-independence (the original bug — Unicode
+ * `→` rendered as `?` on hosts whose font has no glyph at U+2192).
  */
-export const DEFAULT_ARROW_SVG =
-  '<svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;display:inline-block"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+export const DEFAULT_ARROW_HTML =
+  '<span class="ns-arrow-default" aria-hidden="true"></span>';
+
+// Backwards-compat alias for any external snippets that imported the
+// old constant. Returns the same span so call sites stay one-liner.
+export const DEFAULT_ARROW_SVG = DEFAULT_ARROW_HTML;
+
+/**
+ * Returns the single CSS rule that paints `.ns-arrow-default` for a
+ * given scoped section class. Sections that emit
+ * `DEFAULT_ARROW_HTML` must include this CSS so the span actually
+ * shows the arrow shape.
+ *
+ * Inlined here (not in baseReset) so sections that don't use the
+ * arrow don't pay the ~280-byte mask data-URI cost.
+ */
+export function defaultArrowCss(cls) {
+  // The mask SVG is hand-minified: no XML declaration, no xmlns (works
+  // in data URIs across modern browsers), single path, no whitespace.
+  const m =
+    "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 8h10M9 4l4 4-4 4'/></svg>\") no-repeat center/contain";
+  return `.${cls} .ns-arrow-default{display:inline-block;width:1em;height:1em;vertical-align:middle;background-color:currentColor;-webkit-mask:${m};mask:${m}}`;
+}
 
 export function footerLinkHtml(cfg, align = "center") {
   const fl = cfg && cfg.footerLink;
@@ -289,7 +313,7 @@ export function footerLinkHtml(cfg, align = "center") {
       arrowHtml = `<img class="ns-fl-arrow ns-fl-arrow-img" src="${escAttr(arrowImg)}" alt="" aria-hidden="true"/>`;
     }
   } else {
-    arrowHtml = `<span class="ns-fl-arrow" aria-hidden="true">${DEFAULT_ARROW_SVG}</span>`;
+    arrowHtml = `<span class="ns-fl-arrow" aria-hidden="true">${DEFAULT_ARROW_HTML}</span>`;
   }
   return `<p class="ns-footer-link${alignClass}">${prefixHtml}<a class="ns-fl-a" href="${escAttr(href)}"${target}><span>${escHtml(label)}</span>${arrowHtml}</a></p>`;
 }
@@ -319,6 +343,7 @@ export function footerLinkCss(cls, accentColor = "#E01839", prefixColor = "#6474
 .${cls} .ns-fl-arrow{display:inline-block;line-height:1}
 .${cls} .ns-fl-arrow-img{height:1em;width:auto;max-height:1.1em;object-fit:contain;vertical-align:middle}
 .${cls} .ns-fl-arrow-mask{width:1em;height:1em;background-color:currentColor;vertical-align:middle}
+${defaultArrowCss(cls)}
 `.trim();
 }
 
