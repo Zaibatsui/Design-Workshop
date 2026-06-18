@@ -9,6 +9,72 @@ Dates are `YYYY-MM-DD`. Newest releases at the top.
 ## [Unreleased]
 
 ### Added
+- **Brand Kit · Wave 2 — Typography, Components, Layout & Gradient**
+  Eight new global controls cascade into the section library:
+  *Title line-height*, *title letter-spacing*, *body weight*,
+  *eyebrow uppercase + letter-spacing*, *card border-radius*,
+  *default CTA microcopy* (auto-fills empty CTA fields on new
+  sections), a *section spacing scale* (Compact / Default /
+  Spacious), and a *default gradient* (`gradient_from`,
+  `gradient_to`, `gradient_angle`) that drives every CTA Banner /
+  Split Banner / Hero split-panel surface. The Brand Kit page is
+  now grouped into Identity / Typography / Components / Layout
+  with a sticky Live Preview pinned to the right that flips between
+  *Hero / Cards / CTA banner* tabs so every kit change is visible
+  without scrolling. All new kit fields default to the previously
+  hardcoded values so existing snippets render byte-identically.
+- **Ticket replies with strict turn-taking** — bug / feature
+  tickets are now full conversations. Admins can reply to any
+  ticket; reporters can reply back. Server-side enforcement of
+  one-reply-per-turn (409 on double-post) so the thread can never
+  flood. Dashboard counter now reflects "tickets needing your
+  attention" (new submissions + reporter replies), and the My
+  Tickets badge fires whenever an admin replies. New `replies`
+  array, `next_turn` field, `admin_seen` flag, `/admin/seen`
+  endpoint, and `POST /tickets/{id}/replies` route.
+- **File into a Collection from inside the editor** — every
+  section and page editor (Classic + Studio chromes) now carries
+  a small chrome-level Collection picker next to the save
+  indicator. Pick an existing collection, jump back to *Unfiled*,
+  or create a brand-new collection inline without leaving the
+  editor.
+- **Hero · Per-slide eyebrow + per-slide text colours** — each
+  Hero slide now supports an optional eyebrow label above the
+  title plus per-slide Title / Subtitle / Eyebrow colour
+  overrides. A single carousel can mix slides on light and dark
+  backgrounds without forcing one global text colour. Empty
+  fields inherit from the section theme so older slides render
+  unchanged.
+- **CTA Banner · Button text colour** — primary button text
+  colour is now configurable in the Design tab. Stops white
+  labels disappearing on white-accent buttons.
+
+### Changed
+- **Title line-height bumped 1.1 → 1.2** on both Hero `.ns-title`
+  rules (slide + fade renderers) and Split Banner's `.ns-title`
+  (1.15 → 1.2). Both branches now read `cfg.titleLineHeight` so
+  the Brand Kit slider drives the value globally.
+- **Rich Text / Content side-padding slider** — range bumped
+  0-80px → 0-240px, with an inline helper explaining the
+  interaction with the inner 1200px max-width. Makes the slider
+  visibly indent the column on wide desktops.
+- **Dashboard ticket badge** now reads `unread` (new tickets +
+  reporter replies) instead of `open`, so admins see exactly what
+  needs their attention. Falls back to `open` for older backends.
+
+### Fixed
+- **Stray fragment in `lib/brandKit.js`** — a corrupted edit left
+  a duplicate `arget}"\`)` block at the end of the file, breaking
+  Babel parsing intermittently. Cleaned up.
+- **Hero `.ns-eyebrow` regression test** — refreshed the regex
+  matchers after the Brand Kit `cfg.eyebrowLetterSpacing` /
+  `cfg.eyebrowUppercase` wire-up so future refactors stay safe.
+
+---
+
+## [2026-02-07]
+
+### Added
 - **Collections (folders)** — a flat per-user folder system above the
   Sections / Pages tabs in the dashboard. Both sections and pages can
   be filed into one collection at a time; items without one show under

@@ -67,11 +67,18 @@ Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to
 
 ### Collections (folders)
 
-A user-scoped, flat folder system for organising your library as it grows. Both sections and pages can be filed into one collection at a time; unfiled items show under **Unfiled**. The dashboard surfaces a colour-coded chip row above the Sections / Pages tabs — click a chip to filter both tabs simultaneously, click **Manage** to create / rename / recolour / delete from a small modal. Eight curated dot colours, 1–40 character names. Items get a **Move to…** dropdown on every dashboard card; moves are optimistic with rollback-on-failure. If you click **New section** or **New page** while a chip is active the new item is filed there automatically (a contextual hint underneath the chip row confirms where it'll land). Deleting a collection cascade-NULLs `collection_id` on every owned section + page — items are never silently lost.
+A user-scoped, flat folder system for organising your library as it grows. Both sections and pages can be filed into one collection at a time; unfiled items show under **Unfiled**. The dashboard surfaces a colour-coded chip row above the Sections / Pages tabs — click a chip to filter both tabs simultaneously, click **Manage** to create / rename / recolour / delete from a small modal. Eight curated dot colours, 1–40 character names. Items get a **Move to…** dropdown on every dashboard card; moves are optimistic with rollback-on-failure. If you click **New section** or **New page** while a chip is active the new item is filed there automatically (a contextual hint underneath the chip row confirms where it'll land). The section + page editors also carry a chrome-level **Collection picker** next to the save indicator, so you can file the current item — or spin up a brand-new collection inline — without leaving the editor. Deleting a collection cascade-NULLs `collection_id` on every owned section + page — items are never silently lost.
 
 ### Brand Kit
 
-Single source of truth for **colours** (primary, secondary, text, body, background + per-role overrides for link / button / accent and eyebrow), **brand logos** (dark + light, auto-seeded into Hero / Welcome / Split Banner), **typography** (heading + body fonts from 12 curated Google fonts, or "Inherit from site"), and a global **button radius** (sharp ↔ pill) that propagates to every CTA across every section. One click re-skins every existing section in your library without touching their content. "Inherit from site" ships snippets without a font import so the host page's typography wins.
+Single source of truth for **every visual choice** across your library, grouped into four panels — Identity / Typography / Components / Layout — with a sticky **Live Preview** pinned to the right that flips between Hero, Cards, and CTA banner tabs so every change is visible without scrolling.
+
+* **Identity** — primary / secondary / text / body / background + per-role overrides (link, button, accent, eyebrow), brand logos (dark + light, auto-seeded into Hero / Welcome / Split Banner), and a **default gradient** (`gradient_from`, `gradient_to`, `gradient_angle`) that drives every CTA Banner / Split Banner / Hero split-panel surface.
+* **Typography** — heading + body fonts from 12 curated Google fonts (or "Inherit from site" to ship snippets without a font import), **title line-height**, **title letter-spacing** (em), **body font weight** (300-700), eyebrow defaults (uppercase ON/OFF, letter-spacing).
+* **Components** — global **button corner radius** (sharp ↔ pill), an optional **default CTA microcopy** that pre-fills empty CTA fields on every new section, and a global **card border-radius** that drives product, resource, insight, feature and testimonial cards.
+* **Layout** — a **section spacing scale** (Compact 40px / Default per-section / Spacious 96px) that stamps consistent paddingTop / paddingBottom onto every new section.
+
+Per-section overrides on each block's own form always win — the kit just sets the cascade default. One click re-skins every existing section in your library without touching their content.
 
 ### Image library
 
@@ -95,7 +102,9 @@ A header **"What's new"** sheet lists every currently-badged section and templat
 
 Built-in **Report a bug / Request a feature** flow from the header of every Studio / Classic screen. Tickets live in MongoDB; admins triage them at `/admin/tickets`, users see their own at `/my-tickets`. Statuses: **Open**, **Complete**, **Rejected** — the admin can flip any ticket to any status, and the reporter sees a coloured pill on their My Tickets page when something moves.
 
-Both sidebar entries in Studio mode (`Tickets` for the caller and `Admin · Tickets` for admins) render a red count pill driven by `GET /api/tickets/mine/notifications` and `GET /api/tickets/count`. The user's pill clears the moment they visit `/my-tickets` (a `POST /api/tickets/mine/seen` resets the per-row `reporter_seen` flag); the admin's pill tracks "open" tickets and decrements when a ticket is flipped to Complete / Rejected.
+**Reply threads with strict turn-taking.** Both admins and reporters can reply to any ticket; the server enforces a one-reply-per-turn rule (`POST /api/tickets/{id}/replies` returns 409 if the caller is the side that last spoke). The original submission counts as the reporter's first turn, so admins always speak next. Either side's badge fires when the other replies: `admin_seen` flips False on reporter replies, `reporter_seen` flips False on admin replies.
+
+Both sidebar entries in Studio mode (`Tickets` for the caller and `Admin · Tickets` for admins) render a red count pill driven by `GET /api/tickets/mine/notifications` and `GET /api/tickets/count`. The admin pill now reflects `unread` (new submissions + reporter replies needing a response) rather than just "open" — `POST /api/tickets/admin/seen` bulk-clears it the moment the inbox is opened. The user's pill clears the moment they visit `/my-tickets` (`POST /api/tickets/mine/seen` resets per-row `reporter_seen`).
 
 **Mutual soft-delete** keeps abandoned tickets out of either inbox without losing the audit trail: either side can dismiss a row, but the document only hard-deletes from Mongo when both the reporter AND an admin have dismissed it.
 

@@ -614,7 +614,9 @@ export default function UserGuide({ chromeless = false }) {
                 <>A Hero with only <strong>one slide</strong> automatically hides arrows and dots. They reappear the moment you add a second slide.</>,
                 <>The Hero carousel <strong>preview lock</strong> (opening a slide row in the inspector pins the carousel to that slide) now survives device-toggle and pause-on-hover. Previously a quick mouse-out could silently restart autoplay.</>,
                 <>Tabs sections now support an optional <strong>section header</strong> (eyebrow / title / intro) above the tab row — useful when you want the section to introduce itself before the tabs do.</>,
-                <>Hit <strong>"Report a bug"</strong> or <strong>"Request a feature"</strong> in the sidebar or page footer to file a ticket directly — admins can mark it Complete, Reject, or reopen it, and you'll see a red badge in the dashboard header when there's an update on your tickets.</>,
+                <>Each <strong>Hero slide</strong> now supports an optional <strong>eyebrow</strong> label above the title plus per-slide <strong>Title / Subtitle / Eyebrow colour</strong> overrides — perfect for carousels that mix slides on light and dark backgrounds.</>,
+                <>Every section + page editor now carries a small <strong>Collection picker</strong> next to the save indicator — file the current item into any of your Collections, jump back to Unfiled, or create a brand-new Collection inline without leaving the editor.</>,
+                <>Hit <strong>"Report a bug"</strong> or <strong>"Request a feature"</strong> in the sidebar or page footer to file a ticket directly. Admins can mark it Complete, Reject, or reopen it — AND now <strong>reply</strong> with a follow-up message. You can reply back too, with strict turn-taking: one reply per side, then wait for the other side. The badge in the dashboard header lights up whenever there's a fresh status change or admin reply on your tickets.</>,
               ]}
             />
           </Section>

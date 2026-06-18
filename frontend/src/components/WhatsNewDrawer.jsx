@@ -17,7 +17,7 @@
  *     clicked through that specific version yet.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, MousePointerClick, FileStack, LayoutGrid } from "lucide-react";
+import { Sparkles, MousePointerClick, FileStack, LayoutGrid, Folder, MessageSquare, Paintbrush, PanelRight, Type, Layers } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -82,6 +82,60 @@ const PLATFORM_UPDATES = [
     whatsNew:
       "Browse every built-in page template plus your own saved templates from a dedicated page in Studio. NEW / UPDATED badges show what's recent, and one click spins up a fresh page from the template's block stack.",
     kind: "new",
+  },
+  {
+    id: "brand-kit-wave-2",
+    name: "Brand Kit · Typography, Components, Layout",
+    icon: Paintbrush,
+    addedOn: "2026-02-18",
+    whatsNew:
+      "The kit now drives 8 new global controls — title line-height, title letter-spacing, body weight, eyebrow uppercase + tracking, card border-radius, default CTA microcopy, section spacing scale (Compact / Default / Spacious), and a default gradient (from / to / angle). Every value cascades into new sections automatically, and per-section overrides still win. The Brand Kit page is now grouped into Identity / Typography / Components / Layout and the Preview is pinned to the right with Hero / Cards / CTA tabs so you can see every change live.",
+    kind: "major",
+  },
+  {
+    id: "ticket-replies",
+    name: "Ticket replies (with turn-taking)",
+    icon: MessageSquare,
+    addedOn: "2026-02-18",
+    whatsNew:
+      "Bug / feature tickets are now full conversations. Admins can reply to any submission; reporters can reply back — but each side may only post once before the other responds. Badges fire on both ends: the dashboard counter now shows tickets that need YOUR attention (new submissions + reporter replies you haven't seen), and the My Tickets badge fires whenever an admin replies.",
+    kind: "new",
+  },
+  {
+    id: "editor-collection-picker",
+    name: "File into a Collection from the editor",
+    icon: Folder,
+    addedOn: "2026-02-18",
+    whatsNew:
+      "Section + page editors now carry a small chrome-level picker next to the save indicator. Click it to file the current item into any of your Collections, jump back to Unfiled, or create a brand-new Collection inline without leaving the editor.",
+    kind: "new",
+  },
+  {
+    id: "hero-eyebrow-slide-colors",
+    name: "Hero · Eyebrow + per-slide text colours",
+    icon: Layers,
+    addedOn: "2026-02-18",
+    whatsNew:
+      "Each Hero slide now supports an optional eyebrow label above the title plus per-slide Title / Subtitle / Eyebrow colour overrides. A single carousel can mix slides on light and dark backgrounds without forcing one global text colour. Title line-height bumped from 1.1 → 1.2 (now driven by the Brand Kit) so wrapped headlines read tighter.",
+    kind: "updated",
+  },
+  {
+    id: "cta-banner-button-text-colour",
+    name: "CTA Banner · Button text colour",
+    icon: Type,
+    addedOn: "2026-02-18",
+    whatsNew:
+      "The primary button's text colour is now configurable in the Design tab. Stops white labels disappearing on white-accent buttons.",
+    kind: "updated",
+  },
+  {
+    id: "rich-text-side-padding",
+    name: "Rich Text · Side padding helper",
+    icon: PanelRight,
+    addedOn: "2026-02-18",
+    whatsNew:
+      "The side-padding slider on Rich Text and Content sections now ranges up to 240px and shows an inline helper explaining how it interacts with the inner 1200px max-width — so you can finally indent the column on wide desktops and understand why nothing changes below that threshold.",
+    kind: "updated",
   },
 ];
 
