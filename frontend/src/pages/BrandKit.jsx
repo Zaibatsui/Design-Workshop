@@ -39,6 +39,10 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
   const [draft, setDraft] = useState(brandKit);
   const [saving, setSaving] = useState(false);
   const [applying, setApplying] = useState(false);
+  // Which preview surface is shown in the sticky right column. Stored
+  // locally so flipping between Hero / Cards / CTA doesn't dirty the
+  // brand-kit draft and trigger the Save button.
+  const [previewTab, setPreviewTab] = useState("hero");
 
   // Re-hydrate on initial fetch / external updates.
   useEffect(() => {
@@ -818,6 +822,30 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
         <section data-testid="brand-kit-preview">
           <SectionHeader title="Live preview" />
           <div
+            className="flex gap-1 mb-2 p-1 bg-slate-100 rounded-lg"
+            data-testid="brand-kit-preview-tabs"
+          >
+            {[
+              { v: "hero", label: "Hero" },
+              { v: "cards", label: "Cards" },
+              { v: "cta", label: "CTA banner" },
+            ].map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => setPreviewTab(opt.v)}
+                data-testid={`brand-kit-preview-tab-${opt.v}`}
+                className={`flex-1 text-xs font-semibold px-3 py-1.5 rounded-md transition-colors ${
+                  previewTab === opt.v
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <div
             className="rounded-xl border border-slate-200 overflow-hidden"
             style={{ backgroundColor: draft.background_color }}
             data-testid="brand-kit-preview-surface"
@@ -833,7 +861,10 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                   : 36
               }px 28px`,
             }}
+            data-testid={`brand-kit-preview-pane-${previewTab}`}
           >
+            {previewTab === "hero" && (
+              <>
             <p
               data-testid="brand-eyebrow-preview"
               className="mb-3"
@@ -989,6 +1020,164 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
                 </div>
               </div>
             </div>
+              </>
+            )}
+            {previewTab === "cards" && (
+              <div
+                className="grid grid-cols-2 gap-3"
+                data-testid="brand-preview-cards-grid"
+              >
+                {[0, 1].map((i) => (
+                  <div
+                    key={i}
+                    className="overflow-hidden"
+                    style={{
+                      border: "1px solid #f2f2f2",
+                      borderRadius: `${Number(draft.card_radius ?? 8)}px`,
+                      background: "#fff",
+                    }}
+                    data-testid={`brand-preview-card-${i}`}
+                  >
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        aspectRatio: "4 / 3",
+                        background:
+                          i === 0
+                            ? `linear-gradient(135deg, ${draft.primary_color} 0%, ${draft.secondary_color} 100%)`
+                            : `linear-gradient(135deg, ${
+                                draft.accent_color || draft.primary_color
+                              } 0%, ${draft.secondary_color} 100%)`,
+                      }}
+                    />
+                    <div className="p-3">
+                      <div
+                        className="text-[10px] mb-1"
+                        style={{
+                          fontWeight: 700,
+                          letterSpacing: `${Number(
+                            draft.eyebrow_letter_spacing ?? 0.18
+                          )}em`,
+                          textTransform:
+                            (draft.eyebrow_uppercase ?? true) === false
+                              ? "none"
+                              : "uppercase",
+                          color:
+                            draft.accent_color || draft.primary_color,
+                        }}
+                      >
+                        {i === 0 ? "Product" : "Resource"}
+                      </div>
+                      <div
+                        className="text-sm font-semibold mb-1 truncate"
+                        style={{
+                          color: draft.text_color,
+                          fontFamily:
+                            draft.heading_font === INHERIT_FONT
+                              ? "inherit"
+                              : `"${draft.heading_font}", sans-serif`,
+                          lineHeight: Number(
+                            draft.title_line_height ?? 1.2
+                          ),
+                        }}
+                      >
+                        {i === 0 ? "Logitech MX Master 3S" : "Why ergonomic mice matter"}
+                      </div>
+                      <div
+                        className="text-xs"
+                        style={{
+                          color: draft.body_color || draft.text_color,
+                          fontWeight: Number(draft.body_weight ?? 400),
+                        }}
+                      >
+                        {i === 0 ? "£89.99" : "5 min read · Productivity"}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {previewTab === "cta" && (
+              <div
+                data-testid="brand-preview-cta"
+                className="rounded-xl overflow-hidden"
+                style={{
+                  background: `linear-gradient(135deg, ${draft.primary_color} 0%, ${draft.secondary_color} 100%)`,
+                  padding: "28px 24px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  className="mb-2"
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: `${Number(
+                      draft.eyebrow_letter_spacing ?? 0.18
+                    )}em`,
+                    textTransform:
+                      (draft.eyebrow_uppercase ?? true) === false
+                        ? "none"
+                        : "uppercase",
+                    color: draft.background_color,
+                    opacity: 0.85,
+                    fontFamily:
+                      draft.heading_font === INHERIT_FONT
+                        ? "inherit"
+                        : `"${draft.heading_font}", sans-serif`,
+                  }}
+                >
+                  {draft.eyebrow_text || "Limited time"}
+                </p>
+                <h3
+                  className="text-xl mb-3"
+                  style={{
+                    color: draft.background_color,
+                    fontWeight: 700,
+                    lineHeight: Number(draft.title_line_height ?? 1.2),
+                    letterSpacing: `${Number(
+                      draft.title_letter_spacing ?? -0.02
+                    )}em`,
+                    fontFamily:
+                      draft.heading_font === INHERIT_FONT
+                        ? "inherit"
+                        : `"${draft.heading_font}", sans-serif`,
+                  }}
+                >
+                  Ready to ship your next campaign?
+                </h3>
+                <p
+                  className="text-xs mb-5 mx-auto"
+                  style={{
+                    maxWidth: 280,
+                    color: draft.background_color,
+                    opacity: 0.85,
+                    fontWeight: Number(draft.body_weight ?? 400),
+                  }}
+                >
+                  Drop in a hero, a card grid, and this CTA banner — all
+                  on-brand, with a single click.
+                </p>
+                <span
+                  className="inline-flex items-center text-sm font-semibold"
+                  style={{
+                    backgroundColor: draft.background_color,
+                    color: draft.primary_color,
+                    borderRadius: `${Number(
+                      draft.button_radius ?? 8
+                    )}px`,
+                    padding: "10px 22px",
+                    fontFamily:
+                      draft.heading_font === INHERIT_FONT
+                        ? "inherit"
+                        : `"${draft.heading_font}", sans-serif`,
+                  }}
+                  data-testid="brand-preview-cta-button"
+                >
+                  {draft.default_cta_text || "Get started"}
+                </span>
+              </div>
+            )}
           </div>
           </div>
         </section>
