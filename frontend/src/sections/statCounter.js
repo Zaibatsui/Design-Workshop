@@ -105,6 +105,12 @@ const defaults = () => ({
   numberWeight: "700", // 400 / 500 / 600 / 700
   animate: true, // count-up on scroll
   animateDuration: 1200, // ms
+  // Thousand-separator commas on the big numbers (e.g. 50,000 instead
+  // of 50000). Applies BOTH at static render time and during the
+  // count-up animation so the comma is visible throughout. Decimal
+  // values like "36.5" keep their dot; only the integer part is
+  // grouped. Default true — users can disable per-section.
+  thousandsSeparator: true,
   // Theme.
   bgColor: "#0f172a", // dark navy (matches Xeretec's IT-That-Delivers band)
   textColor: "#ffffff", // section heading + body
@@ -132,6 +138,31 @@ function parseTarget(value) {
   return { num: n, decimals };
 }
 
+/**
+ * Format the user-typed string with thousand-separator commas on the
+ * integer part — only when `addSeparator` is true. Preserves the
+ * decimal portion verbatim (so "36.5" stays "36.5", "50000.25" → "50,000.25").
+ * Non-numeric input (e.g. "Coming soon") falls through unchanged so
+ * users can keep their custom text values.
+ */
+function formatNumberString(raw, addSeparator) {
+  if (raw == null) return "";
+  const s = String(raw);
+  if (!addSeparator) return s;
+  // Strip any pre-existing commas the user typed; we re-insert them
+  // canonically below so "50,000" and "50000" both end up "50,000".
+  const cleaned = s.replace(/,/g, "");
+  // Only format when the whole string is a numeric token; otherwise
+  // return the original (preserves currency symbols, units, etc. —
+  // those live in `prefix` / `suffix` anyway, but defensive).
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return s;
+  const dot = cleaned.indexOf(".");
+  const intPart = dot === -1 ? cleaned : cleaned.slice(0, dot);
+  const decPart = dot === -1 ? "" : cleaned.slice(dot);
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return grouped + decPart;
+}
+
 function render(cfg = {}) {
   const c = { ...defaults(), ...cfg };
   const uid = c.uid || makeUid();
@@ -148,6 +179,7 @@ function render(cfg = {}) {
     : "700";
   const animate = !!c.animate;
   const animateMs = Math.max(200, Math.min(4000, num(c.animateDuration, 1200)));
+  const thousandsSep = c.thousandsSeparator !== false;
 
   const styleVars = [
     `--ns-bg:${safeColor(c.bgColor, "#0f172a")}`,
@@ -168,7 +200,12 @@ function render(cfg = {}) {
       const target = parseTarget(it.value);
       const prefix = it.prefix ? escHtml(it.prefix) : "";
       const suffix = it.suffix ? escHtml(it.suffix) : "";
-      const initial = animate ? "0" : escHtml(String(it.value || ""));
+      // Static render: format the raw value with thousand separators
+      // when the toggle is on. When animating, the IIFE handles
+      // formatting for every frame so we start at "0" here.
+      const initial = animate
+        ? "0"
+        : escHtml(formatNumberString(it.value || "", thousandsSep));
       const colorVar = it.accent
         ? ` style="--ns-stat-color:${safeColor(it.accent, accent)}"`
         : "";
@@ -231,7 +268,7 @@ ${dividerCss}
 @media (prefers-reduced-motion: reduce){.${cls} .ns-stat-cta{transition:none}}
 `.trim();
 
-  const html = `<section class="ns-stat-counter ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-animate="${animate ? "1" : "0"}" data-ns-dur="${animateMs}" data-ns-group="defaults">
+  const html = `<section class="ns-stat-counter ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-animate="${animate ? "1" : "0"}" data-ns-dur="${animateMs}" data-ns-thousands="${thousandsSep ? "1" : "0"}" data-ns-group="defaults">
   <div class="ns-stat-wrap">
     ${headerHtml}
     <ul class="ns-stat-list" data-ns-group="items">${itemsHtml}</ul>
@@ -245,7 +282,7 @@ ${dividerCss}
   // Idempotent: only runs once per section via root.__nsCounted.
   const js = iife(
     cls,
-    `if(root.getAttribute("data-ns-animate")!=="1")return;var dur=parseInt(root.getAttribute("data-ns-dur"),10)||1200;var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;function fmt(n,d){if(d===0)return String(Math.round(n));var s=n.toFixed(d);return s;}function run(){if(root.__nsCounted)return;root.__nsCounted=true;var vals=root.querySelectorAll(".ns-stat-num");if(reduced){for(var i=0;i<vals.length;i++){var v=vals[i].querySelector(".ns-stat-value");var t=parseFloat(vals[i].getAttribute("data-ns-target"))||0;var d=parseInt(vals[i].getAttribute("data-ns-decimals"),10)||0;v.textContent=fmt(t,d);}return;}var start=null;function step(ts){if(start===null)start=ts;var p=Math.min(1,(ts-start)/dur);var ease=1-Math.pow(1-p,3);for(var i=0;i<vals.length;i++){var vv=vals[i].querySelector(".ns-stat-value");var tt=parseFloat(vals[i].getAttribute("data-ns-target"))||0;var dd=parseInt(vals[i].getAttribute("data-ns-decimals"),10)||0;vv.textContent=fmt(tt*ease,dd);}if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}if("IntersectionObserver" in window){var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){run();io.disconnect();break;}}},{threshold:0.25});io.observe(root);}else{run();}`
+    `if(root.getAttribute("data-ns-animate")!=="1")return;var dur=parseInt(root.getAttribute("data-ns-dur"),10)||1200;var sep=root.getAttribute("data-ns-thousands")==="1";var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;function grp(s){return s.replace(/\\B(?=(\\d{3})+(?!\\d))/g,",");}function fmt(n,d){var rounded=d===0?String(Math.round(n)):n.toFixed(d);if(!sep)return rounded;var dot=rounded.indexOf(".");var intp=dot===-1?rounded:rounded.slice(0,dot);var decp=dot===-1?"":rounded.slice(dot);var neg=intp.charAt(0)==="-";if(neg)intp=intp.slice(1);return (neg?"-":"")+grp(intp)+decp;}function run(){if(root.__nsCounted)return;root.__nsCounted=true;var vals=root.querySelectorAll(".ns-stat-num");if(reduced){for(var i=0;i<vals.length;i++){var v=vals[i].querySelector(".ns-stat-value");var t=parseFloat(vals[i].getAttribute("data-ns-target"))||0;var d=parseInt(vals[i].getAttribute("data-ns-decimals"),10)||0;v.textContent=fmt(t,d);}return;}var start=null;function step(ts){if(start===null)start=ts;var p=Math.min(1,(ts-start)/dur);var ease=1-Math.pow(1-p,3);for(var i=0;i<vals.length;i++){var vv=vals[i].querySelector(".ns-stat-value");var tt=parseFloat(vals[i].getAttribute("data-ns-target"))||0;var dd=parseInt(vals[i].getAttribute("data-ns-decimals"),10)||0;vv.textContent=fmt(tt*ease,dd);}if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}if("IntersectionObserver" in window){var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){run();io.disconnect();break;}}},{threshold:0.25});io.observe(root);}else{run();}`
   );
 
   return wrapSnippet({ html, css, js });
@@ -465,6 +502,13 @@ function FormPanel({ config, onUpdate }) {
             testid="stat-animate-duration"
           />
         )}
+        <ToggleField
+          label="Thousand-separator commas"
+          description='Render big numbers with commas (e.g. "50,000" instead of "50000"). Applies during count-up too.'
+          checked={config.thousandsSeparator !== false}
+          onChange={(v) => onUpdate({ thousandsSeparator: v })}
+          testid="stat-thousands-separator"
+        />
         <ToggleField
           label="Show dividers between numbers"
           checked={!!config.showDividers}
