@@ -26,6 +26,7 @@ import EmptyBlockEditor from "./page-editor/EmptyBlockEditor";
 import SaveIndicator from "./page-editor/SaveIndicator";
 import StudioToggle from "@/components/studio/StudioToggle";
 import UserMenu from "@/components/UserMenu";
+import CollectionPicker from "@/components/CollectionPicker";
 import PagePreviewFrame from "./page-editor/PagePreviewFrame";
 import SaveAsTemplateDialog from "./page-editor/SaveAsTemplateDialog";
 
@@ -480,6 +481,17 @@ export default function PageEditor({ studio = false }) {
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <SaveIndicator status={saveStatus} savedAt={savedAt} />
+              <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
+              <CollectionPicker
+                itemType="page"
+                itemId={page.page_id}
+                collectionId={page.collection_id ?? null}
+                onChange={(newId) =>
+                  setPage((prev) =>
+                    prev ? { ...prev, collection_id: newId } : prev
+                  )
+                }
+              />
               <Button
                 variant="ghost"
                 size="sm"
@@ -529,6 +541,16 @@ export default function PageEditor({ studio = false }) {
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
+            <CollectionPicker
+              itemType="page"
+              itemId={page.page_id}
+              collectionId={page.collection_id ?? null}
+              onChange={(newId) =>
+                setPage((prev) =>
+                  prev ? { ...prev, collection_id: newId } : prev
+                )
+              }
+            />
             <Button
               variant="outline"
               onClick={() => setTemplateDialogOpen(true)}

@@ -28,6 +28,7 @@ import {
 } from "@/components/EditorBits";
 import StudioToggle from "@/components/studio/StudioToggle";
 import UserMenu from "@/components/UserMenu";
+import CollectionPicker from "@/components/CollectionPicker";
 
 const AUTOSAVE_MS = 1500;
 // Iframe-preview debounce window. While a slider is being dragged the
@@ -430,6 +431,16 @@ export default function Editor() {
           </div>
           <div className="flex items-center gap-3">
             <SaveIndicator status={saveStatus} savedAt={savedAt} />
+            <CollectionPicker
+              itemType="section"
+              itemId={section.section_id}
+              collectionId={section.collection_id ?? null}
+              onChange={(newId) =>
+                setSection((prev) =>
+                  prev ? { ...prev, collection_id: newId } : prev
+                )
+              }
+            />
             <Button
               data-testid="copy-snippet-button"
               onClick={copySnippet}

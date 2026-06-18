@@ -57,6 +57,7 @@ import {
   AdminPreviewOverrideToggle,
 } from "@/components/EditorBits";
 import StudioToggle from "@/components/studio/StudioToggle";
+import CollectionPicker from "@/components/CollectionPicker";
 import StudioInspector from "@/components/studio/StudioInspector";
 import StudioOutline from "@/components/studio/StudioOutline";
 
@@ -511,6 +512,17 @@ export default function StudioEditor() {
               <RotateCcw className="w-4 h-4" strokeWidth={1.75} />
             </button>
             <SaveIndicator status={saveStatus} savedAt={savedAt} variant="studio" />
+            <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
+            <CollectionPicker
+              itemType="section"
+              itemId={section.section_id}
+              collectionId={section.collection_id ?? null}
+              onChange={(newId) =>
+                setSection((prev) =>
+                  prev ? { ...prev, collection_id: newId } : prev
+                )
+              }
+            />
             <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
             <StudioToggle />
             <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
