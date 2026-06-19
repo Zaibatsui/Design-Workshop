@@ -239,7 +239,6 @@ ${baseReset(cls, cfg)}
 .${cls} .ns-header-content{position:relative;z-index:1;max-width:760px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
 .${cls} .ns-header.ns-header-bg .ns-heading{color:${headerTextColor}}
 .${cls} .ns-header.ns-header-bg .ns-sub{color:${headerTextColor};opacity:.92}
-.${cls} .ns-header.ns-header-bg .ns-eyebrow{color:${headerTextColor};opacity:.85}
 
 .${cls} .ns-eyebrow{margin:0;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:${accent}}
 .${cls} .ns-heading{margin:0;font-size:32px;font-weight:700;color:${safeColor(cfg.titleColor, "#0f172a")};line-height:1.2}
