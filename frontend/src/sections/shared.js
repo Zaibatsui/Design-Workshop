@@ -37,6 +37,22 @@ export const safeUrl = (u = "") => {
   const lower = s.toLowerCase();
   if (/^(javascript|vbscript|file|about|blob)\s*:/.test(lower)) return "";
   if (lower.startsWith("data:") && !/^data:image\//.test(lower)) return "";
+  // Snippets are embedded in arbitrary host sites, so a "naked" URL
+  // like `example.com/foo` would be resolved against the host's base
+  // domain instead of opening the intended absolute destination. Auto-
+  // prepend `https://` for host-shaped strings so the snippet's link
+  // stays self-contained.
+  //   - Keep anchors / absolute paths / known schemes as-is.
+  //   - Treat anything else that contains a `.` (e.g. `www.foo.com`,
+  //     `foo.co.uk/products/x`) as a missing-protocol case.
+  if (
+    !s.startsWith("#") &&
+    !s.startsWith("/") &&
+    !/^[a-z][a-z0-9+.-]*:/i.test(s) &&
+    s.includes(".")
+  ) {
+    return `https://${s}`;
+  }
   return s;
 };
 
