@@ -140,6 +140,18 @@ function render(cfg) {
   const ctaHref = safeUrl(cfg.ctaLink || "#");
   const ctaTarget = cfg.ctaOpenInSameTab ? "_self" : "_blank";
   const ctaRel = cfg.ctaOpenInSameTab ? "" : ' rel="noopener noreferrer"';
+  // When the user supplies a real CTA link the entire banner becomes
+  // clickable — image, copy, and CTA all share the same destination
+  // so the whole surface feels like one big affordance. Nested
+  // anchors are invalid HTML, so the CTA itself is rendered as a
+  // styled <span> when section-link is on (the parent anchor handles
+  // navigation either way).
+  const linkSection = Boolean(cfg.ctaLink && cfg.ctaLink.trim() && cfg.ctaLink.trim() !== "#");
+  const ctaEl = cta
+    ? linkSection
+      ? `<span class="ns-cta">${escHtml(cta)}</span>`
+      : `<a class="ns-cta" href="${escAttr(ctaHref)}" target="${ctaTarget}"${ctaRel}>${escHtml(cta)}</a>`
+    : "";
 
   // Column order in source = visual order. When image is on the left we
   // emit it before the panel in source so flow + reading order match.
@@ -172,7 +184,7 @@ function render(cfg) {
     ${cfg.heading ? `<h2 class="ns-title">${escHtml(cfg.heading)}</h2>` : ""}
     ${cfg.subheading ? `<p class="ns-subtitle">${escHtml(cfg.subheading)}</p>` : ""}
     ${pointsHtml}
-    ${cta ? `<a class="ns-cta" href="${escAttr(ctaHref)}" target="${ctaTarget}"${ctaRel}>${escHtml(cta)}</a>` : ""}
+    ${ctaEl}
   </div>
 </div>`;
 
@@ -180,10 +192,20 @@ function render(cfg) {
     imageUrl ? `<img src="${escAttr(imageUrl)}" alt="${escAttr(cfg.imageAlt || cfg.heading || "")}"/>` : ""
   }</div>`;
 
+  const gridInner = imageSide === "left" ? imageHtml + panelHtml : panelHtml + imageHtml;
+  // When the section is link-wrapped, the anchor IS the grid
+  // container (display:grid via the existing .ns-grid rule) so the
+  // child columns still lay out correctly. Otherwise we keep the
+  // plain <div>.
+  const gridTag = linkSection
+    ? `<a class="ns-grid ns-link" href="${escAttr(ctaHref)}" target="${ctaTarget}"${ctaRel} aria-label="${escAttr(cfg.heading || cta || "Open")}">`
+    : `<div class="ns-grid">`;
+  const gridClose = linkSection ? `</a>` : `</div>`;
+
   const html = `<section class="ns-split-banner ${cls}${fullBleedClass(cfg)}" data-ns-group="defaults">
-  <div class="ns-grid">
-    ${imageSide === "left" ? imageHtml + panelHtml : panelHtml + imageHtml}
-  </div>
+  ${gridTag}
+    ${gridInner}
+  ${gridClose}
 </section>`;
 
   // The gutter calc: when full-bleed, the panel column gets extra
@@ -207,8 +229,12 @@ ${baseReset(cls)}
     : `font-size:${num(cfg.headingSize, 30)}px;font-weight:600;line-height:${num(cfg.titleLineHeight, 1.2)};letter-spacing:${num(cfg.titleLetterSpacing, -0.02)}em;`
   }color:${safeColor(cfg.titleColor, "#ffffff")};margin:0 0 10px}
 .${cls} .ns-subtitle{font-size:clamp(.9rem,1.2vw,1.0625rem);line-height:1.5;color:${safeColor(cfg.subtitleColor, "rgba(255,255,255,0.92)")};margin:0 0 14px;max-width:560px}
-.${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px}
+.${cls} .ns-cta{display:inline-block;background:${safeColor(cfg.ctaBg, "#E01839")};color:${safeColor(cfg.ctaTextColor, "#ffffff")};padding:11px 22px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;font-size:14px;transition:transform .15s ease,filter .15s ease;margin-top:4px;text-decoration:none}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.${cls} .ns-link{text-decoration:none;color:inherit;cursor:pointer;transition:filter .25s ease}
+.${cls} .ns-link:hover{filter:brightness(1.02)}
+.${cls} .ns-link:hover .ns-cta{transform:translateY(-1px);filter:brightness(1.08)}
+.${cls} .ns-link:focus-visible{outline:2px solid ${safeColor(cfg.ctaBg, "#E01839")};outline-offset:2px;border-radius:8px}
 .${cls} .ns-points{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:12px}
 .${cls} .ns-pt{display:flex;gap:12px;align-items:flex-start}
 .${cls} .ns-pt-icon{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;color:${safeColor(cfg.pointIconColor || cfg.ctaBg, "#E01839")};background:color-mix(in srgb, ${safeColor(cfg.pointIconColor || cfg.ctaBg, "#E01839")} 14%, transparent)}

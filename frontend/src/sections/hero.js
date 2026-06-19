@@ -560,6 +560,19 @@ function splitSlideInner(slide, cfg) {
   const link = safeUrl(slide.ctaLink || "#");
   const target = slide.openInSameTab ? "_self" : "_blank";
   const rel = slide.openInSameTab ? "" : ' rel="noopener noreferrer"';
+  // Make the whole split-slide clickable when a real CTA link is
+  // provided — feels much more like the kind of marketing surface
+  // users expect, and mirrors Split Banner's behaviour. CTA stays
+  // visible but renders as a styled <span> to avoid the invalid
+  // nested-anchor HTML.
+  const linkSlide = Boolean(
+    slide.ctaLink && slide.ctaLink.trim() && slide.ctaLink.trim() !== "#"
+  );
+  const ctaEl = cta
+    ? linkSlide
+      ? `<span class="ns-cta"${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</span>`
+      : `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>`
+    : "";
 
   // Panel sits on the side OPPOSITE to the image.
   const panelSide = imageSide === "left" ? "right" : "left";
@@ -579,7 +592,7 @@ function splitSlideInner(slide, cfg) {
       ${slideEyebrowHtml(slide, cfg.theme)}
       ${slide.title ? `<h2 class="ns-title"${slideTitleStyle(slide)}>${escHtml(slide.title)}</h2>` : ""}
       ${slide.subtitle ? `<p class="ns-subtitle"${slideSubtitleStyle(slide)}>${escHtml(slide.subtitle)}</p>` : ""}
-      ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
+      ${ctaEl}
     </div>
   </div>`;
 
@@ -593,7 +606,10 @@ function splitSlideInner(slide, cfg) {
       : "";
   const imageHtml = `<div class="ns-image-wrap">${imgInner}</div>`;
 
-  return `<div class="ns-split-grid">${imageSide === "left" ? imageHtml + panelHtml : panelHtml + imageHtml}</div>`;
+  const inner = imageSide === "left" ? imageHtml + panelHtml : panelHtml + imageHtml;
+  return linkSlide
+    ? `<a class="ns-split-grid ns-link" href="${escAttr(link)}" target="${target}"${rel} aria-label="${escAttr(slide.title || cta || "Open")}">${inner}</a>`
+    : `<div class="ns-split-grid">${inner}</div>`;
 }
 
 function splitCss(cls, cfg) {
@@ -638,6 +654,10 @@ function splitCss(cls, cfg) {
 .${cls} .ns-slide.is-split .ns-overlay{display:none}
 .${cls} .ns-slide.is-split .ns-content{display:none}
 .${cls} .ns-slide.is-split .ns-split-grid{display:grid;grid-template-columns:var(--ns-grid-cols, ${gridCols});width:100%;height:100%;min-height:100%;align-items:stretch}
+.${cls} .ns-link.ns-split-grid{text-decoration:none;color:inherit;cursor:pointer;transition:filter .25s ease}
+.${cls} .ns-link.ns-split-grid:hover{filter:brightness(1.02)}
+.${cls} .ns-link.ns-split-grid:hover .ns-cta{transform:translateY(-1px);filter:brightness(1.08)}
+.${cls} .ns-link.ns-split-grid:focus-visible{outline:2px solid var(--ns-cta-bg);outline-offset:-2px}
 .${cls} .ns-slide.is-split .ns-panel{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:24px 48px;overflow:hidden;background:var(--ns-pb)}
 .${cls} .ns-slide.is-split .ns-panel-inner{width:100%;max-width:${Math.floor(contentMax / 2)}px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-logo{display:block;max-height:48px;max-width:190px;margin:0 0 12px;object-fit:contain}
@@ -794,7 +814,7 @@ ${baseReset(cls)}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:${num(cfg.eyebrowLetterSpacing, 0.18)}em;text-transform:${cfg.eyebrowUppercase === false ? "none" : "uppercase"};margin:0 0 12px;color:var(--ns-title)}
 .${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:${num(cfg.titleLineHeight, 1.2)};letter-spacing:${num(cfg.titleLetterSpacing, -0.02)}em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
-.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease}
+.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease;text-decoration:none}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .${cls} .ns-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);color:#fff;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;transition:background .15s ease}
 .${cls} .ns-arrow:hover{background:rgba(0,0,0,.6)}
