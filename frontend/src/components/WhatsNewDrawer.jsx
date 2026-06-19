@@ -92,6 +92,8 @@ const PLATFORM_UPDATES = [
       "New section: a searchable, filterable grid of brand cards with an optional Spotlight tier above the main grid. Per-brand category + description filter together; the search input matches name or description in real time. Cards support three hover affordances — coloured accent bar on any of the four sides (with adjustable thickness + colour), classic lift + border highlight, or no effect — plus the usual mobile column overrides and brand-kit cascade.",
     kind: "new",
   },
+  {
+    id: "brand-kit-wave-2",
     name: "Brand Kit · Typography, Components, Layout",
     icon: Paintbrush,
     addedOn: "2026-02-18",
