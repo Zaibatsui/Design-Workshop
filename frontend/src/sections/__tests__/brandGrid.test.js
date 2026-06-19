@@ -74,6 +74,38 @@ expect(
   "Header overlay div uses the configured overlay colour + opacity",
   /ns-header-overlay/.test(src) && /opacity:\$\{headerOverlayOpacity\}/.test(src),
 );
+expect(
+  "Photo header is rendered OUTSIDE `.ns-inner` so it spans edge-to-edge",
+  /\$\{photoHeader\}\s*<div class="ns-inner">/.test(src),
+);
+expect(
+  "Section root drops horizontal padding (lives on .ns-inner instead)",
+  /\.\$\{cls\}\{background:[\s\S]{0,200}padding:\$\{padTop\}px 0 \$\{padBot\}px/.test(src) &&
+    /\.ns-inner\{[^}]{0,200}padding:0 \$\{padX\}px/.test(src),
+);
+expect(
+  "Section honours the shared `fullBleed` flag",
+  /fullBleed:\s*false/.test(src) && /fullBleedClass\(cfg\)/.test(src),
+);
+
+// ── Search controls ───────────────────────────────────────────────
+expect(
+  "Search position field exists with 'header' and 'below' options",
+  /searchPosition:\s*"below"/.test(src) &&
+    /value:\s*"header"[\s\S]{0,80}Inside the header/.test(src),
+);
+expect(
+  "Search alignment maps to flex justify-content",
+  /SEARCH_ALIGN_TO_FLEX\s*=\s*\{[\s\S]{0,150}left:\s*"flex-start"[\s\S]{0,80}right:\s*"flex-end"/.test(src),
+);
+expect(
+  "Search width is configurable via slider",
+  /searchWidth:\s*\d+/.test(src) && /label="Width"/.test(src),
+);
+expect(
+  "Search renders inside header content when position === 'header' AND an image is set",
+  /searchInHeader\s*=\s*cfg\.searchEnabled\s*&&\s*cfg\.searchPosition\s*===\s*"header"\s*&&\s*hasHeaderImg/.test(src),
+);
 
 // ── Search-only filter ────────────────────────────────────────────
 expect(

@@ -1,15 +1,22 @@
 /*
- * Brand Grid — clean grid of brand cards with an optional photo
- * header band and an optional debounced search input.
+ * Brand Grid — clean grid of brand cards with an optional full-bleed
+ * photo header band and a positionable debounced search input.
  *
- * Layout mirrors the rest of the section library: standard centred
- * eyebrow / heading / subheading at the top, full-width responsive
- * grid below. When `headerImage` is set, the header is rendered as a
- * tall photo band with a brand-tinted overlay so it reads like a
- * Misco-style "Shop by brand" hero strip; without an image it falls
- * back to the same plain centred header every other section uses.
+ * Layout decisions:
+ *   • The photo header band lives OUTSIDE `.ns-inner` so it reaches
+ *     the section edges. The text inside is constrained to a 760px
+ *     max-width column so it stays readable. The section's `fullBleed`
+ *     flag (shared `is-full` class) makes the whole section span
+ *     100vw, identical to the Hero section pattern.
+ *   • Horizontal padding (`paddingX`) is applied to `.ns-inner` only,
+ *     not the section root — so the header band and the section
+ *     background colour reach the edges even when the inner column
+ *     stays at 1200px.
+ *   • The search input can sit either ABOVE the grid (default) or
+ *     INSIDE the photo header (`searchPosition === "header"`). Width
+ *     and horizontal alignment are author-controlled.
  *
- * No external runtime libs. All JS lives in a scoped IIFE keyed by a
+ * No external runtime libs. JS lives in a scoped IIFE keyed by a
  * unique class so multiple instances on the same page don't collide.
  */
 import { Building2 } from "lucide-react";
@@ -34,6 +41,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { Label } from "@/components/ui/label";
 import { FormAccordion, FormGroup } from "@/components/FormGroup";
 import {
+  SelectField,
   SliderField,
   TextAreaField,
   TextField,
@@ -59,12 +67,12 @@ const defaults = () => ({
   subheading: "Find the right partner for every need.",
 
   // Header background — when `headerImage` is set, the header band
-  // renders as a tall photo strip with an overlay tint and light
-  // text. When blank, the header collapses to the same plain centred
-  // block every other section uses.
+  // renders as a full-width photo strip with an overlay tint and
+  // light text. When blank, the header collapses to the same plain
+  // centred block every other section uses.
   headerImage: "",
   headerImageAlt: "",
-  headerHeight: 220,
+  headerHeight: 280,
   headerOverlayColor: "#0f172a",
   headerOverlayOpacity: 0.55,
   headerTextColor: "#ffffff",
@@ -72,60 +80,12 @@ const defaults = () => ({
   // Items — flat list, no spotlight tier. Order in the grid = order
   // in the editor.
   items: [
-    {
-      id: "logitech",
-      name: "Logitech",
-      description: "Webcams, headsets, keyboards and mice for hybrid work.",
-      logo: wordmarkSvg("Logitech"),
-      logoAlt: "Logitech logo",
-      link: "",
-      openInSameTab: false,
-    },
-    {
-      id: "microsoft",
-      name: "Microsoft",
-      description: "Windows, 365 and cloud tools for secure collaboration.",
-      logo: wordmarkSvg("Microsoft"),
-      logoAlt: "Microsoft logo",
-      link: "",
-      openInSameTab: false,
-    },
-    {
-      id: "lenovo",
-      name: "Lenovo",
-      description: "Laptops, desktops and accessories built for productivity.",
-      logo: wordmarkSvg("Lenovo"),
-      logoAlt: "Lenovo logo",
-      link: "",
-      openInSameTab: false,
-    },
-    {
-      id: "hp",
-      name: "HP",
-      description: "PCs, printers and accessories trusted by businesses worldwide.",
-      logo: wordmarkSvg("HP"),
-      logoAlt: "HP logo",
-      link: "",
-      openInSameTab: false,
-    },
-    {
-      id: "dell",
-      name: "Dell",
-      description: "Business laptops, workstations and monitors for the workplace.",
-      logo: wordmarkSvg("Dell"),
-      logoAlt: "Dell logo",
-      link: "",
-      openInSameTab: false,
-    },
-    {
-      id: "jabra",
-      name: "Jabra",
-      description: "Headsets and speakerphones for crystal-clear calls.",
-      logo: wordmarkSvg("Jabra"),
-      logoAlt: "Jabra logo",
-      link: "",
-      openInSameTab: false,
-    },
+    { id: "logitech", name: "Logitech", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: wordmarkSvg("Logitech"), logoAlt: "Logitech logo", link: "", openInSameTab: false },
+    { id: "microsoft", name: "Microsoft", description: "Windows, 365 and cloud tools for secure collaboration.", logo: wordmarkSvg("Microsoft"), logoAlt: "Microsoft logo", link: "", openInSameTab: false },
+    { id: "lenovo", name: "Lenovo", description: "Laptops, desktops and accessories built for productivity.", logo: wordmarkSvg("Lenovo"), logoAlt: "Lenovo logo", link: "", openInSameTab: false },
+    { id: "hp", name: "HP", description: "PCs, printers and accessories trusted by businesses worldwide.", logo: wordmarkSvg("HP"), logoAlt: "HP logo", link: "", openInSameTab: false },
+    { id: "dell", name: "Dell", description: "Business laptops, workstations and monitors for the workplace.", logo: wordmarkSvg("Dell"), logoAlt: "Dell logo", link: "", openInSameTab: false },
+    { id: "jabra", name: "Jabra", description: "Headsets and speakerphones for crystal-clear calls.", logo: wordmarkSvg("Jabra"), logoAlt: "Jabra logo", link: "", openInSameTab: false },
   ],
 
   // Layout
@@ -134,18 +94,28 @@ const defaults = () => ({
   gap: 18,
   cardPadding: 22,
   cardRadius: 8,
+  // Mirrors the hero `fullBleed` flag (shared `is-full` class). When
+  // ON the section spans 100vw and the photo header reaches the
+  // viewport edges; when OFF the section is contained by its
+  // ancestor's width.
+  fullBleed: false,
 
-  // Search — optional, debounced. Lives directly above the grid.
+  // Search — optional, debounced. Position + alignment + width are
+  // author-controlled so the input can sit anywhere from a tight
+  // pill in the header to a full-width strip above the grid.
   searchEnabled: true,
   searchPlaceholder: "Search brands…",
+  searchPosition: "below", // "header" | "below"
+  searchAlign: "center",   // "left" | "center" | "right"
+  searchWidth: 360,        // px; capped at 100% of available width
   noMatchText: "No matches. Try a different search term.",
 
   // Hover affordance. "lift" matches the Misco aesthetic; "bar" adds
   // a brand-coloured edge accent; "none" disables the affordance.
   hoverEffect: "lift",
 
-  // Theme — these mirror the field names that the brand-kit cascade
-  // (`lib/brandKit.js` → "brand-grid" mapper) writes into.
+  // Theme — field names match the brand-kit cascade in
+  // `lib/brandKit.js` → "brand-grid" mapper.
   bgColor: "#ffffff",
   cardBg: "#ffffff",
   cardBorder: "#e5e7eb",
@@ -159,6 +129,12 @@ const defaults = () => ({
   paddingBottom: 64,
   paddingX: 20,
 });
+
+const SEARCH_ALIGN_TO_FLEX = {
+  left: "flex-start",
+  center: "center",
+  right: "flex-end",
+};
 
 function render(cfg) {
   const cls = `ns-brand-grid-${makeUid()}`;
@@ -183,33 +159,46 @@ function render(cfg) {
     </${tag}>`;
   };
 
-  // Header — photo-banner variant when an image is provided, plain
-  // centred variant otherwise. Same DOM either way (`<header>`) so
-  // the CSS class drives the visual.
-  const hasHeaderImg = !!safeUrl(cfg.headerImage || "");
-  const headerInner = `
-      ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
-      ${cfg.heading ? `<h2 class="ns-heading">${escHtml(cfg.heading)}</h2>` : ""}
-      ${cfg.subheading ? `<p class="ns-sub">${escHtml(cfg.subheading)}</p>` : ""}`;
-  const headerHtml = (cfg.eyebrow || cfg.heading || cfg.subheading || hasHeaderImg)
-    ? (hasHeaderImg
-        ? `<header class="ns-header ns-header-bg" role="img" aria-label="${escAttr(cfg.headerImageAlt || "")}">
-            <div class="ns-header-overlay" aria-hidden="true"></div>
-            <div class="ns-header-content">${headerInner}</div>
-          </header>`
-        : `<header class="ns-header">${headerInner}</header>`)
-    : "";
-
-  const filterUi = cfg.searchEnabled
+  // The search input markup. Used once — placed either inside the
+  // photo header or above the grid, never both.
+  const searchHtml = cfg.searchEnabled
     ? `<div class="ns-controls">
         <input type="search" class="ns-search" placeholder="${escAttr(cfg.searchPlaceholder || "Search…")}" aria-label="Search brands"/>
       </div>`
     : "";
 
+  const hasHeaderImg = !!safeUrl(cfg.headerImage || "");
+  const hasHeaderText = !!(cfg.eyebrow || cfg.heading || cfg.subheading);
+  const searchInHeader = cfg.searchEnabled && cfg.searchPosition === "header" && hasHeaderImg;
+
+  const headerInner = `
+      ${cfg.eyebrow ? `<p class="ns-eyebrow">${escHtml(cfg.eyebrow)}</p>` : ""}
+      ${cfg.heading ? `<h2 class="ns-heading">${escHtml(cfg.heading)}</h2>` : ""}
+      ${cfg.subheading ? `<p class="ns-sub">${escHtml(cfg.subheading)}</p>` : ""}
+      ${searchInHeader ? searchHtml : ""}`;
+
+  // Photo header lives OUTSIDE `.ns-inner` so it spans the section
+  // edge-to-edge. Plain header (no image) stays INSIDE `.ns-inner`
+  // and gets the same max-width treatment as every other section.
+  const photoHeader = hasHeaderImg
+    ? `<header class="ns-header ns-header-bg" role="${cfg.headerImageAlt ? "img" : "presentation"}" ${cfg.headerImageAlt ? `aria-label="${escAttr(cfg.headerImageAlt)}"` : ""}>
+        <div class="ns-header-overlay" aria-hidden="true"></div>
+        <div class="ns-header-content">${headerInner}</div>
+      </header>`
+    : "";
+  const plainHeader = (!hasHeaderImg && hasHeaderText)
+    ? `<header class="ns-header">${headerInner}</header>`
+    : "";
+
+  // Search sits above the grid in two cases: position === "below", or
+  // there's no photo header to host it.
+  const searchBelow = cfg.searchEnabled && !searchInHeader ? searchHtml : "";
+
   const html = `<section class="ns-brand-grid ${cls}${fullBleedClass(cfg)}" data-ns-group="defaults">
+  ${photoHeader}
   <div class="ns-inner">
-    ${headerHtml}
-    ${filterUi}
+    ${plainHeader}
+    ${searchBelow}
     <div class="ns-grid" data-ns-list="items">
       ${items.map((it) => cardHtml(it)).join("")}
     </div>
@@ -223,9 +212,10 @@ function render(cfg) {
   const headerTextColor = safeColor(cfg.headerTextColor, "#ffffff");
   const headerOverlay = safeColor(cfg.headerOverlayColor, "#0f172a");
   const headerOverlayOpacity = Math.min(1, Math.max(0, num(cfg.headerOverlayOpacity, 0.55)));
-  const headerHeight = Math.max(80, num(cfg.headerHeight, 220));
+  const headerHeight = Math.max(80, num(cfg.headerHeight, 280));
+  const searchAlign = SEARCH_ALIGN_TO_FLEX[cfg.searchAlign] || "center";
+  const searchWidth = Math.max(140, Math.min(1200, num(cfg.searchWidth, 360)));
 
-  // Optional accent-bar hover variant.
   const barRule = `
 .${cls} .ns-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:${accent};transform:scaleX(0);transform-origin:left bottom;transition:transform .25s ease}
 .${cls} .ns-card:hover .ns-bar{transform:scale(1)}`;
@@ -234,22 +224,32 @@ function render(cfg) {
     ? `.${cls} .ns-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06);border-color:${accent}}`
     : "";
 
+  // Horizontal padding lives on `.ns-inner`, NOT the section root,
+  // so the photo header band can span the full section width
+  // without a gap. The section root keeps the vertical padding +
+  // the background colour.
   const css = `${FONT_IMPORT}
 ${baseReset(cls, cfg)}
-.${cls}{background:${safeColor(cfg.bgColor, "#ffffff")};padding:${padTop}px ${padX}px ${padBot}px;font-family:${cfg.font ? `"${escAttr(cfg.font)}",` : ""}-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-.${cls} .ns-inner{max-width:1200px;margin:0 auto}
-.${cls} .ns-header{margin-bottom:24px;text-align:center}
-.${cls} .ns-header.ns-header-bg{position:relative;min-height:${headerHeight}px;display:flex;align-items:center;justify-content:center;background-image:url("${escAttr(safeUrl(cfg.headerImage || ""))}");background-size:cover;background-position:center;border-radius:${num(cfg.cardRadius, 8)}px;overflow:hidden;padding:32px 24px;margin-bottom:32px}
+.${cls}{background:${safeColor(cfg.bgColor, "#ffffff")};padding:${padTop}px 0 ${padBot}px;font-family:${cfg.font ? `"${escAttr(cfg.font)}",` : ""}-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.${cls} .ns-inner{max-width:1200px;margin:0 auto;padding:0 ${padX}px}
+
+.${cls} .ns-header{text-align:center;margin-bottom:24px}
+.${cls} .ns-header.ns-header-bg{position:relative;min-height:${headerHeight}px;display:flex;align-items:center;justify-content:center;background-image:url("${escAttr(safeUrl(cfg.headerImage || ""))}");background-size:cover;background-position:center;overflow:hidden;padding:48px ${padX}px;margin:0 0 36px}
 .${cls} .ns-header-overlay{position:absolute;inset:0;background:${headerOverlay};opacity:${headerOverlayOpacity};pointer-events:none}
-.${cls} .ns-header-content{position:relative;z-index:1;max-width:760px}
+.${cls} .ns-header-content{position:relative;z-index:1;max-width:760px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
 .${cls} .ns-header.ns-header-bg .ns-heading{color:${headerTextColor}}
 .${cls} .ns-header.ns-header-bg .ns-sub{color:${headerTextColor};opacity:.92}
-.${cls} .ns-eyebrow{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:${accent}}
-.${cls} .ns-heading{margin:0 0 6px;font-size:32px;font-weight:700;color:${safeColor(cfg.titleColor, "#0f172a")};line-height:1.2}
+.${cls} .ns-header.ns-header-bg .ns-eyebrow{color:${headerTextColor};opacity:.85}
+
+.${cls} .ns-eyebrow{margin:0;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:${accent}}
+.${cls} .ns-heading{margin:0;font-size:32px;font-weight:700;color:${safeColor(cfg.titleColor, "#0f172a")};line-height:1.2}
 .${cls} .ns-sub{margin:0 auto;max-width:640px;color:${safeColor(cfg.bodyColor, "#475569")};font-size:15px;line-height:1.5}
-.${cls} .ns-controls{display:flex;justify-content:center;margin:0 0 22px}
-.${cls} .ns-search{flex:0 1 320px;min-width:200px;padding:10px 14px;border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${num(cfg.cardRadius, 8)}px;font:inherit;font-size:14px;background:#fff;color:${safeColor(cfg.titleColor, "#0f172a")}}
+
+.${cls} .ns-controls{display:flex;justify-content:${searchAlign};margin:0 0 22px}
+.${cls} .ns-header-content .ns-controls{margin:6px 0 0;width:100%}
+.${cls} .ns-search{flex:0 1 ${searchWidth}px;min-width:0;width:100%;max-width:${searchWidth}px;padding:10px 14px;border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${num(cfg.cardRadius, 8)}px;font:inherit;font-size:14px;background:#fff;color:${safeColor(cfg.titleColor, "#0f172a")}}
 .${cls} .ns-search:focus{outline:2px solid ${accent};outline-offset:1px}
+
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:${num(cfg.gap, 18)}px}
 .${cls} .ns-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;background:${safeColor(cfg.cardBg, "#ffffff")};border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${num(cfg.cardRadius, 8)}px;padding:${num(cfg.cardPadding, 22)}px;text-decoration:none;color:inherit;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;overflow:hidden}
 .${cls} .ns-logo{height:56px;width:auto;max-width:170px;object-fit:contain;margin-bottom:4px}
@@ -262,11 +262,12 @@ ${cfg.hoverEffect === "bar" ? barRule : ""}
 @media (max-width:767px){
   .${cls} .ns-grid{grid-template-columns:repeat(${colsM},minmax(0,1fr))}
   .${cls} .ns-heading{font-size:24px}
-  .${cls} .ns-header.ns-header-bg{min-height:${Math.max(140, Math.round(headerHeight * 0.75))}px;padding:24px 18px}
-  .${cls} .ns-search{flex:1 1 auto;width:100%}
+  .${cls} .ns-header.ns-header-bg{min-height:${Math.max(160, Math.round(headerHeight * 0.75))}px;padding:32px 18px;margin-bottom:24px}
+  .${cls} .ns-search{flex:1 1 auto;max-width:100%}
+  .${cls} .ns-controls{justify-content:stretch}
 }`;
 
-  // Snippet JS — debounced search only. No chip / filter state.
+  // Debounced search only — no chip / filter state.
   const js = `
 (function(){
   var root=document.currentScript&&document.currentScript.previousElementSibling;
@@ -339,7 +340,7 @@ function FormPanel({ config, onUpdate }) {
 
   return (
     <FormAccordion sectionType="brand-grid">
-      <FormGroup title="Section header">
+      <FormGroup title="Header">
         <TextField label="Eyebrow" value={cfg.eyebrow} onChange={(v) => onUpdate({ eyebrow: v })} testid="bg-eyebrow" />
         <TextField label="Heading" value={cfg.heading} onChange={(v) => onUpdate({ heading: v })} testid="bg-heading" />
         <TextAreaField label="Subheading" value={cfg.subheading} onChange={(v) => onUpdate({ subheading: v })} testid="bg-subheading" />
@@ -369,7 +370,7 @@ function FormPanel({ config, onUpdate }) {
               label="Header height"
               value={cfg.headerHeight}
               min={140}
-              max={420}
+              max={520}
               suffix="px"
               onChange={(v) => onUpdate({ headerHeight: v })}
             />
@@ -471,6 +472,13 @@ function FormPanel({ config, onUpdate }) {
       </FormGroup>
 
       <FormGroup title="Layout">
+        <ToggleField
+          label="Make wide"
+          description="Stretch background and header to full viewport width"
+          checked={!!cfg.fullBleed}
+          onChange={(v) => onUpdate({ fullBleed: v })}
+          testid="bg-full-bleed"
+        />
         <SliderField label="Columns" value={cfg.columns} min={1} max={6} onChange={(v) => onUpdate({ columns: v })} />
         <SliderField label="Mobile columns" value={cfg.columnsMobile} min={1} max={3} onChange={(v) => onUpdate({ columnsMobile: v })} />
         <SliderField label="Gap" value={cfg.gap} min={4} max={48} suffix="px" onChange={(v) => onUpdate({ gap: v })} />
@@ -485,29 +493,64 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ searchEnabled: v })}
         />
         {cfg.searchEnabled && (
-          <TextField
-            label="Search placeholder"
-            value={cfg.searchPlaceholder}
-            onChange={(v) => onUpdate({ searchPlaceholder: v })}
-          />
+          <>
+            <TextField
+              label="Search placeholder"
+              value={cfg.searchPlaceholder}
+              onChange={(v) => onUpdate({ searchPlaceholder: v })}
+            />
+            <SelectField
+              label="Position"
+              value={cfg.searchPosition}
+              options={[
+                { value: "below", label: "Below the header" },
+                { value: "header", label: "Inside the header (over the image)" },
+              ]}
+              onChange={(v) => onUpdate({ searchPosition: v })}
+            />
+            {cfg.searchPosition === "header" && !cfg.headerImage && (
+              <p className="text-xs text-amber-600">
+                Add a header background image to use this position. Falls back to
+                "below" until then.
+              </p>
+            )}
+            <SelectField
+              label="Alignment"
+              value={cfg.searchAlign}
+              options={[
+                { value: "left", label: "Left" },
+                { value: "center", label: "Centre" },
+                { value: "right", label: "Right" },
+              ]}
+              onChange={(v) => onUpdate({ searchAlign: v })}
+            />
+            <SliderField
+              label="Width"
+              value={cfg.searchWidth}
+              min={180}
+              max={760}
+              suffix="px"
+              onChange={(v) => onUpdate({ searchWidth: v })}
+            />
+            <TextField
+              label="No-match message"
+              value={cfg.noMatchText}
+              onChange={(v) => onUpdate({ noMatchText: v })}
+            />
+          </>
         )}
-        <TextField
-          label="No-match message"
-          value={cfg.noMatchText}
-          onChange={(v) => onUpdate({ noMatchText: v })}
-        />
       </FormGroup>
 
       <FormGroup title="Hover effect">
-        <ToggleField
-          label="Lift on hover"
-          checked={cfg.hoverEffect === "lift"}
-          onChange={(v) => onUpdate({ hoverEffect: v ? "lift" : "none" })}
-        />
-        <ToggleField
-          label="Accent bar on hover"
-          checked={cfg.hoverEffect === "bar"}
-          onChange={(v) => onUpdate({ hoverEffect: v ? "bar" : "none" })}
+        <SelectField
+          label="On hover"
+          value={cfg.hoverEffect}
+          options={[
+            { value: "lift", label: "Lift + border highlight" },
+            { value: "bar", label: "Accent bar on edge" },
+            { value: "none", label: "None" },
+          ]}
+          onChange={(v) => onUpdate({ hoverEffect: v })}
         />
       </FormGroup>
 
@@ -530,7 +573,7 @@ function FormPanel({ config, onUpdate }) {
 export const brandGrid = {
   id: ID,
   name: "Brand grid",
-  description: "Grid of brand cards with an optional photo header and search.",
+  description: "Grid of brand cards with an optional full-width photo header and search.",
   icon: Building2,
   defaults,
   render,
