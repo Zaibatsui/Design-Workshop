@@ -25,7 +25,7 @@ import {
 import ListEditor from "@/components/ListEditor";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
-import { FormGroup } from "@/components/FormGroup";
+import { FormAccordion, FormGroup } from "@/components/FormGroup";
 import {
   SelectField,
   SliderField,
@@ -315,7 +315,7 @@ ${cfg.hoverEffect === "bar" ? barRule : ""}
 function FormPanel({ config, onUpdate }) {
   const cfg = { ...defaults(), ...config };
   return (
-    <div className="space-y-4">
+    <FormAccordion sectionType="brand-grid">
       <FormGroup title="Section header">
         <TextField label="Eyebrow" value={cfg.eyebrow} onChange={(v) => onUpdate({ eyebrow: v })} testid="bg-eyebrow" />
         <TextField label="Heading" value={cfg.heading} onChange={(v) => onUpdate({ heading: v })} testid="bg-heading" />
@@ -409,7 +409,7 @@ function FormPanel({ config, onUpdate }) {
       <FormGroup title="Spacing">
         <PaddingFields config={cfg} onUpdate={onUpdate} defaultValue={64} max={160} sideMax={120} testidPrefix="bg" />
       </FormGroup>
-    </div>
+    </FormAccordion>
   );
 }
 
