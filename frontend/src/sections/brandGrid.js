@@ -51,14 +51,12 @@ import PaddingFields from "@/components/PaddingFields";
 
 const ID = "brand-grid";
 
-// Inline SVG wordmark used as the demo "logo" for every default brand
-// so the section reads cleanly before the user uploads real assets.
-// Zero external image deps; renders crisply at any zoom level.
-function wordmarkSvg(label, hex = "0f172a") {
-  const safe = String(label || "").replace(/[<>&"]/g, "");
-  const text = encodeURIComponent(safe);
-  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 64'><text x='120' y='42' font-family='Helvetica,Arial,sans-serif' font-size='30' font-weight='800' letter-spacing='-0.5' text-anchor='middle' fill='%23${hex}'>${text}</text></svg>`;
-}
+// Default brand logos. Sourced from simpleicons.org's CDN which
+// serves brand-coloured SVG glyphs at any size with no auth and no
+// CORS headaches — perfect for a snippet that has to drop into
+// arbitrary host sites. The set mirrors the most common B2B IT/AV
+// vendors so the section reads cleanly on first preview.
+const SI = (slug) => `https://cdn.simpleicons.org/${slug}`;
 
 const defaults = () => ({
   // Section header
@@ -80,12 +78,13 @@ const defaults = () => ({
   // Items — flat list, no spotlight tier. Order in the grid = order
   // in the editor.
   items: [
-    { id: "logitech", name: "Logitech", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: wordmarkSvg("Logitech"), logoAlt: "Logitech logo", link: "", openInSameTab: false },
-    { id: "microsoft", name: "Microsoft", description: "Windows, 365 and cloud tools for secure collaboration.", logo: wordmarkSvg("Microsoft"), logoAlt: "Microsoft logo", link: "", openInSameTab: false },
-    { id: "lenovo", name: "Lenovo", description: "Laptops, desktops and accessories built for productivity.", logo: wordmarkSvg("Lenovo"), logoAlt: "Lenovo logo", link: "", openInSameTab: false },
-    { id: "hp", name: "HP", description: "PCs, printers and accessories trusted by businesses worldwide.", logo: wordmarkSvg("HP"), logoAlt: "HP logo", link: "", openInSameTab: false },
-    { id: "dell", name: "Dell", description: "Business laptops, workstations and monitors for the workplace.", logo: wordmarkSvg("Dell"), logoAlt: "Dell logo", link: "", openInSameTab: false },
-    { id: "jabra", name: "Jabra", description: "Headsets and speakerphones for crystal-clear calls.", logo: wordmarkSvg("Jabra"), logoAlt: "Jabra logo", link: "", openInSameTab: false },
+    { id: "hp", name: "HP", description: "PCs, printers and accessories trusted by businesses worldwide.", logo: SI("hp"), logoAlt: "HP logo", link: "", openInSameTab: false },
+    { id: "dell", name: "Dell", description: "Business laptops, workstations and monitors for the workplace.", logo: SI("dell"), logoAlt: "Dell logo", link: "", openInSameTab: false },
+    { id: "lenovo", name: "Lenovo", description: "Laptops, desktops and accessories built for productivity.", logo: SI("lenovo"), logoAlt: "Lenovo logo", link: "", openInSameTab: false },
+    { id: "intel", name: "Intel", description: "Processors and platforms powering everyday computing.", logo: SI("intel"), logoAlt: "Intel logo", link: "", openInSameTab: false },
+    { id: "nvidia", name: "Nvidia", description: "GPUs and accelerated computing for creators and developers.", logo: SI("nvidia"), logoAlt: "Nvidia logo", link: "", openInSameTab: false },
+    { id: "cisco", name: "Cisco", description: "Networking, security and collaboration for connected teams.", logo: SI("cisco"), logoAlt: "Cisco logo", link: "", openInSameTab: false },
+    { id: "apple", name: "Apple", description: "Mac, iPad and iPhone for businesses that put design first.", logo: SI("apple"), logoAlt: "Apple logo", link: "", openInSameTab: false },
   ],
 
   // Layout
@@ -113,6 +112,12 @@ const defaults = () => ({
   // Hover affordance. "lift" matches the Misco aesthetic; "bar" adds
   // a brand-coloured edge accent; "none" disables the affordance.
   hoverEffect: "lift",
+
+  // Optional greyscale-until-hover treatment for the logos. Reads
+  // cleanly on a busy page (especially with brand-coloured icons
+  // from simpleicons.org) and the colour reveal on hover is a nice
+  // tactile cue. Matches the Logo Strip section's same-named flag.
+  greyscale: false,
 
   // Theme — field names match the brand-kit cascade in
   // `lib/brandKit.js` → "brand-grid" mapper.
@@ -224,6 +229,15 @@ function render(cfg) {
     ? `.${cls} .ns-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06);border-color:${accent}}`
     : "";
 
+  // Greyscale-until-hover. Targets `.ns-logo` only (placeholder /
+  // wordmark / image alike) and reveals full colour on either pointer
+  // hover or keyboard focus on the card so it's still accessible.
+  const greyCss = cfg.greyscale
+    ? `
+.${cls} .ns-card .ns-logo{filter:grayscale(100%);opacity:.85;transition:filter .35s ease,opacity .35s ease}
+.${cls} .ns-card:hover .ns-logo,.${cls} .ns-card:focus-visible .ns-logo{filter:none;opacity:1}`
+    : "";
+
   // Horizontal padding lives on `.ns-inner`, NOT the section root,
   // so the photo header band can span the full section width
   // without a gap. The section root keeps the vertical padding +
@@ -257,6 +271,7 @@ ${baseReset(cls, cfg)}
 .${cls} .ns-desc{margin:0;font-size:13px;color:${safeColor(cfg.bodyColor, "#475569")};line-height:1.5}
 .${cls} .ns-empty{margin:24px auto 0;text-align:center;color:${safeColor(cfg.bodyColor, "#475569")};font-size:14px}
 ${hoverLift}
+${greyCss}
 ${cfg.hoverEffect === "bar" ? barRule : ""}
 @media (max-width:767px){
   .${cls} .ns-grid{grid-template-columns:repeat(${colsM},minmax(0,1fr))}
@@ -550,6 +565,13 @@ function FormPanel({ config, onUpdate }) {
             { value: "none", label: "None" },
           ]}
           onChange={(v) => onUpdate({ hoverEffect: v })}
+        />
+        <ToggleField
+          label="Greyscale until hover"
+          description="Render every logo in greyscale; reveal full colour when the cursor lands on it."
+          checked={!!cfg.greyscale}
+          onChange={(v) => onUpdate({ greyscale: v })}
+          testid="bg-greyscale"
         />
       </FormGroup>
 

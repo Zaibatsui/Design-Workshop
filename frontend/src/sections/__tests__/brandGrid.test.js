@@ -32,12 +32,19 @@ expect(
     /from "@\/components\/FormGroup"/.test(src),
 );
 expect(
-  "Defaults seed at least 6 sample brands",
-  /items:\s*\[[\s\S]{0,8000}id:\s*"jabra"/.test(src),
+  "Defaults seed at least 7 sample brands (last is apple)",
+  /items:\s*\[[\s\S]{0,8000}id:\s*"apple"/.test(src),
 );
 expect(
-  "Sample logos use inline SVG wordmarks (no external image dep)",
-  /logo:\s*wordmarkSvg\(/.test(src),
+  "Sample logos use simpleicons.org CDN (brand-coloured SVG glyphs)",
+  /logo:\s*SI\("/.test(src) &&
+    /cdn\.simpleicons\.org/.test(src),
+);
+expect(
+  "Greyscale-until-hover toggle is wired into defaults + render + form",
+  /greyscale:\s*false/.test(src) &&
+    /cfg\.greyscale\s*\?[\s\S]{0,200}filter:grayscale\(100%\)/.test(src) &&
+    /label="Greyscale until hover"/.test(src),
 );
 
 // ── Spotlight + chip features must be GONE ────────────────────────
