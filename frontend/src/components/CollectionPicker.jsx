@@ -50,12 +50,19 @@ export default function CollectionPicker({
     }
   };
 
+  // Eager-load when the item already belongs to a collection — we
+  // need the collection's name + colour to render the button label
+  // before the user opens the dropdown. Items in Unfiled stay lazy
+  // (no fetch until the user clicks the picker).
+  useEffect(() => {
+    if (collectionId && collections.length === 0 && !loading) {
+      reload();
+    }
+  }, [collectionId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (open && collections.length === 0) reload();
-    // Intentional shallow deps — we only refetch when the picker
-    // re-opens, not every time `collections.length` flips.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close on outside click.
   useEffect(() => {
