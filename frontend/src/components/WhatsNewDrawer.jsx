@@ -46,7 +46,7 @@ const LS_PREFIX = "ns.whatsNew.seen:";
  * understands NEW/UPDATED) so the badge stays purple regardless of
  * how recently the entry was shipped.
  */
-const PLATFORM_UPDATES = [
+export const PLATFORM_UPDATES = [
   {
     id: "studio-mode",
     name: "Studio mode",
