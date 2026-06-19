@@ -19,6 +19,10 @@ function expect(label, cond) {
 }
 
 expect("Section id is 'brand-grid'", /const ID = "brand-grid"/.test(src));
+expect(
+  "FONT_IMPORT is interpolated as a value, never called as a function",
+  !/FONT_IMPORT\s*\(/.test(src),
+);
 expect("Defaults seed at least 6 sample brands", /items:\s*\[[\s\S]{0,5000}id:\s*"jabra"/.test(src));
 expect("Spotlight flag is per-item", /spotlight:\s*(true|false),/.test(src));
 expect("Sample logos use images\\.unsplash\\.com",

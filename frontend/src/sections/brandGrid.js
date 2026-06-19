@@ -236,7 +236,7 @@ function render(cfg) {
     ? `.${cls} .ns-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06);border-color:${accent}}`
     : "";
 
-  const css = `${FONT_IMPORT(cfg.font)}
+  const css = `${FONT_IMPORT}
 ${baseReset(cls, cfg)}
 .${cls}{background:${safeColor(cfg.bgColor, "#ffffff")};padding:${padTop}px ${padX}px ${padBot}px;font-family:${cfg.font ? `"${escAttr(cfg.font)}",` : ""}-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto}
