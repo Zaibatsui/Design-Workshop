@@ -58,6 +58,36 @@ expect(
   /label="Bar thickness"/.test(src) && /label="Bar colour"/.test(src),
 );
 
+// ── New: card eyebrow + card alignment + header radius + overlay gradient
+expect(
+  "Per-card eyebrow field exists (defaults + form + renderer)",
+  /eyebrow:\s*""/.test(src) &&
+    /label="Eyebrow \(optional\)"/.test(src) &&
+    /it\.eyebrow\s*\?\s*`<p class="ns-card-eyebrow">/.test(src),
+);
+expect(
+  "Card content alignment is author-controlled (left/center/right)",
+  /cardAlign:\s*"center"/.test(src) &&
+    /\["left",\s*"center",\s*"right"\]\.includes\(cfg\.cardAlign\)/.test(src) &&
+    /label="Card content alignment"/.test(src),
+);
+expect(
+  "Header corner radius defaults to cardRadius and is hidden when fullBleed",
+  /headerRadius:\s*null/.test(src) &&
+    /cfg\.fullBleed\s*\?\s*0\s*:\s*\(cfg\.headerRadius/.test(src) &&
+    /!cfg\.fullBleed\s*&&\s*\(/.test(src) &&
+    /label="Header corner radius"/.test(src),
+);
+expect(
+  "Overlay style supports solid AND linear gradient",
+  /overlayType:\s*"solid"/.test(src) &&
+    /label="Overlay style"/.test(src) &&
+    /cfg\.overlayType\s*===\s*"gradient"\s*\?[\s\S]{0,400}linear-gradient/.test(src) &&
+    /overlayGradientFrom/.test(src) &&
+    /overlayGradientTo/.test(src) &&
+    /overlayGradientAngle/.test(src),
+);
+
 // ── Spotlight + chip features must be GONE ────────────────────────
 expect(
   "Spotlight flag is removed from per-item defaults",
@@ -127,8 +157,8 @@ expect(
 
 // ── Search-only filter ────────────────────────────────────────────
 expect(
-  "Renderer carries data-haystack for client-side search match",
-  /data-haystack="\$\{escAttr\(`\$\{nameLower\} \$\{descLower\}`\)\}"/.test(src),
+  "Renderer carries data-haystack for client-side search match (incl. eyebrow)",
+  /data-haystack="\$\{escAttr\(`\$\{nameLower\} \$\{descLower\} \$\{ebLower\}`\)\}"/.test(src),
 );
 expect(
   "Snippet JS debounces search input by 150ms",

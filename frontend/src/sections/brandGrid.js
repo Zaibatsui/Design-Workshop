@@ -71,22 +71,37 @@ const defaults = () => ({
   headerImage: "",
   headerImageAlt: "",
   headerHeight: 280,
+  // Corner radius for the header photo strip when the section is NOT
+  // full-bleed. Blank (`null`) means "inherit from card radius" so the
+  // header matches whatever the Brand Kit / Layout has set globally.
+  // Ignored when fullBleed is on (a full-bleed band is always square).
+  headerRadius: null,
+  // Overlay model mirrors the Hero section so users have the same
+  // mental model: a solid tint or a linear gradient laid over the
+  // photo. `overlayType` picks which one renders; the unused fields
+  // are kept on the config so toggling back keeps the last values.
+  overlayType: "solid", // "solid" | "gradient"
   headerOverlayColor: "#0f172a",
   headerOverlayOpacity: 0.55,
+  overlayGradientFrom: "#0f172a",
+  overlayGradientTo: "rgba(15,23,42,0)",
+  overlayGradientAngle: 180,
   headerTextColor: "#ffffff",
 
   // Items — flat list, no spotlight tier. Order in the grid = order
-  // in the editor.
+  // in the editor. Each item also supports an optional `eyebrow`
+  // that renders between the logo and the name (e.g. "Premier
+  // partner", "New", "Workplace").
   items: [
-    { id: "hp", name: "HP", description: "PCs, printers and accessories trusted by businesses worldwide.", logo: SI("hp"), logoAlt: "HP logo", link: "", openInSameTab: false },
-    { id: "dell", name: "Dell", description: "Business laptops, workstations and monitors for the workplace.", logo: SI("dell"), logoAlt: "Dell logo", link: "", openInSameTab: false },
-    { id: "lenovo", name: "Lenovo", description: "Laptops, desktops and accessories built for productivity.", logo: SI("lenovo"), logoAlt: "Lenovo logo", link: "", openInSameTab: false },
-    { id: "intel", name: "Intel", description: "Processors and platforms powering everyday computing.", logo: SI("intel"), logoAlt: "Intel logo", link: "", openInSameTab: false },
-    { id: "nvidia", name: "Nvidia", description: "GPUs and accelerated computing for creators and developers.", logo: SI("nvidia"), logoAlt: "Nvidia logo", link: "", openInSameTab: false },
-    { id: "cisco", name: "Cisco", description: "Networking, security and collaboration for connected teams.", logo: SI("cisco"), logoAlt: "Cisco logo", link: "", openInSameTab: false },
-    { id: "apple", name: "Apple", description: "Mac, iPad and iPhone for businesses that put design first.", logo: SI("apple"), logoAlt: "Apple logo", link: "", openInSameTab: false },
-    { id: "samsung", name: "Samsung", description: "Displays, mobile devices and storage at every price point.", logo: SI("samsung"), logoAlt: "Samsung logo", link: "", openInSameTab: false },
-    { id: "logitech", name: "Logitech", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: SI("logitech"), logoAlt: "Logitech logo", link: "", openInSameTab: false },
+    { id: "hp", name: "HP", eyebrow: "", description: "PCs, printers and accessories trusted by businesses worldwide.", logo: SI("hp"), logoAlt: "HP logo", link: "", openInSameTab: false },
+    { id: "dell", name: "Dell", eyebrow: "", description: "Business laptops, workstations and monitors for the workplace.", logo: SI("dell"), logoAlt: "Dell logo", link: "", openInSameTab: false },
+    { id: "lenovo", name: "Lenovo", eyebrow: "", description: "Laptops, desktops and accessories built for productivity.", logo: SI("lenovo"), logoAlt: "Lenovo logo", link: "", openInSameTab: false },
+    { id: "intel", name: "Intel", eyebrow: "", description: "Processors and platforms powering everyday computing.", logo: SI("intel"), logoAlt: "Intel logo", link: "", openInSameTab: false },
+    { id: "nvidia", name: "Nvidia", eyebrow: "", description: "GPUs and accelerated computing for creators and developers.", logo: SI("nvidia"), logoAlt: "Nvidia logo", link: "", openInSameTab: false },
+    { id: "cisco", name: "Cisco", eyebrow: "", description: "Networking, security and collaboration for connected teams.", logo: SI("cisco"), logoAlt: "Cisco logo", link: "", openInSameTab: false },
+    { id: "apple", name: "Apple", eyebrow: "", description: "Mac, iPad and iPhone for businesses that put design first.", logo: SI("apple"), logoAlt: "Apple logo", link: "", openInSameTab: false },
+    { id: "samsung", name: "Samsung", eyebrow: "", description: "Displays, mobile devices and storage at every price point.", logo: SI("samsung"), logoAlt: "Samsung logo", link: "", openInSameTab: false },
+    { id: "logitech", name: "Logitech", eyebrow: "", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: SI("logitech"), logoAlt: "Logitech logo", link: "", openInSameTab: false },
   ],
 
   // Layout
@@ -95,6 +110,10 @@ const defaults = () => ({
   gap: 18,
   cardPadding: 22,
   cardRadius: 8,
+  // Per-card content alignment. Drives both `align-items` (flex axis)
+  // and `text-align` so logo, eyebrow, name and description all line
+  // up consistently.
+  cardAlign: "center", // "left" | "center" | "right"
   // Mirrors the hero `fullBleed` flag (shared `is-full` class). When
   // ON the section spans 100vw and the photo header reaches the
   // viewport edges; when OFF the section is contained by its
@@ -162,9 +181,11 @@ function render(cfg) {
     const href = link ? ` href="${escAttr(link)}"` : "";
     const nameLower = (it.name || "").toLowerCase();
     const descLower = (it.description || "").toLowerCase();
-    return `<${tag} class="ns-card"${href}${tgt} data-haystack="${escAttr(`${nameLower} ${descLower}`)}">
+    const ebLower = (it.eyebrow || "").toLowerCase();
+    return `<${tag} class="ns-card"${href}${tgt} data-haystack="${escAttr(`${nameLower} ${descLower} ${ebLower}`)}">
       ${cfg.hoverEffect === "bar" ? `<span class="ns-bar" aria-hidden="true"></span>` : ""}
       ${it.logo ? `<img class="ns-logo" src="${escAttr(safeUrl(it.logo))}" alt="${escAttr(it.logoAlt || it.name + " logo")}" loading="lazy"/>` : `<div class="ns-logo ns-logo-placeholder" aria-hidden="true"></div>`}
+      ${it.eyebrow ? `<p class="ns-card-eyebrow">${escHtml(it.eyebrow)}</p>` : ""}
       <h3 class="ns-name">${escHtml(it.name)}</h3>
       ${it.description ? `<p class="ns-desc">${escHtml(it.description)}</p>` : ""}
     </${tag}>`;
@@ -221,9 +242,31 @@ function render(cfg) {
   const colsM = Math.max(1, Math.min(3, num(cfg.columnsMobile, 1)));
   const accent = safeColor(cfg.eyebrowAccentColor, "#E01839");
   const headerTextColor = safeColor(cfg.headerTextColor, "#ffffff");
-  const headerOverlay = safeColor(cfg.headerOverlayColor, "#0f172a");
+  const headerOverlayColor = safeColor(cfg.headerOverlayColor, "#0f172a");
   const headerOverlayOpacity = Math.min(1, Math.max(0, num(cfg.headerOverlayOpacity, 0.55)));
   const headerHeight = Math.max(80, num(cfg.headerHeight, 280));
+  // Header radius — when not full-bleed, the photo band rounds to
+  // either the per-section override (`headerRadius`) or the global
+  // `cardRadius` so a brand-kit radius change cascades to both the
+  // header band and the cards. Full-bleed bands are always square so
+  // they meet the viewport edges flush.
+  const cardRadius = num(cfg.cardRadius, 8);
+  const headerRadius = cfg.fullBleed
+    ? 0
+    : (cfg.headerRadius == null || cfg.headerRadius === "" ? cardRadius : num(cfg.headerRadius, cardRadius));
+
+  // Overlay background. "solid" = single tint, "gradient" = linear
+  // gradient between two colours. Mirrors the Hero section's
+  // overlay model so users have one mental model across both.
+  const overlayBg = cfg.overlayType === "gradient"
+    ? `linear-gradient(${num(cfg.overlayGradientAngle, 180)}deg, ${safeColor(cfg.overlayGradientFrom || "#0f172a", "#0f172a")} 0%, ${safeColor(cfg.overlayGradientTo || "rgba(15,23,42,0)", "#0f172a")} 100%)`
+    : headerOverlayColor;
+
+  // Card alignment — drives both flex axis alignment and text-align
+  // so logo, eyebrow, name and description all line up consistently.
+  const cardAlign = ["left", "center", "right"].includes(cfg.cardAlign) ? cfg.cardAlign : "center";
+  const cardAlignItems = cardAlign === "left" ? "flex-start" : cardAlign === "right" ? "flex-end" : "center";
+
   const searchAlign = SEARCH_ALIGN_TO_FLEX[cfg.searchAlign] || "center";
   const searchWidth = Math.max(140, Math.min(1200, num(cfg.searchWidth, 360)));
 
@@ -270,8 +313,8 @@ ${baseReset(cls, cfg)}
 .${cls} .ns-inner{max-width:1200px;margin:0 auto;padding:0 ${padX}px}
 
 .${cls} .ns-header{text-align:center;margin-bottom:24px}
-.${cls} .ns-header.ns-header-bg{position:relative;min-height:${headerHeight}px;display:flex;align-items:center;justify-content:center;background-image:url("${escAttr(safeUrl(cfg.headerImage || ""))}");background-size:cover;background-position:center;overflow:hidden;padding:48px ${padX}px;margin:0 0 36px}
-.${cls} .ns-header-overlay{position:absolute;inset:0;background:${headerOverlay};opacity:${headerOverlayOpacity};pointer-events:none}
+.${cls} .ns-header.ns-header-bg{position:relative;min-height:${headerHeight}px;display:flex;align-items:center;justify-content:center;background-image:url("${escAttr(safeUrl(cfg.headerImage || ""))}");background-size:cover;background-position:center;overflow:hidden;padding:48px ${padX}px;margin:0 0 36px;border-radius:${headerRadius}px}
+.${cls} .ns-header-overlay{position:absolute;inset:0;background:${overlayBg};opacity:${headerOverlayOpacity};pointer-events:none}
 .${cls} .ns-header-content{position:relative;z-index:1;max-width:760px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
 .${cls} .ns-header.ns-header-bg .ns-heading{color:${headerTextColor}}
 .${cls} .ns-header.ns-header-bg .ns-sub{color:${headerTextColor};opacity:.92}
@@ -282,13 +325,14 @@ ${baseReset(cls, cfg)}
 
 .${cls} .ns-controls{display:flex;justify-content:${searchAlign};margin:0 0 22px}
 .${cls} .ns-header-content .ns-controls{margin:6px 0 0;width:100%}
-.${cls} .ns-search{flex:0 1 ${searchWidth}px;min-width:0;width:100%;max-width:${searchWidth}px;padding:10px 14px;border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${num(cfg.cardRadius, 8)}px;font:inherit;font-size:14px;background:#fff;color:${safeColor(cfg.titleColor, "#0f172a")}}
+.${cls} .ns-search{flex:0 1 ${searchWidth}px;min-width:0;width:100%;max-width:${searchWidth}px;padding:10px 14px;border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${cardRadius}px;font:inherit;font-size:14px;background:#fff;color:${safeColor(cfg.titleColor, "#0f172a")}}
 .${cls} .ns-search:focus{outline:2px solid ${accent};outline-offset:1px}
 
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:${num(cfg.gap, 18)}px}
-.${cls} .ns-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;background:${safeColor(cfg.cardBg, "#ffffff")};border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${num(cfg.cardRadius, 8)}px;padding:${num(cfg.cardPadding, 22)}px;text-decoration:none;color:inherit;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;overflow:hidden}
+.${cls} .ns-card{position:relative;display:flex;flex-direction:column;align-items:${cardAlignItems};text-align:${cardAlign};gap:10px;background:${safeColor(cfg.cardBg, "#ffffff")};border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${cardRadius}px;padding:${num(cfg.cardPadding, 22)}px;text-decoration:none;color:inherit;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;overflow:hidden}
 .${cls} .ns-logo{height:56px;width:auto;max-width:170px;object-fit:contain;margin-bottom:4px}
 .${cls} .ns-logo-placeholder{background:${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:6px;width:140px;height:56px}
+.${cls} .ns-card-eyebrow{margin:0;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${accent}}
 .${cls} .ns-name{margin:0;font-size:17px;font-weight:700;color:${safeColor(cfg.titleColor, "#0f172a")};line-height:1.3}
 .${cls} .ns-desc{margin:0;font-size:13px;color:${safeColor(cfg.bodyColor, "#475569")};line-height:1.5}
 .${cls} .ns-empty{margin:24px auto 0;text-align:center;color:${safeColor(cfg.bodyColor, "#475569")};font-size:14px}
@@ -410,11 +454,54 @@ function FormPanel({ config, onUpdate }) {
               suffix="px"
               onChange={(v) => onUpdate({ headerHeight: v })}
             />
-            <ColorField
-              label="Overlay colour"
-              value={cfg.headerOverlayColor}
-              onChange={(v) => onUpdate({ headerOverlayColor: v })}
+            {!cfg.fullBleed && (
+              <SliderField
+                label="Header corner radius"
+                description="Defaults to your card radius (Brand Kit). Disabled when 'Make wide' is on."
+                value={cfg.headerRadius == null ? (cfg.cardRadius ?? 8) : cfg.headerRadius}
+                min={0}
+                max={48}
+                suffix="px"
+                onChange={(v) => onUpdate({ headerRadius: v })}
+              />
+            )}
+            <SelectField
+              label="Overlay style"
+              value={cfg.overlayType}
+              options={[
+                { value: "solid", label: "Solid colour" },
+                { value: "gradient", label: "Linear gradient" },
+              ]}
+              onChange={(v) => onUpdate({ overlayType: v })}
             />
+            {cfg.overlayType === "gradient" ? (
+              <>
+                <ColorField
+                  label="Gradient — from"
+                  value={cfg.overlayGradientFrom}
+                  onChange={(v) => onUpdate({ overlayGradientFrom: v })}
+                />
+                <ColorField
+                  label="Gradient — to"
+                  value={cfg.overlayGradientTo}
+                  onChange={(v) => onUpdate({ overlayGradientTo: v })}
+                />
+                <SliderField
+                  label="Gradient angle"
+                  value={cfg.overlayGradientAngle}
+                  min={0}
+                  max={360}
+                  suffix="°"
+                  onChange={(v) => onUpdate({ overlayGradientAngle: v })}
+                />
+              </>
+            ) : (
+              <ColorField
+                label="Overlay colour"
+                value={cfg.headerOverlayColor}
+                onChange={(v) => onUpdate({ headerOverlayColor: v })}
+              />
+            )}
             <SliderField
               label="Overlay opacity"
               value={Math.round((cfg.headerOverlayOpacity ?? 0.55) * 100)}
@@ -464,6 +551,13 @@ function FormPanel({ config, onUpdate }) {
                 value={it.name}
                 onChange={(v) => updateItem(it.id, { name: v })}
                 testid={`bg-name-${it.id}`}
+              />
+              <TextField
+                label="Eyebrow (optional)"
+                placeholder="e.g. Premier partner"
+                value={it.eyebrow || ""}
+                onChange={(v) => updateItem(it.id, { eyebrow: v })}
+                testid={`bg-eyebrow-${it.id}`}
               />
               <TextAreaField
                 label="Description"
@@ -520,6 +614,16 @@ function FormPanel({ config, onUpdate }) {
         <SliderField label="Gap" value={cfg.gap} min={4} max={48} suffix="px" onChange={(v) => onUpdate({ gap: v })} />
         <SliderField label="Card padding" value={cfg.cardPadding} min={8} max={48} suffix="px" onChange={(v) => onUpdate({ cardPadding: v })} />
         <SliderField label="Card radius" value={cfg.cardRadius} min={0} max={32} suffix="px" onChange={(v) => onUpdate({ cardRadius: v })} />
+        <SelectField
+          label="Card content alignment"
+          value={cfg.cardAlign}
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Centre" },
+            { value: "right", label: "Right" },
+          ]}
+          onChange={(v) => onUpdate({ cardAlign: v })}
+        />
       </FormGroup>
 
       <FormGroup title="Search">
