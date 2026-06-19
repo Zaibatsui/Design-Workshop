@@ -72,6 +72,7 @@ require.extensions[".js"] = function (module, filename) {
 // stores a legacy `padY` — still must surface paddingTop / paddingBottom
 // to the schema once their renderer reads through the fallback chain.)
 const SPACING_REQUIRED = [
+  "brandGrid",
   "break",
   "comparisonTable",
   "content",

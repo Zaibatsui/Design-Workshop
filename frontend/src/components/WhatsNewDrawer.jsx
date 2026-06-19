@@ -17,7 +17,7 @@
  *     clicked through that specific version yet.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, MousePointerClick, FileStack, LayoutGrid, Folder, MessageSquare, Paintbrush, PanelRight, Type, Layers } from "lucide-react";
+import { Sparkles, MousePointerClick, FileStack, LayoutGrid, Folder, MessageSquare, Paintbrush, PanelRight, Type, Layers, Building2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -84,7 +84,14 @@ const PLATFORM_UPDATES = [
     kind: "new",
   },
   {
-    id: "brand-kit-wave-2",
+    id: "brand-grid",
+    name: "Brand grid",
+    icon: Building2,
+    addedOn: "2026-02-18T18:00:00Z",
+    whatsNew:
+      "New section: a searchable, filterable grid of brand cards with an optional Spotlight tier above the main grid. Per-brand category + description filter together; the search input matches name or description in real time. Cards support three hover affordances — coloured accent bar on any of the four sides (with adjustable thickness + colour), classic lift + border highlight, or no effect — plus the usual mobile column overrides and brand-kit cascade.",
+    kind: "new",
+  },
     name: "Brand Kit · Typography, Components, Layout",
     icon: Paintbrush,
     addedOn: "2026-02-18",

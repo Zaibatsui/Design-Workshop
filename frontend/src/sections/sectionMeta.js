@@ -105,6 +105,7 @@ export const SECTION_META = {
   },
   break: { addedOn: LAUNCH, updatedOn: LAUNCH },
   tabs: { addedOn: LAUNCH, updatedOn: LAUNCH },
+  "brand-grid": { addedOn: "2026-02-18T18:00:00Z", updatedOn: "2026-02-18T18:00:00Z" },
   richtext: {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",

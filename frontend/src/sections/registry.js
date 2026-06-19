@@ -20,6 +20,7 @@ import { trustStrip } from "./trustStrip";
 import { comparisonTable } from "./comparisonTable";
 import { statCounter } from "./statCounter";
 import { videoEmbed } from "./videoEmbed";
+import { brandGrid } from "./brandGrid";
 import { metaFor } from "./sectionMeta";
 
 // Attach `addedOn` / `updatedOn` metadata to each section so the
@@ -50,6 +51,7 @@ export const SECTIONS = [
   logos,
   breakBanner,
   tabs,
+  brandGrid,
 ].map(withMeta);
 
 export const SECTIONS_BY_ID = Object.fromEntries(
