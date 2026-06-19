@@ -128,6 +128,13 @@ export default function CollectionPicker({
   // re-enables this.
   const disabled = !itemId;
 
+  // Three visual states for the button label:
+  //   1. `current` resolved          → coloured dot + name (full opacity)
+  //   2. `collectionId` set, loading → dim skeleton dot + ellipsis
+  //      so the user never sees "Unfiled" flash on a filed item
+  //   3. `collectionId` null         → folder icon + "Unfiled"
+  const resolving = collectionId && !current;
+
   return (
     <div className="relative" ref={rootRef}>
       <button
@@ -148,20 +155,34 @@ export default function CollectionPicker({
             : "border-dashed border-slate-300 text-slate-500 hover:border-slate-400 hover:bg-slate-50"
         }`}
       >
-        {current ? (
-          <>
-            <span
-              className={`w-2 h-2 rounded-full ${colorDotClass(current.color)}`}
-              aria-hidden="true"
-            />
-            <span className="truncate max-w-[140px]">{current.name}</span>
-          </>
-        ) : (
-          <>
-            <Folder className="w-3.5 h-3.5" />
-            <span>Unfiled</span>
-          </>
-        )}
+        <span
+          className="inline-flex items-center gap-2 transition-opacity duration-200"
+          style={{ opacity: resolving ? 0.45 : 1 }}
+          data-testid="collection-picker-label"
+        >
+          {current ? (
+            <>
+              <span
+                className={`w-2 h-2 rounded-full ${colorDotClass(current.color)}`}
+                aria-hidden="true"
+              />
+              <span className="truncate max-w-[140px]">{current.name}</span>
+            </>
+          ) : resolving ? (
+            <>
+              <span
+                className="w-2 h-2 rounded-full bg-slate-300 animate-pulse"
+                aria-hidden="true"
+              />
+              <span className="text-slate-400">…</span>
+            </>
+          ) : (
+            <>
+              <Folder className="w-3.5 h-3.5" />
+              <span>Unfiled</span>
+            </>
+          )}
+        </span>
       </button>
 
       {open && (
