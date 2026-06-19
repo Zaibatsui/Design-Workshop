@@ -85,6 +85,8 @@ const defaults = () => ({
     { id: "nvidia", name: "Nvidia", description: "GPUs and accelerated computing for creators and developers.", logo: SI("nvidia"), logoAlt: "Nvidia logo", link: "", openInSameTab: false },
     { id: "cisco", name: "Cisco", description: "Networking, security and collaboration for connected teams.", logo: SI("cisco"), logoAlt: "Cisco logo", link: "", openInSameTab: false },
     { id: "apple", name: "Apple", description: "Mac, iPad and iPhone for businesses that put design first.", logo: SI("apple"), logoAlt: "Apple logo", link: "", openInSameTab: false },
+    { id: "samsung", name: "Samsung", description: "Displays, mobile devices and storage at every price point.", logo: SI("samsung"), logoAlt: "Samsung logo", link: "", openInSameTab: false },
+    { id: "logitech", name: "Logitech", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: SI("logitech"), logoAlt: "Logitech logo", link: "", openInSameTab: false },
   ],
 
   // Layout
@@ -112,6 +114,10 @@ const defaults = () => ({
   // Hover affordance. "lift" matches the Misco aesthetic; "bar" adds
   // a brand-coloured edge accent; "none" disables the affordance.
   hoverEffect: "lift",
+  // Edge to grow the accent bar from when hoverEffect === "bar".
+  barSide: "bottom", // "top" | "right" | "bottom" | "left"
+  barThickness: 3,   // px
+  barColor: "",      // hex; falls back to eyebrow/accent at render time
 
   // Optional greyscale-until-hover treatment for the logos. Reads
   // cleanly on a busy page (especially with brand-coloured icons
@@ -221,8 +227,24 @@ function render(cfg) {
   const searchAlign = SEARCH_ALIGN_TO_FLEX[cfg.searchAlign] || "center";
   const searchWidth = Math.max(140, Math.min(1200, num(cfg.searchWidth, 360)));
 
+  // Edge bar — author picks which side the bar grows from. The bar
+  // is always anchored to its chosen side and animates in via a
+  // scale transform on the axis perpendicular to that side, so the
+  // motion reads as "wipe in from the corner" no matter which edge.
+  const barSide = ["top", "right", "bottom", "left"].includes(cfg.barSide) ? cfg.barSide : "bottom";
+  const barT = Math.max(1, Math.min(12, num(cfg.barThickness, 3)));
+  const barColor = safeColor(cfg.barColor || cfg.eyebrowAccentColor, accent);
+  const isHoriz = barSide === "top" || barSide === "bottom";
+  const barOrigin =
+    barSide === "right" ? "right top" :
+    barSide === "bottom" ? "left bottom" :
+    barSide === "left" ? "left top" :
+    "left top";
+  const barSizing = isHoriz
+    ? `left:0;right:0;height:${barT}px`
+    : `top:0;bottom:0;width:${barT}px`;
   const barRule = `
-.${cls} .ns-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:${accent};transform:scaleX(0);transform-origin:left bottom;transition:transform .25s ease}
+.${cls} .ns-bar{position:absolute;${barSide}:0;${barSizing};background:${barColor};transform:${isHoriz ? "scaleX(0)" : "scaleY(0)"};transform-origin:${barOrigin};transition:transform .25s ease}
 .${cls} .ns-card:hover .ns-bar{transform:scale(1)}`;
 
   const hoverLift = cfg.hoverEffect === "lift"
@@ -566,6 +588,34 @@ function FormPanel({ config, onUpdate }) {
           ]}
           onChange={(v) => onUpdate({ hoverEffect: v })}
         />
+        {cfg.hoverEffect === "bar" && (
+          <>
+            <SelectField
+              label="Bar edge"
+              value={cfg.barSide}
+              options={[
+                { value: "top", label: "Top" },
+                { value: "right", label: "Right" },
+                { value: "bottom", label: "Bottom" },
+                { value: "left", label: "Left" },
+              ]}
+              onChange={(v) => onUpdate({ barSide: v })}
+            />
+            <SliderField
+              label="Bar thickness"
+              value={cfg.barThickness}
+              min={1}
+              max={12}
+              suffix="px"
+              onChange={(v) => onUpdate({ barThickness: v })}
+            />
+            <ColorField
+              label="Bar colour"
+              value={cfg.barColor || cfg.eyebrowAccentColor || "#E01839"}
+              onChange={(v) => onUpdate({ barColor: v })}
+            />
+          </>
+        )}
         <ToggleField
           label="Greyscale until hover"
           description="Render every logo in greyscale; reveal full colour when the cursor lands on it."

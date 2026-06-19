@@ -32,8 +32,9 @@ expect(
     /from "@\/components\/FormGroup"/.test(src),
 );
 expect(
-  "Defaults seed at least 7 sample brands (last is apple)",
-  /items:\s*\[[\s\S]{0,8000}id:\s*"apple"/.test(src),
+  "Defaults seed 9 sample brands (last is logitech)",
+  /items:\s*\[[\s\S]{0,8000}id:\s*"logitech"/.test(src) &&
+    /id:\s*"samsung"/.test(src),
 );
 expect(
   "Sample logos use simpleicons.org CDN (brand-coloured SVG glyphs)",
@@ -45,6 +46,16 @@ expect(
   /greyscale:\s*false/.test(src) &&
     /cfg\.greyscale\s*\?[\s\S]{0,200}filter:grayscale\(100%\)/.test(src) &&
     /label="Greyscale until hover"/.test(src),
+);
+expect(
+  "Accent-bar edge is author-controlled (top/right/bottom/left whitelisted)",
+  /barSide:\s*"bottom"/.test(src) &&
+    /\["top",\s*"right",\s*"bottom",\s*"left"\]\.includes\(cfg\.barSide\)/.test(src) &&
+    /label="Bar edge"/.test(src),
+);
+expect(
+  "Accent-bar thickness + colour are exposed in the form",
+  /label="Bar thickness"/.test(src) && /label="Bar colour"/.test(src),
 );
 
 // ── Spotlight + chip features must be GONE ────────────────────────
