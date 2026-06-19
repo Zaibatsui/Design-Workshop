@@ -1,7 +1,9 @@
 /**
- * Regression: new `brand-grid` section ships defaults, render output,
- * scoped vanilla-JS search + chip filter, optional hover bar on any of
- * the four sides, and a back-compat-safe shape.
+ * Regression: the `brand-grid` section ships defaults, render output,
+ * scoped vanilla-JS search, optional photo header, and a brand-kit
+ * cascade-friendly field shape. Spotlight + category-chip features
+ * were dropped on 2026-02-19 to match the rest of the section
+ * library's layout conventions.
  */
 const fs = require("fs");
 const path = require("path");
@@ -18,6 +20,7 @@ function expect(label, cond) {
   else { console.error("FAIL ·", label); failed++; }
 }
 
+// ── Shape + guardrails ────────────────────────────────────────────
 expect("Section id is 'brand-grid'", /const ID = "brand-grid"/.test(src));
 expect(
   "FONT_IMPORT is interpolated as a value, never called as a function",
@@ -28,37 +31,89 @@ expect(
   /FormAccordion sectionType="brand-grid"/.test(src) &&
     /from "@\/components\/FormGroup"/.test(src),
 );
-expect("Defaults seed at least 6 sample brands", /items:\s*\[[\s\S]{0,5000}id:\s*"jabra"/.test(src));
-expect("Spotlight flag is per-item", /spotlight:\s*(true|false),/.test(src));
-expect("Sample logos use inline SVG wordmarks (no external image dep)",
-  /logo:\s*wordmarkSvg\(/.test(src));
-expect("Renderer emits .ns-spotlight when any item.spotlight=true",
-  /spotlight\.length \? `[\s\S]{0,200}<div class="ns-spotlight">/.test(src));
-expect("Renderer carries data-haystack for client-side search match",
-  /data-haystack="\$\{escAttr\(`\$\{nameLower\} \$\{descLower\}`\)\}"/.test(src));
-expect("Snippet JS debounces search input by 150ms",
-  /setTimeout\(function\(\)\{state\.q=[\s\S]{0,200}\},150\)/.test(src));
-expect("Snippet JS combines category chip + search into one apply() pass",
-  /var matchCat=[\s\S]{0,80}var matchQ=[\s\S]{0,80}var show=matchCat&&matchQ/.test(src));
-expect("Empty state toggles `hidden` when visible count is 0",
-  /empty\.hidden=visible!==0/.test(src));
-expect("Hover-bar CSS only emitted when cfg.hoverEffect === 'bar'",
-  /cfg\.hoverEffect === "bar" \? barRule : ""/.test(src));
-expect("Hover bar supports all 4 sides (top/right/bottom/left whitelisted)",
-  /\["top",\s*"right",\s*"bottom",\s*"left"\]\.includes\(cfg\.barSide\)/.test(src));
-expect("Mobile @media query overrides columns + chips column flex",
-  /@media \(max-width:767px\)\{[\s\S]{0,300}grid-template-columns:repeat\(\$\{colsM\}/.test(src));
-expect("spotlightHideFromMain filter drops spotlight items from main when true",
-  /cfg\.spotlightHideFromMain[\s\S]{0,80}items\.filter\(\(i\) => !i\.spotlight\)/.test(src));
-expect("Card root is <a> only when item.link is set (no broken anchors)",
-  /const tag = link \? "a" : "div"/.test(src));
-expect("Section registers as a named export `brandGrid`",
-  /export const brandGrid = \{[\s\S]{0,300}id: ID/.test(src));
+expect(
+  "Defaults seed at least 6 sample brands",
+  /items:\s*\[[\s\S]{0,8000}id:\s*"jabra"/.test(src),
+);
+expect(
+  "Sample logos use inline SVG wordmarks (no external image dep)",
+  /logo:\s*wordmarkSvg\(/.test(src),
+);
 
-// Cross-file: registry pulls it in
+// ── Spotlight + chip features must be GONE ────────────────────────
+expect(
+  "Spotlight flag is removed from per-item defaults",
+  !/spotlight:\s*(true|false),/.test(src),
+);
+expect(
+  "Spotlight tier rendering is removed",
+  !/ns-spotlight/.test(src),
+);
+expect(
+  "Category field is removed from per-item defaults",
+  !/category:\s*"/.test(src),
+);
+expect(
+  "Category chip UI is removed",
+  !/ns-chip/.test(src) && !/categoryFilterEnabled/.test(src),
+);
+
+// ── Header background image ───────────────────────────────────────
+expect(
+  "Defaults expose headerImage + overlay + height controls",
+  /headerImage:\s*""/.test(src) &&
+    /headerOverlayColor:/.test(src) &&
+    /headerOverlayOpacity:/.test(src) &&
+    /headerHeight:/.test(src),
+);
+expect(
+  "Renderer applies background-image when headerImage is set",
+  /ns-header-bg/.test(src) && /background-image:url\(/.test(src),
+);
+expect(
+  "Header overlay div uses the configured overlay colour + opacity",
+  /ns-header-overlay/.test(src) && /opacity:\$\{headerOverlayOpacity\}/.test(src),
+);
+
+// ── Search-only filter ────────────────────────────────────────────
+expect(
+  "Renderer carries data-haystack for client-side search match",
+  /data-haystack="\$\{escAttr\(`\$\{nameLower\} \$\{descLower\}`\)\}"/.test(src),
+);
+expect(
+  "Snippet JS debounces search input by 150ms",
+  /setTimeout\(function\(\)\{apply\([\s\S]{0,80}\},150\)/.test(src),
+);
+expect(
+  "Empty state toggles `hidden` when visible count is 0",
+  /empty\.hidden=visible!==0/.test(src),
+);
+
+// ── Hover + grid + cards ──────────────────────────────────────────
+expect(
+  "Hover-bar CSS only emitted when cfg.hoverEffect === 'bar'",
+  /cfg\.hoverEffect === "bar" \? barRule : ""/.test(src),
+);
+expect(
+  "Mobile @media query overrides columns",
+  /@media \(max-width:767px\)\{[\s\S]{0,400}grid-template-columns:repeat\(\$\{colsM\}/.test(src),
+);
+expect(
+  "Card root is <a> only when item.link is set (no broken anchors)",
+  /const tag = link \? "a" : "div"/.test(src),
+);
+expect(
+  "Section registers as a named export `brandGrid`",
+  /export const brandGrid = \{[\s\S]{0,300}id: ID/.test(src),
+);
+
+// ── Cross-file: registry pulls it in ──────────────────────────────
 const reg = fs.readFileSync(path.join(__dirname, "../registry.js"), "utf8");
-expect("Registry imports + registers brandGrid",
-  /import \{ brandGrid \} from "\.\/brandGrid"/.test(reg) && /brandGrid,\s*\]\.map\(withMeta\)/.test(reg));
+expect(
+  "Registry imports + registers brandGrid",
+  /import \{ brandGrid \} from "\.\/brandGrid"/.test(reg) &&
+    /brandGrid,\s*\]\.map\(withMeta\)/.test(reg),
+);
 
 console.log(`\n${failed === 0 ? "ALL PASSED" : "FAILED"} (${passed} passed, ${failed} failed)`);
 if (failed > 0) process.exit(1);
