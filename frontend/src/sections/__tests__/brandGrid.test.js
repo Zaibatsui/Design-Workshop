@@ -30,8 +30,8 @@ expect(
 );
 expect("Defaults seed at least 6 sample brands", /items:\s*\[[\s\S]{0,5000}id:\s*"jabra"/.test(src));
 expect("Spotlight flag is per-item", /spotlight:\s*(true|false),/.test(src));
-expect("Sample logos use images\\.unsplash\\.com",
-  /logo:\s*"https:\/\/images\.unsplash\.com\//.test(src));
+expect("Sample logos use inline SVG wordmarks (no external image dep)",
+  /logo:\s*wordmarkSvg\(/.test(src));
 expect("Renderer emits .ns-spotlight when any item.spotlight=true",
   /spotlight\.length \? `[\s\S]{0,200}<div class="ns-spotlight">/.test(src));
 expect("Renderer carries data-haystack for client-side search match",

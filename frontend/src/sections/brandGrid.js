@@ -25,6 +25,7 @@ import {
 import ListEditor from "@/components/ListEditor";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
+import { Label } from "@/components/ui/label";
 import { FormAccordion, FormGroup } from "@/components/FormGroup";
 import {
   SelectField,
@@ -36,6 +37,17 @@ import {
 import PaddingFields from "@/components/PaddingFields";
 
 const ID = "brand-grid";
+
+// Inline SVG wordmark used as the demo "logo" for every default brand.
+// Renders crisply at any size, embeds zero external dependencies, and
+// keeps the demo readable when the user hasn't uploaded real assets
+// yet. The `colour` param is parameterised so the brand-kit can later
+// drive the wordmark colour from the Studio (today: dark slate).
+function wordmarkSvg(label, hex = "0f172a") {
+  const safe = String(label || "").replace(/[<>&"]/g, "");
+  const text = encodeURIComponent(safe);
+  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 64'><text x='120' y='42' font-family='Helvetica,Arial,sans-serif' font-size='30' font-weight='800' letter-spacing='-0.5' text-anchor='middle' fill='%23${hex}'>${text}</text></svg>`;
+}
 
 const defaults = () => ({
   // Section header
@@ -49,7 +61,7 @@ const defaults = () => ({
       name: "Logitech",
       category: "Accessories",
       description: "Webcams, headsets, keyboards and mice for hybrid work.",
-      logo: "https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=500&q=70",
+      logo: wordmarkSvg("Logitech"),
       logoAlt: "Logitech logo",
       link: "",
       openInSameTab: false,
@@ -60,7 +72,7 @@ const defaults = () => ({
       name: "Microsoft",
       category: "Productivity",
       description: "Windows, 365 and cloud tools for secure collaboration.",
-      logo: "https://images.unsplash.com/photo-1633419461186-7d40a38105ec?auto=format&fit=crop&w=500&q=70",
+      logo: wordmarkSvg("Microsoft"),
       logoAlt: "Microsoft logo",
       link: "",
       openInSameTab: false,
@@ -71,7 +83,7 @@ const defaults = () => ({
       name: "Lenovo",
       category: "Computing",
       description: "Laptops, desktops and accessories built for productivity.",
-      logo: "https://images.unsplash.com/photo-1611078489935-0cb964de46d6?auto=format&fit=crop&w=500&q=70",
+      logo: wordmarkSvg("Lenovo"),
       logoAlt: "Lenovo logo",
       link: "",
       openInSameTab: false,
@@ -82,7 +94,7 @@ const defaults = () => ({
       name: "HP",
       category: "Computing",
       description: "PCs, printers and accessories trusted by businesses worldwide.",
-      logo: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=500&q=70",
+      logo: wordmarkSvg("HP"),
       logoAlt: "HP logo",
       link: "",
       openInSameTab: false,
@@ -93,7 +105,7 @@ const defaults = () => ({
       name: "Dell",
       category: "Computing",
       description: "Business laptops, workstations and monitors for the workplace.",
-      logo: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?auto=format&fit=crop&w=500&q=70",
+      logo: wordmarkSvg("Dell"),
       logoAlt: "Dell logo",
       link: "",
       openInSameTab: false,
@@ -104,7 +116,7 @@ const defaults = () => ({
       name: "Jabra",
       category: "Collaboration",
       description: "Headsets and speakerphones for crystal-clear calls.",
-      logo: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=70",
+      logo: wordmarkSvg("Jabra"),
       logoAlt: "Jabra logo",
       link: "",
       openInSameTab: false,
@@ -126,8 +138,9 @@ const defaults = () => ({
   categoryFilterEnabled: true,
   allChipLabel: "All",
   noMatchText: "No matches. Try a different category or search term.",
-  // Hover affordance
-  hoverEffect: "bar", // "lift" | "bar" | "none"
+  // Hover affordance — `lift` is the cleanest "Misco-style" default:
+  // a subtle translateY + shadow + brand-accent border on hover.
+  hoverEffect: "lift", // "lift" | "bar" | "none"
   barSide: "bottom", // "top" | "right" | "bottom" | "left"
   barThickness: 3,
   barColor: "",
@@ -144,8 +157,6 @@ const defaults = () => ({
   paddingBottom: 64,
   paddingX: 20,
 });
-
-const safeId = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "x";
 
 function render(cfg) {
   const cls = makeUid(ID);
@@ -220,8 +231,8 @@ function render(cfg) {
   const colsM = Math.max(1, Math.min(3, num(cfg.columnsMobile, 1)));
   const spCols = Math.max(1, Math.min(6, num(cfg.spotlightColumns, 4)));
   const barT = Math.max(1, num(cfg.barThickness, 3));
-  const accent = safeColor(cfg.eyebrowAccentColor || cfg.theme?.titleColor, "#E01839");
-  const barColor = safeColor(cfg.barColor || cfg.eyebrowAccentColor || cfg.theme?.titleColor, accent);
+  const accent = safeColor(cfg.eyebrowAccentColor, "#E01839");
+  const barColor = safeColor(cfg.barColor || cfg.eyebrowAccentColor, accent);
 
   // CSS per side for the optional accent bar. Initially scaled to 0
   // along the relevant axis; scales to 1 on hover via the transform
@@ -253,10 +264,10 @@ ${baseReset(cls, cfg)}
 .${cls} .ns-chip:hover{border-color:${accent};color:${accent}}
 .${cls} .ns-chip.is-active{background:${accent};border-color:${accent};color:#fff}
 .${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:${num(cfg.gap, 18)}px}
-.${cls} .ns-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:${safeColor(cfg.cardBg, "#ffffff")};border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${num(cfg.cardRadius, 8)}px;padding:${num(cfg.cardPadding, 22)}px;text-decoration:none;color:inherit;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;overflow:hidden}
+.${cls} .ns-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;background:${safeColor(cfg.cardBg, "#ffffff")};border:1px solid ${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:${num(cfg.cardRadius, 8)}px;padding:${num(cfg.cardPadding, 22)}px;text-decoration:none;color:inherit;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;overflow:hidden}
 .${cls} .ns-card.is-spotlight{padding:${num(cfg.cardPadding, 22) + 6}px;background:linear-gradient(135deg,${safeColor(cfg.cardBg, "#ffffff")} 0%,${safeColor(cfg.cardBorder, "#f8fafc")} 100%)}
-.${cls} .ns-logo{height:48px;width:auto;max-width:160px;object-fit:contain;margin-bottom:4px}
-.${cls} .ns-logo-placeholder{background:${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:6px;width:120px}
+.${cls} .ns-logo{height:56px;width:auto;max-width:170px;object-fit:contain;margin-bottom:4px}
+.${cls} .ns-logo-placeholder{background:${safeColor(cfg.cardBorder, "#e5e7eb")};border-radius:6px;width:140px;height:56px}
 .${cls} .ns-cat{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${accent}}
 .${cls} .ns-name{margin:0;font-size:17px;font-weight:700;color:${safeColor(cfg.titleColor, "#0f172a")};line-height:1.3}
 .${cls} .ns-desc{margin:0;font-size:13px;color:${safeColor(cfg.bodyColor, "#475569")};line-height:1.5}
@@ -314,6 +325,49 @@ ${cfg.hoverEffect === "bar" ? barRule : ""}
 
 function FormPanel({ config, onUpdate }) {
   const cfg = { ...defaults(), ...config };
+  const items = cfg.items || [];
+
+  const addItem = () =>
+    onUpdate({
+      items: [
+        ...items,
+        {
+          id: makeUid(),
+          name: "New brand",
+          category: "",
+          description: "",
+          logo: "",
+          logoAlt: "",
+          link: "",
+          openInSameTab: false,
+          spotlight: false,
+        },
+      ],
+    });
+  const removeItem = (id) =>
+    onUpdate({ items: items.filter((i) => i.id !== id) });
+  const moveItem = (id, dir) => {
+    const idx = items.findIndex((i) => i.id === id);
+    const ni = idx + dir;
+    if (idx < 0 || ni < 0 || ni >= items.length) return;
+    const arr = [...items];
+    const [m] = arr.splice(idx, 1);
+    arr.splice(ni, 0, m);
+    onUpdate({ items: arr });
+  };
+  const duplicateItem = (id) => {
+    const idx = items.findIndex((i) => i.id === id);
+    if (idx < 0) return;
+    const clone = { ...items[idx], id: makeUid() };
+    const arr = [...items];
+    arr.splice(idx + 1, 0, clone);
+    onUpdate({ items: arr });
+  };
+  const updateItem = (id, patch) =>
+    onUpdate({
+      items: items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+    });
+
   return (
     <FormAccordion sectionType="brand-grid">
       <FormGroup title="Section header">
@@ -324,24 +378,94 @@ function FormPanel({ config, onUpdate }) {
 
       <FormGroup title="Brands">
         <ListEditor
-          items={cfg.items}
-          onChange={(items) => onUpdate({ items })}
-          newItem={() => ({ id: safeId(`brand-${Date.now()}`), name: "New brand", category: "", description: "", logo: "", logoAlt: "", link: "", openInSameTab: false, spotlight: false })}
-          titleOf={(it) => it.name || "(unnamed)"}
-          subtitleOf={(it) => [it.spotlight ? "Spotlight" : "", it.category].filter(Boolean).join(" · ")}
-          renderForm={(item, set) => (
-            <div className="space-y-3">
-              <TextField label="Brand name" value={item.name} onChange={(v) => set({ name: v })} />
-              <TextField label="Category" value={item.category} onChange={(v) => set({ category: v })} placeholder="e.g. Networking" />
-              <TextAreaField label="Description" value={item.description} onChange={(v) => set({ description: v })} rows={2} />
-              <ImageUpload label="Logo" value={item.logo} onChange={(v) => set({ logo: v })} />
-              <TextField label="Logo alt text" value={item.logoAlt} onChange={(v) => set({ logoAlt: v })} />
-              <TextField label="Link" value={item.link} onChange={(v) => set({ link: v })} placeholder="https://…" />
-              <ToggleField label="Open in same tab" value={!!item.openInSameTab} onChange={(v) => set({ openInSameTab: v })} />
-              <ToggleField label="Spotlight (show in top row)" value={!!item.spotlight} onChange={(v) => set({ spotlight: v })} />
+          items={items}
+          onAdd={addItem}
+          onRemove={removeItem}
+          onMove={moveItem}
+          onDuplicate={duplicateItem}
+          addLabel="Add brand"
+          testidPrefix="bg-item"
+          renderRow={(it) => (
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-7 rounded-sm bg-slate-50 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                {it.logo && (
+                  <img
+                    src={it.logo}
+                    alt=""
+                    className="max-w-full max-h-full object-contain"
+                  />
+                )}
+              </div>
+              <p className="text-sm font-medium text-slate-900 truncate">
+                {it.name || "(unnamed)"}
+                {it.spotlight ? (
+                  <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-amber-600">
+                    Spotlight
+                  </span>
+                ) : null}
+              </p>
             </div>
           )}
-          testidPrefix="bg-item"
+          renderForm={(it) => (
+            <>
+              <TextField
+                label="Brand name"
+                value={it.name}
+                onChange={(v) => updateItem(it.id, { name: v })}
+                testid={`bg-name-${it.id}`}
+              />
+              <TextField
+                label="Category"
+                value={it.category}
+                placeholder="e.g. Networking"
+                onChange={(v) => updateItem(it.id, { category: v })}
+                testid={`bg-cat-${it.id}`}
+              />
+              <TextAreaField
+                label="Description"
+                value={it.description}
+                onChange={(v) => updateItem(it.id, { description: v })}
+                rows={2}
+                testid={`bg-desc-${it.id}`}
+              />
+              <div>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Logo
+                </Label>
+                <ImageUpload
+                  value={it.logo}
+                  onChange={(v) => updateItem(it.id, { logo: v })}
+                  testid={`bg-logo-${it.id}`}
+                  compact
+                />
+              </div>
+              <TextField
+                label="Logo alt text"
+                value={it.logoAlt}
+                onChange={(v) => updateItem(it.id, { logoAlt: v })}
+                testid={`bg-logoalt-${it.id}`}
+              />
+              <TextField
+                label="Link (optional)"
+                placeholder="https://example.com"
+                value={it.link || ""}
+                onChange={(v) => updateItem(it.id, { link: v })}
+                testid={`bg-link-${it.id}`}
+              />
+              <ToggleField
+                label="Open in same tab"
+                checked={!!it.openInSameTab}
+                onChange={(v) => updateItem(it.id, { openInSameTab: v })}
+                testid={`bg-sametab-${it.id}`}
+              />
+              <ToggleField
+                label="Spotlight (show in top row)"
+                checked={!!it.spotlight}
+                onChange={(v) => updateItem(it.id, { spotlight: v })}
+                testid={`bg-spotlight-${it.id}`}
+              />
+            </>
+          )}
         />
       </FormGroup>
 
@@ -349,20 +473,20 @@ function FormPanel({ config, onUpdate }) {
         <SliderField label="Main grid columns" value={cfg.columns} min={1} max={6} onChange={(v) => onUpdate({ columns: v })} />
         <SliderField label="Mobile columns" value={cfg.columnsMobile} min={1} max={3} onChange={(v) => onUpdate({ columnsMobile: v })} />
         <SliderField label="Spotlight row columns" value={cfg.spotlightColumns} min={1} max={6} onChange={(v) => onUpdate({ spotlightColumns: v })} />
-        <ToggleField label="Hide spotlight brands from the main grid" value={!!cfg.spotlightHideFromMain} onChange={(v) => onUpdate({ spotlightHideFromMain: v })} />
+        <ToggleField label="Hide spotlight brands from the main grid" checked={!!cfg.spotlightHideFromMain} onChange={(v) => onUpdate({ spotlightHideFromMain: v })} />
         <SliderField label="Gap" value={cfg.gap} min={4} max={48} suffix="px" onChange={(v) => onUpdate({ gap: v })} />
         <SliderField label="Card padding" value={cfg.cardPadding} min={8} max={48} suffix="px" onChange={(v) => onUpdate({ cardPadding: v })} />
         <SliderField label="Card radius" value={cfg.cardRadius} min={0} max={32} suffix="px" onChange={(v) => onUpdate({ cardRadius: v })} />
       </FormGroup>
 
       <FormGroup title="Search & filters">
-        <ToggleField label="Search box" value={!!cfg.searchEnabled} onChange={(v) => onUpdate({ searchEnabled: v })} />
+        <ToggleField label="Search box" checked={!!cfg.searchEnabled} onChange={(v) => onUpdate({ searchEnabled: v })} />
         {cfg.searchEnabled && (
           <TextField label="Search placeholder" value={cfg.searchPlaceholder} onChange={(v) => onUpdate({ searchPlaceholder: v })} />
         )}
-        <ToggleField label="Category chips" value={!!cfg.categoryFilterEnabled} onChange={(v) => onUpdate({ categoryFilterEnabled: v })} />
+        <ToggleField label="Category chips" checked={!!cfg.categoryFilterEnabled} onChange={(v) => onUpdate({ categoryFilterEnabled: v })} />
         {cfg.categoryFilterEnabled && (
-          <TextField label="“All” chip label" value={cfg.allChipLabel} onChange={(v) => onUpdate({ allChipLabel: v })} />
+          <TextField label={`"All" chip label`} value={cfg.allChipLabel} onChange={(v) => onUpdate({ allChipLabel: v })} />
         )}
         <TextField label="No-match message" value={cfg.noMatchText} onChange={(v) => onUpdate({ noMatchText: v })} />
       </FormGroup>
@@ -372,8 +496,8 @@ function FormPanel({ config, onUpdate }) {
           label="Hover effect"
           value={cfg.hoverEffect}
           options={[
-            { value: "bar", label: "Coloured bar on edge" },
             { value: "lift", label: "Lift + border highlight" },
+            { value: "bar", label: "Coloured bar on edge" },
             { value: "none", label: "None" },
           ]}
           onChange={(v) => onUpdate({ hoverEffect: v })}
