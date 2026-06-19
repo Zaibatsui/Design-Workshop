@@ -23,6 +23,7 @@ import StudioInspector from "@/components/studio/StudioInspector";
 export default function BlockEditorDrawer({
   studio = false,
   block,
+  previewMode,
   onUpdate,
   onClose,
 }) {
@@ -112,6 +113,7 @@ export default function BlockEditorDrawer({
             def={def}
             config={block.config || {}}
             onUpdate={formOnUpdate}
+            previewMode={previewMode}
             panelRef={inspectorPanelRef}
             hideHeader
           />
@@ -126,6 +128,7 @@ export default function BlockEditorDrawer({
             <def.FormPanel
               config={block.config || {}}
               onUpdate={formOnUpdate}
+              previewMode={previewMode}
             />
           ) : (
             <p className="text-xs text-slate-500">

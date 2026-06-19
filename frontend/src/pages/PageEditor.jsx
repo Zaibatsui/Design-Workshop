@@ -445,6 +445,7 @@ export default function PageEditor({ studio = false }) {
         <BlockEditorDrawer
           studio={false}
           block={selectedBlock}
+          previewMode={previewWidth}
           onUpdate={(patch) => updateBlock(selectedBlock.block_id, patch)}
           onClose={() => setSelectedBlockId(null)}
         />
@@ -645,6 +646,7 @@ export default function PageEditor({ studio = false }) {
         <BlockEditorDrawer
           studio
           block={selectedBlock}
+          previewMode={previewWidth}
           onUpdate={(patch) => updateBlock(selectedBlock.block_id, patch)}
           onClose={() => setSelectedBlockId(null)}
         />
