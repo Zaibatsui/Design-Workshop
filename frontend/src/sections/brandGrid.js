@@ -73,7 +73,7 @@ const DEFAULT_HEADER_IMAGE =
 
 const defaults = () => ({
   // Section header
-  eyebrow: "",
+  eyebrow: "BRANDS",
   heading: "Shop by brand",
   subheading: "Find the right partner for every need.",
 
@@ -188,7 +188,7 @@ function render(cfg) {
 
   const items = (cfg.items || []).filter((x) => x && x.name);
 
-  const cardHtml = (it) => {
+  const cardHtml = (it, idx) => {
     const link = safeUrl(it.link || "");
     const tag = link ? "a" : "div";
     const tgt = link && !it.openInSameTab ? ' target="_blank" rel="noopener noreferrer"' : "";
@@ -196,7 +196,10 @@ function render(cfg) {
     const nameLower = (it.name || "").toLowerCase();
     const descLower = (it.description || "").toLowerCase();
     const ebLower = (it.eyebrow || "").toLowerCase();
-    return `<${tag} class="ns-card"${href}${tgt} data-haystack="${escAttr(`${nameLower} ${descLower} ${ebLower}`)}">
+    // `data-ns-list="bg-item" data-ns-item="<idx>"` lets the
+    // preview-click bridge expand THIS card's row in the Brands
+    // ListEditor and scroll it into view.
+    return `<${tag} class="ns-card"${href}${tgt} data-ns-list="bg-item" data-ns-item="${idx}" data-haystack="${escAttr(`${nameLower} ${descLower} ${ebLower}`)}">
       ${cfg.hoverEffect === "bar" ? `<span class="ns-bar" aria-hidden="true"></span>` : ""}
       ${it.logo ? `<img class="ns-logo" src="${escAttr(safeUrl(it.logo))}" alt="${escAttr(it.logoAlt || it.name + " logo")}" loading="lazy"/>` : `<div class="ns-logo ns-logo-placeholder" aria-hidden="true"></div>`}
       ${it.eyebrow ? `<p class="ns-card-eyebrow">${escHtml(it.eyebrow)}</p>` : ""}
@@ -207,8 +210,10 @@ function render(cfg) {
 
   // The search input markup. Used once — placed either inside the
   // photo header or above the grid, never both.
+  // Search input — `data-ns-group="search"` so a click anywhere on
+  // the input wrapper jumps the editor to the Search group.
   const searchHtml = cfg.searchEnabled
-    ? `<div class="ns-controls">
+    ? `<div class="ns-controls" data-ns-group="search">
         <input type="search" class="ns-search" placeholder="${escAttr(cfg.searchPlaceholder || "Search…")}" aria-label="Search brands"/>
       </div>`
     : "";
@@ -226,29 +231,41 @@ function render(cfg) {
   // Photo header lives OUTSIDE `.ns-inner` so it spans the section
   // edge-to-edge. Plain header (no image) stays INSIDE `.ns-inner`
   // and gets the same max-width treatment as every other section.
+  //
+  // Click-to-edit: the OUTER photo band carries
+  // `data-ns-group="header-background"` so clicking the image / overlay
+  // opens the Header background settings; the INNER text content
+  // carries `data-ns-group="header"` so clicking the eyebrow / heading /
+  // subheading opens the Header copy settings instead. Inner wins
+  // because the bridge walks upwards from the click target.
   const photoHeader = hasHeaderImg
-    ? `<header class="ns-header ns-header-bg" role="${cfg.headerImageAlt ? "img" : "presentation"}" ${cfg.headerImageAlt ? `aria-label="${escAttr(cfg.headerImageAlt)}"` : ""}>
+    ? `<header class="ns-header ns-header-bg" data-ns-group="header-background" role="${cfg.headerImageAlt ? "img" : "presentation"}" ${cfg.headerImageAlt ? `aria-label="${escAttr(cfg.headerImageAlt)}"` : ""}>
         <div class="ns-header-overlay" aria-hidden="true"></div>
-        <div class="ns-header-content">${headerInner}</div>
+        <div class="ns-header-content" data-ns-group="header">${headerInner}</div>
       </header>`
     : "";
   const plainHeader = (!hasHeaderImg && hasHeaderText)
-    ? `<header class="ns-header">${headerInner}</header>`
+    ? `<header class="ns-header" data-ns-group="header">${headerInner}</header>`
     : "";
 
   // Search sits above the grid in two cases: position === "below", or
   // there's no photo header to host it.
   const searchBelow = cfg.searchEnabled && !searchInHeader ? searchHtml : "";
 
-  const html = `<section class="ns-brand-grid ${cls}${fullBleedClass(cfg)}" data-ns-group="defaults">
+  // The grid wrapper itself carries `data-ns-list="bg-item"` (matches
+  // the ListEditor's testidPrefix in FormPanel) so clicking the empty
+  // padding between cards still jumps to the Brands group. Each card
+  // carries `data-ns-item="<idx>"` inside it to expand that specific
+  // row in the ListEditor.
+  const html = `<section class="ns-brand-grid ${cls}${fullBleedClass(cfg)}">
   ${photoHeader}
   <div class="ns-inner">
     ${plainHeader}
     ${searchBelow}
-    <div class="ns-grid" data-ns-list="items">
-      ${items.map((it) => cardHtml(it)).join("")}
+    <div class="ns-grid" data-ns-group="brands" data-ns-list="bg-item">
+      ${items.map((it, idx) => cardHtml(it, idx)).join("")}
     </div>
-    <p class="ns-empty" hidden>${escHtml(cfg.noMatchText || "No matches.")}</p>
+    <p class="ns-empty" data-ns-group="search" hidden>${escHtml(cfg.noMatchText || "No matches.")}</p>
   </div>
 </section>`;
 

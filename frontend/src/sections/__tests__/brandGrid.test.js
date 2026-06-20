@@ -42,10 +42,43 @@ expect(
     /cdn\.simpleicons\.org/.test(src) &&
     /upload\.wikimedia\.org\/wikipedia\/commons[\s\S]{0,200}Logitech_logo\.svg/.test(src),
 );
+// ── Click-to-edit bridge: data-ns-group / data-ns-list / data-ns-item
 expect(
   "Defaults ship a real header background image so the section previews cleanly",
   /const DEFAULT_HEADER_IMAGE\s*=\s*\n\s*"https:\/\/images\.unsplash\.com\//.test(src) &&
     /headerImage:\s*DEFAULT_HEADER_IMAGE/.test(src),
+);
+expect(
+  "Photo header carries data-ns-group='header-background' (outer) and 'header' (inner)",
+  /class="ns-header ns-header-bg" data-ns-group="header-background"/.test(src) &&
+    /class="ns-header-content" data-ns-group="header"/.test(src),
+);
+expect(
+  "Plain header (no image) carries data-ns-group='header'",
+  /class="ns-header" data-ns-group="header">\$\{headerInner\}/.test(src),
+);
+expect(
+  "Search input wrapper carries data-ns-group='search'",
+  /class="ns-controls" data-ns-group="search"/.test(src),
+);
+expect(
+  "Grid wrapper carries data-ns-group='brands' and data-ns-list='bg-item'",
+  /class="ns-grid" data-ns-group="brands" data-ns-list="bg-item"/.test(src),
+);
+expect(
+  "Each card carries data-ns-item=<idx> so clicks expand the matching row",
+  /data-ns-list="bg-item" data-ns-item="\$\{idx\}"/.test(src) &&
+    /items\.map\(\(it,\s*idx\)\s*=>\s*cardHtml\(it,\s*idx\)\)/.test(src),
+);
+expect(
+  "ListEditor testidPrefix matches the data-ns-list slug ('bg-item')",
+  /testidPrefix="bg-item"/.test(src),
+);
+
+// Default eyebrow demo copy
+expect(
+  "Defaults ship a demo 'BRANDS' eyebrow so the preview reads as a finished section",
+  /eyebrow:\s*"BRANDS"/.test(src),
 );
 expect(
   "Greyscale-until-hover toggle is wired into defaults + render + form",
