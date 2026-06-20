@@ -309,7 +309,7 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
         className="relative text-slate-500 hover:text-slate-900"
       >
         <Sparkles className="w-4 h-4 mr-1.5" />
-        What's new
+        What&apos;s new
         {hasUnread && (
           <span
             data-testid="whats-new-unread-dot"
@@ -328,7 +328,7 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />
-              What's new
+              What&apos;s new
             </SheetTitle>
             <SheetDescription>
               Recent additions and improvements to your library.

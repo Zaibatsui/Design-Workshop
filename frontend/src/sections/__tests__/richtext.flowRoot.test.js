@@ -12,11 +12,65 @@
  * 5px hides it."
  */
 const path = require("path");
-
-// Lightweight loader for the ESM-style `richtext.js`: it re-exports its
-// own default + named exports via plain ES module syntax. Strip the imports
-// and rebuild as a Function so node can evaluate without a bundler.
 const fs = require("fs");
+
+// ── Babel-on-require shim ────────────────────────────────────────
+// `richtext.js` (and friends) ship ESM import syntax + JSX. Node's
+// native `.js` loader won't handle either, so the runtime-require
+// section at the bottom needs the same on-the-fly transpilation
+// every other behavioural test in this folder uses. The shim
+// only kicks in for files under `src/` — node_modules stays
+// untouched and fast.
+const Module = require("module");
+const babel = require("@babel/core");
+const SRC_ROOT = path.resolve(__dirname, "../..");
+const STUB_PATH = path.join(__dirname, "_hero_stub.js");
+const STUBS = new Set([
+  "@/components/FormFields",
+  "@/components/ColorField",
+  "@/components/ImageUpload",
+  "@/components/ListEditor",
+  "@/components/PaddingFields",
+  "@/components/FooterLinkEditor",
+  "@/components/ui/label",
+  "@/components/FormGroup",
+  "lucide-react",
+]);
+const _origResolve = Module._resolveFilename;
+Module._resolveFilename = function (request, parent, ...rest) {
+  if (STUBS.has(request)) return STUB_PATH;
+  if (request.startsWith("@/")) {
+    const rel = request.slice(2);
+    for (const c of [
+      path.join(SRC_ROOT, rel + ".js"),
+      path.join(SRC_ROOT, rel + ".jsx"),
+    ]) {
+      if (fs.existsSync(c)) return c;
+    }
+  }
+  return _origResolve.call(this, request, parent, ...rest);
+};
+if (!fs.existsSync(STUB_PATH)) {
+  fs.writeFileSync(
+    STUB_PATH,
+    "module.exports = new Proxy({}, { get: () => () => null });\n"
+  );
+}
+const _origJsExt = require.extensions[".js"];
+require.extensions[".js"] = function (module, filename) {
+  if (!filename.startsWith(SRC_ROOT)) return _origJsExt(module, filename);
+  const code = babel.transformSync(fs.readFileSync(filename, "utf8"), {
+    filename,
+    babelrc: false,
+    configFile: false,
+    presets: [
+      [require.resolve("@babel/preset-env"), { targets: { node: "18" } }],
+      [require.resolve("@babel/preset-react"), { runtime: "classic" }],
+    ],
+  }).code;
+  module._compile(code, filename);
+};
+
 const sharedSrc = fs.readFileSync(path.join(__dirname, "../shared.js"), "utf8");
 const richtextSrc = fs.readFileSync(path.join(__dirname, "../richtext.js"), "utf8");
 
