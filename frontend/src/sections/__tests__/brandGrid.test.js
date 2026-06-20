@@ -37,10 +37,15 @@ expect(
     /id:\s*"samsung"/.test(src),
 );
 expect(
-  "Sample logos use simpleicons.org CDN with a Wikimedia fallback for Logitech",
+  "Sample logos use simpleicons.org CDN with an inline-SVG wordmark fallback for Logitech",
   /logo:\s*SI\("/.test(src) &&
     /cdn\.simpleicons\.org/.test(src) &&
-    /upload\.wikimedia\.org\/wikipedia\/commons[\s\S]{0,200}Logitech_logo\.svg/.test(src),
+    /logo:\s*wordmarkSvg\("Logitech"\)/.test(src),
+);
+expect(
+  "Defaults bake in the search-position + header-height tuned for the demo",
+  /searchPosition:\s*"header"/.test(src) &&
+    /headerHeight:\s*380/.test(src),
 );
 // ── Click-to-edit bridge: data-ns-group / data-ns-list / data-ns-item
 expect(
@@ -178,7 +183,7 @@ expect(
 // ── Search controls ───────────────────────────────────────────────
 expect(
   "Search position field exists with 'header' and 'below' options",
-  /searchPosition:\s*"below"/.test(src) &&
+  /value:\s*"below"[\s\S]{0,80}Below the header/.test(src) &&
     /value:\s*"header"[\s\S]{0,80}Inside the header/.test(src),
 );
 expect(

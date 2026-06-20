@@ -59,9 +59,19 @@ const ID = "brand-grid";
 //
 // Caveat: simpleicons has removed a handful of brand slugs (Logitech
 // among them, post a trademark request) so any brand that needs a
-// fallback uses Wikimedia's permanent SVG URL instead — same
-// no-auth, no-CORS guarantee.
+// fallback ships as an inline SVG wordmark — same no-auth, no-CORS,
+// no-404 guarantee, no external dep.
 const SI = (slug) => `https://cdn.simpleicons.org/${slug}`;
+
+// Inline SVG fallback for brands simpleicons can't (or won't) serve.
+// `data:image/svg+xml;utf8,…` is universally supported and survives
+// every CMS / sanitizer that allows inline images. Returns a tidy
+// monospace wordmark sized to match the simpleicons glyphs visually.
+const wordmarkSvg = (label, hex = "0f172a") => {
+  const safe = String(label || "").replace(/[<>&"]/g, "");
+  const text = encodeURIComponent(safe);
+  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 64'><text x='120' y='42' font-family='Helvetica,Arial,sans-serif' font-size='28' font-weight='800' letter-spacing='-0.5' text-anchor='middle' fill='%23${hex}'>${text}</text></svg>`;
+};
 
 // Default header image — a clean wide office shot from Unsplash's
 // CDN. Mirrors the welcome / break sections' approach of shipping a
@@ -84,7 +94,10 @@ const defaults = () => ({
   // other section uses.
   headerImage: DEFAULT_HEADER_IMAGE,
   headerImageAlt: "Modern office workspace",
-  headerHeight: 280,
+  // Taller default so the header band feels like a Misco-style
+  // "Shop by brand" hero strip out of the box. Users tune via the
+  // Header height slider in the editor.
+  headerHeight: 380,
   // Corner radius for the header photo strip when the section is NOT
   // full-bleed. Blank (`null`) means "inherit from card radius" so the
   // header matches whatever the Brand Kit / Layout has set globally.
@@ -115,7 +128,7 @@ const defaults = () => ({
     { id: "cisco", name: "Cisco", eyebrow: "", description: "Networking, security and collaboration for connected teams.", logo: SI("cisco"), logoAlt: "Cisco logo", link: "", openInSameTab: false },
     { id: "apple", name: "Apple", eyebrow: "", description: "Mac, iPad and iPhone for businesses that put design first.", logo: SI("apple"), logoAlt: "Apple logo", link: "", openInSameTab: false },
     { id: "samsung", name: "Samsung", eyebrow: "", description: "Displays, mobile devices and storage at every price point.", logo: SI("samsung"), logoAlt: "Samsung logo", link: "", openInSameTab: false },
-    { id: "logitech", name: "Logitech", eyebrow: "", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Logitech_logo.svg/512px-Logitech_logo.svg.png", logoAlt: "Logitech logo", link: "", openInSameTab: false },
+    { id: "logitech", name: "Logitech", eyebrow: "", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: wordmarkSvg("Logitech"), logoAlt: "Logitech logo", link: "", openInSameTab: false },
   ],
 
   // Layout
@@ -136,12 +149,16 @@ const defaults = () => ({
 
   // Search — optional, debounced. Position + alignment + width are
   // author-controlled so the input can sit anywhere from a tight
-  // pill in the header to a full-width strip above the grid.
+  // pill in the header to a full-width strip above the grid. Default
+  // ships with the input INSIDE the photo header (Misco-style hero
+  // search) since the section also ships with a photo header by
+  // default; falls back to "below" automatically when the user
+  // clears the header image.
   searchEnabled: true,
   searchPlaceholder: "Search brands…",
-  searchPosition: "below", // "header" | "below"
-  searchAlign: "center",   // "left" | "center" | "right"
-  searchWidth: 360,        // px; capped at 100% of available width
+  searchPosition: "header", // "header" | "below"
+  searchAlign: "center",    // "left" | "center" | "right"
+  searchWidth: 360,         // px; capped at 100% of available width
   noMatchText: "No matches. Try a different search term.",
 
   // Hover affordance. "lift" matches the Misco aesthetic; "bar" adds
