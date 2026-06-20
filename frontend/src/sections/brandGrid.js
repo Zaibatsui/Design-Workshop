@@ -56,7 +56,20 @@ const ID = "brand-grid";
 // CORS headaches — perfect for a snippet that has to drop into
 // arbitrary host sites. The set mirrors the most common B2B IT/AV
 // vendors so the section reads cleanly on first preview.
+//
+// Caveat: simpleicons has removed a handful of brand slugs (Logitech
+// among them, post a trademark request) so any brand that needs a
+// fallback uses Wikimedia's permanent SVG URL instead — same
+// no-auth, no-CORS guarantee.
 const SI = (slug) => `https://cdn.simpleicons.org/${slug}`;
+
+// Default header image — a clean wide office shot from Unsplash's
+// CDN. Mirrors the welcome / break sections' approach of shipping a
+// real preview photo so the section reads well the moment you drop
+// it in. Users overwrite per-section as soon as they upload their
+// own asset.
+const DEFAULT_HEADER_IMAGE =
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600&auto=format&fit=crop";
 
 const defaults = () => ({
   // Section header
@@ -64,12 +77,13 @@ const defaults = () => ({
   heading: "Shop by brand",
   subheading: "Find the right partner for every need.",
 
-  // Header background — when `headerImage` is set, the header band
-  // renders as a full-width photo strip with an overlay tint and
-  // light text. When blank, the header collapses to the same plain
-  // centred block every other section uses.
-  headerImage: "",
-  headerImageAlt: "",
+  // Header background — ships with a clean wide office photo so a
+  // freshly-added Brand Grid reads like a finished section out of
+  // the box. Users overwrite via the Image upload field; when blank
+  // the header collapses to the same plain centred block every
+  // other section uses.
+  headerImage: DEFAULT_HEADER_IMAGE,
+  headerImageAlt: "Modern office workspace",
   headerHeight: 280,
   // Corner radius for the header photo strip when the section is NOT
   // full-bleed. Blank (`null`) means "inherit from card radius" so the
@@ -101,7 +115,7 @@ const defaults = () => ({
     { id: "cisco", name: "Cisco", eyebrow: "", description: "Networking, security and collaboration for connected teams.", logo: SI("cisco"), logoAlt: "Cisco logo", link: "", openInSameTab: false },
     { id: "apple", name: "Apple", eyebrow: "", description: "Mac, iPad and iPhone for businesses that put design first.", logo: SI("apple"), logoAlt: "Apple logo", link: "", openInSameTab: false },
     { id: "samsung", name: "Samsung", eyebrow: "", description: "Displays, mobile devices and storage at every price point.", logo: SI("samsung"), logoAlt: "Samsung logo", link: "", openInSameTab: false },
-    { id: "logitech", name: "Logitech", eyebrow: "", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: SI("logitech"), logoAlt: "Logitech logo", link: "", openInSameTab: false },
+    { id: "logitech", name: "Logitech", eyebrow: "", description: "Webcams, headsets, keyboards and mice for hybrid work.", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Logitech_logo.svg/512px-Logitech_logo.svg.png", logoAlt: "Logitech logo", link: "", openInSameTab: false },
   ],
 
   // Layout

@@ -37,9 +37,15 @@ expect(
     /id:\s*"samsung"/.test(src),
 );
 expect(
-  "Sample logos use simpleicons.org CDN (brand-coloured SVG glyphs)",
+  "Sample logos use simpleicons.org CDN with a Wikimedia fallback for Logitech",
   /logo:\s*SI\("/.test(src) &&
-    /cdn\.simpleicons\.org/.test(src),
+    /cdn\.simpleicons\.org/.test(src) &&
+    /upload\.wikimedia\.org\/wikipedia\/commons[\s\S]{0,200}Logitech_logo\.svg/.test(src),
+);
+expect(
+  "Defaults ship a real header background image so the section previews cleanly",
+  /const DEFAULT_HEADER_IMAGE\s*=\s*\n\s*"https:\/\/images\.unsplash\.com\//.test(src) &&
+    /headerImage:\s*DEFAULT_HEADER_IMAGE/.test(src),
 );
 expect(
   "Greyscale-until-hover toggle is wired into defaults + render + form",
@@ -109,7 +115,7 @@ expect(
 // ── Header background image ───────────────────────────────────────
 expect(
   "Defaults expose headerImage + overlay + height controls",
-  /headerImage:\s*""/.test(src) &&
+  /headerImage:\s*DEFAULT_HEADER_IMAGE/.test(src) &&
     /headerOverlayColor:/.test(src) &&
     /headerOverlayOpacity:/.test(src) &&
     /headerHeight:/.test(src),
