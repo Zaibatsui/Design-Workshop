@@ -122,8 +122,8 @@ expect("UserGuide lists Stat Counter",
   /sectionId="stat-counter"/.test(guideSrc));
 expect("UserGuide lists Video Embed",
   /sectionId="video-embed"/.test(guideSrc));
-expect("UserGuide updated count to twenty-two",
-  /Design Workshop ships twenty-two/.test(guideSrc));
+expect("UserGuide updated count to twenty-three",
+  /Design Workshop ships twenty-three/.test(guideSrc));
 expect("UserGuide passes sectionId to every SectionCard except richtext",
   // every <SectionCard ... /> call except the rich-text one should have a sectionId
   (() => {

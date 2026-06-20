@@ -88,8 +88,18 @@ export const PLATFORM_UPDATES = [
     name: "Brand grid",
     icon: Building2,
     addedOn: "2026-02-18T18:00:00Z",
+    updatedOn: "2026-02-19T18:00:00Z",
     whatsNew:
-      "New section: a searchable, filterable grid of brand cards with an optional Spotlight tier above the main grid. Per-brand category + description filter together; the search input matches name or description in real time. Cards support three hover affordances — coloured accent bar on any of the four sides (with adjustable thickness + colour), classic lift + border highlight, or no effect — plus the usual mobile column overrides and brand-kit cascade.",
+      "Major upgrade — Brand grid now ships with a full-bleed photo header, an in-header search input (with author-picked position, alignment, width), per-card eyebrows, left/centre/right card alignment, header corner-radius that inherits your Brand Kit, an edge-pickable accent bar on hover (top/right/bottom/left + thickness + colour), greyscale-until-hover, and full click-to-edit — click any card and its row pops open in the editor and scrolls into view.",
+    kind: "updated",
+  },
+  {
+    id: "shop-by-brand-template",
+    name: "New page template · Shop by brand",
+    icon: Building2,
+    addedOn: "2026-02-19",
+    whatsNew:
+      "Drops a finished partner-showcase page in one click — break banner, intro copy, the new Brand grid section, a scrolling logo strip and a closing insights block. Pick it from the +New page picker.",
     kind: "new",
   },
   {

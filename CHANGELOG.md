@@ -9,6 +9,43 @@ Dates are `YYYY-MM-DD`. Newest releases at the top.
 ## [Unreleased]
 
 ### Added
+- **Brand Grid section (major upgrade)** — Now ships with a full-bleed
+  photo header band (corner-radius cascades from your Brand Kit
+  `card_radius`; overlay supports solid or linear-gradient styles
+  matching the Hero overlay model), an in-header search input with
+  author-picked position / alignment / width, optional per-card
+  eyebrow rendered between the logo and the brand name, left /
+  centre / right card content alignment, edge-pickable accent bar
+  on hover (top / right / bottom / left + thickness + colour),
+  greyscale-until-hover for the logos, and full click-to-edit so
+  clicking any card pops its row open in the editor and scrolls it
+  into view. Defaults ship as a finished partner-showcase — photo
+  header, "BRANDS" eyebrow + "Shop by brand" heading + intro, 9
+  vendor cards (HP / Dell / Lenovo / Intel / Nvidia / Cisco / Apple
+  / Samsung / Logitech), search inside the header, lift hover,
+  Brand Kit colour cascade. Logitech uses an inline-SVG wordmark
+  fallback so a missing simpleicons slug never 404s.
+- **"Shop by brand" page template** — drops a finished partner-
+  showcase page in one click: break banner → intro copy → Brand
+  Grid → scrolling logo strip → insights.
+- **Cross-section render smoke test**
+  (`sectionRender.smoke.test.js`) — loads the real `SECTIONS`
+  registry through babel-on-require and asserts every registered
+  section's `defaults()` + `render(defaults)` runs without throwing
+  and emits a `<section …>` snippet. Plus a static guard that any
+  section using `<FormGroup>` must wrap its children in
+  `<FormAccordion>`. Catches the bug class where a section
+  renderer references a symbol the wrong way at runtime
+  (`FONT_IMPORT(cfg.font)` instead of `${FONT_IMPORT}`, or a
+  FormGroup-without-Accordion). Wired into `yarn test:snippets`.
+- **`PLATFORM_UPDATES` build-break guard**
+  (`whatsNewDrawer.platformUpdates.test.js`) — parses
+  `WhatsNewDrawer.jsx` with `@babel/parser` (same parser the dev
+  server uses; a syntax error here is a hard fail) and walks the
+  AST to assert every release-note entry is a plain object with
+  `id`, `name`, `addedOn`, `whatsNew`, `kind` plus unique `id`s.
+  Restores compile safety after the dangling `{ id: …` regression
+  that took the frontend down earlier in the session.
 - **Brand Kit · Wave 2 — Typography, Components, Layout & Gradient**
   Eight new global controls cascade into the section library:
   *Title line-height*, *title letter-spacing*, *body weight*,

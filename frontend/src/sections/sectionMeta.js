@@ -105,7 +105,12 @@ export const SECTION_META = {
   },
   break: { addedOn: LAUNCH, updatedOn: LAUNCH },
   tabs: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  "brand-grid": { addedOn: "2026-02-18T18:00:00Z", updatedOn: "2026-02-18T18:00:00Z" },
+  "brand-grid": {
+    addedOn: "2026-02-18T18:00:00Z",
+    updatedOn: "2026-02-19T18:00:00Z",
+    whatsNew:
+      "Major upgrade — Brand grid now ships with a full-bleed photo header, an in-header search input, per-card eyebrows, left/centre/right card alignment, edge-pickable accent bar (top/right/bottom/left), greyscale-until-hover, and full click-to-edit so clicking any card opens its row in the editor. Default state lands as a finished partner-showcase, including a Brand Kit colour cascade.",
+  },
   richtext: {
     addedOn: LAUNCH,
     updatedOn: "2026-05-26",

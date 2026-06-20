@@ -31,7 +31,7 @@ Anywhere that accepts a custom HTML block or embed. Confirmed working with Shopi
 
 ## Features
 
-### 22 ready-made section types + rich-text
+### 23 ready-made section types + rich-text
 
 Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Product Carousel and Product Grid are **Pro / Nettailer-aware** blocks with live-scraped pricing, a universal VAT toggle and gated-pricing fallback.
 
@@ -56,6 +56,7 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 | **FAQ** | Collapsible Q+A accordion. Native `<details>` / `<summary>` for zero-JS accessibility. Rich-text answer editor with inline link panel — web or email, per-link colour, underline toggle and "Open in a new tab" choice. Scheme-less URLs (`example.com`) auto-resolve to `https://`. |
 | **CTA Banner** | Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides. Inline email-capture form mode. Optional mobile-only centre-text override. |
 | **Logo Strip** | Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle. Edge-fade gradients mode for a softer marquee. |
+| **Brand Grid** | Searchable grid of brand cards with an optional full-bleed photo header band (radius cascades from your Brand Kit; overlay supports solid or linear-gradient styles). Per-card eyebrow, name and description with left/centre/right alignment. Three hover affordances — Lift + accent-border, edge-pickable accent bar (top/right/bottom/left + thickness + colour), or none — plus a Greyscale-until-hover toggle that desaturates every logo until pointer / keyboard focus lands on the card. Click any card in the live preview and its row pops open in the editor and scrolls into view. |
 | **Break Banner** | Full-bleed parallax break with overlaid heading. Use it to chapter long pages. |
 | **Tabs** | Tabbed content panel with a side image. Configurable tab alignment and image position. Optional per-tab image link. |
 | **Grid** | 2×2 / 2×3 image grid with optional links per cell. |
@@ -63,7 +64,7 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 
 ### Hybrid Page Builder
 
-Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder, **duplicate** any block in place (the same one-click duplicate is available on every list editor inside sections — Hero slides, Tabs tabs, FAQ items, Feature Grid cards, Products, etc.). Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Ten page templates ship out of the box: **Landing**, **Product detail**, **Category hub**, **About us**, **Pricing**, **Blog post**, **Brand page**, **Service landing**, **Story page** (Hero → Video Embed → Stat Counter → Trust Strip → CTA Banner), plus **Blank**.
+Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder, **duplicate** any block in place (the same one-click duplicate is available on every list editor inside sections — Hero slides, Tabs tabs, FAQ items, Feature Grid cards, Products, etc.). Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Eleven page templates ship out of the box: **Landing**, **Product detail**, **Category hub**, **About us**, **Pricing**, **Blog post**, **Brand page**, **Service landing**, **Story page** (Hero → Video Embed → Stat Counter → Trust Strip → CTA Banner), **Shop by brand** (break banner → intro copy → Brand Grid → logo marquee → insights), plus **Blank**.
 
 ### Collections (folders)
 
@@ -253,7 +254,7 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 │   │   │       ├── StudioInspector.jsx     # right-rail accordion settings host
 │   │   │       └── OnboardingTour.jsx      # one-screen first-login walkthrough
 │   │   ├── components/ui/       # Shadcn primitives
-│   │   ├── sections/            # registry.js + 22 section modules + iconLib + shared helpers
+│   │   ├── sections/            # registry.js + 23 section modules + iconLib + shared helpers
 │   │   │                          + sectionMeta / pageTemplateMeta / pageTemplates
 │   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests (488 assertions across 13 files)
 │   │   ├── lib/                 # api client, BrandKitContext, sectionBadges, brand colours, useEscapeKey

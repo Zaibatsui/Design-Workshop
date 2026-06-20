@@ -32,7 +32,7 @@ import { BRAND } from "@/lib/brand";
 import TicketDialog from "@/components/TicketDialog";
 import { Button } from "@/components/ui/button";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
-import { Columns3, Hash, PlayCircle, FolderOpen } from "lucide-react";
+import { Columns3, Hash, PlayCircle, FolderOpen, Building2 } from "lucide-react";
 
 /**
  * UserGuide — the in-app reference manual. Long-form, opinionated,
@@ -383,7 +383,7 @@ export default function UserGuide({ chromeless = false }) {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships twenty-two reusable section types plus a
+              Design Workshop ships twenty-three reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
               where applicable. Two of them — <strong>Product Carousel</strong>
@@ -413,6 +413,7 @@ export default function UserGuide({ chromeless = false }) {
               <SectionCard sectionId="break" Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." />
               <SectionCard sectionId="tabs" Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
               <SectionCard sectionId="placeholder" Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
+              <SectionCard sectionId="brand-grid" Icon={Building2} name="Brand Grid" desc="Searchable grid of brand cards with an optional full-bleed photo header (radius cascades from Brand Kit, solid or linear-gradient overlay). Per-card eyebrow + alignment, edge-pickable accent bar on hover, greyscale-until-hover, full click-to-edit." />
               <SectionCard Icon={PenLine} name="Rich text" desc="Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections." />
             </Grid>
             <Note>
@@ -574,13 +575,14 @@ export default function UserGuide({ chromeless = false }) {
 
           <Section id="templates" Icon={BookMarked} title="Page templates">
             <P>
-              When you create a new page, the template picker offers ten
+              When you create a new page, the template picker offers eleven
               starting points: <strong>Landing</strong>,{" "}
               <strong>Product detail</strong>, <strong>Category hub</strong>,
               <strong> About us</strong>, <strong>Pricing</strong>,{" "}
               <strong>Blog post</strong>, <strong>Brand page</strong>,{" "}
               <strong>Service landing</strong>,{" "}
-              <strong>Story page</strong>, plus <strong>Blank</strong>.
+              <strong>Story page</strong>, <strong>Shop by brand</strong>,
+              plus <strong>Blank</strong>.
               Each one pre-stacks a coherent block order with realistic
               placeholder content, all themed by your Brand Kit. New and
               recently-improved templates wear the same NEW / UPDATED chips
