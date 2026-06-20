@@ -22,6 +22,7 @@ import {
   Hash,
   PlayCircle,
   Eye,
+  Building2,
 } from "lucide-react";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
@@ -61,6 +62,7 @@ const SECTIONS = [
   { id: "faq", Icon: HelpCircle, name: "FAQ", desc: "Collapsible question-and-answer accordion built with native HTML details / summary — zero JS, fully keyboard-accessible out of the box." },
   { id: "cta-banner", Icon: Megaphone, name: "CTA Banner", desc: "Final-call conversion block with optional brand logo, gradient or solid background and one or two action buttons. Sized to bridge editorial sections and a checkout." },
   { id: "logos", Icon: ImageIcon, name: "Logo Strip", desc: "Auto-scrolling marquee of partner / client logos. Optional per-logo links, greyscale-on-hover and configurable scroll direction and speed." },
+  { id: "brand-grid", Icon: Building2, name: "Brand Grid", desc: "Searchable grid of brand cards with an optional full-bleed photo header (corner-radius cascades from your Brand Kit; overlay supports solid or linear-gradient styles). Per-card eyebrow plus left, centre or right card alignment. Three hover affordances — lift + border, edge-pickable accent bar on any of the four sides, or a clean greyscale-until-hover desaturation. Click any card in the live preview and that brand's row pops open in the editor and scrolls into view." },
   { id: "break", Icon: Minus, name: "Break banner", desc: "Full-bleed parallax break with an overlaid heading. Useful to chapterise a long page and re-anchor the reader's attention between sections." },
   { id: "tabs", Icon: Folders, name: "Tabs", desc: "Tabbed content with a side image, heading, body and CTAs per tab. On mobile the tabs collapse to a stacked layout with the image above the copy." },
   { id: "placeholder", Icon: Grid2x2, name: "Grid", desc: "2 × 2 or 2 × 3 image grid with optional links per cell. Image-only by default, with editable alt text for accessibility and SEO." },
