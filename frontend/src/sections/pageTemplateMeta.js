@@ -39,20 +39,20 @@ export const PAGE_TEMPLATE_META = {
       "Pre-fills a brand page in one click — split banner, use-case cards, tech tabs, product carousel and a brand statement. Great for a vendor landing.",
   },
 
-  // 2026-05-26 — Service landing template (new section stack)
+  // 2026-01-26 — Service landing template (new section stack)
   "service-landing": {
-    addedOn: "2026-05-26",
-    updatedOn: "2026-05-26",
+    addedOn: "2026-01-26",
+    updatedOn: "2026-01-26",
     whatsNew:
       "A new template for service-led pages: problem → solution → trust → process → CTA. Pre-fills the new Featured Card and Trust Strip sections.",
   },
 
-  // 2026-05-28 — Story page template. A complete sales-pitch arc
+  // 2026-01-28 — Story page template. A complete sales-pitch arc
   // showcasing the four newest sections (Hero → Video Embed → Stat
   // Counter → Trust Strip → CTA Banner email capture) in one click.
   "story-page": {
-    addedOn: "2026-05-28T17:00:00Z",
-    updatedOn: "2026-05-28T17:00:00Z",
+    addedOn: "2026-01-28T17:00:00Z",
+    updatedOn: "2026-01-28T17:00:00Z",
     whatsNew:
       "A new sales-pitch template that drops in a coherent five-block narrative arc — Hero hook → product video → impact numbers → social proof → email capture — so you can edit a complete story instead of building one from scratch. Pre-wired to showcase the four newest sections together.",
   },

@@ -156,8 +156,8 @@ for (const block of tmpl.blocks) {
 
 // ─── Template metadata ───────────────────────────────────────────────
 const meta = templateMetaFor("story-page");
-expect("templateMetaFor('story-page') returns addedOn = today (2026-05-28)",
-  meta && typeof meta.addedOn === "string" && meta.addedOn.startsWith("2026-05-28"));
+expect("templateMetaFor('story-page') returns its shipped addedOn (2026-01-28)",
+  meta && typeof meta.addedOn === "string" && meta.addedOn.startsWith("2026-01-28"));
 expect("templateMetaFor('story-page') returns a whatsNew line",
   meta && typeof meta.whatsNew === "string" && meta.whatsNew.length > 30);
 
