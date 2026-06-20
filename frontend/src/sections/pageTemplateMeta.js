@@ -56,6 +56,15 @@ export const PAGE_TEMPLATE_META = {
     whatsNew:
       "A new sales-pitch template that drops in a coherent five-block narrative arc — Hero hook → product video → impact numbers → social proof → email capture — so you can edit a complete story instead of building one from scratch. Pre-wired to showcase the four newest sections together.",
   },
+
+  // 2026-02-19 — Shop by brand. Showcases the Brand Grid section as
+  // the centrepiece of a partner / vendor browse page.
+  "shop-by-brand": {
+    addedOn: "2026-02-19",
+    updatedOn: "2026-02-19",
+    whatsNew:
+      "A new partner-showcase template built around the Brand Grid section — break banner → intro copy → searchable brand grid → vendor logo marquee → insights. Drops a finished 'Shop by brand' page in one click.",
+  },
 };
 
 /** Default metadata used when a template ID isn't in PAGE_TEMPLATE_META. */

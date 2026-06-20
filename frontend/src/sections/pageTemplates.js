@@ -19,6 +19,7 @@ import {
   BadgeDollarSign,
   ScrollText,
   Palette,
+  Building2,
 } from "lucide-react";
 import { SECTIONS_BY_ID } from "./registry";
 import { richtext } from "./richtext";
@@ -458,6 +459,34 @@ export const PAGE_TEMPLATES = [
         textAlign: "center",
         fullBleed: true,
       }),
+    ],
+  },
+  {
+    id: "shop-by-brand",
+    name: "Shop by brand",
+    description:
+      "Break banner → intro copy → Brand grid → vendor logo strip → insights. Pre-fills a partner showcase page in one click.",
+    icon: Building2,
+    blocks: [
+      // A short photo-banner break to set context before the grid.
+      section("break"),
+      // Intro copy paragraph. Brand Kit will overlay heading colour
+      // and font on creation. Centre-aligned to match the brand-grid
+      // header that follows immediately below.
+      rt(
+        "<h1>Shop by brand</h1><p>Find the right partner for every need — from laptops and accessories to networking and audio. Every brand is hand-picked from our trusted distribution partners.</p>",
+        { padY: 64, align: "center" }
+      ),
+      // The centrepiece: the Brand grid section itself, in its full
+      // out-of-the-box state (photo header band, search inside the
+      // header, 9 demo brands, lift hover, brand-kit colours).
+      section("brand-grid"),
+      // Supporting logo strip — different visual rhythm (scrolling
+      // marquee vs static grid) so the page doesn't feel repetitive.
+      section("logos", { logos: sampleITLogos() }),
+      // Closes with a news / insights block so visitors have
+      // somewhere to go after browsing brands.
+      section("insights"),
     ],
   },
 ];
