@@ -386,9 +386,12 @@ export default function UserGuide({ chromeless = false }) {
               Design Workshop ships twenty-six reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
-              where applicable. Two of them — <strong>Product Carousel</strong>
-              {" "}and <strong>Product Grid</strong> — are Pro / Nettailer-aware
-              blocks with live price scraping and a universal VAT toggle.
+              where applicable. Two distinct{" "}<strong>Pro</strong> bands
+              sit at the top of the picker: <strong>Pro · Nettailer-aware</strong>
+              {" "}(Product Carousel + Product Grid, with live price scraping
+              and a universal VAT toggle) and <strong>Pro · Blog tools</strong>
+              {" "}(Blog Index + Blog Body, the editorial duo with a shared
+              picker so cards cross-link automatically).
             </P>
             <Grid>
               <SectionCard sectionId="hero" Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour and layout overrides, an optional split slide layout (full-bleed image + container-aligned text), and mobile-specific overrides for overlay, gradients and alignment so the small-screen view never inherits a desktop-only look you didn't want." />
@@ -396,8 +399,10 @@ export default function UserGuide({ chromeless = false }) {
               <SectionCard sectionId="featured-card" Icon={Star} name="Featured Card" desc="Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions." />
               <SectionCard sectionId="welcome" Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
               <SectionCard sectionId="content" Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
-              <SectionCard sectionId="products" Icon={Boxes} name="Product Carousel" desc="Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
-              <SectionCard sectionId="productGrid" Icon={LayoutGrid} name="Product Grid" desc="Same product cards as a static grid (2-6 per row, wraps to multiple rows). Identical scrape / VAT-toggle / gated-pricing behaviour as the Product Carousel — just no carousel." />
+              <SectionCard sectionId="products" Icon={Boxes} name="Product Carousel" desc="Pro · Nettailer-aware. Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
+              <SectionCard sectionId="productGrid" Icon={LayoutGrid} name="Product Grid" desc="Pro · Nettailer-aware. Same product cards as a static grid (2-6 per row, wraps to multiple rows). Identical scrape / VAT-toggle / gated-pricing behaviour as the Product Carousel — just no carousel." />
+              <SectionCard sectionId="blog-index" Icon={BookMarked} name="Blog Index" desc="Pro · Blog tools. Searchable grid of blog post cards with an optional full-bleed photo header. Built from the Brand Grid DNA — left/centre/right card alignment, lift / accent-bar / none hover, click-to-edit on every card — but each card carries an image, category, date, author, title and excerpt. Picker pulls existing Blog Body pages or sections in one click. Search-only (no pill chips)." />
+              <SectionCard sectionId="blog-body" Icon={BookOpen} name="Blog Body" desc="Pro · Blog tools. Long-form article block with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar can sit left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel. Related-articles widget can pull existing blog content from the picker." />
               <SectionCard sectionId="insights" Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." />
               <SectionCard sectionId="resources" Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
               <SectionCard sectionId="feature-grid" Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />
@@ -414,8 +419,6 @@ export default function UserGuide({ chromeless = false }) {
               <SectionCard sectionId="tabs" Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
               <SectionCard sectionId="placeholder" Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
               <SectionCard sectionId="brand-grid" Icon={Building2} name="Brand Grid" desc="Searchable grid of brand cards with an optional full-bleed photo header (radius cascades from Brand Kit, solid or linear-gradient overlay). Per-card eyebrow + alignment, edge-pickable accent bar on hover, greyscale-until-hover, full click-to-edit." />
-              <SectionCard sectionId="blog-body" Icon={BookOpen} name="Blog Body" desc="Long-form article block with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar can sit left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel." />
-              <SectionCard sectionId="blog-index" Icon={BookMarked} name="Blog Index" desc="Searchable grid of blog post cards with an optional full-bleed photo header. Built from the Brand Grid DNA — left/centre/right card alignment, lift / accent-bar / none hover, click-to-edit on every card — but each card carries an image, category, date, author, title and excerpt. Search-only (no pill chips)." />
               <SectionCard Icon={PenLine} name="Rich text" desc="Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections." />
             </Grid>
             <Note>

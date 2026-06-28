@@ -21,8 +21,8 @@ import { comparisonTable } from "./comparisonTable";
 import { statCounter } from "./statCounter";
 import { videoEmbed } from "./videoEmbed";
 import { brandGrid } from "./brandGrid";
-import { blogBody } from "./blogBody";
 import { blogIndex } from "./blogIndex";
+import { blogBody } from "./blogBody";
 import { metaFor } from "./sectionMeta";
 
 // Attach `addedOn` / `updatedOn` metadata to each section so the
@@ -54,8 +54,8 @@ export const SECTIONS = [
   breakBanner,
   tabs,
   brandGrid,
-  blogBody,
   blogIndex,
+  blogBody,
 ].map(withMeta);
 
 export const SECTIONS_BY_ID = Object.fromEntries(

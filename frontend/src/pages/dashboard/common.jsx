@@ -3,7 +3,7 @@
  * Kept here so SectionsTab and PagesTab stay lean and consistent.
  */
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Plus, ChevronLeft, ChevronRight, Zap } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Zap, BookMarked } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { computeBadges } from "@/lib/sectionBadges";
 import { useEscapeKey } from "@/lib/useEscapeKey";
@@ -343,12 +343,25 @@ export function Tabs({ tab, onChange, sections, pages }) {
 
 export function SectionPicker({ sections, onPick, onClose }) {
   useEscapeKey(onClose);
-  // Split Pro / Nettailer-aware sections out into their own band at the
-  // top so the live-scraped product blocks are easy to find and visually
-  // distinct from the generic editorial sections.
-  const PRO_IDS = new Set(["products", "productGrid"]);
-  const proSections = sections.filter((s) => PRO_IDS.has(s.id));
-  const regularSections = sections.filter((s) => !PRO_IDS.has(s.id));
+  // Three bands — Pro · Nettailer-aware (live-scraped product cards),
+  // Pro · Blog tools (the searchable index + the long-form body), and
+  // then everything else. Both Pro bands get a red-ringed card style
+  // so the deeper-integration story sits visually distinct from the
+  // generic editorial sections that follow.
+  const PRO_NETTAILER_IDS = new Set(["products", "productGrid"]);
+  // Order matters here — blog-index is the editorial landing, so it
+  // sits before blog-body (the article page) to read left-to-right
+  // as "list of posts → individual post". Mirrors the SectionsShowcase
+  // landing page exactly.
+  const PRO_BLOG_IDS = ["blog-index", "blog-body"];
+  const PRO_BLOG_SET = new Set(PRO_BLOG_IDS);
+  const proSections = sections.filter((s) => PRO_NETTAILER_IDS.has(s.id));
+  const proBlogSections = PRO_BLOG_IDS
+    .map((id) => sections.find((s) => s.id === id))
+    .filter(Boolean);
+  const regularSections = sections.filter(
+    (s) => !PRO_NETTAILER_IDS.has(s.id) && !PRO_BLOG_SET.has(s.id),
+  );
   const badges = computeBadges(sections);
   return (
     <div
@@ -406,9 +419,48 @@ export function SectionPicker({ sections, onPick, onClose }) {
           </div>
         )}
 
+        {proBlogSections.length > 0 && (
+          <div className="mb-5" data-testid="section-picker-blog-band">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold tracking-[0.18em] uppercase text-white bg-[#E01839] px-1.5 py-0.5 rounded-sm">
+                <BookMarked className="w-2.5 h-2.5" />
+                Pro · Blog tools
+              </span>
+              <span className="text-[11px] text-slate-500">
+                Editorial landing · long-form article + sidebar widgets · cross-linked picker
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              {proBlogSections.map((s) => {
+                const Icon = s.icon;
+                const badge = badges[s.id];
+                return (
+                  <button
+                    key={s.id}
+                    data-testid={`picker-${s.id}`}
+                    onClick={() => onPick(s.id)}
+                    className="relative text-left p-3 rounded-lg border-2 border-[#E01839]/30 bg-[#E01839]/[0.02] hover:border-[#E01839] hover:bg-[#E01839]/[0.06] transition-colors"
+                  >
+                    <SectionBadge kind={badge} testid={`picker-badge-${s.id}`} />
+                    <SectionPreviewPopover
+                      sectionId={s.id}
+                      className="absolute top-1.5 right-1.5 z-10"
+                    />
+                    <Icon className="w-4 h-4 text-[#E01839] mb-1.5" />
+                    <p className="text-[13px] font-medium text-slate-900 leading-tight">{s.name}</p>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug line-clamp-2">
+                      {s.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {regularSections.length > 0 && (
           <>
-            {proSections.length > 0 && (
+            {(proSections.length > 0 || proBlogSections.length > 0) && (
               <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
                 Editorial &amp; layout
               </p>

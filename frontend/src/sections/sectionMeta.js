@@ -111,17 +111,17 @@ export const SECTION_META = {
     whatsNew:
       "Major upgrade — Brand grid now ships with a full-bleed photo header, an in-header search input, per-card eyebrows, left/centre/right card alignment, edge-pickable accent bar (top/right/bottom/left), greyscale-until-hover, and full click-to-edit so clicking any card opens its row in the editor. Default state lands as a finished partner-showcase, including a Brand Kit colour cascade.",
   },
-  "blog-body": {
-    addedOn: "2026-02-19T22:00:00Z",
-    updatedOn: "2026-02-19T22:00:00Z",
-    whatsNew:
-      "New section purpose-built for long-form articles: a rich-text body column with an optional sidebar of four widget types (Get-in-touch CTA, Related articles, Tag cluster, Author card). Sidebar can sit left, right or below the body, with an opt-in sticky-on-scroll mode for desktop. Mobile auto-collapses the sidebar below the body as a horizontal swipe carousel. Every colour, font and radius cascades from the Brand Kit.",
-  },
   "blog-index": {
     addedOn: "2026-02-20T10:00:00Z",
-    updatedOn: "2026-02-20T10:00:00Z",
+    updatedOn: "2026-02-28T10:00:00Z",
     whatsNew:
-      "New section: a searchable blog landing grid. Ships with a full-bleed photo header, an in-header search input (or below-grid placement), per-card category/date/author meta and an excerpt. Built from the Brand Grid DNA — left/centre/right card alignment, lift / accent-bar / none hover affordances, click-to-edit on every card — but with article-specific fields and no pill-chip filters (search-only by user preference). Full Brand Kit cascade.",
+      "Promoted into the new Pro · Blog tools band — your editorial landing page in one drop. Searchable blog grid with a full-bleed photo header, in-header or below-grid search, per-card category / date / author meta, three hover affordances, full click-to-edit and a Brand-Kit colour cascade. Pair with Blog Body for a complete editorial system.",
+  },
+  "blog-body": {
+    addedOn: "2026-02-19T22:00:00Z",
+    updatedOn: "2026-02-28T10:00:00Z",
+    whatsNew:
+      "Promoted into the new Pro · Blog tools band. Long-form article block with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar sits left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel. Now picker-aware — the Related-articles widget can pull existing blog pages OR standalone blog-body sections in one click.",
   },
   richtext: {
     addedOn: LAUNCH,

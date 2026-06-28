@@ -31,9 +31,9 @@ Anywhere that accepts a custom HTML block or embed. Confirmed working with Shopi
 
 ## Features
 
-### 24 ready-made section types + rich-text
+### 26 ready-made section types + rich-text
 
-Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Product Carousel and Product Grid are **Pro / Nettailer-aware** blocks with live-scraped pricing, a universal VAT toggle and gated-pricing fallback.
+Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Two distinct **Pro** bands sit at the top of the section picker: **Pro · Nettailer-aware** (Product Carousel + Product Grid — live-scraped pricing, universal VAT toggle, gated-pricing fallback) and **Pro · Blog tools** (Blog Index + Blog Body — searchable editorial landing + long-form article with a cross-linking picker).
 
 | Block | What it does |
 |---|---|
@@ -42,8 +42,10 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 | **Featured Card** | Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions. |
 | **Welcome** | Post-login greeter banner with positionable heading, customer logo and account-manager card. Each block snaps to one of nine grid positions. |
 | **Content** | Heading + body + buttons. The all-purpose marquee block. Optional mobile-only "centre text" override. |
-| **Product Carousel** | Card carousel with image, name, price, hover-tinted border. Infinite-loop in both directions (clone-and-jump scrolling — no rewind). Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image with overlay-badge extraction. Universal VAT toggle: snippet watches the host site's VAT switcher and live-flips between inc-VAT and ex-VAT prices, mirroring whatever label convention the host uses (`Inc VAT`, `Inkl. moms`, `TTC`, …). |
-| **Product Grid** | Same product cards as the Carousel, laid out as a static grid (2–6 per row, wraps to multiple rows). Shares the live-price refresh + universal VAT toggle + gated-pricing fallback via the `productLive.js` helper. |
+| **Product Carousel** _(Pro · Nettailer-aware)_ | Card carousel with image, name, price, hover-tinted border. Infinite-loop in both directions (clone-and-jump scrolling — no rewind). Optional product-URL scraping (BeautifulSoup4 + Playwright fallback) auto-fills name / price / image with overlay-badge extraction. Universal VAT toggle: snippet watches the host site's VAT switcher and live-flips between inc-VAT and ex-VAT prices, mirroring whatever label convention the host uses (`Inc VAT`, `Inkl. moms`, `TTC`, …). |
+| **Product Grid** _(Pro · Nettailer-aware)_ | Same product cards as the Carousel, laid out as a static grid (2–6 per row, wraps to multiple rows). Shares the live-price refresh + universal VAT toggle + gated-pricing fallback via the `productLive.js` helper. |
+| **Blog Index** _(Pro · Blog tools)_ | Searchable grid of blog post cards with an optional full-bleed photo header (solid or gradient overlay; in-header or below-grid search input). Each card carries an image, category, date, author, title and excerpt with left/centre/right alignment. Three hover affordances. Picker pulls existing Blog Body pages or sections in one click. Search-only — no pill chips — by design. |
+| **Blog Body** _(Pro · Blog tools)_ | Long-form article block with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar sits left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel. Related-articles widget can pull existing blog content from the picker. Optional per-page "Public URL" so card links auto-populate. |
 | **Insights Grid** | Editorial 2–3 column card grid for articles & case studies. Per-card layouts (image-left, image-top, image-right), accent border toggle, configurable image width. |
 | **Resource Carousel** | Tag-tinted card carousel — blog posts, guides, downloads. Infinite-loop scrolling in both directions, per-card content alignment override. |
 | **Feature Grid** | 2–4 column value-prop cards with icon, title, body. Outlined / tinted / solid card styles, plus an image-card variant (`image-top` / `image-left`). |
@@ -64,7 +66,17 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Produc
 
 ### Hybrid Page Builder
 
-Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder, **duplicate** any block in place (the same one-click duplicate is available on every list editor inside sections — Hero slides, Tabs tabs, FAQ items, Feature Grid cards, Products, etc.). Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Eleven page templates ship out of the box: **Landing**, **Product detail**, **Category hub**, **About us**, **Pricing**, **Blog post**, **Brand page**, **Service landing**, **Story page** (Hero → Video Embed → Stat Counter → Trust Strip → CTA Banner), **Shop by brand** (break banner → intro copy → Brand Grid → logo marquee → insights), plus **Blank**.
+Stack reusable sections plus ad-hoc rich-text blocks into a single page. Drag to reorder, **duplicate** any block in place (the same one-click duplicate is available on every list editor inside sections — Hero slides, Tabs tabs, FAQ items, Feature Grid cards, Products, etc.). Save any page as a custom template. Export the whole page as one combined snippet — order in the snippet matches the rail's vertical order. Eleven page templates ship out of the box: **Landing**, **Product detail**, **Category hub**, **About us**, **Pricing**, **Blog post** (breadcrumb → Blog Body with sidebar → newsletter CTA → "Read next" Blog Index rail), **Brand page**, **Service landing**, **Story page** (Hero → Video Embed → Stat Counter → Trust Strip → CTA Banner), **Shop by brand** (break banner → intro copy → Brand Grid → logo marquee → insights), plus **Blank**.
+
+When you add a block to a page and switch to the **From library** tab, a horizontal pill bar at the top filters your saved sections by collection — `All (N)`, `Unfiled (N)`, plus one pill per real collection that contains sections. Empty collections are filtered out so the bar stays tidy regardless of how many folders you keep. Mirrors the dashboard's collection rail so your navigation pattern carries across.
+
+Any standalone `blog-body` section in your library exposes a one-click **"Convert to Page"** button on hover — it spawns a fresh Page from the Blog post template with your section's body, sidebar widgets and styling pre-populated. The original section is left intact, so you end up with both the embeddable snippet and the full editorial page.
+
+### Blog content authoring (Blog Index + Blog Body)
+
+Both Pro · Blog tools sections share a **picker** that's aware of every page-with-a-blog-body OR standalone blog-body section in your library. From the Blog Index's "Posts" group or any Blog Body sidebar Related-articles widget, hit **"Pick from your pages"** to surface a search dialog of all blog content, tagged "Page" or "Section". Picking one auto-fills the card's title, excerpt (first sentence of the body), cover image (first `<img>` inside the body), author (from the author widget if present), date (the source's `updated_at`) and link (the source's `public_url`). Each card stamps a `source_kind` + `source_id` for dedupe across future picks.
+
+Blog Body and blog-body Sections both get a compact "Public URL" popover-button in their editor header (auto-shows only for blog content) so the link your audience follows is one field away from the content itself — and that URL automatically flows into any Blog Index card or Related-articles card that picks the same page or section.
 
 ### Collections (folders)
 
@@ -256,7 +268,7 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 │   │   ├── components/ui/       # Shadcn primitives
 │   │   ├── sections/            # registry.js + 26 section modules + iconLib + shared helpers
 │   │   │                          + sectionMeta / pageTemplateMeta / pageTemplates
-│   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests (488 assertions across 13 files)
+│   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests (1000+ assertions across 40+ files)
 │   │   ├── lib/                 # api client, BrandKitContext, sectionBadges, brand colours, useEscapeKey
 │   │   └── auth/                # AuthContext + startLogin
 │   └── package.json
@@ -362,7 +374,7 @@ cd frontend && yarn build
 cd frontend && yarn test:snippets
 ```
 
-The snippet tests live in `frontend/src/sections/__tests__/` and verify the runtime behaviours that ship inside every snippet — same-origin session pricing, gate-phrase harmonisation, VAT-suffix hide-on-gate, price-magnitude sanity checks, hero mobile overrides, video-embed lightbox behaviour, story-page template composition, the Studio click-to-edit / focus-bridge round-trip, and more. The suite currently locks in **488 assertions across 13 test files**. Run them before opening a PR that touches anything under `frontend/src/sections/`.
+The snippet tests live in `frontend/src/sections/__tests__/` and `frontend/src/lib/__tests__/` and verify the runtime behaviours that ship inside every snippet — same-origin session pricing, gate-phrase harmonisation, VAT-suffix hide-on-gate, price-magnitude sanity checks, hero mobile overrides, video-embed lightbox behaviour, story-page template composition, the Studio click-to-edit / focus-bridge round-trip, blog content derivation, picker wiring across pages and sections, and more. The suite currently locks in **1000+ assertions across 40+ test files**. Run them before opening a PR that touches anything under `frontend/src/sections/` or `frontend/src/lib/`.
 
 ## Contributing
 
