@@ -47,6 +47,7 @@ export default function PageEditor({ studio = false }) {
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [adder, setAdder] = useState(false);
   const [librarySections, setLibrarySections] = useState([]);
+  const [libraryCollections, setLibraryCollections] = useState([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [previewWidth, setPreviewWidth] = useState("desktop");
   const { brandKit } = useBrandKit();
@@ -123,6 +124,13 @@ export default function PageEditor({ studio = false }) {
     api
       .listSections()
       .then(setLibrarySections)
+      .catch(() => {});
+    // Collections power the grouping pills in the BlockAdder library
+    // tab — fetched alongside sections so users can filter long lists
+    // by their own folder structure.
+    api
+      .listCollections()
+      .then(setLibraryCollections)
       .catch(() => {});
   }, []);
 
@@ -677,6 +685,7 @@ export default function PageEditor({ studio = false }) {
       {adder && (
         <BlockAdder
           librarySections={librarySections}
+          libraryCollections={libraryCollections}
           onAddNewSection={addNewSectionBlock}
           onAddLibrarySection={addLibrarySectionBlock}
           onAddRichText={addRichTextBlock}

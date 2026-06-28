@@ -19,9 +19,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Copy, Layers, Trash2, GripVertical } from "lucide-react";
+import { Copy, Layers, Trash2, GripVertical, FilePlus } from "lucide-react";
 import { SECTIONS_BY_ID } from "@/sections/registry";
 import { previewDoc, makeUid } from "@/sections/shared";
+import { PAGE_TEMPLATES_BY_ID } from "@/sections/pageTemplates";
 import { api } from "@/lib/api";
 import MoveToCollectionMenu from "./MoveToCollectionMenu";
 import {
@@ -90,6 +91,40 @@ export default function SectionsTab({
     [navigate, setSections]
   );
 
+  // Spawn a new Page from the blog-post template, but with this
+  // section's config injected into the page's blog-body block — so
+  // the user's existing article copy/widgets carry across instead of
+  // being reset to defaults. The original Section is left untouched
+  // (this is a "convert as new page", not a destructive move).
+  const convertBlogBodyToPage = useCallback(
+    (section) => {
+      const template = PAGE_TEMPLATES_BY_ID["blog-post"];
+      if (!template) {
+        toast.error("Blog post template not found");
+        return;
+      }
+      const blocks = (template.blocks || []).map((b) => {
+        if (b.type === "section" && b.section_type === "blog-body") {
+          // Replace just the blog-body block's config with the source
+          // section's config so the user's body / widgets / sidebar
+          // settings come along for the ride.
+          return { ...b, config: { ...section.config, uid: makeUid() } };
+        }
+        return b;
+      });
+      const customised = {
+        ...template,
+        // Keep the source section's name as the new page's name so it
+        // lands in the dashboard already labelled, instead of "Blog post".
+        name: section.name || template.name,
+        blocks,
+      };
+      navigate("/edit/page/new", { state: { template: customised } });
+      toast.success("Converting to page…");
+    },
+    [navigate]
+  );
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   );
@@ -154,6 +189,7 @@ export default function SectionsTab({
                 section={s}
                 onDelete={removeSection}
                 onDuplicate={duplicateSection}
+                onConvertToPage={convertBlogBodyToPage}
                 collections={collections}
                 onMove={onMove}
                 onManageCollections={onManageCollections}
@@ -178,6 +214,7 @@ const SectionCard = memo(function SectionCard({
   section,
   onDelete,
   onDuplicate,
+  onConvertToPage,
   collections,
   onMove,
   onManageCollections,
@@ -312,6 +349,20 @@ const SectionCard = memo(function SectionCard({
           >
             <Copy className="w-4 h-4" />
           </button>
+          {section.type === "blog-body" && onConvertToPage && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onConvertToPage(section);
+              }}
+              data-testid={`convert-to-page-${section.section_id}`}
+              className="p-2 rounded-md text-slate-400 hover:text-[#E01839] hover:bg-red-50"
+              title="Convert to a full Blog post page (keeps this section intact)"
+            >
+              <FilePlus className="w-4 h-4" />
+            </button>
+          )}
           <button
             type="button"
             onClick={(e) => {
