@@ -55,7 +55,7 @@ import {
 } from "@/components/FormFields";
 import PaddingFields from "@/components/PaddingFields";
 import RichTextEditor from "@/components/RichTextEditor";
-import { pageToRelatedItem } from "@/lib/pageBlogMeta";
+import { pageToRelatedItem, entryToRelatedItem } from "@/lib/pageBlogMeta";
 
 const ID = "blog-body";
 
@@ -382,18 +382,25 @@ function FormPanel({ config, onUpdate }) {
   // page. Called by the BlogPagePicker's `onPick` when the user picks
   // a page after clicking "Pick from your pages" inside a related
   // widget. The widget id is captured in `pickerForWidgetId`.
-  const addRelatedFromPage = (page) => {
+  const addRelatedFromPage = (entry) => {
     if (!pickerForWidgetId) return;
     const w = widgets.find((x) => x.id === pickerForWidgetId);
     if (!w) return;
-    const item = { id: makeUid(), ...pageToRelatedItem(page), page_id: page.page_id };
+    const item = {
+      id: makeUid(),
+      ...entryToRelatedItem(entry),
+      source_kind: entry.kind,
+      source_id: entry.id,
+      // Keep page_id for backwards-compat with the previous shape.
+      page_id: entry.kind === "page" ? entry.id : undefined,
+    };
     upSubList(w.id, [...(w.items || []), item]);
   };
   const pickerWidget = pickerForWidgetId
     ? widgets.find((w) => w.id === pickerForWidgetId)
     : null;
   const pickerExcludeIds = (pickerWidget?.items || [])
-    .map((i) => i.page_id)
+    .map((i) => i.source_id || i.page_id)
     .filter(Boolean);
 
   return (
@@ -591,9 +598,9 @@ function FormPanel({ config, onUpdate }) {
         open={pickerForWidgetId !== null}
         onOpenChange={(o) => !o && setPickerForWidgetId(null)}
         onPick={addRelatedFromPage}
-        excludePageIds={pickerExcludeIds}
+        excludeIds={pickerExcludeIds}
         title="Pick a related article"
-        description="The page's name, content and first image fill the related-card automatically. Edit anything after."
+        description="Pull from a standalone blog-body section or a page that contains one. Title, content and first image fill the related-card automatically."
       />
     </FormAccordion>
   );

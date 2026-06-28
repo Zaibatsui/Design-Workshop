@@ -26,11 +26,17 @@ class SectionIn(BaseModel):
     # given collection so users don't have to file it as a second step.
     # Null (default) = leave unfiled.
     collection_id: Optional[str] = None
+    # Optional public URL where this section is published on the user's
+    # own site/CMS. Used by the Blog Index + Related-articles "pick
+    # from existing content" picker for blog-body sections so card
+    # links can be auto-populated.
+    public_url: Optional[str] = None
 
 
 class SectionUpdate(BaseModel):
     name: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
+    public_url: Optional[str] = None
 
 
 class Section(BaseModel):
@@ -43,6 +49,8 @@ class Section(BaseModel):
     # Optional folder this section is filed under. Null = "unfiled" /
     # appears in the dashboard's "All items" view.
     collection_id: Optional[str] = None
+    # Optional published URL — empty/null means "not published yet".
+    public_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -105,6 +113,7 @@ async def create_section(
         "type": payload.type,
         "config": payload.config,
         "collection_id": payload.collection_id,
+        "public_url": payload.public_url,
         "position": await _next_head_position(current_user.user_id),
         "created_at": now,
         "updated_at": now,
@@ -136,6 +145,9 @@ async def update_section(
         update["name"] = payload.name
     if payload.config is not None:
         update["config"] = payload.config
+    if payload.public_url is not None:
+        # Empty string clears back to null
+        update["public_url"] = payload.public_url or None
     result = await db.sections.find_one_and_update(
         {"section_id": section_id, "user_id": current_user.user_id},
         {"$set": update},
@@ -215,4 +227,5 @@ async def reorder_sections(
 def _coerce_section(doc: Dict[str, Any]) -> Section:
     doc.setdefault("position", 0)
     doc.setdefault("collection_id", None)
+    doc.setdefault("public_url", None)
     return Section(**doc)

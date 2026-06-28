@@ -130,3 +130,110 @@ export function pageToRelatedItem(page) {
     link: full.link,
   };
 }
+
+// ────────────────────────────────────────────────────────────────────
+// Section-level variants — for users who author a blog as a standalone
+// Section (in the Sections library) rather than as a multi-block Page.
+// Same derivation rules, but the source is `section.config` directly
+// (not `section.config.blocks[i].config`).
+// ────────────────────────────────────────────────────────────────────
+
+/**
+ * @returns {boolean} true if the given section is of type "blog-body".
+ *   The Sections library lets users author a blog-body snippet on its
+ *   own; this lets the picker pick it up alongside full Pages.
+ */
+export function isBlogSection(section) {
+  return !!section && section.type === BLOG_BODY_TYPE;
+}
+
+export function filterBlogSections(sections) {
+  return (sections || [])
+    .filter(isBlogSection)
+    .slice()
+    .sort((a, b) => {
+      const at = a?.updated_at ? new Date(a.updated_at).getTime() : 0;
+      const bt = b?.updated_at ? new Date(b.updated_at).getTime() : 0;
+      return bt - at;
+    });
+}
+
+/**
+ * Derive a blog-card shape from a Section document (type === "blog-body").
+ * Mirrors `pageToBlogCard` but the body/widgets live directly on
+ * `section.config` instead of inside a block.
+ */
+export function sectionToBlogCard(section) {
+  const cfg = section?.config || {};
+  const body = cfg.body || "";
+  const widgets = Array.isArray(cfg.widgets) ? cfg.widgets : [];
+  const authorWidget = widgets.find((w) => w && w.type === "author");
+
+  return {
+    title: section?.name || cfg.heading || "Untitled",
+    excerpt: firstSentenceOf(stripHtml(body)),
+    image: firstImageFrom(body),
+    imageAlt: section?.name || "",
+    author: authorWidget?.name || "",
+    date: isoDateOf(section?.updated_at),
+    link: section?.public_url || "",
+    category: "",
+  };
+}
+
+export function sectionToRelatedItem(section) {
+  const full = sectionToBlogCard(section);
+  return {
+    title: full.title,
+    excerpt: full.excerpt,
+    image: full.image,
+    link: full.link,
+  };
+}
+
+/**
+ * Unified picker entry — merges Pages (that contain a blog-body block)
+ * with Sections (of type blog-body) into a single list, tagged with
+ * `kind: "page" | "section"` so the picker UI can label rows and the
+ * caller can route the pick through the right derivation helper.
+ *
+ * Sorted newest-first by updated_at across both kinds.
+ */
+export function filterBlogContent({ pages = [], sections = [] } = {}) {
+  const taggedPages = filterBlogPages(pages).map((p) => ({
+    kind: "page",
+    id: p.page_id,
+    name: p.name,
+    public_url: p.public_url || "",
+    updated_at: p.updated_at,
+    doc: p,
+  }));
+  const taggedSections = filterBlogSections(sections).map((s) => ({
+    kind: "section",
+    id: s.section_id,
+    name: s.name,
+    public_url: s.public_url || "",
+    updated_at: s.updated_at,
+    doc: s,
+  }));
+  return [...taggedPages, ...taggedSections].sort((a, b) => {
+    const at = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+    const bt = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+    return bt - at;
+  });
+}
+
+/**
+ * Project a picker entry into a blog-card shape, dispatching on `kind`.
+ */
+export function entryToBlogCard(entry) {
+  return entry.kind === "section"
+    ? sectionToBlogCard(entry.doc)
+    : pageToBlogCard(entry.doc);
+}
+
+export function entryToRelatedItem(entry) {
+  return entry.kind === "section"
+    ? sectionToRelatedItem(entry.doc)
+    : pageToRelatedItem(entry.doc);
+}

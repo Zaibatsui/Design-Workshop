@@ -240,20 +240,42 @@ export const PAGE_TEMPLATES = [
   {
     id: "blog-post",
     name: "Blog post",
-    description: "Long-form: hero → body with sidebar widgets → related products.",
+    description:
+      "Editorial: breadcrumb → blog body with sidebar (CTA + related + author) → newsletter CTA → blog index with 'Read next'.",
     icon: ScrollText,
     blocks: [
-      section("hero"),
-      // The new Blog body section — body column + sidebar of CTA,
-      // Related articles, Tag cluster and Author-card widgets out
-      // of the box. Sidebar defaults to the right with sticky off;
-      // users can flip to left / below in one click.
-      section("blog-body"),
+      // Thin breadcrumb strip — keeps the page anchored in a category
+      // hierarchy and gives readers a visible "back to the index"
+      // affordance. Kept as a rich-text block so users can swap
+      // category names without diving into a section editor.
       rt(
-        "<h2>You might also like</h2><p>Related products from the catalogue.</p>",
-        { padY: 56, align: "left" }
+        '<p style="text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:#64748b;margin:0;"><a href="/blog" style="color:inherit;text-decoration:none;">Blog</a> &nbsp;/&nbsp; <span>Category</span></p>',
+        { padY: 24, align: "left" }
       ),
-      section("products"),
+      // The Blog body section already carries its own header (eyebrow
+      // + heading + subheading) AND a sidebar of CTA, Related articles,
+      // Tag cluster and Author-card widgets — so no separate hero block
+      // is needed up top.
+      section("blog-body"),
+      // Conversion point — a single newsletter / "more like this" CTA
+      // banner that catches the reader at the end of the article while
+      // they're still engaged. Configured later by the user.
+      section("cta-banner", {
+        heading: "Get more articles like this",
+        subheading: "Subscribe to our newsletter — one thoughtful piece a week.",
+        primaryLabel: "Subscribe",
+      }),
+      // "Read next" — the new searchable blog index, showing 3 cards
+      // in a single row so it reads as a recommendations rail rather
+      // than a fresh landing grid. Search bar is positioned below so
+      // it doesn't compete with the header above.
+      section("blog-index", {
+        heading: "Read next",
+        subheading: "More from the blog.",
+        columns: 3,
+        searchPosition: "below",
+        headerImage: "",
+      }),
     ],
   },
   {

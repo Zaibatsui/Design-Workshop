@@ -58,6 +58,7 @@ import {
 } from "@/components/EditorBits";
 import StudioToggle from "@/components/studio/StudioToggle";
 import CollectionPicker from "@/components/CollectionPicker";
+import PublicUrlField from "@/components/PublicUrlField";
 import StudioInspector from "@/components/studio/StudioInspector";
 import StudioOutline from "@/components/studio/StudioOutline";
 
@@ -227,6 +228,12 @@ export default function StudioEditor() {
   const renameSection = (name) => {
     setSection((prev) => (prev ? { ...prev, name } : prev));
     queueSave({ name });
+  };
+
+  const setPublicUrl = (publicUrl) => {
+    const trimmed = (publicUrl || "").trim();
+    setSection((prev) => (prev ? { ...prev, public_url: trimmed || null } : prev));
+    queueSave({ public_url: trimmed });
   };
 
   const resetSection = () => {
@@ -484,6 +491,12 @@ export default function StudioEditor() {
               {def.icon ? <def.icon className="w-3 h-3" strokeWidth={2} /> : null}
               {def.name}
             </span>
+            {section.type === "blog-body" && (
+              <PublicUrlField
+                value={section.public_url || ""}
+                onChange={setPublicUrl}
+              />
+            )}
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {section.type === "hero" && (

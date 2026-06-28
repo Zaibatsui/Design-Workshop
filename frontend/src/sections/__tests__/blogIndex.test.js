@@ -130,9 +130,9 @@ expect(
 // that turns a picked page into a card so the projection stays
 // centralised in lib/pageBlogMeta (single source of truth).
 expect(
-  "FormPanel imports BlogPagePicker + pageToBlogCard helper",
+  "FormPanel imports BlogPagePicker + entryToBlogCard helper (unified pages+sections picker)",
   /import BlogPagePicker from "@\/components\/BlogPagePicker"/.test(src) &&
-    /import \{ pageToBlogCard \} from "@\/lib\/pageBlogMeta"/.test(src),
+    /entryToBlogCard/.test(src),
 );
 expect(
   "FormPanel renders a 'Pick from your pages' button with the expected data-testid",
@@ -144,8 +144,8 @@ expect(
   /<BlogPagePicker[\s\S]{0,400}onPick=\{addItemFromPage\}/.test(src),
 );
 expect(
-  "Picker appends a card with `page_id` so duplicates can be excluded next time",
-  /page_id:\s*page\.page_id/.test(src),
+  "Picker appends a card with a `source_kind`/`source_id` envelope so future syncs and dedupe work for both pages and sections",
+  /source_kind:\s*entry\.kind/.test(src) && /source_id:\s*entry\.id/.test(src),
 );
 
 console.log(`\n${pass} passed, ${fail} failed`);

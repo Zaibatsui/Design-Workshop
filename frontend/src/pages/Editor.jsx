@@ -29,6 +29,7 @@ import {
 import StudioToggle from "@/components/studio/StudioToggle";
 import UserMenu from "@/components/UserMenu";
 import CollectionPicker from "@/components/CollectionPicker";
+import PublicUrlField from "@/components/PublicUrlField";
 
 const AUTOSAVE_MS = 1500;
 // Iframe-preview debounce window. While a slider is being dragged the
@@ -206,6 +207,12 @@ export default function Editor() {
     queueSave({ name });
   };
 
+  const setPublicUrl = (publicUrl) => {
+    const trimmed = (publicUrl || "").trim();
+    setSection((prev) => (prev ? { ...prev, public_url: trimmed || null } : prev));
+    queueSave({ public_url: trimmed });
+  };
+
   const resetSection = () => {
     if (!def) return;
     if (!window.confirm(`Reset ${def.name} to defaults? This will overwrite the current settings.`)) return;
@@ -366,6 +373,13 @@ export default function Editor() {
               </div>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
+              {section.type === "blog-body" && (
+                <PublicUrlField
+                  value={section.public_url || ""}
+                  onChange={setPublicUrl}
+                  compact
+                />
+              )}
               <button
                 type="button"
                 onClick={resetToBrandKit}

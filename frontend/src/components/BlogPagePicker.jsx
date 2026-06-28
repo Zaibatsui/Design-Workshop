@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, FileText, ExternalLink, Loader2, BookOpen } from "lucide-react";
+import { Search, FileText, Component, ExternalLink, Loader2, BookOpen } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,33 +11,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { filterBlogPages } from "@/lib/pageBlogMeta";
+import { filterBlogContent } from "@/lib/pageBlogMeta";
 
 /**
- * BlogPagePicker — Dialog that lists every Page in the user's library
- * that qualifies as a blog post (i.e. contains at least one blog-body
- * section). On pick, the parent receives the full Page document and
- * decides how to project it (Blog Index card vs. Related-articles item)
- * via the helpers in `lib/pageBlogMeta`.
+ * BlogPagePicker — Dialog that lists every piece of blog content in
+ * the user's library, whether it lives as a multi-block Page (i.e. a
+ * page that contains a blog-body section) OR as a standalone blog-body
+ * Section. Picking either kind hands the parent a tagged envelope:
  *
- * State machine:
- *   open=true → GET /api/pages → filter to blog pages → render
- *   user types → in-memory filter on name + public_url substring
- *   user clicks a row → onPick(page) → onOpenChange(false)
+ *   { kind: "page" | "section", doc }
  *
- * Why a Dialog and not a Popover: Dialogs portal to document.body, so
- * they render cleanly above the editor sidebar without clipping, and
- * they're keyboard-trappable + Esc-dismissable for free.
+ * …and the parent (Blog Index FormPanel / Blog Body Related widget)
+ * decides how to project that into a card via the helpers in
+ * `lib/pageBlogMeta`. The dialog itself only knows how to list +
+ * filter; projection lives in one place.
  */
 export default function BlogPagePicker({
   open,
   onOpenChange,
   onPick,
-  excludePageIds = [],
+  excludeIds = [],
   title = "Pick an existing blog post",
-  description = "Pages with a Blog Body section show up here. We'll auto-fill the card from each page's content.",
+  description = "Both standalone blog-body sections and pages that contain one show up here. We'll auto-fill the card from the source content.",
 }) {
-  const [pages, setPages] = useState([]);
+  const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [query, setQuery] = useState("");
@@ -47,16 +44,18 @@ export default function BlogPagePicker({
     let cancelled = false;
     setLoading(true);
     setError(false);
-    api
-      .listPages()
-      .then((res) => {
+    Promise.all([
+      api.listPages().catch(() => []),
+      api.listSections().catch(() => []),
+    ])
+      .then(([pages, sections]) => {
         if (cancelled) return;
-        setPages(filterBlogPages(res || []));
+        setEntries(filterBlogContent({ pages, sections }));
       })
       .catch(() => {
         if (cancelled) return;
         setError(true);
-        toast.error("Couldn't load your pages — try again");
+        toast.error("Couldn't load your library — try again");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -66,31 +65,28 @@ export default function BlogPagePicker({
     };
   }, [open]);
 
-  const excludeSet = useMemo(
-    () => new Set(excludePageIds || []),
-    [excludePageIds],
-  );
+  const excludeSet = useMemo(() => new Set(excludeIds || []), [excludeIds]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return pages
-      .filter((p) => !excludeSet.has(p.page_id))
-      .filter((p) => {
+    return entries
+      .filter((e) => !excludeSet.has(e.id))
+      .filter((e) => {
         if (!q) return true;
         return (
-          (p.name || "").toLowerCase().includes(q) ||
-          (p.public_url || "").toLowerCase().includes(q)
+          (e.name || "").toLowerCase().includes(q) ||
+          (e.public_url || "").toLowerCase().includes(q)
         );
       });
-  }, [pages, query, excludeSet]);
+  }, [entries, query, excludeSet]);
 
-  const handlePick = (page) => {
+  const handlePick = (entry) => {
     try {
-      onPick?.(page);
+      onPick?.(entry);
       onOpenChange?.(false);
       setQuery("");
     } catch {
-      toast.error("Something went wrong adding that page");
+      toast.error("Something went wrong adding that item");
     }
   };
 
@@ -116,7 +112,7 @@ export default function BlogPagePicker({
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by page name or URL…"
+              placeholder="Search by name or URL…"
               autoFocus
               data-testid="blog-page-picker-search"
               className="pl-9 h-9"
@@ -128,18 +124,22 @@ export default function BlogPagePicker({
           {loading ? (
             <div className="flex items-center justify-center py-10 text-sm text-slate-500 gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Loading your pages…
+              Loading your library…
             </div>
           ) : error ? (
             <p className="text-center text-sm text-slate-500 py-10">
-              Couldn't load your pages. Close this dialog and try again.
+              Couldn't load your library. Close this dialog and try again.
             </p>
           ) : filtered.length === 0 ? (
-            <EmptyState hasPages={pages.length > 0} query={query} />
+            <EmptyState hasAny={entries.length > 0} query={query} />
           ) : (
             <ul className="flex flex-col gap-1" data-testid="blog-page-picker-list">
-              {filtered.map((p) => (
-                <PageRow key={p.page_id} page={p} onPick={() => handlePick(p)} />
+              {filtered.map((entry) => (
+                <EntryRow
+                  key={`${entry.kind}-${entry.id}`}
+                  entry={entry}
+                  onPick={() => handlePick(entry)}
+                />
               ))}
             </ul>
           )}
@@ -147,7 +147,7 @@ export default function BlogPagePicker({
 
         <div className="px-6 py-3 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
           <span className="text-xs text-slate-400">
-            {filtered.length} blog page{filtered.length === 1 ? "" : "s"} available
+            {filtered.length} blog item{filtered.length === 1 ? "" : "s"} available
           </span>
           <Button
             variant="ghost"
@@ -163,9 +163,12 @@ export default function BlogPagePicker({
   );
 }
 
-function PageRow({ page, onPick }) {
-  const updatedLabel = page.updated_at
-    ? new Date(page.updated_at).toLocaleDateString("en-GB", {
+function EntryRow({ entry, onPick }) {
+  const isSection = entry.kind === "section";
+  const Icon = isSection ? Component : FileText;
+  const kindLabel = isSection ? "Section" : "Page";
+  const updatedLabel = entry.updated_at
+    ? new Date(entry.updated_at).toLocaleDateString("en-GB", {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -176,22 +179,33 @@ function PageRow({ page, onPick }) {
       <button
         type="button"
         onClick={onPick}
-        data-testid={`blog-page-picker-row-${page.page_id}`}
+        data-testid={`blog-page-picker-row-${entry.kind}-${entry.id}`}
         className="w-full text-left px-3 py-2.5 rounded-md hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E01839]/30 transition-colors group"
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-md bg-slate-100 group-hover:bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
-            <FileText className="w-4 h-4 text-slate-500" />
+            <Icon className="w-4 h-4 text-slate-500" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-slate-900 truncate">
-              {page.name || "Untitled page"}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-slate-900 truncate">
+                {entry.name || "Untitled"}
+              </p>
+              <span
+                className={`text-[10px] uppercase tracking-wider font-semibold px-1.5 py-px rounded ${
+                  isSection
+                    ? "bg-violet-50 text-violet-700"
+                    : "bg-sky-50 text-sky-700"
+                }`}
+              >
+                {kindLabel}
+              </span>
+            </div>
             <p className="text-xs text-slate-500 flex items-center gap-1.5 truncate">
-              {page.public_url ? (
+              {entry.public_url ? (
                 <>
                   <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{page.public_url}</span>
+                  <span className="truncate">{entry.public_url}</span>
                 </>
               ) : (
                 <span className="italic text-slate-400">
@@ -211,30 +225,31 @@ function PageRow({ page, onPick }) {
   );
 }
 
-function EmptyState({ hasPages, query }) {
+function EmptyState({ hasAny, query }) {
   if (query) {
     return (
       <p className="text-center text-sm text-slate-500 py-10">
-        No blog pages match <span className="font-medium">"{query}"</span>.
+        No blog content matches <span className="font-medium">"{query}"</span>.
       </p>
     );
   }
-  if (!hasPages) {
+  if (!hasAny) {
     return (
       <div className="text-center py-10 px-6">
         <p className="text-sm text-slate-700 font-medium mb-1">
-          No blog pages yet
+          No blog content yet
         </p>
         <p className="text-xs text-slate-500 leading-relaxed">
-          Create a page that contains a <strong>Blog Body</strong> section, give
-          it a name and (optionally) a public URL, and it'll show up here.
+          Create a <strong>Blog Body</strong> section (or a page that
+          contains one), give it a name and (optionally) a public URL, and
+          it'll show up here.
         </p>
       </div>
     );
   }
   return (
     <p className="text-center text-sm text-slate-500 py-10">
-      You've already added every available blog page.
+      You've already added every available blog item.
     </p>
   );
 }

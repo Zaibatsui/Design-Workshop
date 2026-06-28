@@ -111,9 +111,9 @@ expect(
 // is appended via the centralised pageToRelatedItem helper so the
 // projection logic isn't duplicated in this file.
 expect(
-  "FormPanel imports BlogPagePicker + pageToRelatedItem helper",
+  "FormPanel imports BlogPagePicker + entryToRelatedItem helper (unified pages+sections picker)",
   /import BlogPagePicker from "@\/components\/BlogPagePicker"/.test(src) &&
-    /import \{ pageToRelatedItem \} from "@\/lib\/pageBlogMeta"/.test(src),
+    /entryToRelatedItem/.test(src),
 );
 expect(
   "Related-widget renders a 'Pick from your pages' button (testid scoped per widget id)",
@@ -125,8 +125,8 @@ expect(
   /<BlogPagePicker[\s\S]{0,400}onPick=\{addRelatedFromPage\}/.test(src),
 );
 expect(
-  "Picker appends a related item with `page_id` so duplicates can be excluded next time",
-  /page_id:\s*page\.page_id/.test(src),
+  "Picker appends a related item with a `source_kind`/`source_id` envelope so future syncs and dedupe work for both pages and sections",
+  /source_kind:\s*entry\.kind/.test(src) && /source_id:\s*entry\.id/.test(src),
 );
 
 console.log(`\n${pass} passed, ${fail} failed`);

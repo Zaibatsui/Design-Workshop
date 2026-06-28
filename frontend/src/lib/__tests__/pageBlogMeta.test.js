@@ -130,5 +130,78 @@ expect("pageToRelatedItem keeps title/excerpt/image/link only",
   rel.author === undefined &&
   rel.date === undefined);
 
+// ── Section-level helpers (standalone blog-body Section) ──────────
+const { isBlogSection, filterBlogSections, sectionToBlogCard, sectionToRelatedItem,
+        filterBlogContent, entryToBlogCard, entryToRelatedItem } = require("../pageBlogMeta.js");
+
+const sampleSection = {
+  section_id: "sec_xyz",
+  name: "Why we picked Wireguard over IPsec",
+  type: "blog-body",
+  updated_at: "2026-02-21T08:00:00Z",
+  public_url: "https://example.com/blog/wireguard",
+  config: {
+    body:
+      '<p>The <em>short</em> version: ergonomics. The long version follows.</p>' +
+      '<p><img src="https://images.example.com/wg.jpg" alt="diagram"/>Detail.</p>',
+    widgets: [
+      { type: "tags", items: [{ label: "Networking" }] },
+      { type: "author", name: "Priya Shah" },
+    ],
+  },
+};
+expect("isBlogSection: non-blog section type → false",
+  isBlogSection({ type: "hero" }) === false);
+expect("isBlogSection: blog-body section → true",
+  isBlogSection(sampleSection) === true);
+
+const blogSections = filterBlogSections([
+  { type: "hero", name: "Landing hero" },
+  sampleSection,
+]);
+expect("filterBlogSections: keeps only blog-body sections", blogSections.length === 1);
+
+const sCard = sectionToBlogCard(sampleSection);
+expect("sectionToBlogCard.title = section.name",
+  sCard.title === "Why we picked Wireguard over IPsec");
+expect("sectionToBlogCard.excerpt = first sentence of body (HTML stripped)",
+  sCard.excerpt === "The short version: ergonomics.");
+expect("sectionToBlogCard.image = first <img src> in body",
+  sCard.image === "https://images.example.com/wg.jpg");
+expect("sectionToBlogCard.author = name of first author widget",
+  sCard.author === "Priya Shah");
+expect("sectionToBlogCard.date = section.updated_at as YYYY-MM-DD",
+  sCard.date === "2026-02-21");
+expect("sectionToBlogCard.link = section.public_url",
+  sCard.link === "https://example.com/blog/wireguard");
+
+const sRel = sectionToRelatedItem(sampleSection);
+expect("sectionToRelatedItem keeps title/excerpt/image/link only",
+  sRel.title === "Why we picked Wireguard over IPsec" &&
+  sRel.author === undefined &&
+  sRel.date === undefined);
+
+// ── Unified picker list (filterBlogContent) ───────────────────────
+const merged = filterBlogContent({
+  pages: [samplePage, { page_id: "px", name: "Landing", updated_at: "2026-02-15T00:00:00Z", blocks: [] }],
+  sections: [sampleSection, { type: "hero", name: "irrelevant" }],
+});
+expect("filterBlogContent: drops non-blog pages and sections", merged.length === 2);
+expect("filterBlogContent: tags entries with `kind`",
+  merged.every((e) => e.kind === "page" || e.kind === "section"));
+expect("filterBlogContent: sorts newest-first across both kinds",
+  // sampleSection (2026-02-21) is newer than samplePage (2026-02-19)
+  merged[0].kind === "section" && merged[1].kind === "page");
+
+// ── entry→card/related dispatch on kind ───────────────────────────
+const entryFromPage = { kind: "page", id: "pg_abc", doc: samplePage };
+const entryFromSection = { kind: "section", id: "sec_xyz", doc: sampleSection };
+expect("entryToBlogCard(page entry) → pageToBlogCard projection",
+  entryToBlogCard(entryFromPage).title === samplePage.name);
+expect("entryToBlogCard(section entry) → sectionToBlogCard projection",
+  entryToBlogCard(entryFromSection).title === sampleSection.name);
+expect("entryToRelatedItem(section entry) → 4-field projection",
+  entryToRelatedItem(entryFromSection).author === undefined);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

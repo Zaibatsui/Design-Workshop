@@ -47,7 +47,7 @@ import {
   ToggleField,
 } from "@/components/FormFields";
 import PaddingFields from "@/components/PaddingFields";
-import { pageToBlogCard } from "@/lib/pageBlogMeta";
+import { pageToBlogCard, entryToBlogCard } from "@/lib/pageBlogMeta";
 
 const ID = "blog-index";
 
@@ -384,8 +384,8 @@ function FormPanel({ config, onUpdate }) {
   const addItem = () => onUpdate({
     items: [...items, { id: makeUid(), title: "New article", excerpt: "Short summary.", image: "", imageAlt: "", category: "", author: "", date: "", link: "#", openInSameTab: false }],
   });
-  const addItemFromPage = (page) => {
-    const card = pageToBlogCard(page);
+  const addItemFromPage = (entry) => {
+    const card = entryToBlogCard(entry);
     onUpdate({
       items: [
         ...items,
@@ -395,9 +395,13 @@ function FormPanel({ config, onUpdate }) {
           // Preserve a free-form "Open in same tab" default; the picker
           // doesn't infer this.
           openInSameTab: false,
-          // Annotate the linked page so future syncs / unique-page
-          // dedupe can find this card again.
-          page_id: page.page_id,
+          // Annotate the source so future syncs / unique-source dedupe
+          // can find this card again. `source_kind` distinguishes
+          // page-derived from section-derived cards.
+          source_kind: entry.kind,
+          source_id: entry.id,
+          // Keep page_id for backwards-compat with the previous shape.
+          page_id: entry.kind === "page" ? entry.id : undefined,
         },
       ],
     });
@@ -478,9 +482,9 @@ function FormPanel({ config, onUpdate }) {
           open={pickerOpen}
           onOpenChange={setPickerOpen}
           onPick={addItemFromPage}
-          excludePageIds={items.map((i) => i.page_id).filter(Boolean)}
-          title="Pick a blog page"
-          description="The page's name, content, author and updated date fill the card automatically. Edit anything after."
+          excludeIds={items.map((i) => i.source_id || i.page_id).filter(Boolean)}
+          title="Pick a blog post"
+          description="Pull a card from a standalone blog-body section or a page that contains one. Title, content, author and date fill in automatically. Edit anything after."
         />
         <ListEditor
           items={items}

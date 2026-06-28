@@ -29,7 +29,12 @@ export const PAGE_TEMPLATE_META = {
   "category-hub": { addedOn: LAUNCH, updatedOn: LAUNCH },
   "about-us": { addedOn: LAUNCH, updatedOn: LAUNCH },
   pricing: { addedOn: LAUNCH, updatedOn: LAUNCH },
-  "blog-post": { addedOn: LAUNCH, updatedOn: LAUNCH },
+  "blog-post": {
+    addedOn: LAUNCH,
+    updatedOn: "2026-02-20",
+    whatsNew:
+      "Reworked from the ground up around the new editorial sections: a thin breadcrumb strip, the Blog Body (with its built-in sidebar of CTA / Related / Tags / Author), a newsletter CTA banner, and a 'Read next' Blog Index rail. No more awkward 'related products' tail — the template now reads cover-to-cover as a journalism piece.",
+  },
 
   // 2026-02-14 — Brand page (vendor-style landing pre-fill)
   "brand-page": {
