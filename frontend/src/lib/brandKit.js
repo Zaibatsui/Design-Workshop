@@ -366,6 +366,19 @@ const FIELD_MAP = {
     cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
+  // Blog body — main column reads as plain editorial prose so the
+  // Brand Kit's text + body palette drives readability. Widgets pick
+  // up the accent colour for chips, link text and the CTA fill.
+  "blog-body": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    cardBg: b.background_color,
+    titleColor: b.text_color,
+    bodyColor: b.body_color,
+    eyebrowAccentColor: pick(b, "accent_color"),
+    cardRadius: b.card_radius ?? 8,
+    font: b.heading_font,
+  }),
   // Welcome banner sits over a photo + dark overlay — light text is
   // intentional. We only stamp brand accent onto the highlights
   // (eyebrow, AM accent) and tint the overlay with the brand's dark

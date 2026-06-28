@@ -17,7 +17,7 @@
  *     clicked through that specific version yet.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, MousePointerClick, FileStack, LayoutGrid, Folder, MessageSquare, Paintbrush, PanelRight, Type, Layers, Building2 } from "lucide-react";
+import { Sparkles, MousePointerClick, FileStack, LayoutGrid, Folder, MessageSquare, Paintbrush, PanelRight, Type, Layers, Building2, BookOpen } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -81,6 +81,15 @@ export const PLATFORM_UPDATES = [
     addedOn: "2026-02-07",
     whatsNew:
       "Browse every built-in page template plus your own saved templates from a dedicated page in Studio. NEW / UPDATED badges show what's recent, and one click spins up a fresh page from the template's block stack.",
+    kind: "new",
+  },
+  {
+    id: "blog-body",
+    name: "New section · Blog body",
+    icon: BookOpen,
+    addedOn: "2026-02-19T22:00:00Z",
+    whatsNew:
+      "Purpose-built for long-form articles. A rich-text body column plus an optional sidebar of four widget types — Get-in-touch CTA, Related articles, Tag cluster and Author card. Sidebar can sit left, right or below the body; opt-in sticky-on-scroll for desktop. Mobile auto-collapses the sidebar below the body as a horizontal swipe carousel. The Blog post page template has been refreshed to use it by default.",
     kind: "new",
   },
   {

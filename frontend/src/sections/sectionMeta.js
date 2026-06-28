@@ -111,6 +111,12 @@ export const SECTION_META = {
     whatsNew:
       "Major upgrade — Brand grid now ships with a full-bleed photo header, an in-header search input, per-card eyebrows, left/centre/right card alignment, edge-pickable accent bar (top/right/bottom/left), greyscale-until-hover, and full click-to-edit so clicking any card opens its row in the editor. Default state lands as a finished partner-showcase, including a Brand Kit colour cascade.",
   },
+  "blog-body": {
+    addedOn: "2026-02-19T22:00:00Z",
+    updatedOn: "2026-02-19T22:00:00Z",
+    whatsNew:
+      "New section purpose-built for long-form articles: a rich-text body column with an optional sidebar of four widget types (Get-in-touch CTA, Related articles, Tag cluster, Author card). Sidebar can sit left, right or below the body, with an opt-in sticky-on-scroll mode for desktop. Mobile auto-collapses the sidebar below the body as a horizontal swipe carousel. Every colour, font and radius cascades from the Brand Kit.",
+  },
   richtext: {
     addedOn: LAUNCH,
     updatedOn: "2026-01-26",

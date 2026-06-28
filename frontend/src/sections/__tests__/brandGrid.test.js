@@ -236,7 +236,7 @@ const reg = fs.readFileSync(path.join(__dirname, "../registry.js"), "utf8");
 expect(
   "Registry imports + registers brandGrid",
   /import \{ brandGrid \} from "\.\/brandGrid"/.test(reg) &&
-    /brandGrid,\s*\]\.map\(withMeta\)/.test(reg),
+    /\n\s*brandGrid,/.test(reg),
 );
 
 console.log(`\n${failed === 0 ? "ALL PASSED" : "FAILED"} (${passed} passed, ${failed} failed)`);

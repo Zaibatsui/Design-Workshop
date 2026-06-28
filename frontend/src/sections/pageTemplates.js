@@ -240,19 +240,15 @@ export const PAGE_TEMPLATES = [
   {
     id: "blog-post",
     name: "Blog post",
-    description: "Long-form: hero → intro → body → resources → related products.",
+    description: "Long-form: hero → body with sidebar widgets → related products.",
     icon: ScrollText,
     blocks: [
       section("hero"),
-      rt(
-        "<h1>A headline that earns the click</h1><p><em>Written by the team · 4 minute read</em></p><p>Open with the idea that would make a reader nod. Then back it up with one concrete example of the problem — something specific enough that it's obvious we've actually run into it ourselves.</p>",
-        { padY: 64, align: "left" }
-      ),
-      rt(
-        "<h2>The argument</h2><p>Here is where you make the case. Keep paragraphs tight — three or four sentences each. Use <strong>bold</strong> to pull the eye to the numbers that matter and link out <a href=\"#\">only when it's genuinely useful</a>.</p><ul><li>A punchy list when you need to slow the reader down</li><li>One item per thought — no smuggled sub-clauses</li><li>Three to five items max, otherwise it's a spreadsheet</li></ul><h2>What it looks like in practice</h2><p>Ground the idea in a scenario your reader would recognise. This is usually the section people screenshot and share.</p>",
-        { padY: 0, align: "left" }
-      ),
-      section("resources"),
+      // The new Blog body section — body column + sidebar of CTA,
+      // Related articles, Tag cluster and Author-card widgets out
+      // of the box. Sidebar defaults to the right with sticky off;
+      // users can flip to left / below in one click.
+      section("blog-body"),
       rt(
         "<h2>You might also like</h2><p>Related products from the catalogue.</p>",
         { padY: 56, align: "left" }

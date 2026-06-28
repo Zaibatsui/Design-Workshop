@@ -31,7 +31,7 @@ Anywhere that accepts a custom HTML block or embed. Confirmed working with Shopi
 
 ## Features
 
-### 23 ready-made section types + rich-text
+### 24 ready-made section types + rich-text
 
 Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Product Carousel and Product Grid are **Pro / Nettailer-aware** blocks with live-scraped pricing, a universal VAT toggle and gated-pricing fallback.
 
@@ -254,7 +254,7 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 │   │   │       ├── StudioInspector.jsx     # right-rail accordion settings host
 │   │   │       └── OnboardingTour.jsx      # one-screen first-login walkthrough
 │   │   ├── components/ui/       # Shadcn primitives
-│   │   ├── sections/            # registry.js + 23 section modules + iconLib + shared helpers
+│   │   ├── sections/            # registry.js + 24 section modules + iconLib + shared helpers
 │   │   │                          + sectionMeta / pageTemplateMeta / pageTemplates
 │   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests (488 assertions across 13 files)
 │   │   ├── lib/                 # api client, BrandKitContext, sectionBadges, brand colours, useEscapeKey
