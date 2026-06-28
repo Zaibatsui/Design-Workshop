@@ -51,6 +51,16 @@ import { FormAccordion, FormGroup as Group } from "@/components/FormGroup";
 import PaddingFields from "@/components/PaddingFields";
 const ID = "feature-grid";
 
+// Default photo used for image-led cards (cardLayout === "image-top"
+// or "image-left") when an item has no image of its own. Rendered ONLY
+// at snippet-build time — never written back to the config — so the
+// moment a user uploads their own image the placeholder evaporates and
+// existing snippets keep their pixel-perfect output. Mirrors the
+// pattern brandGrid + welcome already use to keep new sections
+// presentable on first paint.
+const DEFAULT_CARD_IMAGE =
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop";
+
 /**
  * Body-content coercion: lifted from FAQ. Anything that already looks
  * like HTML passes through; plain-text (saved by older Feature Grids
@@ -142,10 +152,13 @@ const render = (cfg) => {
       const bodyHtml = `<div class="ns-body">${coerceBodyHtml(f.body)}</div>`;
 
       if (cardLayout !== "icon") {
-        const imgUrl = safeUrl(f.image);
-        const imgHtml = imgUrl
-          ? `<img src="${escAttr(imgUrl)}" alt="${escAttr(f.imageAlt || f.title || "")}"/>`
-          : "";
+        // Image-led card. When the author hasn't uploaded a per-card
+        // image yet, render the shared placeholder so the grid reads
+        // like a finished layout from the first paint. User-supplied
+        // images always win — the fallback is render-only, never
+        // persisted back into `f.image`.
+        const imgUrl = safeUrl(f.image) || DEFAULT_CARD_IMAGE;
+        const imgHtml = `<img src="${escAttr(imgUrl)}" alt="${escAttr(f.imageAlt || f.title || "")}"/>`;
         return `<article class="ns-card${layoutMod}" data-ns-list="feature" data-ns-item="${idx}"><div class="ns-image-wrap">${imgHtml}</div><div class="ns-card-body">${titleHtml}${introHtml}${bodyHtml}</div></article>`;
       }
       // Icon-mode card. `iconSource` decides whether the 36×36 box
@@ -177,7 +190,7 @@ const render = (cfg) => {
     uid
   )}" data-ns-group="defaults"><div class="ns-inner"><header class="ns-head" data-ns-group="header"><div class="ns-head-inner">${eyebrowHtml}<h2 class="ns-heading">${escHtml(
     cfg.heading || ""
-  )}</h2>${subHtml}</div></header><div class="ns-grid">${featuresHtml}</div></div></section>`;
+  )}</h2>${subHtml}</div></header><div class="ns-grid" data-ns-group="features">${featuresHtml}</div></div></section>`;
 
   const bg = safeColor(cfg.bgColor, "#ffffff");
   const textColor = safeColor(cfg.textColor, "#1f2937");
@@ -204,8 +217,8 @@ ${baseReset(cls)}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${accent};margin-bottom:14px}
 .${cls} .ns-heading{font-size:${num(cfg.headingSize, 32)}px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;color:${textColor}}
 .${cls} .ns-sub{margin-top:14px;font-size:16px;color:${bodyColor};line-height:1.6}
-.${cls} .ns-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px}
-.${cls} .ns-card{${cardBase};border-radius:${num(cfg.cardRadius, 8)}px;padding:28px;text-align:${cardAlign};transition:border-color .18s ease,transform .18s ease}
+.${cls} .ns-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:16px}
+.${cls} .ns-card{${cardBase};border-radius:${num(cfg.cardRadius, 8)}px;padding:28px;text-align:${cardAlign};transition:border-color .18s ease,transform .18s ease;flex:0 1 calc((100% - 16px * (${cols} - 1)) / ${cols});max-width:calc((100% - 16px * (${cols} - 1)) / ${cols});box-sizing:border-box}
 .${cls} .ns-card:hover{${cardHover};transform:translateY(-2px)}
 .${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${accent}1a;color:${accent};margin-bottom:20px;overflow:hidden;${cardAlign === "center" ? "margin-left:auto;margin-right:auto;" : cardAlign === "right" ? "margin-left:auto;" : ""}}
 .${cls} .ns-icon-box.is-img{background:transparent;padding:0}
@@ -222,8 +235,8 @@ ${richBodyResetCss(`.${cls} .ns-card .ns-body`, { linkColor: accent })}
 .${cls} .ns-card.is-image-left .ns-image-wrap{flex:0 0 130px;align-self:stretch;background:#f1f5f9;overflow:hidden}
 .${cls} .ns-card.is-image-left .ns-card-body{padding:22px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;text-align:${cardAlign}}
 .${cls} .ns-card.is-image-top .ns-image-wrap img,.${cls} .ns-card.is-image-left .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-@media (max-width:1024px){.${cls} .ns-grid{grid-template-columns:repeat(${Math.min(cols, 2)},minmax(0,1fr))}}
-@media (max-width:640px){.${cls} .ns-grid{grid-template-columns:1fr}.${cls} .ns-inner{text-align:${headAlignM}}.${cls} .ns-head-inner{${headAlignM === "center" ? "margin:0 auto;" : headAlignM === "right" ? "margin:0 0 0 auto;" : "margin:0;"}}.${cls} .ns-card{text-align:${cardAlignM}}.${cls} .ns-card .ns-icon-box{${cardAlignM === "center" ? "margin-left:auto;margin-right:auto;" : cardAlignM === "right" ? "margin-left:auto;margin-right:0;" : "margin-left:0;margin-right:auto;"}}.${cls} .ns-card.is-image-left{flex-direction:column}.${cls} .ns-card.is-image-left .ns-image-wrap{flex-basis:auto;width:100%;aspect-ratio:16/9}}
+@media (max-width:1024px){.${cls} .ns-card{flex-basis:calc((100% - 16px * (${Math.min(cols, 2)} - 1)) / ${Math.min(cols, 2)});max-width:calc((100% - 16px * (${Math.min(cols, 2)} - 1)) / ${Math.min(cols, 2)})}}
+@media (max-width:640px){.${cls} .ns-card{flex-basis:100%;max-width:100%}.${cls} .ns-inner{text-align:${headAlignM}}.${cls} .ns-head-inner{${headAlignM === "center" ? "margin:0 auto;" : headAlignM === "right" ? "margin:0 0 0 auto;" : "margin:0;"}}.${cls} .ns-card{text-align:${cardAlignM}}.${cls} .ns-card .ns-icon-box{${cardAlignM === "center" ? "margin-left:auto;margin-right:auto;" : cardAlignM === "right" ? "margin-left:auto;margin-right:0;" : "margin-left:0;margin-right:auto;"}}.${cls} .ns-card.is-image-left{flex-direction:column}.${cls} .ns-card.is-image-left .ns-image-wrap{flex-basis:auto;width:100%;aspect-ratio:16/9}}
 `.trim();
 
   return wrapSnippet({ html, css, js: "" });
@@ -411,7 +424,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
         />
       </Group>
 
-      <Group title={`Features (${features.length})`}>
+      <Group title={`Features (${features.length})`} value="features">
         <ListEditor
           items={features}
           onReorder={reorderFeatures}

@@ -230,6 +230,64 @@ function renderWith(overrides) {
   expect("helper: defaults paraSpacing to 10", /\.foo \.ns-body p\{margin:0 0 10px\}/.test(noLink));
 }
 
+// ── 2026-02-19 enhancements ──────────────────────────────────────
+// 1. Card-grid click-to-edit must route to the Features group.
+// 2. Image-led layout should fall back to a default photo when an
+//    item has no image — but never override a user-supplied one.
+// 3. Cards centre orphan rows when card count doesn't fill the grid.
+{
+  const { featureGrid } = require("../featureGrid.js");
+  const d = featureGrid.defaults();
+
+  // (1) Grid wrapper carries data-ns-group="features"
+  const a = featureGrid.render(d);
+  expect(
+    "Grid wrapper carries data-ns-group='features' (click-to-edit lands on Content tab)",
+    /<div class="ns-grid" data-ns-group="features">/.test(a),
+  );
+
+  // (2) Image-led card with empty `image` → default Unsplash photo
+  const oneEmpty = {
+    ...d,
+    cardLayout: "image-top",
+    features: [{ id: "x", title: "T", body: "B", image: "", imageAlt: "", iconSource: "library", icon: "zap", intro: "" }],
+  };
+  const b = featureGrid.render(oneEmpty);
+  expect(
+    "Image-led card with empty image falls back to DEFAULT_CARD_IMAGE",
+    b.includes("photo-1497366216548-37526070297c"),
+  );
+
+  // User image always wins — fallback never overrides.
+  const oneSet = {
+    ...d,
+    cardLayout: "image-top",
+    features: [{ id: "x", title: "T", body: "B", image: "https://example.com/my.jpg", imageAlt: "", iconSource: "library", icon: "zap", intro: "" }],
+  };
+  const c = featureGrid.render(oneSet);
+  expect(
+    "User-supplied image always wins over the fallback",
+    c.includes("example.com/my.jpg") && !c.includes("photo-1497366216548-37526070297c"),
+  );
+
+  // Icon-mode never gets the photo fallback (it doesn't have an image area).
+  const icon = featureGrid.render({ ...d, cardLayout: "icon" });
+  expect(
+    "Icon-mode never injects DEFAULT_CARD_IMAGE",
+    !icon.includes("photo-1497366216548-37526070297c"),
+  );
+
+  // (3) Flex grid + justify-content:center so orphan rows centre.
+  expect(
+    "Grid is flex (not grid) + justify-content:center so short rows centre",
+    /\.ns-grid\{display:flex;flex-wrap:wrap;justify-content:center;gap:16px\}/.test(a),
+  );
+  expect(
+    "Cards get a calc()-based flex-basis sized to the column count",
+    /flex:0 1 calc\(\(100% - 16px \* \(\d+ - 1\)\) \/ \d+\)/.test(a),
+  );
+}
+
 if (failed === 0) {
   console.log(`\nALL PASSED (${passed} assertions)`);
   process.exit(0);
