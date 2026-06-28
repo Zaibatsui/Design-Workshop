@@ -161,6 +161,12 @@ export function PreviewFrame({ doc, sectionId, heroIndex }) {
   }, [storageKey, defaultH]);
 
   const iframeRef = useRef(null);
+  // Remember the latest `ns-editor-focus-item` payload so we can
+  // replay it after every iframe reload. Without this the iframe
+  // would always boot back to row 0 (e.g. tab 1 active, slide 0
+  // active) and the editor → preview sync would only hold until the
+  // next config change.
+  const lastFocusRef = useRef(null);
   useEffect(() => {
     const f = iframeRef.current;
     if (!f || !f.contentWindow) return;
@@ -170,6 +176,14 @@ export function PreviewFrame({ doc, sectionId, heroIndex }) {
     const f = iframeRef.current;
     if (!f || !f.contentWindow) return;
     f.contentWindow.postMessage({ ns: "hero", index: typeof heroIndex === "number" ? heroIndex : null }, "*");
+    // Replay the last list-row focus into the freshly-loaded iframe
+    // so things like the active tab stay sticky across config edits.
+    if (lastFocusRef.current) {
+      f.contentWindow.postMessage(
+        { type: "ns-focus-item", ...lastFocusRef.current },
+        "*"
+      );
+    }
   };
 
   // Editor → preview bridge: when a ListEditor row opens (the user
@@ -180,8 +194,12 @@ export function PreviewFrame({ doc, sectionId, heroIndex }) {
   useEffect(() => {
     const handler = (e) => {
       const f = iframeRef.current;
-      if (!f || !f.contentWindow) return;
       const d = e.detail || {};
+      // Persist for replay on the next iframe (re)load.
+      if (typeof d.list === "string" && typeof d.index === "number") {
+        lastFocusRef.current = { list: d.list, index: d.index };
+      }
+      if (!f || !f.contentWindow) return;
       f.contentWindow.postMessage(
         { type: "ns-focus-item", list: d.list, index: d.index },
         "*"
