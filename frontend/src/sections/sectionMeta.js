@@ -117,6 +117,12 @@ export const SECTION_META = {
     whatsNew:
       "New section purpose-built for long-form articles: a rich-text body column with an optional sidebar of four widget types (Get-in-touch CTA, Related articles, Tag cluster, Author card). Sidebar can sit left, right or below the body, with an opt-in sticky-on-scroll mode for desktop. Mobile auto-collapses the sidebar below the body as a horizontal swipe carousel. Every colour, font and radius cascades from the Brand Kit.",
   },
+  "blog-index": {
+    addedOn: "2026-02-20T10:00:00Z",
+    updatedOn: "2026-02-20T10:00:00Z",
+    whatsNew:
+      "New section: a searchable blog landing grid. Ships with a full-bleed photo header, an in-header search input (or below-grid placement), per-card category/date/author meta and an excerpt. Built from the Brand Grid DNA — left/centre/right card alignment, lift / accent-bar / none hover affordances, click-to-edit on every card — but with article-specific fields and no pill-chip filters (search-only by user preference). Full Brand Kit cascade.",
+  },
   richtext: {
     addedOn: LAUNCH,
     updatedOn: "2026-01-26",

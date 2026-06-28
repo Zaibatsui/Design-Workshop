@@ -73,6 +73,7 @@ require.extensions[".js"] = function (module, filename) {
 // to the schema once their renderer reads through the fallback chain.)
 const SPACING_REQUIRED = [
   "blogBody",
+  "blogIndex",
   "brandGrid",
   "break",
   "comparisonTable",

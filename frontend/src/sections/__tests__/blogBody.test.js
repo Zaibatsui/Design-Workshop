@@ -95,7 +95,7 @@ const reg = fs.readFileSync(path.join(__dirname, "../registry.js"), "utf8");
 expect(
   "Registry imports + registers blogBody",
   /import \{ blogBody \} from "\.\/blogBody"/.test(reg) &&
-    /blogBody,\s*\]\.map\(withMeta\)/.test(reg),
+    /\n\s*blogBody,\s*\n/.test(reg),
 );
 
 // ── Cross-file: brand-kit mapper exists ───────────────────────────

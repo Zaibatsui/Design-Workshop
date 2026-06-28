@@ -379,6 +379,22 @@ const FIELD_MAP = {
     cardRadius: b.card_radius ?? 8,
     font: b.heading_font,
   }),
+  // Blog index — mirrors the Brand Grid cascade since it's built on
+  // the same shell. Card titles use the brand text colour, excerpts +
+  // meta use the body colour, the eyebrow/category/accent-bar pick up
+  // the brand accent, and the search box border matches the card
+  // border so it sits cleanly inside the photo header.
+  "blog-index": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    cardBg: b.background_color,
+    titleColor: b.text_color,
+    bodyColor: b.body_color,
+    eyebrowAccentColor: pick(b, "accent_color"),
+    barColor: pick(b, "accent_color"),
+    cardRadius: b.card_radius ?? 8,
+    font: b.heading_font,
+  }),
   // Welcome banner sits over a photo + dark overlay — light text is
   // intentional. We only stamp brand accent onto the highlights
   // (eyebrow, AM accent) and tint the overlay with the brand's dark

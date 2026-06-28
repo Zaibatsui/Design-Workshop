@@ -383,7 +383,7 @@ export default function UserGuide({ chromeless = false }) {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships twenty-four reusable section types plus a
+              Design Workshop ships twenty-six reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
               where applicable. Two of them — <strong>Product Carousel</strong>
@@ -415,6 +415,7 @@ export default function UserGuide({ chromeless = false }) {
               <SectionCard sectionId="placeholder" Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
               <SectionCard sectionId="brand-grid" Icon={Building2} name="Brand Grid" desc="Searchable grid of brand cards with an optional full-bleed photo header (radius cascades from Brand Kit, solid or linear-gradient overlay). Per-card eyebrow + alignment, edge-pickable accent bar on hover, greyscale-until-hover, full click-to-edit." />
               <SectionCard sectionId="blog-body" Icon={BookOpen} name="Blog Body" desc="Long-form article block with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar can sit left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel." />
+              <SectionCard sectionId="blog-index" Icon={BookMarked} name="Blog Index" desc="Searchable grid of blog post cards with an optional full-bleed photo header. Built from the Brand Grid DNA — left/centre/right card alignment, lift / accent-bar / none hover, click-to-edit on every card — but each card carries an image, category, date, author, title and excerpt. Search-only (no pill chips)." />
               <SectionCard Icon={PenLine} name="Rich text" desc="Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections." />
             </Grid>
             <Note>

@@ -23,6 +23,7 @@ import {
   PlayCircle,
   Eye,
   Building2,
+  BookMarked,
 } from "lucide-react";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
@@ -64,6 +65,7 @@ const SECTIONS = [
   { id: "logos", Icon: ImageIcon, name: "Logo Strip", desc: "Auto-scrolling marquee of partner / client logos. Optional per-logo links, greyscale-on-hover and configurable scroll direction and speed." },
   { id: "brand-grid", Icon: Building2, name: "Brand Grid", desc: "Searchable grid of brand cards with an optional full-bleed photo header (corner-radius cascades from your Brand Kit; overlay supports solid or linear-gradient styles). Per-card eyebrow plus left, centre or right card alignment. Three hover affordances — lift + border, edge-pickable accent bar on any of the four sides, or a clean greyscale-until-hover desaturation. Click any card in the live preview and that brand's row pops open in the editor and scrolls into view." },
   { id: "blog-body", Icon: BookOpen, name: "Blog Body", desc: "Long-form article column with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar can sit left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel." },
+  { id: "blog-index", Icon: BookMarked, name: "Blog Index", desc: "Searchable grid of blog post cards with an optional full-bleed photo header (solid or gradient overlay, in-header or below-grid search input). Each card carries an image, category, date, author, title and excerpt with left, centre or right alignment. Three hover affordances and full click-to-edit on every card. Search-only — no pill chips — by design." },
   { id: "break", Icon: Minus, name: "Break banner", desc: "Full-bleed parallax break with an overlaid heading. Useful to chapterise a long page and re-anchor the reader's attention between sections." },
   { id: "tabs", Icon: Folders, name: "Tabs", desc: "Tabbed content with a side image, heading, body and CTAs per tab. On mobile the tabs collapse to a stacked layout with the image above the copy." },
   { id: "placeholder", Icon: Grid2x2, name: "Grid", desc: "2 × 2 or 2 × 3 image grid with optional links per cell. Image-only by default, with editable alt text for accessibility and SEO." },
@@ -87,7 +89,7 @@ export default function SectionsShowcase() {
             What you can build
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Twenty-four ready-made sections. Mix and match.
+            Twenty-six ready-made sections. Mix and match.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             From hero banners and product showcases to FAQs, testimonials, and

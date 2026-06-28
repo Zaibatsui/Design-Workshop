@@ -254,7 +254,7 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 │   │   │       ├── StudioInspector.jsx     # right-rail accordion settings host
 │   │   │       └── OnboardingTour.jsx      # one-screen first-login walkthrough
 │   │   ├── components/ui/       # Shadcn primitives
-│   │   ├── sections/            # registry.js + 24 section modules + iconLib + shared helpers
+│   │   ├── sections/            # registry.js + 26 section modules + iconLib + shared helpers
 │   │   │                          + sectionMeta / pageTemplateMeta / pageTemplates
 │   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests (488 assertions across 13 files)
 │   │   ├── lib/                 # api client, BrandKitContext, sectionBadges, brand colours, useEscapeKey
