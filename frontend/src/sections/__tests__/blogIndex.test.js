@@ -124,5 +124,29 @@ expect(
   /"blog-index":\s*\(cfg, b\)\s*=>\s*\(\{[\s\S]{0,600}eyebrowAccentColor: pick\(b, "accent_color"\)/.test(bk),
 );
 
+// ── Pick-from-existing-page wiring ────────────────────────────────
+// FormPanel must mount BlogPagePicker + a "Pick from your pages"
+// button that opens it. The pageToBlogCard helper must be the one
+// that turns a picked page into a card so the projection stays
+// centralised in lib/pageBlogMeta (single source of truth).
+expect(
+  "FormPanel imports BlogPagePicker + pageToBlogCard helper",
+  /import BlogPagePicker from "@\/components\/BlogPagePicker"/.test(src) &&
+    /import \{ pageToBlogCard \} from "@\/lib\/pageBlogMeta"/.test(src),
+);
+expect(
+  "FormPanel renders a 'Pick from your pages' button with the expected data-testid",
+  /data-testid="blog-index-pick-from-page"/.test(src) &&
+    /Pick from your pages/.test(src),
+);
+expect(
+  "FormPanel mounts <BlogPagePicker /> tied to the picker state",
+  /<BlogPagePicker[\s\S]{0,400}onPick=\{addItemFromPage\}/.test(src),
+);
+expect(
+  "Picker appends a card with `page_id` so duplicates can be excluded next time",
+  /page_id:\s*page\.page_id/.test(src),
+);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

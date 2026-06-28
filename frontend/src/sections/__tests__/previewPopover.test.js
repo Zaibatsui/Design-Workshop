@@ -27,6 +27,7 @@ function transformFile(filePath) {
 const STUBS = new Set([
   "@/components/FormFields", "@/components/ColorField", "@/components/ImageUpload",
   "@/components/ListEditor", "@/components/PaddingFields", "@/components/FooterLinkEditor",
+  "@/components/BlogPagePicker",
   "@/components/RichTextEditor", "@/components/ui/label", "@/components/ui/input",
   "@/components/ui/button", "@/components/FormGroup", "lucide-react", "react", "sonner",
 ]);

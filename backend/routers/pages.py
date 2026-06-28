@@ -57,11 +57,16 @@ class PageIn(BaseModel):
     blocks: List[BlockIn] = Field(default_factory=list)
     # Optional file-on-create — same contract as SectionIn.collection_id.
     collection_id: Optional[str] = None
+    # Optional public URL where this page is published on the user's
+    # own site/CMS. Used by the Blog Index + Related-articles "pick
+    # from existing page" picker so card links can be auto-populated.
+    public_url: Optional[str] = None
 
 
 class PageUpdate(BaseModel):
     name: Optional[str] = None
     blocks: Optional[List[BlockIn]] = None
+    public_url: Optional[str] = None
 
 
 class Page(BaseModel):
@@ -72,6 +77,8 @@ class Page(BaseModel):
     position: int = 0
     # Optional folder this page is filed under. Null = "unfiled".
     collection_id: Optional[str] = None
+    # Optional published URL — empty/null means "not published yet".
+    public_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -106,6 +113,7 @@ async def _next_head_position(user_id: str) -> int:
 def _coerce_page(doc: Dict[str, Any]) -> Page:
     doc.setdefault("position", 0)
     doc.setdefault("collection_id", None)
+    doc.setdefault("public_url", None)
     return Page(**doc)
 
 
@@ -141,6 +149,7 @@ async def create_page(
         "name": payload.name,
         "blocks": _normalize_blocks(payload.blocks),
         "collection_id": payload.collection_id,
+        "public_url": payload.public_url,
         "position": await _next_head_position(current_user.user_id),
         "created_at": now,
         "updated_at": now,
@@ -172,6 +181,9 @@ async def update_page(
         update["name"] = payload.name
     if payload.blocks is not None:
         update["blocks"] = _normalize_blocks(payload.blocks)
+    if payload.public_url is not None:
+        # Allow clearing via empty string → store null
+        update["public_url"] = payload.public_url or None
     result = await db.pages.find_one_and_update(
         {"page_id": page_id, "user_id": current_user.user_id},
         {"$set": update},

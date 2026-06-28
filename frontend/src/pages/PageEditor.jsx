@@ -27,8 +27,10 @@ import SaveIndicator from "./page-editor/SaveIndicator";
 import StudioToggle from "@/components/studio/StudioToggle";
 import UserMenu from "@/components/UserMenu";
 import CollectionPicker from "@/components/CollectionPicker";
+import PublicUrlField from "@/components/PublicUrlField";
 import PagePreviewFrame from "./page-editor/PagePreviewFrame";
 import SaveAsTemplateDialog from "./page-editor/SaveAsTemplateDialog";
+import { isBlogPage } from "@/lib/pageBlogMeta";
 
 const AUTOSAVE_MS = 1500;
 
@@ -204,6 +206,12 @@ export default function PageEditor({ studio = false }) {
   const renamePage = (name) => {
     setPage((prev) => (prev ? { ...prev, name } : prev));
     queueSave({ name });
+  };
+
+  const setPublicUrl = (publicUrl) => {
+    const trimmed = (publicUrl || "").trim();
+    setPage((prev) => (prev ? { ...prev, public_url: trimmed || null } : prev));
+    queueSave({ public_url: trimmed });
   };
 
   const setBlocks = (nextBlocks) => {
@@ -479,6 +487,12 @@ export default function PageEditor({ studio = false }) {
                 {(page.blocks || []).length} block
                 {(page.blocks || []).length === 1 ? "" : "s"}
               </span>
+              {isBlogPage(page) && (
+                <PublicUrlField
+                  value={page.public_url || ""}
+                  onChange={setPublicUrl}
+                />
+              )}
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <SaveIndicator status={saveStatus} savedAt={savedAt} />
@@ -539,6 +553,12 @@ export default function PageEditor({ studio = false }) {
               {(page.blocks || []).length} block
               {(page.blocks || []).length === 1 ? "" : "s"}
             </span>
+            {isBlogPage(page) && (
+              <PublicUrlField
+                value={page.public_url || ""}
+                onChange={setPublicUrl}
+              />
+            )}
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <SaveIndicator status={saveStatus} savedAt={savedAt} />

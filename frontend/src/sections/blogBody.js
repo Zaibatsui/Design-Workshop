@@ -23,6 +23,7 @@
  * can swipe through widgets one at a time. Pure CSS, no JS.
  */
 import { BookOpen } from "lucide-react";
+import { useState } from "react";
 import {
   FONT_IMPORT,
   baseReset,
@@ -41,6 +42,8 @@ import {
 import ListEditor from "@/components/ListEditor";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
+import BlogPagePicker from "@/components/BlogPagePicker";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FormAccordion, FormGroup } from "@/components/FormGroup";
 import {
@@ -52,6 +55,7 @@ import {
 } from "@/components/FormFields";
 import PaddingFields from "@/components/PaddingFields";
 import RichTextEditor from "@/components/RichTextEditor";
+import { pageToRelatedItem } from "@/lib/pageBlogMeta";
 
 const ID = "blog-body";
 
@@ -330,6 +334,11 @@ ${baseReset(cls, cfg)}
 function FormPanel({ config, onUpdate }) {
   const cfg = { ...defaults(), ...config };
   const widgets = cfg.widgets || [];
+  // When non-null, the BlogPagePicker dialog is open and any pick will
+  // be appended to the related-widget whose id is stored here. Keyed
+  // by widget id (rather than a boolean) so multiple related widgets
+  // can each have their own "Pick" button without colliding.
+  const [pickerForWidgetId, setPickerForWidgetId] = useState(null);
 
   // Generic mutators for the widget list. Each widget is a tagged
   // union keyed off `type`; the per-widget form renders different
@@ -368,6 +377,24 @@ function FormPanel({ config, onUpdate }) {
   const upW = (id, patch) =>
     onUpdate({ widgets: widgets.map((w) => (w.id === id ? { ...w, ...patch } : w)) });
   const upSubList = (wid, items) => upW(wid, { items });
+
+  // Append a related-articles item populated from an existing blog
+  // page. Called by the BlogPagePicker's `onPick` when the user picks
+  // a page after clicking "Pick from your pages" inside a related
+  // widget. The widget id is captured in `pickerForWidgetId`.
+  const addRelatedFromPage = (page) => {
+    if (!pickerForWidgetId) return;
+    const w = widgets.find((x) => x.id === pickerForWidgetId);
+    if (!w) return;
+    const item = { id: makeUid(), ...pageToRelatedItem(page), page_id: page.page_id };
+    upSubList(w.id, [...(w.items || []), item]);
+  };
+  const pickerWidget = pickerForWidgetId
+    ? widgets.find((w) => w.id === pickerForWidgetId)
+    : null;
+  const pickerExcludeIds = (pickerWidget?.items || [])
+    .map((i) => i.page_id)
+    .filter(Boolean);
 
   return (
     <FormAccordion sectionType="blog-body">
@@ -443,7 +470,21 @@ function FormPanel({ config, onUpdate }) {
                 <TextField label="Heading" value={w.heading || ""} onChange={(v) => upW(w.id, { heading: v })} />
               )}
               {w.type === "related" && (
-                <ListEditor
+                <>
+                  <div className="flex items-center justify-end -mt-1 mb-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setPickerForWidgetId(w.id)}
+                      data-testid={`related-pick-from-page-${w.id}`}
+                      className="h-8 gap-1.5 text-[12px]"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      Pick from your pages
+                    </Button>
+                  </div>
+                  <ListEditor
                   items={w.items || []}
                   onAdd={() => upSubList(w.id, [...(w.items || []), { id: makeUid(), title: "New article", excerpt: "", image: "", link: "#" }])}
                   onRemove={(rid) => upSubList(w.id, (w.items || []).filter((i) => i.id !== rid))}
@@ -478,6 +519,7 @@ function FormPanel({ config, onUpdate }) {
                     </>
                   )}
                 />
+                </>
               )}
               {w.type === "tags" && (
                 <ListEditor
@@ -544,6 +586,15 @@ function FormPanel({ config, onUpdate }) {
         <ToggleField label="Make wide" description="Stretch background to full viewport width" checked={!!cfg.fullBleed} onChange={(v) => onUpdate({ fullBleed: v })} />
         <PaddingFields config={cfg} onUpdate={onUpdate} defaultValue={64} max={160} sideMax={120} testidPrefix="bb" />
       </FormGroup>
+
+      <BlogPagePicker
+        open={pickerForWidgetId !== null}
+        onOpenChange={(o) => !o && setPickerForWidgetId(null)}
+        onPick={addRelatedFromPage}
+        excludePageIds={pickerExcludeIds}
+        title="Pick a related article"
+        description="The page's name, content and first image fill the related-card automatically. Edit anything after."
+      />
     </FormAccordion>
   );
 }

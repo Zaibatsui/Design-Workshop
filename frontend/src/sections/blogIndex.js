@@ -15,7 +15,8 @@
  *
  * No external runtime libs. Pure HTML/CSS/JS in a scoped IIFE.
  */
-import { Newspaper } from "lucide-react";
+import { Newspaper, BookOpen } from "lucide-react";
+import { useState } from "react";
 import {
   FONT_IMPORT,
   baseReset,
@@ -34,7 +35,9 @@ import {
 import ListEditor from "@/components/ListEditor";
 import ColorField from "@/components/ColorField";
 import ImageUpload from "@/components/ImageUpload";
+import BlogPagePicker from "@/components/BlogPagePicker";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { FormAccordion, FormGroup } from "@/components/FormGroup";
 import {
   SelectField,
@@ -44,6 +47,7 @@ import {
   ToggleField,
 } from "@/components/FormFields";
 import PaddingFields from "@/components/PaddingFields";
+import { pageToBlogCard } from "@/lib/pageBlogMeta";
 
 const ID = "blog-index";
 
@@ -375,10 +379,29 @@ ${cfg.hoverEffect === "bar" ? barRule : ""}
 function FormPanel({ config, onUpdate }) {
   const cfg = { ...defaults(), ...config };
   const items = cfg.items || [];
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const addItem = () => onUpdate({
     items: [...items, { id: makeUid(), title: "New article", excerpt: "Short summary.", image: "", imageAlt: "", category: "", author: "", date: "", link: "#", openInSameTab: false }],
   });
+  const addItemFromPage = (page) => {
+    const card = pageToBlogCard(page);
+    onUpdate({
+      items: [
+        ...items,
+        {
+          id: makeUid(),
+          ...card,
+          // Preserve a free-form "Open in same tab" default; the picker
+          // doesn't infer this.
+          openInSameTab: false,
+          // Annotate the linked page so future syncs / unique-page
+          // dedupe can find this card again.
+          page_id: page.page_id,
+        },
+      ],
+    });
+  };
   const removeItem = (id) => onUpdate({ items: items.filter((i) => i.id !== id) });
   const moveItem = (id, dir) => {
     const idx = items.findIndex((i) => i.id === id);
@@ -435,6 +458,30 @@ function FormPanel({ config, onUpdate }) {
       </FormGroup>
 
       <FormGroup title="Posts" value="posts">
+        <div className="flex items-center justify-between gap-2 -mt-1 mb-1">
+          <p className="text-xs text-slate-500 leading-snug">
+            Add a card manually, or pull one from an existing Blog Body page.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setPickerOpen(true)}
+            data-testid="blog-index-pick-from-page"
+            className="h-8 gap-1.5 text-[12px] flex-shrink-0"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            Pick from your pages
+          </Button>
+        </div>
+        <BlogPagePicker
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          onPick={addItemFromPage}
+          excludePageIds={items.map((i) => i.page_id).filter(Boolean)}
+          title="Pick a blog page"
+          description="The page's name, content, author and updated date fill the card automatically. Edit anything after."
+        />
         <ListEditor
           items={items}
           onAdd={addItem}

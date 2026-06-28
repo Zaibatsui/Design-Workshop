@@ -32,6 +32,7 @@ const STUBS = new Set([
   "@/components/ImageUpload",
   "@/components/ListEditor",
   "@/components/RichTextEditor",
+  "@/components/BlogPagePicker",
   "@/components/PaddingFields",
   "@/components/FooterLinkEditor",
   "@/components/FormGroup",

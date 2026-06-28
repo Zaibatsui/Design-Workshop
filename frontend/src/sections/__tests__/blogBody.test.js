@@ -105,5 +105,29 @@ expect(
   /"blog-body":\s*\(cfg, b\)\s*=>\s*\(\{[\s\S]{0,600}eyebrowAccentColor: pick\(b, "accent_color"\)/.test(bk),
 );
 
+// ── Pick-from-existing-page wiring on the Related-articles widget ─
+// The FormPanel must mount BlogPagePicker + a "Pick from your pages"
+// button next to each Related widget's items list. The chosen page
+// is appended via the centralised pageToRelatedItem helper so the
+// projection logic isn't duplicated in this file.
+expect(
+  "FormPanel imports BlogPagePicker + pageToRelatedItem helper",
+  /import BlogPagePicker from "@\/components\/BlogPagePicker"/.test(src) &&
+    /import \{ pageToRelatedItem \} from "@\/lib\/pageBlogMeta"/.test(src),
+);
+expect(
+  "Related-widget renders a 'Pick from your pages' button (testid scoped per widget id)",
+  /data-testid=\{`related-pick-from-page-\$\{w\.id\}`\}/.test(src) &&
+    /Pick from your pages/.test(src),
+);
+expect(
+  "FormPanel mounts <BlogPagePicker /> wired to the per-widget picker state",
+  /<BlogPagePicker[\s\S]{0,400}onPick=\{addRelatedFromPage\}/.test(src),
+);
+expect(
+  "Picker appends a related item with `page_id` so duplicates can be excluded next time",
+  /page_id:\s*page\.page_id/.test(src),
+);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -41,6 +41,7 @@ const STUBS = new Set([
   "@/components/ListEditor",
   "@/components/PaddingFields",
   "@/components/FooterLinkEditor",
+  "@/components/BlogPagePicker",
   "@/components/RichTextEditor",
   "@/components/ui/label",
   "@/components/ui/input",
