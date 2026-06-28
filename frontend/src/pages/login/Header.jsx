@@ -21,7 +21,7 @@ export default function Header() {
           <div
             className={`w-8 h-8 rounded-md flex items-center justify-center ${BRAND.iconBoxClass}`}
           >
-            <BRAND.Icon className="w-3.5 h-3.5" />
+            <BRAND.Icon className="w-full h-full object-contain" />
           </div>
           <div className="leading-none">
             <span className="block font-heading text-[15px] font-semibold tracking-tight text-slate-900">

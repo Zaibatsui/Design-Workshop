@@ -548,7 +548,7 @@ export default function PageEditor({ studio = false }) {
             <div
               className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${BRAND.iconBoxClass}`}
             >
-              <BRAND.Icon className="w-3 h-3" />
+              <BRAND.Icon className="w-full h-full object-contain" />
             </div>
             <Input
               value={page.name}

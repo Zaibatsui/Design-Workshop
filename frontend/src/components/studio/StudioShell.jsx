@@ -122,7 +122,7 @@ export default function StudioShell({ active, children, headerActions = null }) 
       <header className="flex items-center justify-between h-14 px-4 bg-white border-b border-zinc-200 flex-shrink-0">
         <Link to="/" className="flex items-center gap-2" data-testid="studio-shell-logo">
           <div className={`w-7 h-7 rounded-md flex items-center justify-center ${BRAND.iconBoxClass}`}>
-            <BRAND.Icon className="w-3.5 h-3.5" />
+            <BRAND.Icon className="w-full h-full object-contain" />
           </div>
           <span
             className="text-[14px] font-semibold tracking-tight"

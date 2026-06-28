@@ -197,7 +197,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
             </Link>
             <div className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-md flex items-center justify-center ${BRAND.iconBoxClass}`}>
-                <BRAND.Icon className="w-4 h-4" />
+                <BRAND.Icon className="w-full h-full object-contain" />
               </div>
               <span className="font-heading text-base font-semibold tracking-tight leading-none">
                 Brand kit

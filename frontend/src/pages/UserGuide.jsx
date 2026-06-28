@@ -709,7 +709,7 @@ function Header() {
           <div
             className={`w-7 h-7 rounded-md flex items-center justify-center ${BRAND.iconBoxClass}`}
           >
-            <BRAND.Icon className="w-3 h-3" />
+            <BRAND.Icon className="w-full h-full object-contain" />
           </div>
           <span className="font-heading text-sm font-semibold tracking-tight text-slate-900">
             {BRAND.name} Guide

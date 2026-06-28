@@ -173,7 +173,7 @@ export default function Dashboard({ chromeless = false }) {
             <div
               className={`w-8 h-8 rounded-md flex items-center justify-center ${BRAND.iconBoxClass}`}
             >
-              <BRAND.Icon className="w-4 h-4" />
+              <BRAND.Icon className="w-full h-full object-contain" />
             </div>
             <span className="font-heading text-base font-semibold tracking-tight leading-none">
               {BRAND.name}

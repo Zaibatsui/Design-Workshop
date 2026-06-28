@@ -45,7 +45,7 @@ export default function FooterCTA() {
             <div
               className={`w-5 h-5 rounded-sm flex items-center justify-center ${BRAND.iconBoxClass}`}
             >
-              <BRAND.Icon className="w-2.5 h-2.5" />
+              <BRAND.Icon className="w-full h-full object-contain" />
             </div>
             <span className="tracking-tight">
               {BRAND.name} · A Zaibatsui Labs project
