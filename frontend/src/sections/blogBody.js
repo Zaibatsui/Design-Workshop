@@ -35,6 +35,7 @@ import {
   padTopOf,
   padBotOf,
   padXOf,
+  richBodyResetCss,
   safeColor,
   safeUrl,
   wrapSnippet,
@@ -280,11 +281,8 @@ ${baseReset(cls, cfg)}
 .${cls} .ns-main h1,.${cls} .ns-main h2,.${cls} .ns-main h3,.${cls} .ns-main h4{color:${titleColor};margin:1.6em 0 .5em;line-height:1.25}
 .${cls} .ns-main h2{font-size:24px;font-weight:700}
 .${cls} .ns-main h3{font-size:19px;font-weight:600}
-.${cls} .ns-main p{margin:0 0 1em}
-.${cls} .ns-main ul,.${cls} .ns-main ol{margin:0 0 1.2em 1.4em}
-.${cls} .ns-main li{margin:.3em 0}
-.${cls} .ns-main a{color:${accent};text-decoration:underline;text-underline-offset:2px}
 .${cls} .ns-main strong{color:${titleColor}}
+${richBodyResetCss(`.${cls} .ns-main`, { paraSpacing: 16, linkColor: accent })}
 .${cls} .ns-sidebar{flex:0 0 ${sidebarWidth}px;max-width:${sidebarWidth}px;display:flex;flex-direction:column;gap:20px}
 .${cls}.ns-pos-below .ns-sidebar{flex-basis:auto;max-width:none}
 .${cls}.ns-sticky .ns-sidebar{position:sticky;top:24px;align-self:flex-start}

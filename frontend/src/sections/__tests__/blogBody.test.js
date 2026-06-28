@@ -105,6 +105,25 @@ expect(
   /"blog-body":\s*\(cfg, b\)\s*=>\s*\(\{[\s\S]{0,600}eyebrowAccentColor: pick\(b, "accent_color"\)/.test(bk),
 );
 
+// ── Bullet / numbered-list rendering regression guard ─────────────
+// `baseReset` clobbers list-style with `list-style:none!important` to
+// stop hosts' CSS from inheriting bullets. That means rich-text body
+// content authored via the Tiptap editor loses its bullets unless the
+// section explicitly re-enables them through `richBodyResetCss`. This
+// section is the most editorial of any, so we lock the rule in.
+expect(
+  "Blog Body imports the shared richBodyResetCss helper",
+  /richBodyResetCss/.test(src) &&
+    /import \{[\s\S]{0,400}richBodyResetCss[\s\S]{0,400}\} from "\.\/shared"/.test(src),
+);
+expect(
+  "Blog Body's CSS calls richBodyResetCss against the .ns-main scope so bullets, numbers and link colour render in the snippet",
+  /\$\{richBodyResetCss\(`\.\$\{cls\} \.ns-main`/.test(src),
+);
+
+console.log(`\n${pass} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);
+
 // ── Pick-from-existing-page wiring on the Related-articles widget ─
 // The FormPanel must mount BlogPagePicker + a "Pick from your pages"
 // button next to each Related widget's items list. The chosen page
