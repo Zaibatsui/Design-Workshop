@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -31,7 +31,6 @@ import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
 import LandingSpotlightsPicker from "./brand-kit/LandingSpotlightsPicker";
 import { useAuth } from "@/auth/AuthContext";
 import UserMenu from "@/components/UserMenu";
-import StudioToggle from "@/components/studio/StudioToggle";
 
 export default function BrandKitPage({ chromeless = false, hideImageLibrary = false }) {
   const { user } = useAuth();
@@ -236,7 +235,6 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
               <Save className="w-4 h-4 mr-1.5" />
               {saving ? "Saving…" : "Save"}
             </Button>
-            <StudioToggle />
             <UserMenu />
           </div>
         </div>

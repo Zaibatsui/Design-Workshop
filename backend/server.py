@@ -136,11 +136,12 @@ app.include_router(api_router)
 # Google redirect dance. Uses a separate signed cookie ("session") that's
 # only read during /api/auth/google/* — our app session is a separate
 # "session_token" cookie tied to user_sessions in MongoDB.
+_https_only = os.environ.get("HTTPS_ONLY", "true").lower() != "false"
 app.add_middleware(
     SessionMiddleware,
     secret_key=OAUTH_STATE_SECRET,
     same_site="lax",
-    https_only=True,
+    https_only=_https_only,
     max_age=600,
 )
 

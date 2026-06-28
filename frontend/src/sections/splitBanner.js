@@ -198,7 +198,7 @@ function render(cfg) {
   // child columns still lay out correctly. Otherwise we keep the
   // plain <div>.
   const gridTag = linkSection
-    ? `<a class="ns-grid ns-link" href="${escAttr(ctaHref)}" target="${ctaTarget}"${ctaRel} aria-label="${escAttr(cfg.heading || cta || "Open")}">`
+    ? `<a class="ns-grid ns-link" href="${escAttr(ctaHref)}" target="${ctaTarget}"${ctaRel} aria-label="${escAttr(cfg.heading ? `${cfg.heading}${cta ? ` — ${cta}` : ""}` : cta || "View more")}">`
     : `<div class="ns-grid">`;
   const gridClose = linkSection ? `</a>` : `</div>`;
 

@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import UserMenu from "@/components/UserMenu";
-import StudioToggle from "@/components/studio/StudioToggle";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -156,7 +155,6 @@ export default function MyTicketsPage({ chromeless = false }) {
               />
               Refresh
             </Button>
-            <StudioToggle />
             <UserMenu />
           </div>
         </div>

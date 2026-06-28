@@ -112,7 +112,7 @@ function render(cfg) {
   const buttonsHtml = tabs
     .map(
       (tab, i) =>
-        `<button class="ns-tab${i === 0 ? " is-active" : ""}" type="button" data-ns-tab="${escAttr(tab.id)}" data-ns-list="tab" data-ns-item="${i}">${escHtml(tab.label)}</button>`
+        `<button class="ns-tab${i === 0 ? " is-active" : ""}" type="button" role="tab" aria-selected="${i === 0 ? "true" : "false"}" aria-controls="ns-panel-${escAttr(tab.id)}" id="ns-tab-${escAttr(tab.id)}" data-ns-tab="${escAttr(tab.id)}" data-ns-list="tab" data-ns-item="${i}">${escHtml(tab.label)}</button>`
     )
     .join("");
 
@@ -172,7 +172,7 @@ function render(cfg) {
       const imgHtml = imgTag && imgUrl
         ? `<a class="ns-image-link" href="${escAttr(imgUrl)}" target="${tab.imageOpenInSameTab ? "_self" : "_blank"}"${tab.imageOpenInSameTab ? "" : ' rel="noopener noreferrer"'}>${imgTag}</a>`
         : imgTag;
-      return `<div class="ns-panel${i === 0 ? " is-active" : ""}" data-ns-panel="${escAttr(tab.id)}">
+      return `<div class="ns-panel${i === 0 ? " is-active" : ""}" role="tabpanel" id="ns-panel-${escAttr(tab.id)}" aria-labelledby="ns-tab-${escAttr(tab.id)}" data-ns-panel="${escAttr(tab.id)}">
   <div class="ns-split">
     <div class="ns-copy">
       <h2 class="ns-heading">${escHtml(tab.heading)}</h2>
@@ -251,6 +251,8 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 .${cls} .ns-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
 .${cls} .ns-btn{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 22px;font-size:14px;font-weight:600;border-radius:${num(cfg.buttonRadius, 8)}px;text-decoration:none;transition:transform .15s ease,filter .15s ease,background .15s ease,color .15s ease,border-color .15s ease}
 .${cls} .ns-btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.${cls} .ns-tab:focus-visible{outline:2px solid var(--ns-accent);outline-offset:2px}
+.${cls} .ns-btn:focus-visible{outline:2px solid var(--ns-accent);outline-offset:2px}
 .${cls} .ns-btn-primary{background:var(--ns-accent);color:#fff;border:1px solid var(--ns-accent)}
 .${cls} .ns-btn-secondary{background:transparent;color:var(--ns-accent);border:1px solid var(--ns-accent)}
 .${cls} .ns-btn-secondary:hover{background:var(--ns-accent);color:#fff}
@@ -262,14 +264,14 @@ ${imageOnLeft ? `.${cls} .ns-copy{order:2}.${cls} .ns-image{order:1}` : ""}
 
   const html = `<section class="ns-tabs ${cls}${fullBleedClass(cfg)}" style="${styleVars}" data-ns-group="defaults">
   <div class="ns-inner">
-    ${headerHtml}<div class="ns-tabs-row">${buttonsHtml}</div>
+    ${headerHtml}<div class="ns-tabs-row" role="tablist">${buttonsHtml}</div>
     <div class="ns-panels">${panelsHtml}</div>
   </div>
 </section>`;
 
   const js = iife(
     cls,
-    `var btns=root.querySelectorAll(".ns-tab");var panels=root.querySelectorAll(".ns-panel");function activate(i){if(i<0||i>=btns.length)return;btns.forEach(function(b,j){b.classList.toggle("is-active",j===i);});var id=btns[i]&&btns[i].getAttribute("data-ns-tab");panels.forEach(function(p){p.classList.toggle("is-active",p.getAttribute("data-ns-panel")===id);});}activate(0);btns.forEach(function(btn,i){btn.addEventListener("click",function(){activate(i);});});window.addEventListener("message",function(e){var d=e&&e.data;if(!d||typeof d!=="object")return;if(d.type==="ns-focus-item"&&d.list==="tab"&&typeof d.index==="number"){activate(d.index);}});`
+    `var btns=root.querySelectorAll(".ns-tab");var panels=root.querySelectorAll(".ns-panel");function activate(i){if(i<0||i>=btns.length)return;btns.forEach(function(b,j){b.classList.toggle("is-active",j===i);b.setAttribute("aria-selected",j===i?"true":"false");});var id=btns[i]&&btns[i].getAttribute("data-ns-tab");panels.forEach(function(p){p.classList.toggle("is-active",p.getAttribute("data-ns-panel")===id);});}activate(0);btns.forEach(function(btn,i){btn.addEventListener("click",function(){activate(i);});});window.addEventListener("message",function(e){var d=e&&e.data;if(!d||typeof d!=="object")return;if(d.type==="ns-focus-item"&&d.list==="tab"&&typeof d.index==="number"){activate(d.index);}});`
   );
 
   return wrapSnippet({ html, css, js });

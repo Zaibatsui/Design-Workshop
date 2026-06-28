@@ -65,12 +65,6 @@ class User(BaseModel):
     last_login_at: Optional[datetime] = None
     is_active: bool = True
     is_admin: bool = False
-    # UI shell preference: "studio" (default, the new Workspace + Inspector
-    # chrome) or "classic" (the original layout, kept as an opt-out path
-    # for users who prefer it). Available to every user; persisted on
-    # the user record so the choice survives across sessions. Toggled
-    # via PATCH /api/auth/me/ui-mode and surfaced in the header pill.
-    ui_mode: str = "studio"
     # Whether the user has completed the first-login onboarding tour
     # (the 4-step "what's in Studio" walkthrough shown to new accounts).
     # Persisted so the tour fires exactly once across all devices.

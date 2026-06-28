@@ -41,6 +41,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       OAUTH_STATE_SECRET: ${OAUTH_STATE_SECRET}
       ADMIN_EMAILS: ${ADMIN_EMAILS}
+      HTTPS_ONLY: ${HTTPS_ONLY:-true}
     volumes:
       - uploads-data:/var/uploads
 

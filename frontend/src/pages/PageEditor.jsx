@@ -24,7 +24,6 @@ import BlockAdder from "./page-editor/BlockAdder";
 import BlockEditorDrawer from "./page-editor/BlockEditorDrawer";
 import EmptyBlockEditor from "./page-editor/EmptyBlockEditor";
 import SaveIndicator from "./page-editor/SaveIndicator";
-import StudioToggle from "@/components/studio/StudioToggle";
 import UserMenu from "@/components/UserMenu";
 import CollectionPicker from "@/components/CollectionPicker";
 import PublicUrlField from "@/components/PublicUrlField";
@@ -528,8 +527,6 @@ export default function PageEditor({ studio = false }) {
                 <span className="hidden xl:inline">Save as template</span>
               </Button>
               <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
-              <StudioToggle />
-              <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
               <Button
                 data-testid="copy-page-snippet-button"
                 onClick={copySnippet}
@@ -599,7 +596,6 @@ export default function PageEditor({ studio = false }) {
               <Copy className="w-4 h-4 mr-2" />
               Copy page snippet
             </Button>
-            <StudioToggle />
             <UserMenu />
           </div>
         </div>

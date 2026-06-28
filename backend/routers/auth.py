@@ -117,38 +117,8 @@ async def auth_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-class UIModeUpdate(BaseModel):
-    ui_mode: str
-
-
 class IdleMinutesUpdate(BaseModel):
     session_idle_minutes: int
-
-
-@router.patch("/me/ui-mode", response_model=User)
-async def update_ui_mode(
-    payload: UIModeUpdate,
-    current_user: User = Depends(get_current_user),
-):
-    """Switch between the Classic and Studio UI shells.
-
-    Studio is the default for every user; Classic is an opt-out path.
-    The choice is persisted on the user document so it sticks across
-    sessions and browsers.
-    """
-    if payload.ui_mode not in ("classic", "studio"):
-        raise HTTPException(
-            status_code=400, detail="ui_mode must be 'classic' or 'studio'"
-        )
-    await db.users.update_one(
-        {"user_id": current_user.user_id},
-        {"$set": {"ui_mode": payload.ui_mode}},
-    )
-    updated = await db.users.find_one(
-        {"user_id": current_user.user_id}, {"_id": 0}
-    )
-    updated["is_admin"] = current_user.is_admin
-    return User(**updated)
 
 
 @router.post("/me/onboarded", response_model=User)

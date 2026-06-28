@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -26,7 +26,6 @@ import {
   SnippetDrawer,
   AdminPreviewOverrideToggle,
 } from "@/components/EditorBits";
-import StudioToggle from "@/components/studio/StudioToggle";
 import UserMenu from "@/components/UserMenu";
 import CollectionPicker from "@/components/CollectionPicker";
 import PublicUrlField from "@/components/PublicUrlField";
@@ -463,7 +462,6 @@ export default function Editor() {
               <Copy className="w-4 h-4 mr-2" />
               Copy HTML Snippet
             </Button>
-            <StudioToggle />
             <UserMenu />
           </div>
         </div>

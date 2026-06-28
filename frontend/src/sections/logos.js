@@ -76,7 +76,7 @@ function render(cfg) {
       const imgTag = `<img src="${escAttr(img)}" alt="${escAttr(logo.alt || "")}"/>`;
       const linkHref = (logo.link || "").trim();
       const inner = linkHref
-        ? `<a href="${escAttr(safeUrl(linkHref))}" target="_blank" rel="noopener noreferrer" aria-label="${escAttr(logo.alt || "Visit link")}">${imgTag}</a>`
+        ? `<a href="${escAttr(safeUrl(linkHref))}" target="_blank" rel="noopener noreferrer" aria-label="${escAttr(logo.alt ? `Visit ${logo.alt}` : "Visit website")}">${imgTag}</a>`
         : imgTag;
       return `<div class="ns-item" data-ns-original data-ns-list="logo" data-ns-item="${idx}">${inner}</div>`;
     })
@@ -113,7 +113,8 @@ ${baseReset(cls)}
 .${cls} .ns-item img{height:var(--ns-h);width:auto;object-fit:contain}
 .${cls} .ns-item a{display:flex;align-items:center;justify-content:center;width:100%;height:100%;text-decoration:none;outline-offset:4px}
 @keyframes ${animName}{to{transform:translateX(-50%)}}
-.${cls}:hover .ns-track{animation-play-state:paused}
+.${cls}:hover .ns-track,.${cls}:focus-within .ns-track{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.${cls} .ns-track{animation:none}}
 ${fadeCss}
 ${greyCss}
 ${footerLinkCss(cls, safeColor(cfg.accentColor, "#E01839"))}

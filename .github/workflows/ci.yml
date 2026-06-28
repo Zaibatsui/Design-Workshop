@@ -39,7 +39,6 @@ jobs:
       GOOGLE_CLIENT_ID: ci-not-used
       GOOGLE_CLIENT_SECRET: ci-not-used
       ADMIN_EMAILS: admin@ci.local
-      EMERGENT_LLM_KEY: ci-not-used
 
     steps:
       - uses: actions/checkout@v4

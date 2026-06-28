@@ -9,7 +9,7 @@
 
 Build hero banners, product carousels, FAQs, testimonials, stat counters and more — theme them with a Brand Kit, drag-stack them into Pages, then drop the resulting standalone HTML into Shopify, WordPress, Squarespace, Wix, Webflow, BigCommerce, Magento, Nettailer or any other tool that accepts a custom HTML block. No React, no jQuery, no CDN calls at runtime. Just markup.
 
-[Why this exists](#why-this-exists) · [Features](#features) · [Studio mode](#studio-mode) · [Architecture](#architecture) · [Local development](#local-development) · [Self-hosted production](#production-deployment) · [Changelog](CHANGELOG.md)
+[Why this exists](#why-this-exists) · [Features](#features) · [Architecture](#architecture) · [Local development](#local-development) · [Self-hosted production](#production-deployment) · [Changelog](CHANGELOG.md)
 
 </div>
 
@@ -113,7 +113,7 @@ A header **"What's new"** sheet lists every currently-badged section and templat
 
 ### Internal ticketing
 
-Built-in **Report a bug / Request a feature** flow from the header of every Studio / Classic screen. Tickets live in MongoDB; admins triage them at `/admin/tickets`, users see their own at `/my-tickets`. Statuses: **Open**, **Complete**, **Rejected** — the admin can flip any ticket to any status, and the reporter sees a coloured pill on their My Tickets page when something moves.
+Built-in **Report a bug / Request a feature** flow from the header of every screen. Tickets live in MongoDB; admins triage them at `/admin/tickets`, users see their own at `/my-tickets`. Statuses: **Open**, **Complete**, **Rejected** — the admin can flip any ticket to any status, and the reporter sees a coloured pill on their My Tickets page when something moves.
 
 **Reply threads with strict turn-taking.** Both admins and reporters can reply to any ticket; the server enforces a one-reply-per-turn rule (`POST /api/tickets/{id}/replies` returns 409 if the caller is the side that last spoke). The original submission counts as the reporter's first turn, so admins always speak next. Either side's badge fires when the other replies: `admin_seen` flips False on reporter replies, `reporter_seen` flips False on admin replies.
 
@@ -146,29 +146,27 @@ The Product Carousel scraper handles VAT-toggling storefronts as a first-class c
 
 Long-form documentation at `/guide` with a scroll-spy table of contents, organised by user goal rather than feature taxonomy. Includes Quickstart (5 min), Dashboard tour, section-by-section reference, Brand Kit walkthrough, image hosting guidance, copy-and-paste flow, page templates, and a tips list.
 
-## Studio mode
+## Editor chrome
 
-Studio is the cleaner, opinionated UI that ships as the **default for every new user**. Existing users can flip between Studio and Classic via the `Studio` / `Classic` pill in the top-right of any screen; the preference persists via `PATCH /api/auth/me/ui-mode` and survives sign-out / sign-in. A one-screen **first-login onboarding tour** walks new users through the rail, the canvas and the inspector — dismissable, never replayed (the user record carries an `onboarded` flag).
+Both the Section editor (`/edit/section/:id`) and the Page editor (`/edit/page/:id`) use the same three-column shell:
+
+- **Left rail** — full-height, collapsible outline column. The PanelLeft icon flips it between a w-64 outline (with the section's anchor groups + active-section indicator) and a w-16 icon-only rail; preference persists in `localStorage`.
+- **Centre canvas** — single h-14 header bar with editable section / page name, type label, action buttons (`Apply brand kit`, `Reset to defaults`, `SaveIndicator`) and a 200px **Copy snippet** primary button. Below it: a "Canvas" toolbar with the Desktop / Tablet / Mobile viewport switcher, then the live-preview iframe.
+- **Right inspector** — 350px-wide full-height column with the section / block's settings grouped into **Content / Design / Advanced** tabs. Drag-resizable preview height (Section editor) is kept in `localStorage`.
+
+`StudioShell` wraps every non-editor page — Library, Templates, Brand Kit, Image library, Tickets, Admin · Tickets, Admin · Users, Guide — with a slim header (Design Workshop wordmark, What's new, Report, user menu) and a 56px-wide workspace sidebar. Sidebar items render badge counts where relevant (tickets) and become active based on the current route.
+
+A one-screen **first-login onboarding tour** walks new users through the sidebar, the canvas and the inspector — dismissable, never replayed (the user record carries an `onboarded` flag).
 
 ### Click-to-edit bridge
 
-The biggest difference vs. Classic mode is a **bidirectional click-to-edit** bridge between the preview iframe and the inspector:
+A **bidirectional click-to-edit** bridge connects the preview iframe and the inspector:
 
-- **Preview → editor.** Every section's `render()` decorates its DOM with `data-ns-group`, `data-ns-list` and `data-ns-item` markers (these are stripped on snippet export — they only exist inside the editor's iframe). Clicking any decorated element posts `{type: "ns-preview-click", group, list, itemIndex}` to the parent window, which opens the matching accordion in the inspector and scrolls the field into view. Clicking a product card in a carousel, a slide in the hero, or a Q in the FAQ jumps the inspector straight to that row's editor.
+- **Preview → editor.** Every section's `render()` decorates its DOM with `data-ns-group`, `data-ns-list` and `data-ns-item` markers (stripped on snippet export — only present inside the editor's iframe). Clicking any decorated element posts `{type: "ns-preview-click", group, list, itemIndex}` to the parent window, which opens the matching accordion in the inspector and scrolls the field into view. Clicking a product card in a carousel, a slide in the hero, or a Q in the FAQ jumps the inspector straight to that row's editor.
 - **Editor → preview.** Opening a list row in the inspector posts `{type: "ns-focus-item", list, index}` back into the iframe, which scrolls the matching DOM node into view. So when you expand "Slide 3" in the inspector, the hero preview slides to slide 3.
-- **`<summary>` / `<details>` interplay.** The click bridge skips `preventDefault()` whenever the click target sits inside a `<summary>`, so the FAQ accordion's native open / close still fires alongside the editor jump. (You get both behaviours from one click — the answer expands AND the question's editor row opens.)
+- **`<summary>` / `<details>` interplay.** The click bridge skips `preventDefault()` whenever the click target sits inside a `<summary>`, so the FAQ accordion's native open / close still fires alongside the editor jump.
 
 The bridge code lives in `frontend/src/sections/shared.js` (`clickBridgeJs` + `focusBridgeJs`) and is gated by `withClickBridge: true`, which is only set when the editor renders the preview. Exported snippets ship with the bridge code absent — a copy-pasted snippet on a live storefront is fully inert.
-
-### Studio chrome
-
-Both the Section editor (`/edit/section/:id`) and the Page editor (`/edit/page/:id`) in Studio mode use the same three-column shell:
-
-- **Left rail** — full-height, collapsible outline column. The PanelLeft icon flips it between a w-64 outline (with the section's anchor groups + active-section indicator) and a w-16 icon-only rail; preference persists in `localStorage`.
-- **Centre canvas** — single h-14 header bar with editable section / page name, type label, action buttons (`Apply brand kit`, `Reset to defaults`, `SaveIndicator`, `Studio / Classic` toggle) and a 200px **Copy snippet** primary button. Below it: a "Canvas" toolbar with the Desktop / Tablet / Mobile viewport switcher, then the live-preview iframe.
-- **Right inspector** — 350px-wide full-height column with the section / block's settings accordion. Drag-resizable preview height (Section editor) is kept in `localStorage`.
-
-The Studio shell itself (`StudioShell`) wraps every non-editor page — Library, Templates, Brand Kit, Image library, Tickets, Admin · Tickets, Admin · Users, Guide — with a slim header (Design Workshop wordmark, What's new, Report, Studio / Classic toggle, user menu) and a 56px-wide workspace sidebar. Sidebar items render badge counts where relevant (tickets) and become active based on the current route.
 
 ## Architecture
 
@@ -222,7 +220,7 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 │   ├── deps.py                  # get_current_user / require_admin / ADMIN_EMAILS env-driven allowlist
 │   ├── storage.py               # local-fs object storage (pluggable)
 │   ├── routers/
-│   │   ├── auth.py              # /api/auth/google/{login,callback,logout,me}, ui-mode + onboarded
+│   │   ├── auth.py              # /api/auth/google/{login,callback,logout,me}, onboarded, idle-minutes
 │   │   ├── sections.py          # /api/sections CRUD + duplicate + reorder
 │   │   ├── pages.py             # /api/pages CRUD + duplicate + reorder
 │   │   ├── page_templates.py    # custom user templates
@@ -240,18 +238,16 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── Dashboard.jsx               # classic mode
-│   │   │   ├── Editor.jsx                  # classic section editor
-│   │   │   ├── PageEditor.jsx              # studio + classic page editor (shared)
-│   │   │   ├── BrandKit.jsx, ImageLibrary.jsx, UserGuide.jsx
-│   │   │   ├── AdminTickets.jsx, MyTickets.jsx, AdminUsers.jsx
-│   │   │   └── studio/                     # Studio-mode wrappers
-│   │   │       ├── Dashboard.jsx           # Library, wrapped in <StudioShell>
-│   │   │       ├── Editor.jsx              # Studio section editor (3-col w/ collapsible outline)
+│   │   │   ├── PageEditor.jsx              # shared page editor (used by studio/PageEditor.jsx)
+│   │   │   ├── Dashboard.jsx, BrandKit.jsx, Editor.jsx  # chromeless content shells (wrapped by studio/)
+│   │   │   ├── UserGuide.jsx, AdminTickets.jsx, MyTickets.jsx, AdminUsers.jsx
+│   │   │   └── studio/                     # top-level pages (all wrapped in StudioShell)
+│   │   │       ├── Dashboard.jsx           # Library
+│   │   │       ├── Editor.jsx              # section editor (3-col: outline + canvas + inspector)
 │   │   │       ├── PageEditor.jsx          # passes `studio` prop to shared PageEditor
-│   │   │       ├── Templates.jsx           # /templates (Studio only)
+│   │   │       ├── Templates.jsx           # /templates
 │   │   │       ├── Tickets.jsx             # exports StudioMyTickets + StudioAdminTickets
-│   │   │       └── BrandKit, ImageLibrary, UserGuide, AdminUsers (all chromeless shells)
+│   │   │       └── BrandKit, ImageLibrary, UserGuide, AdminUsers
 │   │   ├── pages/login/         # Marketing sub-components (Hero, FAQ, LiveDemo, Spotlights, …)
 │   │   ├── pages/brand-kit/     # LandingDemoPicker, LandingSpotlightsPicker
 │   │   ├── pages/dashboard/     # SectionsTab, PagesTab, RecentStrip
@@ -261,7 +257,6 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 │   │   │   ├── WhatsNewDrawer, ErrorBoundary, UserMenu, EditorBits
 │   │   │   └── studio/
 │   │   │       ├── StudioShell.jsx         # top-bar + sidebar + nav + ticket badges
-│   │   │       ├── StudioToggle.jsx        # Studio / Classic switcher pill
 │   │   │       ├── StudioOutline.jsx       # left-rail outline jump-to-group
 │   │   │       ├── StudioInspector.jsx     # right-rail accordion settings host
 │   │   │       └── OnboardingTour.jsx      # one-screen first-login walkthrough
@@ -321,8 +316,6 @@ yarn start                                 # http://localhost:3000
 **OAuth locally**: register `http://localhost:8001/api/auth/google/callback` as an authorised redirect URI on your Google OAuth client, then sign in via `http://localhost:3000/login`.
 
 **Admin gating**: set `ADMIN_EMAILS=you@example.com` in `backend/.env` (comma-separated for multiple admins). Empty / unset means no admins — fail-closed so a forgotten env var never accidentally promotes every user. Admin-only routes: `/brand` (Brand Kit + landing demo / spotlights pickers), `/admin/users`, `/admin/tickets`.
-
-**Studio vs Classic**: new users default to Studio. To preview the Classic UI, flip the `Studio` / `Classic` pill in the top-right of any screen — the preference round-trips through `PATCH /api/auth/me/ui-mode`.
 
 ## Production deployment
 

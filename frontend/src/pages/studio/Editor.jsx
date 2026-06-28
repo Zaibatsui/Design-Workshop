@@ -56,7 +56,6 @@ import {
   SnippetDrawer,
   AdminPreviewOverrideToggle,
 } from "@/components/EditorBits";
-import StudioToggle from "@/components/studio/StudioToggle";
 import CollectionPicker from "@/components/CollectionPicker";
 import PublicUrlField from "@/components/PublicUrlField";
 import StudioInspector from "@/components/studio/StudioInspector";
@@ -536,8 +535,6 @@ export default function StudioEditor() {
                 )
               }
             />
-            <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
-            <StudioToggle />
             <div className="hidden md:block h-5 w-px bg-zinc-200 mx-1" />
             <Button
               data-testid="studio-copy-snippet-button"

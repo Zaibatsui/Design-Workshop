@@ -18,6 +18,9 @@ credentials.json
 !backend/.env.example
 !frontend/.env.example
 
+# --- Claude Code local tooling ---
+.claude/
+
 # --- Internal / Emergent platform artefacts (not for public mirror) ---
 .emergent/
 .gitconfig

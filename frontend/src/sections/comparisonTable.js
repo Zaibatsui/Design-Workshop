@@ -168,7 +168,7 @@ function render(cfg = {}) {
       const our = (r.ourValue || "").trim();
       const their = (r.competitorValue || "").trim();
       return `<div class="ns-row" role="row" data-ns-list="compare" data-ns-item="${idx}">
-        <div class="ns-cell ns-cell-feature" role="cell">${escHtml(r.feature || "")}</div>
+        <div class="ns-cell ns-cell-feature" role="rowheader" scope="row">${escHtml(r.feature || "")}</div>
         <div class="ns-cell ns-cell-our" role="cell">
           ${iconFor(r.ourIcon === "x" || r.ourIcon === "none" ? r.ourIcon : "check")}
           ${our ? `<span class="ns-cell-text">${escHtml(our)}</span>` : ""}
@@ -238,6 +238,7 @@ ${baseReset(cls)}
 ${highlightCss}
 ${zebraCss}
 ${footerLinkCss(cls, accent, safeColor(c.bodyColor, "#475569"))}
+.${cls} a:focus-visible{outline:2px solid ${accent};outline-offset:2px;border-radius:4px}
 @media (max-width:720px){
   .${cls} .ns-table{grid-template-columns:1fr;border-radius:12px}
   .${cls} .ns-col-our-wrap{display:none}
@@ -263,7 +264,7 @@ ${footerLinkCss(cls, accent, safeColor(c.bodyColor, "#475569"))}
     ${titleHtml}
     ${subHtml}
     </div>
-    <div class="ns-table" role="table" data-ns-group="rows">
+    <div class="ns-table" role="table" aria-label="${escAttr(c.title || "Comparison table")}" data-ns-group="rows">
       ${ourBorderHtml}
       ${headRow}
       ${rowsHtml}

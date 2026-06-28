@@ -32,7 +32,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { BRAND } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
-import StudioToggle from "@/components/studio/StudioToggle";
 import OnboardingTour from "@/components/studio/OnboardingTour";
 import TicketDialog from "@/components/TicketDialog";
 import { WhatsNewTrigger } from "@/components/WhatsNewDrawer";
@@ -147,8 +146,6 @@ export default function StudioShell({ active, children, headerActions = null }) 
             <MessageSquarePlus className="w-3.5 h-3.5" strokeWidth={1.75} />
             Report
           </Button>
-          <div className="h-5 w-px bg-zinc-200 mx-1" />
-          <StudioToggle />
           <div className="h-5 w-px bg-zinc-200 mx-1" />
           <UserMenu variant="compact" />
         </div>

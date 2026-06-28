@@ -5,12 +5,7 @@
  * but renders as a dedicated page inside the Studio shell. Lists every
  * built-in template (with NEW / UPDATED badges) followed by the user's
  * saved custom templates. Picking either kicks off a new page via the
- * same `/edit/page/new` route Classic mode uses, so the downstream
- * editor behaviour is unchanged.
- *
- * Classic mode keeps the original modal flow inside Dashboard — only
- * Studio gets this dedicated surface (registered via `StudioOrClassic`
- * with a redirect-to-Dashboard fallback for Classic users).
+ * same `/edit/page/new` route.
  */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";

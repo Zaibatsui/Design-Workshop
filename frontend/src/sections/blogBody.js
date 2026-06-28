@@ -165,7 +165,7 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
   if (w.type === "cta") {
     const bg = safeColor(w.bgColor, accent);
     const url = safeUrl(w.ctaUrl || "#") || "#";
-    return `<aside class="ns-widget ns-w-cta" data-ns-list="widget" data-ns-item="${escAttr(w.id)}" style="background:${bg};color:#ffffff">
+    return `<aside class="ns-widget ns-w-cta" aria-label="${escAttr(w.heading || "Call to action")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}" style="background:${bg};color:#ffffff">
       <h3 class="ns-w-head ns-w-cta-head">${escHtml(w.heading || "Get in touch")}</h3>
       ${w.body ? `<p class="ns-w-cta-body">${escHtml(w.body)}</p>` : ""}
       <a class="ns-w-cta-btn" href="${escAttr(url)}">${escHtml(w.ctaLabel || "Contact us")}</a>
@@ -177,14 +177,14 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
       const url = safeUrl(it.link || "#") || "#";
       const img = safeUrl(it.image || "");
       return `<a class="ns-w-rel-item" href="${escAttr(url)}">
-        ${img ? `<img class="ns-w-rel-img" src="${escAttr(img)}" alt="" loading="lazy"/>` : `<div class="ns-w-rel-img ns-w-rel-img-ph" aria-hidden="true"></div>`}
+        ${img ? `<img class="ns-w-rel-img" src="${escAttr(img)}" alt="${escAttr(it.title || "")}" loading="lazy"/>` : `<div class="ns-w-rel-img ns-w-rel-img-ph" aria-hidden="true"></div>`}
         <div class="ns-w-rel-text">
           <p class="ns-w-rel-title">${escHtml(it.title || "Untitled")}</p>
           ${it.excerpt ? `<p class="ns-w-rel-excerpt">${escHtml(it.excerpt)}</p>` : ""}
         </div>
       </a>`;
     }).join("");
-    return `<aside class="ns-widget ns-w-related" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
+    return `<aside class="ns-widget ns-w-related" aria-label="${escAttr(w.heading || "Related articles")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
       ${headHtml}
       <div class="ns-w-rel-list">${items}</div>
     </aside>`;
@@ -195,7 +195,7 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
       const url = safeUrl(it.link || "#") || "#";
       return `<a class="ns-w-tag" href="${escAttr(url)}">${escHtml(it.label || "tag")}</a>`;
     }).join("");
-    return `<aside class="ns-widget ns-w-tags" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
+    return `<aside class="ns-widget ns-w-tags" aria-label="${escAttr(w.heading || "Tags")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
       ${headHtml}
       <div class="ns-w-tag-cluster">${chips}</div>
     </aside>`;
@@ -204,7 +204,7 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
   if (w.type === "author") {
     const avatar = safeUrl(w.avatar || "");
     const url = safeUrl(w.linkUrl || "");
-    return `<aside class="ns-widget ns-w-author" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
+    return `<aside class="ns-widget ns-w-author" aria-label="${escAttr(w.name ? `About ${w.name}` : "Author")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
       ${avatar ? `<img class="ns-w-author-avatar" src="${escAttr(avatar)}" alt="${escAttr(w.avatarAlt || w.name || "")}" loading="lazy"/>` : ""}
       <p class="ns-w-author-name">${escHtml(w.name || "Author")}</p>
       ${w.role ? `<p class="ns-w-author-role">${escHtml(w.role)}</p>` : ""}

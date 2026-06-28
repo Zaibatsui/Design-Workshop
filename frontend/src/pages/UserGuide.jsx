@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -340,27 +340,30 @@ export default function UserGuide({ chromeless = false }) {
 
           <Section id="section-editor" Icon={PenLine} title="Building a section">
             <P>
-              The section editor has three areas: a settings panel on the
-              right, a live preview in the middle, and a "Copy snippet"
-              drawer that slides out when you're ready to take your
-              design to your website.
+              The section editor has three columns: an outline rail on
+              the left, a live preview in the middle, and a settings
+              inspector on the right. A "Copy snippet" drawer slides out
+              from the right when you're ready to take your design to
+              your website.
             </P>
             <P>
-              The settings panel is grouped into <strong>collapsible
-              sections</strong>. Most sections expose a <em>Header</em>
-              group for copy and a single <em>Defaults</em> group that
-              bundles layout (padding, alignment, widths, sizes) and
-              theme (colours, backgrounds) in one place. Hero is
-              richer: <em>Section / Carousel</em>, <em>Slide defaults</em>,
-              and <em>Slides</em> for per-slide overrides. Click a
-              heading to open that group; the others tuck themselves
-              away so the panel never feels overwhelming.
+              The inspector groups settings into three tabs —{" "}
+              <strong>Content</strong>, <strong>Design</strong>, and{" "}
+              <strong>Advanced</strong> — with a collapsible accordion
+              inside each. Click any heading to open that group; the
+              others tuck away so the panel never feels overwhelming.
             </P>
             <Bullets
               items={[
                 <>
                   Type or change anything — text, colour, image, link —
                   and the preview in the middle updates straight away.
+                </>,
+                <>
+                  Click any element in the preview to jump the inspector
+                  straight to its settings. Opening a list row in the
+                  inspector (e.g. "Slide 3") scrolls the preview to
+                  match — the bridge works both ways.
                 </>,
                 <>
                   Sections with repeating items (logos, slides, products,
@@ -656,7 +659,7 @@ export default function UserGuide({ chromeless = false }) {
           </Section>
 
           <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-3">
-            <span>Last updated: 2026-02-13 ·</span>
+            <span>Last updated: 2026-06-28 ·</span>
             <span>Want a feature documented?</span>
             <Button
               type="button"

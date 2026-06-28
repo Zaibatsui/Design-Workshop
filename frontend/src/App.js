@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { toast } from "sonner";
 import "@/App.css";
 import { AuthProvider } from "@/auth/AuthContext";
@@ -7,8 +7,6 @@ import { BrandKitProvider } from "@/lib/BrandKitContext";
 import { PreviewOverridesProvider } from "@/lib/PreviewOverridesContext";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import Login from "@/pages/Login";
-import Dashboard from "@/pages/Dashboard";
-import Editor from "@/pages/Editor";
 import StudioEditor from "@/pages/studio/Editor";
 import StudioDashboard from "@/pages/studio/Dashboard";
 import StudioBrandKit from "@/pages/studio/BrandKit";
@@ -18,34 +16,6 @@ import StudioAdminUsers from "@/pages/studio/AdminUsers";
 import StudioImageLibrary from "@/pages/studio/ImageLibrary";
 import StudioTemplates from "@/pages/studio/Templates";
 import StudioPageEditor from "@/pages/studio/PageEditor";
-import StudioOrClassic from "@/components/studio/StudioOrClassic";
-import PageEditor from "@/pages/PageEditor";
-import BrandKitPage from "@/pages/BrandKit";
-import UserGuide from "@/pages/UserGuide";
-import AdminUsersPage from "@/pages/AdminUsers";
-import AdminTicketsPage from "@/pages/AdminTickets";
-import MyTicketsPage from "@/pages/MyTickets";
-
-/**
- * Classic-mode fallback for the new `/images` route. The image library
- * only got promoted to its own page in Studio; in Classic it still
- * lives inside `/brand` (Brand Kit). Send the user there with a tiny
- * hash anchor so they land on the section if their browser respects
- * it.
- */
-function ClassicImageLibraryRedirect() {
-  return <Navigate to="/brand#image-library" replace />;
-}
-
-/**
- * Classic-mode fallback for the new `/templates` route. The full
- * Templates browser is Studio-only — Classic users still pick a
- * template via the "New page" modal on the Dashboard, so we redirect
- * back there to keep the flow consistent.
- */
-function ClassicTemplatesRedirect() {
-  return <Navigate to="/" replace />;
-}
 
 /**
  * Surfaces runtime errors that bypass the render-time ErrorBoundary as
@@ -124,92 +94,16 @@ function App() {
             <PreviewOverridesProvider>
               <Routes>
               <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic classic={Dashboard} studio={StudioDashboard} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/brand"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic classic={BrandKitPage} studio={StudioBrandKit} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/images"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic
-                      classic={ClassicImageLibraryRedirect}
-                      studio={StudioImageLibrary}
-                    />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/templates"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic
-                      classic={ClassicTemplatesRedirect}
-                      studio={StudioTemplates}
-                    />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/guide"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic classic={UserGuide} studio={StudioGuide} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <ProtectedRoute requireAdmin>
-                    <StudioOrClassic classic={AdminUsersPage} studio={StudioAdminUsers} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/tickets"
-                element={
-                  <ProtectedRoute requireAdmin>
-                    <StudioOrClassic classic={AdminTicketsPage} studio={StudioAdminTickets} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/my-tickets"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic classic={MyTicketsPage} studio={StudioMyTickets} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/edit/section/:sectionId"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic classic={Editor} studio={StudioEditor} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/edit/page/:pageId"
-                element={
-                  <ProtectedRoute>
-                    <StudioOrClassic classic={PageEditor} studio={StudioPageEditor} />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/" element={<ProtectedRoute><StudioDashboard /></ProtectedRoute>} />
+              <Route path="/brand" element={<ProtectedRoute><StudioBrandKit /></ProtectedRoute>} />
+              <Route path="/images" element={<ProtectedRoute><StudioImageLibrary /></ProtectedRoute>} />
+              <Route path="/templates" element={<ProtectedRoute><StudioTemplates /></ProtectedRoute>} />
+              <Route path="/guide" element={<ProtectedRoute><StudioGuide /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute requireAdmin><StudioAdminUsers /></ProtectedRoute>} />
+              <Route path="/admin/tickets" element={<ProtectedRoute requireAdmin><StudioAdminTickets /></ProtectedRoute>} />
+              <Route path="/my-tickets" element={<ProtectedRoute><StudioMyTickets /></ProtectedRoute>} />
+              <Route path="/edit/section/:sectionId" element={<ProtectedRoute><StudioEditor /></ProtectedRoute>} />
+              <Route path="/edit/page/:pageId" element={<ProtectedRoute><StudioPageEditor /></ProtectedRoute>} />
             </Routes>
             </PreviewOverridesProvider>
           </BrandKitProvider>

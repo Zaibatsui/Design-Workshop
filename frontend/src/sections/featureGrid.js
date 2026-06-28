@@ -170,7 +170,7 @@ const render = (cfg) => {
       if (useImg && customImgUrl) {
         iconBox = `<div class="ns-icon-box is-img" aria-hidden="true"><img src="${escAttr(
           customImgUrl
-        )}" alt="${escAttr(f.imageAlt || f.title || "")}"/></div>`;
+        )}" alt=""/></div>`;
       } else if (!useImg) {
         const iconHtml = svgIcon(f.icon || "none", 18);
         if (iconHtml) iconBox = `<div class="ns-icon-box" aria-hidden="true">${iconHtml}</div>`;
@@ -220,6 +220,7 @@ ${baseReset(cls)}
 .${cls} .ns-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:16px}
 .${cls} .ns-card{${cardBase};border-radius:${num(cfg.cardRadius, 8)}px;padding:28px;text-align:${cardAlign};transition:border-color .18s ease,transform .18s ease;flex:0 1 calc((100% - 16px * (${cols} - 1)) / ${cols});max-width:calc((100% - 16px * (${cols} - 1)) / ${cols});box-sizing:border-box}
 .${cls} .ns-card:hover{${cardHover};transform:translateY(-2px)}
+.${cls} .ns-card a:focus-visible{outline:2px solid ${accent};outline-offset:2px;border-radius:4px}
 .${cls} .ns-icon-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:${accent}1a;color:${accent};margin-bottom:20px;overflow:hidden;${cardAlign === "center" ? "margin-left:auto;margin-right:auto;" : cardAlign === "right" ? "margin-left:auto;" : ""}}
 .${cls} .ns-icon-box.is-img{background:transparent;padding:0}
 .${cls} .ns-icon-box.is-img img{width:100%;height:100%;object-fit:cover;display:block}
