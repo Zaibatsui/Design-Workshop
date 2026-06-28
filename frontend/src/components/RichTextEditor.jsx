@@ -178,8 +178,18 @@ const EMPTY_FORM = {
  * is on a link, an additional "remove underline" toggle appears in the
  * toolbar so an author can strip the default underline on a single link
  * without affecting the rest of the section.
+ *
+ * Note on prop name: the source-of-truth prop is `html`. `value` is
+ * accepted as a fallback ONLY so a typo at a call site (e.g.
+ * `value={cfg.body}` instead of `html={cfg.body}`) doesn't silently
+ * wipe the editor on every parent re-render — the previous behaviour
+ * (because `html` was undefined → the sync effect kept resetting the
+ * editor to "" on every render → users couldn't edit existing text).
  */
-export default function RichTextEditor({ html, onChange, tools, inheritedAlign }) {
+export default function RichTextEditor({ html, value, onChange, tools, inheritedAlign }) {
+  // Backwards-compat shim: prefer `html`, fall back to `value`. Resolved
+  // once and used everywhere below — no separate code paths.
+  const sourceHtml = html !== undefined ? html : value;
   const enabled =
     tools && tools.length
       ? new Set(tools)
@@ -233,7 +243,7 @@ export default function RichTextEditor({ html, onChange, tools, inheritedAlign }
             : "left",
       }),
     ],
-    content: html || "",
+    content: sourceHtml || "",
     onUpdate: ({ editor: ed }) => {
       onChange(ed.getHTML());
     },
@@ -263,11 +273,15 @@ export default function RichTextEditor({ html, onChange, tools, inheritedAlign }
 
   // Keep editor content in sync if the parent swaps the block. Only replace
   // when truly different to avoid clobbering the user's live edits.
+  // Guard against undefined `sourceHtml` — without this, a misnamed prop
+  // at the call site would trigger a setContent("") on every render and
+  // make the editor effectively read-only (typing immediately wiped).
   useEffect(() => {
     if (!editor) return;
-    if (html === editor.getHTML()) return;
-    editor.commands.setContent(html || "", { emitUpdate: false });
-  }, [html, editor]);
+    if (sourceHtml === undefined) return;
+    if (sourceHtml === editor.getHTML()) return;
+    editor.commands.setContent(sourceHtml || "", { emitUpdate: false });
+  }, [sourceHtml, editor]);
 
   if (!editor) return null;
 

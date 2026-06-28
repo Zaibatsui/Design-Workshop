@@ -411,10 +411,10 @@ function FormPanel({ config, onUpdate }) {
 
       <FormGroup title="Body" value="body">
         <RichTextEditor
-          value={cfg.body}
+          html={cfg.body}
           onChange={(v) => onUpdate({ body: v })}
-          testid="bb-body"
-          minHeight={320}
+          tools={["h2", "h3", "bold", "italic", "ul", "ol", "link", "align"]}
+          inheritedAlign="left"
         />
       </FormGroup>
 
