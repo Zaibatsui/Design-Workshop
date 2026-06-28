@@ -16,7 +16,7 @@
 function BrandIcon({ className = "w-full h-full object-contain", ...rest }) {
   return (
     <img
-      src="/dw-mark.png"
+      src="/dw-mark.png?v=3"
       alt="Design Workshop"
       draggable={false}
       className={className}
@@ -32,7 +32,7 @@ function BrandWordmark({ className = "", dark = false }) {
       style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
     >
       <img
-        src="/dw-mark.png"
+        src="/dw-mark.png?v=3"
         alt=""
         draggable={false}
         aria-hidden="true"
