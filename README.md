@@ -37,7 +37,7 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Two di
 
 | Block | What it does |
 |---|---|
-| **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Slide mode loops continuously. Per-slide colour overrides, an optional `split` layout (image + container-aligned text), touch-swipe on mobile, and a full set of mobile-only overrides for gradients, alignment, arrow visibility and per-slide images so the small-screen view never inherits a desktop-only look you didn't want. |
+| **Hero** | Slide / fade carousel, full-bleed background, headline, subtitle, CTA. Slide mode loops continuously. Per-slide colour overrides, an optional `split` layout (image + container-aligned text), touch-swipe on mobile, and a full set of mobile-only overrides for gradients, alignment, arrow visibility and per-slide images so the small-screen view never inherits a desktop-only look you didn't want. Each slide supports multiple CTAs — add any number of extra buttons (filled or outline style, per-button colour overrides) alongside the primary CTA; buttons flex-wrap responsively. |
 | **Split Banner** | Static full-bleed image with container-aligned heading, subtitle and buttons. Lighter cousin of Hero for non-carousel use. Optional feature-points list inside the panel. |
 | **Featured Card** | Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions. |
 | **Welcome** | Post-login greeter banner with positionable heading, customer logo and account-manager card. Each block snaps to one of nine grid positions. |

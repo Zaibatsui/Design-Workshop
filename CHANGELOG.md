@@ -9,6 +9,18 @@ Dates are `YYYY-MM-DD`. Newest releases at the top.
 ## [Unreleased]
 
 ### Added
+- **Hero · Multiple CTAs per slide** — each Hero slide now supports
+  any number of additional buttons alongside the primary CTA. Extra
+  buttons are added and removed individually per slide (no global
+  setting), each carrying its own text, link, style (filled or
+  outline), "open in same tab" toggle, and optional colour overrides
+  independent of the section-level CTA theme. All three render paths
+  (slide-transition, fade-transition, split-panel) wrap the primary
+  and extra buttons in a shared `ns-cta-group` flex container that
+  gaps and wraps gracefully on narrow viewports. The `ns-cta-outline`
+  variant renders as a transparent button with a coloured border, making
+  it easy to pair a solid primary with a ghost secondary. Existing slides
+  with no extra buttons are unaffected — fully backwards compatible.
 - **Brand Grid section (major upgrade)** — Now ships with a full-bleed
   photo header band (corner-radius cascades from your Brand Kit
   `card_radius`; overlay supports solid or linear-gradient styles

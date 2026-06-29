@@ -278,6 +278,28 @@ function slideCtaStyle(slide, cfg) {
   return ` style="background:${bg};color:${fg}"`;
 }
 
+// Render extra CTA buttons for a slide. Returns an HTML string of
+// additional <a> elements, or "" when there are none. Each button
+// may optionally carry its own bg/text colour overrides.
+function slideExtraCtasHtml(slide, cfg) {
+  const btns = Array.isArray(slide.extraButtons) ? slide.extraButtons : [];
+  if (!btns.length) return "";
+  const t = cfg.theme || {};
+  return btns
+    .filter((b) => b.text && b.text.trim())
+    .map((b) => {
+      const link = safeUrl(b.link || "#");
+      const target = b.openInSameTab ? "_self" : "_blank";
+      const rel = b.openInSameTab ? "" : ' rel="noopener noreferrer"';
+      const style = b.bgColor || b.textColor
+        ? ` style="background:${safeColor(b.bgColor, "transparent")};color:${safeColor(b.textColor, "#ffffff")}"`
+        : "";
+      const cls = b.style === "outline" ? "ns-cta ns-cta-outline" : "ns-cta";
+      return `<a class="${cls}" href="${escAttr(link)}" target="${target}"${rel}${style}>${escHtml(b.text.trim())}</a>`;
+    })
+    .join("");
+}
+
 // Per-slide copy colour helpers. Each slide may carry its own
 // `titleColor`, `subtitleColor`, and `eyebrowColor` to support
 // carousels with mixed light + dark backgrounds (e.g. a slide on a
@@ -568,10 +590,14 @@ function splitSlideInner(slide, cfg) {
   const linkSlide = Boolean(
     slide.ctaLink && slide.ctaLink.trim() && slide.ctaLink.trim() !== "#"
   );
-  const ctaEl = cta
+  const primaryCta = cta
     ? linkSlide
       ? `<span class="ns-cta"${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</span>`
       : `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>`
+    : "";
+  const extraCtas = slideExtraCtasHtml(slide, cfg);
+  const ctaEl = (primaryCta || extraCtas)
+    ? `<div class="ns-cta-group">${primaryCta}${extraCtas}</div>`
     : "";
 
   // Panel sits on the side OPPOSITE to the image.
@@ -664,6 +690,7 @@ function splitCss(cls, cfg) {
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-eyebrow{margin:0 0 10px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-title{margin:0 0 8px}
 .${cls} .ns-slide.is-split .ns-panel-inner .ns-subtitle{margin:0 0 14px}
+.${cls} .ns-slide.is-split .ns-panel-inner .ns-cta-group{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .${cls} .ns-slide.is-split .ns-image-wrap{position:relative;min-width:0;background:#f7f7f8;overflow:hidden;height:100%}
 .${cls} .ns-slide.is-split .ns-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 .${cls}.is-full .ns-slide.is-split .ns-panel.is-side-left{padding-left:max(20px,calc((100vw - ${contentMax}px) / 2));padding-right:48px}
@@ -755,6 +782,9 @@ function renderSlide(cfg) {
       ]
         .filter(Boolean)
         .join(";");
+      const primaryCtaHtml = cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : "";
+      const extraCtasHtml = slideExtraCtasHtml(slide, cfg);
+      const ctaGroupHtml = (primaryCtaHtml || extraCtasHtml) ? `<div class="ns-cta-group">${primaryCtaHtml}${extraCtasHtml}</div>` : "";
       return `<div class="ns-slide" style="${slideStyle}" data-ns-list="hero-slide" data-ns-item="${idx}">
       <div class="ns-overlay"></div>
       <div class="ns-content">
@@ -762,7 +792,7 @@ function renderSlide(cfg) {
         ${slideEyebrowHtml(slide, cfg.theme)}
         ${slide.title ? `<h2 class="ns-title"${slideTitleStyle(slide)}>${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle"${slideSubtitleStyle(slide)}>${escHtml(slide.subtitle)}</p>` : ""}
-        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
+        ${ctaGroupHtml}
       </div>
     </div>`;
     })
@@ -814,7 +844,9 @@ ${baseReset(cls)}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:${num(cfg.eyebrowLetterSpacing, 0.18)}em;text-transform:${cfg.eyebrowUppercase === false ? "none" : "uppercase"};margin:0 0 12px;color:var(--ns-title)}
 .${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:${num(cfg.titleLineHeight, 1.2)};letter-spacing:${num(cfg.titleLetterSpacing, -0.02)}em;color:var(--ns-title);margin:0 0 14px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);margin:0 0 26px;max-width:520px}
+.${cls} .ns-cta-group{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;transition:transform .15s ease,filter .15s ease;text-decoration:none}
+.${cls} .ns-cta.ns-cta-outline{background:transparent;border:2px solid currentColor}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .${cls} .ns-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);color:#fff;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;transition:background .15s ease}
 .${cls} .ns-arrow:hover{background:rgba(0,0,0,.6)}
@@ -919,6 +951,9 @@ function renderFade(cfg) {
       ]
         .filter(Boolean)
         .join(";");
+      const primaryCtaHtml = cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : "";
+      const extraCtasHtml = slideExtraCtasHtml(slide, cfg);
+      const ctaGroupHtml = (primaryCtaHtml || extraCtasHtml) ? `<div class="ns-cta-group">${primaryCtaHtml}${extraCtasHtml}</div>` : "";
       return `<div class="ns-slide${i === 0 ? " is-active" : ""}" data-ns-slide="${i}" data-ns-list="hero-slide" data-ns-item="${i}" style="${slideStyle}">
       <div class="ns-overlay"></div>
       <div class="ns-content" data-align="${escAttr(l.textAlign)}">
@@ -926,7 +961,7 @@ function renderFade(cfg) {
         ${slideEyebrowHtml(slide, cfg.theme)}
         ${slide.title ? `<h2 class="ns-title"${slideTitleStyle(slide)}>${escHtml(slide.title)}</h2>` : ""}
         ${slide.subtitle ? `<p class="ns-subtitle"${slideSubtitleStyle(slide)}>${escHtml(slide.subtitle)}</p>` : ""}
-        ${cta ? `<a class="ns-cta" href="${escAttr(link)}" target="${target}"${rel}${slideCtaStyle(slide, cfg)}>${escHtml(cta)}</a>` : ""}
+        ${ctaGroupHtml}
       </div>
     </div>`;
     })
@@ -981,7 +1016,9 @@ ${baseReset(cls)}
 .${cls} .ns-title{font-size:${num(cfg.headingSize, 48)}px;font-weight:700;line-height:${num(cfg.titleLineHeight, 1.2)};color:var(--ns-title);letter-spacing:${num(cfg.titleLetterSpacing, -0.02)}em;margin:0 0 12px}
 .${cls} .ns-subtitle{font-size:clamp(.95rem,1.4vw,1.125rem);line-height:1.5;color:var(--ns-subtitle);max-width:560px;margin:0 0 24px}
 .${cls} .ns-content[data-align="center"] .ns-subtitle{margin-left:auto;margin-right:auto}
-.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease}
+.${cls} .ns-cta-group{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.${cls} .ns-cta{display:inline-block;background:var(--ns-cta-bg);color:var(--ns-cta-text);padding:13px 28px;border-radius:${num(cfg.buttonRadius, 8)}px;font-weight:600;border:none;transition:transform .15s ease,filter .15s ease;text-decoration:none}
+.${cls} .ns-cta.ns-cta-outline{background:transparent;border:2px solid currentColor}
 .${cls} .ns-cta:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .${cls} .ns-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:9999px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.32);color:#fff;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;transition:background .15s ease}
 .${cls} .ns-arrow:hover{background:rgba(0,0,0,.55)}
@@ -1883,6 +1920,114 @@ function FormPanel({ config, onUpdate, previewMode }) {
                   )}
                 </div>
               ) : null}
+
+              {/* Additional buttons */}
+              <div className="pt-2 border-t border-slate-200 mt-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  Additional buttons (this slide)
+                </p>
+                {(slide.extraButtons || []).map((btn, bi) => (
+                  <div key={btn.id} className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Button {bi + 2}</span>
+                      <button
+                        type="button"
+                        className="text-slate-400 hover:text-red-500 text-xs"
+                        onClick={() => {
+                          const next = (slide.extraButtons || []).filter((_, i) => i !== bi);
+                          updateSlide(slide.id, { extraButtons: next });
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <TextField
+                        label="Button text"
+                        value={btn.text || ""}
+                        onChange={(v) => {
+                          const next = (slide.extraButtons || []).map((b, i) => i === bi ? { ...b, text: v } : b);
+                          updateSlide(slide.id, { extraButtons: next });
+                        }}
+                      />
+                      <TextField
+                        label="Button link"
+                        value={btn.link || ""}
+                        onChange={(v) => {
+                          const next = (slide.extraButtons || []).map((b, i) => i === bi ? { ...b, link: v } : b);
+                          updateSlide(slide.id, { extraButtons: next });
+                        }}
+                      />
+                    </div>
+                    <div className="mt-2">
+                      <SelectField
+                        label="Button style"
+                        value={btn.style || "filled"}
+                        onChange={(v) => {
+                          const next = (slide.extraButtons || []).map((b, i) => i === bi ? { ...b, style: v } : b);
+                          updateSlide(slide.id, { extraButtons: next });
+                        }}
+                        options={[
+                          { value: "filled", label: "Filled" },
+                          { value: "outline", label: "Outline" },
+                        ]}
+                      />
+                    </div>
+                    <div className="mt-2">
+                      <ToggleField
+                        label="Open in same tab"
+                        checked={!!btn.openInSameTab}
+                        onChange={(v) => {
+                          const next = (slide.extraButtons || []).map((b, i) => i === bi ? { ...b, openInSameTab: v } : b);
+                          updateSlide(slide.id, { extraButtons: next });
+                        }}
+                      />
+                    </div>
+                    <div className="mt-2">
+                      <ToggleField
+                        label="Custom colours"
+                        checked={!!(btn.bgColor || btn.textColor)}
+                        onChange={(v) => {
+                          const next = (slide.extraButtons || []).map((b, i) =>
+                            i === bi ? { ...b, bgColor: v ? (b.bgColor || t.ctaBg || "#1f2937") : "", textColor: v ? (b.textColor || t.ctaText || "#ffffff") : "" } : b
+                          );
+                          updateSlide(slide.id, { extraButtons: next });
+                        }}
+                      />
+                    </div>
+                    {(btn.bgColor || btn.textColor) && (
+                      <>
+                        <ColorField
+                          label="Button background"
+                          value={btn.bgColor || t.ctaBg || "#1f2937"}
+                          onChange={(v) => {
+                            const next = (slide.extraButtons || []).map((b, i) => i === bi ? { ...b, bgColor: v } : b);
+                            updateSlide(slide.id, { extraButtons: next });
+                          }}
+                        />
+                        <ColorField
+                          label="Button text"
+                          value={btn.textColor || t.ctaText || "#ffffff"}
+                          onChange={(v) => {
+                            const next = (slide.extraButtons || []).map((b, i) => i === bi ? { ...b, textColor: v } : b);
+                            updateSlide(slide.id, { extraButtons: next });
+                          }}
+                        />
+                      </>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                  onClick={() => {
+                    const next = [...(slide.extraButtons || []), { id: makeUid(), text: "", link: "#", style: "outline", openInSameTab: false }];
+                    updateSlide(slide.id, { extraButtons: next });
+                  }}
+                >
+                  + Add button
+                </button>
+              </div>
 
               {slideMode(slide) === "split" && previewMode !== "mobile" && (
                 <div className="pt-2 border-t border-slate-200 mt-2">
