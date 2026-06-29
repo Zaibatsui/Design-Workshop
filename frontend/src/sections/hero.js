@@ -2023,7 +2023,7 @@ function FormPanel({ config, onUpdate, previewMode }) {
                 ))}
                 <button
                   type="button"
-                  className="mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                  className="mt-1 text-xs font-semibold text-red-600 hover:text-red-800"
                   onClick={() => {
                     const next = [...(slide.extraButtons || []), { id: makeUid(), text: "", link: "#", style: "outline", openInSameTab: false }];
                     updateSlide(slide.id, { extraButtons: next });
