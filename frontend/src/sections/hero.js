@@ -587,7 +587,11 @@ function splitSlideInner(slide, cfg) {
   // users expect, and mirrors Split Banner's behaviour. CTA stays
   // visible but renders as a styled <span> to avoid the invalid
   // nested-anchor HTML.
-  const linkSlide = Boolean(
+  // When extra buttons are present we disable the whole-slide link so
+  // we don't end up with <a> elements nested inside the outer <a> grid
+  // wrapper (invalid HTML that breaks click handling).
+  const hasExtraButtons = Array.isArray(slide.extraButtons) && slide.extraButtons.some(b => b.text && b.text.trim());
+  const linkSlide = !hasExtraButtons && Boolean(
     slide.ctaLink && slide.ctaLink.trim() && slide.ctaLink.trim() !== "#"
   );
   const primaryCta = cta
