@@ -12,6 +12,7 @@ import StudioDashboard from "@/pages/studio/Dashboard";
 import StudioBrandKit from "@/pages/studio/BrandKit";
 import { StudioAdminTickets, StudioMyTickets } from "@/pages/studio/Tickets";
 import StudioGuide from "@/pages/studio/Guide";
+import StudioSectionGuidePage from "@/pages/studio/SectionGuidePage";
 import StudioAdminUsers from "@/pages/studio/AdminUsers";
 import StudioImageLibrary from "@/pages/studio/ImageLibrary";
 import StudioTemplates from "@/pages/studio/Templates";
@@ -99,6 +100,7 @@ function App() {
               <Route path="/images" element={<ProtectedRoute><StudioImageLibrary /></ProtectedRoute>} />
               <Route path="/templates" element={<ProtectedRoute><StudioTemplates /></ProtectedRoute>} />
               <Route path="/guide" element={<ProtectedRoute><StudioGuide /></ProtectedRoute>} />
+              <Route path="/guide/section/:sectionId" element={<ProtectedRoute><StudioSectionGuidePage /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute requireAdmin><StudioAdminUsers /></ProtectedRoute>} />
               <Route path="/admin/tickets" element={<ProtectedRoute requireAdmin><StudioAdminTickets /></ProtectedRoute>} />
               <Route path="/my-tickets" element={<ProtectedRoute><StudioMyTickets /></ProtectedRoute>} />

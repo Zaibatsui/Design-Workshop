@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -32,7 +33,7 @@ import { BRAND } from "@/lib/brand";
 import TicketDialog from "@/components/TicketDialog";
 import { Button } from "@/components/ui/button";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
-import { Columns3, Hash, PlayCircle, FolderOpen, Building2 } from "lucide-react";
+import { Columns3, Hash, Info, PlayCircle, FolderOpen, Building2 } from "lucide-react";
 
 /**
  * UserGuide — the in-app reference manual. Long-form, opinionated,
@@ -59,9 +60,8 @@ const SECTIONS = [
 ];
 
 export default function UserGuide({ chromeless = false }) {
+  const navigate = useNavigate();
   const [active, setActive] = useState("getting-started");
-  // Ticket dialog state — opened from the in-guide "Report a bug /
-  // request a feature" CTA and the bottom-of-page footer link.
   const [ticketOpen, setTicketOpen] = useState(false);
   const [ticketType, setTicketType] = useState("bug");
   const openTicket = (type = "bug") => {
@@ -69,28 +69,45 @@ export default function UserGuide({ chromeless = false }) {
     setTicketOpen(true);
   };
 
+  // Scroll to the hash anchor on mount (React Router doesn't do this automatically)
+  useEffect(() => {
+    const hash = window.location.hash?.slice(1);
+    if (!hash) return;
+    const scrollEl =
+      document.querySelector('[data-testid="studio-shell-main"]') || window;
+    const target = document.getElementById(hash);
+    if (!target) return;
+    const top =
+      target.getBoundingClientRect().top +
+      (scrollEl === window ? window.scrollY : scrollEl.scrollTop) -
+      80;
+    scrollEl.scrollTo({ top, behavior: "instant" });
+  }, []);
+
   // Sync sidebar highlight with scroll position via IntersectionObserver
   useEffect(() => {
     const ids = SECTIONS.map((s) => s.id);
-    const els = ids
-      .map((id) => document.getElementById(id))
-      .filter(Boolean);
-    if (!els.length) return undefined;
-    const io = new IntersectionObserver(
-      (entries) => {
-        const onscreen = entries.filter((e) => e.isIntersecting);
-        if (!onscreen.length) return;
-        // Pick the topmost intersecting heading
-        onscreen.sort(
-          (a, b) =>
-            a.boundingClientRect.top - b.boundingClientRect.top
-        );
-        setActive(onscreen[0].target.id);
-      },
-      { rootMargin: "-72px 0px -65% 0px", threshold: [0, 1] }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    // The active section is the last one whose top edge has scrolled above
+    // the header offset (96px). Walk backwards through the list so we find
+    // the deepest section the user has reached.
+    // A section becomes active when its heading has scrolled into the top
+    // third of the viewport. Using a proportion rather than a fixed px
+    // value makes this work across different screen heights.
+    const OFFSET = Math.round(window.innerHeight * 0.35);
+    const getActive = () => {
+      for (let i = ids.length - 1; i >= 0; i--) {
+        const el = document.getElementById(ids[i]);
+        if (el && el.getBoundingClientRect().top <= OFFSET) return ids[i];
+      }
+      return ids[0];
+    };
+    // In Studio mode the scroll happens on the <main> element, not window.
+    const scrollEl =
+      document.querySelector('[data-testid="studio-shell-main"]') || window;
+    const onScroll = () => setActive(getActive());
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
+    onScroll(); // set correct state on mount
+    return () => scrollEl.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -110,6 +127,7 @@ export default function UserGuide({ chromeless = false }) {
                 key={id}
                 href={`#${id}`}
                 data-testid={`toc-${id}`}
+                onClick={() => setActive(id)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
                   active === id
                     ? "bg-slate-900 text-white"
@@ -340,30 +358,27 @@ export default function UserGuide({ chromeless = false }) {
 
           <Section id="section-editor" Icon={PenLine} title="Building a section">
             <P>
-              The section editor has three columns: an outline rail on
-              the left, a live preview in the middle, and a settings
-              inspector on the right. A "Copy snippet" drawer slides out
-              from the right when you're ready to take your design to
-              your website.
+              The section editor has three areas: a settings panel on the
+              right, a live preview in the middle, and a "Copy snippet"
+              drawer that slides out when you're ready to take your
+              design to your website.
             </P>
             <P>
-              The inspector groups settings into three tabs —{" "}
-              <strong>Content</strong>, <strong>Design</strong>, and{" "}
-              <strong>Advanced</strong> — with a collapsible accordion
-              inside each. Click any heading to open that group; the
-              others tuck away so the panel never feels overwhelming.
+              The settings panel is grouped into <strong>collapsible
+              sections</strong>. Most sections expose a <em>Header</em>
+              group for copy and a single <em>Defaults</em> group that
+              bundles layout (padding, alignment, widths, sizes) and
+              theme (colours, backgrounds) in one place. Hero is
+              richer: <em>Section / Carousel</em>, <em>Slide defaults</em>,
+              and <em>Slides</em> for per-slide overrides. Click a
+              heading to open that group; the others tuck themselves
+              away so the panel never feels overwhelming.
             </P>
             <Bullets
               items={[
                 <>
                   Type or change anything — text, colour, image, link —
                   and the preview in the middle updates straight away.
-                </>,
-                <>
-                  Click any element in the preview to jump the inspector
-                  straight to its settings. Opening a list row in the
-                  inspector (e.g. "Slide 3") scrolls the preview to
-                  match — the bridge works both ways.
                 </>,
                 <>
                   Sections with repeating items (logos, slides, products,
@@ -397,31 +412,31 @@ export default function UserGuide({ chromeless = false }) {
               picker so cards cross-link automatically).
             </P>
             <Grid>
-              <SectionCard sectionId="hero" Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour and layout overrides, an optional split slide layout (full-bleed image + container-aligned text), and mobile-specific overrides for overlay, gradients and alignment so the small-screen view never inherits a desktop-only look you didn't want." />
-              <SectionCard sectionId="split-banner" Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use. Optional feature-points list inside the panel for showing several benefits at once." />
-              <SectionCard sectionId="featured-card" Icon={Star} name="Featured Card" desc="Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions." />
-              <SectionCard sectionId="welcome" Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." />
-              <SectionCard sectionId="content" Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." />
-              <SectionCard sectionId="products" Icon={Boxes} name="Product Carousel" desc="Pro · Nettailer-aware. Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." />
-              <SectionCard sectionId="productGrid" Icon={LayoutGrid} name="Product Grid" desc="Pro · Nettailer-aware. Same product cards as a static grid (2-6 per row, wraps to multiple rows). Identical scrape / VAT-toggle / gated-pricing behaviour as the Product Carousel — just no carousel." />
-              <SectionCard sectionId="blog-index" Icon={BookMarked} name="Blog Index" desc="Pro · Blog tools. Searchable grid of blog post cards with an optional full-bleed photo header. Built from the Brand Grid DNA — left/centre/right card alignment, lift / accent-bar / none hover, click-to-edit on every card — but each card carries an image, category, date, author, title and excerpt. Picker pulls existing Blog Body pages or sections in one click. Search-only (no pill chips)." />
-              <SectionCard sectionId="blog-body" Icon={BookOpen} name="Blog Body" desc="Pro · Blog tools. Long-form article block with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar can sit left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel. Related-articles widget can pull existing blog content from the picker." />
-              <SectionCard sectionId="insights" Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." />
-              <SectionCard sectionId="resources" Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." />
-              <SectionCard sectionId="feature-grid" Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." />
-              <SectionCard sectionId="trust-strip" Icon={Shield} name="Trust Strip" desc="Compact 2-5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — great for credibility marks like '20+ years' or 'ISO 27001 certified'." />
-              <SectionCard sectionId="stat-counter" Icon={Hash} name="Stat Counter" desc="Row of big numbers (e.g. '36%', '£2.4M', '5×') each with a label and an optional supporting line. 2-5 columns, optional eyebrow + heading + intro on top, optional CTA underneath. Numbers ramp from zero on scroll into view (respects prefers-reduced-motion). The natural complement to Trust Strip for impact / outcomes bands." />
-              <SectionCard sectionId="video-embed" Icon={PlayCircle} name="Video Embed" desc="Poster image + centred play button → click opens a modal lightbox that lazy-loads a YouTube or Vimeo iframe. Nothing loads from the host until the user presses play (privacy-friendly). ESC closes, click outside dismisses, focus restores to the play button, body scroll locks while open. Configurable aspect ratio, lightbox width and play-button style." />
-              <SectionCard sectionId="comparison-table" Icon={Columns3} name="Comparison Table" desc="Three-column 'us vs them' matrix — feature rows with ticks on your column and crosses on the competitor's. Optional brand-logo header on your column, accent tint + border to draw the eye, and a closing line + CTA below. High-converting B2B pattern." />
-              <SectionCard sectionId="steps" Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." />
-              <SectionCard sectionId="testimonials" Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." />
-              <SectionCard sectionId="faq" Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." />
-              <SectionCard sectionId="cta-banner" Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides." />
-              <SectionCard sectionId="logos" Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." />
-              <SectionCard sectionId="break" Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." />
-              <SectionCard sectionId="tabs" Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." />
-              <SectionCard sectionId="placeholder" Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." />
-              <SectionCard sectionId="brand-grid" Icon={Building2} name="Brand Grid" desc="Searchable grid of brand cards with an optional full-bleed photo header (radius cascades from Brand Kit, solid or linear-gradient overlay). Per-card eyebrow + alignment, edge-pickable accent bar on hover, greyscale-until-hover, full click-to-edit." />
+              <SectionCard sectionId="hero" Icon={Layout} name="Hero" desc="Slide / fade carousel with full-bleed background, headline, subtitle, CTA. Per-slide colour and layout overrides, an optional split slide layout (full-bleed image + container-aligned text), and mobile-specific overrides for overlay, gradients and alignment so the small-screen view never inherits a desktop-only look you didn't want." onInfo={() => navigate("/guide/section/hero")} />
+              <SectionCard sectionId="split-banner" Icon={Layout} name="Split Banner" desc="Static full-bleed image with container-aligned heading, subtitle and buttons floating over it. Lighter cousin of Hero for non-carousel use. Optional feature-points list inside the panel for showing several benefits at once." onInfo={() => navigate("/guide/section/split-banner")} />
+              <SectionCard sectionId="featured-card" Icon={Star} name="Featured Card" desc="Full-bleed photo background with a translucent glass card holding eyebrow, headline (with accent-phrase highlight), subheading, feature points and an optional CTA. Card placeable in one of nine grid positions." onInfo={() => navigate("/guide/section/featured-card")} />
+              <SectionCard sectionId="welcome" Icon={Sparkles} name="Welcome" desc="Post-login greeter: header, customer logo and account-manager card, each placeable in one of nine grid positions so one tool fits many brands." onInfo={() => navigate("/guide/section/welcome")} />
+              <SectionCard sectionId="content" Icon={AlignLeft} name="Content" desc="Heading + body + buttons. The all-purpose marquee block." onInfo={() => navigate("/guide/section/content")} />
+              <SectionCard sectionId="products" Icon={Boxes} name="Product Carousel" desc="Pro · Nettailer-aware. Card carousel with image, name, price and a hover-tinted border. Optional product-URL scraping auto-fills name / price / image, and the snippet live-flips inc-VAT ↔ ex-VAT prices when the host site's VAT toggle is clicked — works on Nettailer, Netset and most storefronts that label their toggle in plain English / Swedish / French." onInfo={() => navigate("/guide/section/products")} />
+              <SectionCard sectionId="productGrid" Icon={LayoutGrid} name="Product Grid" desc="Pro · Nettailer-aware. Same product cards as a static grid (2-6 per row, wraps to multiple rows). Identical scrape / VAT-toggle / gated-pricing behaviour as the Product Carousel — just no carousel." onInfo={() => navigate("/guide/section/productGrid")} />
+              <SectionCard sectionId="blog-index" Icon={BookMarked} name="Blog Index" desc="Pro · Blog tools. Searchable grid of blog post cards with an optional full-bleed photo header. Built from the Brand Grid DNA — left/centre/right card alignment, lift / accent-bar / none hover, click-to-edit on every card — but each card carries an image, category, date, author, title and excerpt. Picker pulls existing Blog Body pages or sections in one click. Search-only (no pill chips)." onInfo={() => navigate("/guide/section/blog-index")} />
+              <SectionCard sectionId="blog-body" Icon={BookOpen} name="Blog Body" desc="Pro · Blog tools. Long-form article block with an optional sidebar of CTA / Related-articles / Tag-cluster / Author-card widgets. Sidebar can sit left, right or below the body; opt-in sticky-on-scroll for desktop; mobile auto-collapses to a horizontal swipe carousel. Related-articles widget can pull existing blog content from the picker." onInfo={() => navigate("/guide/section/blog-body")} />
+              <SectionCard sectionId="insights" Icon={LayoutGrid} name="Insights Grid" desc="2-3 column editorial grid for articles, case studies, anything mixed-media. Per-card image position (left / top / right), accent border toggle, configurable image width." onInfo={() => navigate("/guide/section/insights")} />
+              <SectionCard sectionId="resources" Icon={BookOpen} name="Resources" desc="Tag-tinted card carousel — blog posts, guides, downloads. Optional 'open in same tab' per card." onInfo={() => navigate("/guide/section/resources")} />
+              <SectionCard sectionId="feature-grid" Icon={Sparkles} name="Feature Grid" desc="2-4 column value-prop cards with icon, title and body. Outlined / tinted / solid card styles, plus an image-card variant (image-top or image-left)." onInfo={() => navigate("/guide/section/feature-grid")} />
+              <SectionCard sectionId="trust-strip" Icon={Shield} name="Trust Strip" desc="Compact 2-5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — great for credibility marks like '20+ years' or 'ISO 27001 certified'." onInfo={() => navigate("/guide/section/trust-strip")} />
+              <SectionCard sectionId="stat-counter" Icon={Hash} name="Stat Counter" desc="Row of big numbers (e.g. '36%', '£2.4M', '5×') each with a label and an optional supporting line. 2-5 columns, optional eyebrow + heading + intro on top, optional CTA underneath. Numbers ramp from zero on scroll into view (respects prefers-reduced-motion). The natural complement to Trust Strip for impact / outcomes bands." onInfo={() => navigate("/guide/section/stat-counter")} />
+              <SectionCard sectionId="video-embed" Icon={PlayCircle} name="Video Embed" desc="Poster image + centred play button → click opens a modal lightbox that lazy-loads a YouTube or Vimeo iframe. Nothing loads from the host until the user presses play (privacy-friendly). ESC closes, click outside dismisses, focus restores to the play button, body scroll locks while open. Configurable aspect ratio, lightbox width and play-button style." onInfo={() => navigate("/guide/section/video-embed")} />
+              <SectionCard sectionId="comparison-table" Icon={Columns3} name="Comparison Table" desc="Three-column 'us vs them' matrix — feature rows with ticks on your column and crosses on the competitor's. Optional brand-logo header on your column, accent tint + border to draw the eye, and a closing line + CTA below. High-converting B2B pattern." onInfo={() => navigate("/guide/section/comparison-table")} />
+              <SectionCard sectionId="steps" Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." onInfo={() => navigate("/guide/section/steps")} />
+              <SectionCard sectionId="testimonials" Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." onInfo={() => navigate("/guide/section/testimonials")} />
+              <SectionCard sectionId="faq" Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." onInfo={() => navigate("/guide/section/faq")} />
+              <SectionCard sectionId="cta-banner" Icon={Megaphone} name="CTA Banner" desc="Final-call conversion block — eyebrow + headline + subhead + 1 or 2 buttons. Optional logo, gradient backgrounds, per-element colour overrides." onInfo={() => navigate("/guide/section/cta-banner")} />
+              <SectionCard sectionId="logos" Icon={Layers} name="Logo Strip" desc="Auto-scrolling marquee. Per-image links + greyscale-until-hover toggle." onInfo={() => navigate("/guide/section/logos")} />
+              <SectionCard sectionId="break" Icon={Layout} name="Break banner" desc="Full-bleed parallax break with overlaid heading. Use it to chapter long pages." onInfo={() => navigate("/guide/section/break")} />
+              <SectionCard sectionId="tabs" Icon={FileStack} name="Tabs" desc="Tabbed content panel with a side image. Great for product detail." onInfo={() => navigate("/guide/section/tabs")} />
+              <SectionCard sectionId="placeholder" Icon={LayoutGrid} name="Grid" desc="2×2 / 2×3 image grid with optional links per cell. Seeded with neutral sample photos — replace with your own via the cell image picker." onInfo={() => navigate("/guide/section/placeholder")} />
+              <SectionCard sectionId="brand-grid" Icon={Building2} name="Brand Grid" desc="Searchable grid of brand cards with an optional full-bleed photo header (radius cascades from Brand Kit, solid or linear-gradient overlay). Per-card eyebrow + alignment, edge-pickable accent bar on hover, greyscale-until-hover, full click-to-edit." onInfo={() => navigate("/guide/section/brand-grid")} />
               <SectionCard Icon={PenLine} name="Rich text" desc="Tiptap-powered freeform copy block — used inside Pages for ad-hoc paragraphs between structural sections." />
             </Grid>
             <Note>
@@ -659,7 +674,7 @@ export default function UserGuide({ chromeless = false }) {
           </Section>
 
           <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-3">
-            <span>Last updated: 2026-06-28 ·</span>
+            <span>Last updated: 2026-02-13 ·</span>
             <span>Want a feature documented?</span>
             <Button
               type="button"
@@ -847,14 +862,26 @@ function Grid({ children }) {
   );
 }
 
-function SectionCard({ Icon, name, desc, sectionId }) {
+function SectionCard({ Icon, name, desc, sectionId, onInfo }) {
   return (
     <div className="relative flex items-start gap-3 p-4 rounded-md border border-slate-200 hover:border-slate-300 transition-colors cursor-default">
+      {/* Preview popover — eye icon, always rightmost */}
       {sectionId && (
         <SectionPreviewPopover
           sectionId={sectionId}
           className="absolute top-1.5 right-1.5 z-10"
         />
+      )}
+      {/* Info button — sits to the left of the preview popover when both present */}
+      {onInfo && (
+        <button
+          type="button"
+          onClick={onInfo}
+          title={`Learn how ${name} works`}
+          className={`absolute top-1.5 z-10 w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-[#E01839] hover:bg-red-50 transition-colors ${sectionId ? "right-9" : "right-1.5"}`}
+        >
+          <Info className="w-3.5 h-3.5" />
+        </button>
       )}
       <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
         <Icon className="w-3.5 h-3.5" />
