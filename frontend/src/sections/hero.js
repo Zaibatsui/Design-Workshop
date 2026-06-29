@@ -3,7 +3,8 @@
  * Replaces the old hero-slide.js and hero-fade.js.
  */
 import { useEffect, useState } from "react";
-import { GalleryHorizontalEnd } from "lucide-react";
+import { GalleryHorizontalEnd, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   baseReset,
   escAttr,
@@ -2021,16 +2022,17 @@ function FormPanel({ config, onUpdate, previewMode }) {
                     )}
                   </div>
                 ))}
-                <button
+                <Button
                   type="button"
-                  className="mt-1 text-xs font-semibold text-red-600 hover:text-red-800"
+                  variant="outline"
+                  className="w-full border-dashed border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900 mt-1"
                   onClick={() => {
                     const next = [...(slide.extraButtons || []), { id: makeUid(), text: "", link: "#", style: "outline", openInSameTab: false }];
                     updateSlide(slide.id, { extraButtons: next });
                   }}
                 >
-                  + Add button
-                </button>
+                  <Plus className="w-4 h-4 mr-1" /> Add button
+                </Button>
               </div>
 
               {slideMode(slide) === "split" && previewMode !== "mobile" && (
