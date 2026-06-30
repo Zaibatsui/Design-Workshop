@@ -201,7 +201,7 @@ function render(cfg = {}) {
   const expiredMsg = escHtml(c.expiredMessage || "This offer has ended.");
 
   const numBg = displayStyle === "blocks"
-    ? `background:${digitBgColor};border-radius:10px;padding:${numPadV}px ${numPadH}px;` : "";
+    ? `background:${digitBgColor};border-radius:10px!important;padding:${numPadV}px ${numPadH}px!important;` : "";
 
   const sectionBg = bgImgUrl
     ? `background:${bgColor} url('${escAttr(bgImgUrl)}') center/cover no-repeat`
