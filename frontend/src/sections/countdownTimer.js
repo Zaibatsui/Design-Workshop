@@ -248,7 +248,7 @@ ${baseReset(cls)}
 .${cls}-dw{margin-top:${aboveDigitsGap}px}
 .${cls}-digits{display:flex;align-items:center;justify-content:${flexJustify};gap:${gapPx}px;flex-wrap:wrap}
 .${cls}-unit{display:flex;flex-direction:column;align-items:center;gap:8px}
-.${cls}-num{display:block;font-size:${digitSize}px;font-weight:800;line-height:1;min-width:${numMinW}px;text-align:center;color:${digitColor};${numBg}font-variant-numeric:tabular-nums}
+.${cls}-num{display:inline-flex!important;align-items:center;justify-content:center;font-size:${digitSize}px;font-weight:800;line-height:1;min-width:${numMinW}px;text-align:center;color:${digitColor};${numBg}font-variant-numeric:tabular-nums}
 .${cls}-sep{font-size:${sepSize}px;font-weight:800;color:${digitColor};line-height:1;padding:${showLabels ? Math.round(digitSize * 0.125) : 0}px 6px 0;align-self:${showLabels ? "flex-start" : "center"}}
 .${cls}-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:${labelColor}}
 .${cls}-expired{display:none;color:${titleColor};font-size:20px;font-weight:600;padding:28px 0;line-height:1.5}
