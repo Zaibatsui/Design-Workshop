@@ -172,11 +172,15 @@ function render(cfg = {}) {
     showSeconds && { key: "seconds", label: "Secs" },
   ].filter(Boolean);
 
+  const numInlineStyle = displayStyle === "blocks"
+    ? `display:inline-flex;align-items:center;justify-content:center;background:${digitBgColor};border-radius:10px;padding:${numPadV}px ${numPadH}px`
+    : `display:inline-flex;align-items:center;justify-content:center`;
+
   const digitsHtml = unitSlots.map((u, i) => {
     const sep = displayStyle === "minimal" && i < unitSlots.length - 1
       ? `<span class="${cls}-sep" aria-hidden="true">:</span>` : "";
     return `<div class="${cls}-unit" data-unit="${u.key}">
-          <span class="${cls}-num">00</span>${showLabels ? `\n          <span class="${cls}-lbl">${u.label}</span>` : ""}
+          <span class="${cls}-num" style="${numInlineStyle}">00</span>${showLabels ? `\n          <span class="${cls}-lbl">${u.label}</span>` : ""}
         </div>${sep}`;
   }).join("\n        ");
 
@@ -200,8 +204,6 @@ function render(cfg = {}) {
 
   const expiredMsg = escHtml(c.expiredMessage || "This offer has ended.");
 
-  const numBg = displayStyle === "blocks"
-    ? `background:${digitBgColor};border-radius:10px!important;padding:${numPadV}px ${numPadH}px!important;` : "";
 
   const sectionBg = bgImgUrl
     ? `background:${bgColor} url('${escAttr(bgImgUrl)}') center/cover no-repeat`
@@ -248,8 +250,8 @@ ${baseReset(cls)}
 .${cls}-dw{margin-top:${aboveDigitsGap}px}
 .${cls}-digits{display:flex;align-items:center;justify-content:${flexJustify};gap:${gapPx}px;flex-wrap:wrap}
 .${cls}-unit{display:flex;flex-direction:column;align-items:center;gap:8px}
-.${cls}-num{display:inline-flex!important;align-items:center;justify-content:center;font-size:${digitSize}px;font-weight:800;line-height:1;min-width:${numMinW}px;text-align:center;color:${digitColor};${numBg}font-variant-numeric:tabular-nums}
-.${cls}-sep{font-size:${sepSize}px;font-weight:800;color:${digitColor};line-height:1;padding:${showLabels ? Math.round(digitSize * 0.125) : 0}px 6px 0;align-self:${showLabels ? "flex-start" : "center"}}
+.${cls}-num{font-size:${digitSize}px;font-weight:800;line-height:1;min-width:${numMinW}px;text-align:center;color:${digitColor};font-variant-numeric:tabular-nums}
+.${cls}-sep{font-size:${sepSize}px;font-weight:800;color:${digitColor};line-height:1;padding-top:${showLabels ? Math.round(digitSize * 0.125) : 0}px!important;padding-left:6px!important;padding-right:6px!important;padding-bottom:0!important;align-self:${showLabels ? "flex-start" : "center"}}
 .${cls}-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:${labelColor}}
 .${cls}-expired{display:none;color:${titleColor};font-size:20px;font-weight:600;padding:28px 0;line-height:1.5}
 .${cls}-cta-row{margin-top:${belowDigitsGap}px}
