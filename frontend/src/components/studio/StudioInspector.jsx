@@ -118,7 +118,7 @@ export default function StudioInspector({
         }
         // Slight delay so the accordion expansion completes before scroll.
         setTimeout(() => {
-          item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          item.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 80);
       });
     };

@@ -107,6 +107,7 @@ const defaults = () => ({
       id: "w-related",
       type: "related",
       heading: "Related articles",
+      imageLayout: "left",
       items: [
         { id: makeUid(), title: "Five questions to ask before a refresh", excerpt: "What to align on before you procure.", image: "", link: "#" },
         { id: makeUid(), title: "The case for fewer vendors", excerpt: "Consolidation, when it works and when it doesn't.", image: "", link: "#" },
@@ -157,7 +158,7 @@ const defaults = () => ({
   fullBleed: false,
 });
 
-function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radius) {
+function renderWidget(w, widgetIndex, accent, cardBg, cardBorder, titleColor, bodyColor, radius) {
   const headHtml = w.heading
     ? `<h3 class="ns-w-head">${escHtml(w.heading)}</h3>`
     : "";
@@ -165,7 +166,7 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
   if (w.type === "cta") {
     const bg = safeColor(w.bgColor, accent);
     const url = safeUrl(w.ctaUrl || "#") || "#";
-    return `<aside class="ns-widget ns-w-cta" aria-label="${escAttr(w.heading || "Call to action")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}" style="background:${bg};color:#ffffff">
+    return `<aside class="ns-widget ns-w-cta" aria-label="${escAttr(w.heading || "Call to action")}" data-ns-list="widget" data-ns-item="${widgetIndex}" style="background:${bg};color:#ffffff">
       <h3 class="ns-w-head ns-w-cta-head">${escHtml(w.heading || "Get in touch")}</h3>
       ${w.body ? `<p class="ns-w-cta-body">${escHtml(w.body)}</p>` : ""}
       <a class="ns-w-cta-btn" href="${escAttr(url)}">${escHtml(w.ctaLabel || "Contact us")}</a>
@@ -173,10 +174,11 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
   }
 
   if (w.type === "related") {
+    const imgAbove = w.imageLayout === "above";
     const items = (w.items || []).map((it) => {
       const url = safeUrl(it.link || "#") || "#";
       const img = safeUrl(it.image || "");
-      return `<a class="ns-w-rel-item" href="${escAttr(url)}">
+      return `<a class="ns-w-rel-item${imgAbove ? " ns-w-rel-item--above" : ""}" href="${escAttr(url)}">
         ${img ? `<img class="ns-w-rel-img" src="${escAttr(img)}" alt="${escAttr(it.title || "")}" loading="lazy"/>` : `<div class="ns-w-rel-img ns-w-rel-img-ph" aria-hidden="true"></div>`}
         <div class="ns-w-rel-text">
           <p class="ns-w-rel-title">${escHtml(it.title || "Untitled")}</p>
@@ -184,7 +186,7 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
         </div>
       </a>`;
     }).join("");
-    return `<aside class="ns-widget ns-w-related" aria-label="${escAttr(w.heading || "Related articles")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
+    return `<aside class="ns-widget ns-w-related" aria-label="${escAttr(w.heading || "Related articles")}" data-ns-list="widget" data-ns-item="${widgetIndex}">
       ${headHtml}
       <div class="ns-w-rel-list">${items}</div>
     </aside>`;
@@ -195,7 +197,7 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
       const url = safeUrl(it.link || "#") || "#";
       return `<a class="ns-w-tag" href="${escAttr(url)}">${escHtml(it.label || "tag")}</a>`;
     }).join("");
-    return `<aside class="ns-widget ns-w-tags" aria-label="${escAttr(w.heading || "Tags")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
+    return `<aside class="ns-widget ns-w-tags" aria-label="${escAttr(w.heading || "Tags")}" data-ns-list="widget" data-ns-item="${widgetIndex}">
       ${headHtml}
       <div class="ns-w-tag-cluster">${chips}</div>
     </aside>`;
@@ -204,7 +206,7 @@ function renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radi
   if (w.type === "author") {
     const avatar = safeUrl(w.avatar || "");
     const url = safeUrl(w.linkUrl || "");
-    return `<aside class="ns-widget ns-w-author" aria-label="${escAttr(w.name ? `About ${w.name}` : "Author")}" data-ns-list="widget" data-ns-item="${escAttr(w.id)}">
+    return `<aside class="ns-widget ns-w-author" aria-label="${escAttr(w.name ? `About ${w.name}` : "Author")}" data-ns-list="widget" data-ns-item="${widgetIndex}">
       ${avatar ? `<img class="ns-w-author-avatar" src="${escAttr(avatar)}" alt="${escAttr(w.avatarAlt || w.name || "")}" loading="lazy"/>` : ""}
       <p class="ns-w-author-name">${escHtml(w.name || "Author")}</p>
       ${w.role ? `<p class="ns-w-author-role">${escHtml(w.role)}</p>` : ""}
@@ -248,7 +250,7 @@ function render(cfg) {
 
   const sidebarHtml = widgets.length
     ? `<aside class="ns-sidebar" data-ns-group="widgets" data-ns-list="widget">
-        ${widgets.map((w) => renderWidget(w, accent, cardBg, cardBorder, titleColor, bodyColor, radius)).join("")}
+        ${widgets.map((w, i) => renderWidget(w, i, accent, cardBg, cardBorder, titleColor, bodyColor, radius)).join("")}
       </aside>`
     : "";
 
@@ -299,7 +301,10 @@ ${richBodyResetCss(`.${cls} .ns-main`, { paraSpacing: 16, linkColor: accent })}
 .${cls} .ns-w-rel-list{display:flex;flex-direction:column;gap:14px}
 .${cls} .ns-w-rel-item{display:flex;gap:12px;align-items:flex-start;text-decoration:none;color:inherit;transition:transform .18s ease}
 .${cls} .ns-w-rel-item:hover{transform:translateX(2px)}
+.${cls} .ns-w-rel-item--above{flex-direction:column;gap:8px}
+.${cls} .ns-w-rel-item--above:hover{transform:translateY(-2px)}
 .${cls} .ns-w-rel-img{flex:0 0 64px;width:64px;height:64px;object-fit:cover;border-radius:6px;background:${cardBorder}}
+.${cls} .ns-w-rel-item--above .ns-w-rel-img{flex:none;width:100%;height:120px;border-radius:6px}
 .${cls} .ns-w-rel-img-ph{}
 .${cls} .ns-w-rel-text{min-width:0}
 .${cls} .ns-w-rel-title{margin:0 0 4px;font-size:14px;font-weight:600;color:${titleColor};line-height:1.35}
@@ -476,6 +481,21 @@ function FormPanel({ config, onUpdate }) {
               )}
               {w.type === "related" && (
                 <>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Image layout</Label>
+                    <div className="flex gap-2 mt-1">
+                      {[{ value: "left", label: "Left" }, { value: "above", label: "Above" }].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => upW(w.id, { imageLayout: opt.value })}
+                          className={`flex-1 py-1.5 rounded border text-xs font-medium transition-colors ${(w.imageLayout || "left") === opt.value ? "bg-slate-900 text-white border-slate-900" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="flex items-center justify-end -mt-1 mb-1">
                     <Button
                       type="button"

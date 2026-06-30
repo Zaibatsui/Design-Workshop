@@ -114,12 +114,14 @@ export default function ListEditor({
       const target = items[idx];
       if (!target) return;
       setOpenId(target.id);
-      requestAnimationFrame(() => {
+      // Delay so the accordion finishes expanding before we scroll —
+      // without this the row height is 0 and scrollIntoView overshoots.
+      setTimeout(() => {
         const el = rowRefs.current[target.id];
         if (el && typeof el.scrollIntoView === "function") {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      });
+      }, 120);
     };
     window.addEventListener("ns-studio-expand-item", handler);
     return () => window.removeEventListener("ns-studio-expand-item", handler);
