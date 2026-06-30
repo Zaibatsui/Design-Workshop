@@ -147,9 +147,21 @@ export const SECTION_META = {
   },
   "comparison-table": {
     addedOn: "2026-01-28T11:00:00Z",
-    updatedOn: "2026-01-28T11:00:00Z",
+    updatedOn: "2026-06-30T14:00:00Z",
     whatsNew:
-      "A new 'us vs them' comparison table. Three columns — feature labels, your offering with ticks, and a generic competitor column with crosses. Brand-logo header, highlight your column with a tinted background and accent border, and a closing line + CTA underneath. High-converting B2B pattern.",
+      "Major upgrade — Comparison Table now supports up to 4 competitor columns (previously one). Add or remove columns from the Columns panel; feature rows extend automatically. New optional photo header with overlay (solid or gradient), adjustable height, corner radius, and header text colour — the same full-bleed header system used by Blog Index and Brand Grid. Brand Kit colour cascade added so eyebrow, title, body and accent now update correctly when you hit Apply.",
+  },
+  "pricing-table": {
+    addedOn: "2026-06-30T12:00:00Z",
+    updatedOn: "2026-06-30T12:00:00Z",
+    whatsNew:
+      "New Pricing Table section — lay out 2–4 tiers side by side with a price, billing period, description and CTA button per tier. Flag one column as 'Best Value' to highlight it with a tinted background, accent border and filled CTA. Add unlimited feature rows with tick, cross, dash or plain-text values per tier. Optional photo header with solid or gradient overlay, corner radius, and Brand Kit colour cascade. CTA position: top, bottom, both or none. Click any tier in the preview to jump straight to it in the editor. Horizontally scrollable on mobile.",
+  },
+  "countdown-timer": {
+    addedOn: "2026-06-30T16:00:00Z",
+    updatedOn: "2026-06-30T16:00:00Z",
+    whatsNew:
+      "New Countdown Timer section — drop in a target date and get a live ticking urgency block with days, hours, minutes and seconds. Two display styles: Blocks (digits in rounded cards) or Minimal (plain large numbers with colon separators). Toggle individual units on or off, show or hide labels, and choose what happens when the timer hits zero — show a custom expired message or silently hide the section. Optional eyebrow, title, subheading and CTA button. Full colour control including digit card background.",
   },
   "stat-counter": {
     addedOn: "2026-01-28T12:00:00Z",

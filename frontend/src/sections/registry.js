@@ -18,6 +18,8 @@ import { splitBanner } from "./splitBanner";
 import { featuredCard } from "./featuredCard";
 import { trustStrip } from "./trustStrip";
 import { comparisonTable } from "./comparisonTable";
+import { pricingTable } from "./pricingTable";
+import { countdownTimer } from "./countdownTimer";
 import { statCounter } from "./statCounter";
 import { videoEmbed } from "./videoEmbed";
 import { brandGrid } from "./brandGrid";
@@ -43,6 +45,8 @@ export const SECTIONS = [
   featureGrid,
   trustStrip,
   comparisonTable,
+  pricingTable,
+  countdownTimer,
   statCounter,
   videoEmbed,
   steps,

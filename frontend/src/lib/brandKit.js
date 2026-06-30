@@ -123,6 +123,9 @@ const EYEBROW_SECTIONS = new Set([
   "testimonials",
   "welcome",
   "split-banner",
+  "comparison-table",
+  "pricing-table",
+  "countdown-timer",
 ]);
 
 function eyebrowFields(b) {
@@ -458,6 +461,24 @@ const FIELD_MAP = {
     bodyColor: b.body_color,
     eyebrowColor: b.eyebrow_color || b.accent_color || b.primary_color,
     accentColor: pick(b, "accent_color"),
+    font: b.heading_font,
+  }),
+  "pricing-table": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    titleColor: b.text_color,
+    bodyColor: b.body_color,
+    eyebrowColor: b.eyebrow_color || b.accent_color || b.primary_color,
+    accentColor: pick(b, "accent_color"),
+    font: b.heading_font,
+  }),
+  "countdown-timer": (cfg, b) => ({
+    ...cfg,
+    bgColor: b.background_color,
+    titleColor: b.text_color,
+    subColor: b.body_color,
+    eyebrowColor: b.eyebrow_color || b.accent_color || b.primary_color,
+    accentColor: pick(b, "accent_color") || pick(b, "primary_color"),
     font: b.heading_font,
   }),
 };

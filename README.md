@@ -31,7 +31,7 @@ Anywhere that accepts a custom HTML block or embed. Confirmed working with Shopi
 
 ## Features
 
-### 26 ready-made section types + rich-text
+### 28 ready-made section types + rich-text
 
 Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Two distinct **Pro** bands sit at the top of the section picker: **Pro · Nettailer-aware** (Product Carousel + Product Grid — live-scraped pricing, universal VAT toggle, gated-pricing fallback) and **Pro · Blog tools** (Blog Index + Blog Body — searchable editorial landing + long-form article with a cross-linking picker).
 
@@ -53,6 +53,8 @@ Plus a Tiptap-powered rich-text block for ad-hoc paragraphs inside Pages. Two di
 | **Stat Counter** | Row of big numbers ('36%', '£2.4M', '5×') each with a label and an optional supporting line. 2–5 columns, optional eyebrow + heading + intro on top, optional CTA underneath. Numbers ramp from zero on scroll into view (respects `prefers-reduced-motion`). |
 | **Video Embed** | Poster image + centred play button → click opens a modal lightbox that lazy-loads a YouTube or Vimeo iframe (or plays an inline HTML5 `<video>`). Nothing loads from the host until the user presses play. ESC closes, click-outside dismisses, focus restores to the play button, body scroll locks while open. |
 | **Comparison Table** | Three-column "us vs them" matrix. Feature rows with ticks on your column and crosses on the competitor's. Brand-logo header on your column, accent tint + border to draw the eye, closing line + CTA below. Mobile-collapses to a card-per-row layout. |
+| **Pricing Table** | 2–4 tier side-by-side pricing comparison. Each tier has a price, billing period, description and CTA button. Flag one column as "Best Value" to highlight it with a tinted background, accent border and filled CTA. Add unlimited feature rows with tick, cross, dash or plain-text values per tier. Optional full-bleed photo header with solid or gradient overlay. Click any tier in the live preview to jump straight to its editor. Horizontally scrollable on mobile. |
+| **Countdown Timer** | Live ticking urgency block for sale deadlines, product launches or events. Set a target date; the snippet ticks in real time with no server dependency — pure JS IIFE, works anywhere HTML is accepted. Two display styles: Blocks (digits in rounded cards) or Minimal (plain large numbers with colon separators). Toggle individual units (days / hours / mins / secs) and labels on or off. Post-expiry: show a custom message or silently hide the section. Optional eyebrow, title, subheading, CTA button, flanking side images/logos, and a full-bleed background image with solid or gradient overlay. |
 | **Steps** | Numbered process strip. Horizontal or vertical, big editorial numerals or compact inline. |
 | **Testimonials** | Auto-scrolling quote carousel with avatars + 0–5 star ratings. Optional platform-logo badges (G2, Trustpilot, Capterra). Pauses on hover, respects `prefers-reduced-motion`. |
 | **FAQ** | Collapsible Q+A accordion. Native `<details>` / `<summary>` for zero-JS accessibility. Rich-text answer editor with inline link panel — web or email, per-link colour, underline toggle and "Open in a new tab" choice. Scheme-less URLs (`example.com`) auto-resolve to `https://`. |
@@ -261,7 +263,7 @@ The Studio click-to-edit bridge attaches an extra `<script>` to the preview ifra
 │   │   │       ├── StudioInspector.jsx     # right-rail accordion settings host
 │   │   │       └── OnboardingTour.jsx      # one-screen first-login walkthrough
 │   │   ├── components/ui/       # Shadcn primitives
-│   │   ├── sections/            # registry.js + 26 section modules + iconLib + shared helpers
+│   │   ├── sections/            # registry.js + 28 section modules + iconLib + shared helpers
 │   │   │                          + sectionMeta / pageTemplateMeta / pageTemplates
 │   │   ├── sections/__tests__/  # jsdom-backed snippet behavioural tests (1000+ assertions across 40+ files)
 │   │   ├── lib/                 # api client, BrandKitContext, sectionBadges, brand colours, useEscapeKey

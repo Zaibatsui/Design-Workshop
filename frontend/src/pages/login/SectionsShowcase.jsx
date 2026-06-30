@@ -24,6 +24,8 @@ import {
   Eye,
   Building2,
   BookMarked,
+  Timer,
+  Table2,
 } from "lucide-react";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
 
@@ -68,6 +70,8 @@ const SECTIONS = [
   { id: "stat-counter", Icon: Hash, name: "Stat Counter", desc: "Row of big numbers — '36%', '£2.4M', '5×' — each with a short label and optional supporting line. Optional count-up animation when the section scrolls into view, prefers-reduced-motion respected. Ideal for 'we saved customers X' impact bands." },
   { id: "video-embed", Icon: PlayCircle, name: "Video Embed", desc: "Poster image with a centred play button — clicking opens a modal lightbox that lazy-loads a YouTube or Vimeo iframe. Nothing loads from the video host until the user actually presses play. ESC, click-outside and focus management built in. Aspect ratio, lightbox width and button style are all configurable." },
   { id: "comparison-table", Icon: Columns3, name: "Comparison Table", desc: "Three-column 'us vs them' matrix. Feature rows with ticks on your column and crosses on the competitor's. Brand-logo header, accent tint + border on the winning column, closing line + CTA below — a high-converting B2B pattern." },
+  { id: "pricing-table", Icon: Table2, name: "Pricing Table", desc: "2–4 tier side-by-side pricing with a price, billing period, description and CTA per tier. Highlight a 'Best Value' column with a tinted background and filled CTA. Add unlimited feature rows with tick, cross, dash or plain text per tier. Optional photo header. Click any tier in the live preview to edit it. Horizontal scroll on mobile." },
+  { id: "countdown-timer", Icon: Timer, name: "Countdown Timer", desc: "Live ticking urgency block for sale deadlines, product launches or events. Pick a target date and choose Blocks (digits in cards) or Minimal style. Toggle individual units on or off. On expiry: show a custom message or silently hide the section. Optional side logos, background image with overlay, and a CTA button." },
   { id: "steps", Icon: ListOrdered, name: "Steps", desc: "Numbered process strip with big editorial numerals or compact inline numbers. Horizontal or vertical stack with optional hairline dividers between steps." },
   { id: "testimonials", Icon: Quote, name: "Testimonials", desc: "Auto-scrolling quote carousel with star ratings and avatars. Pauses on hover, supports per-quote source links and configurable scroll speed." },
   { id: "faq", Icon: HelpCircle, name: "FAQ", desc: "Collapsible question-and-answer accordion built with native HTML details / summary — zero JS, fully keyboard-accessible out of the box." },
@@ -97,7 +101,7 @@ export default function SectionsShowcase() {
             What you can build
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Twenty-six ready-made sections. Mix and match.
+            Twenty-eight ready-made sections. Mix and match.
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             From hero banners and product showcases to FAQs, testimonials, and

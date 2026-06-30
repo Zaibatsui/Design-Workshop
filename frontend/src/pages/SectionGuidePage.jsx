@@ -4,7 +4,7 @@ import {
   SlidersHorizontal, Sparkles, Star, AlignLeft, Boxes, LayoutGrid,
   BookMarked, BookOpen, Shield, Hash, PlayCircle, Columns3,
   ListOrdered, Quote, HelpCircle, Megaphone, FileStack, Building2,
-  Image, Type, Palette, Search, MousePointer, List,
+  Image, Type, Palette, Search, MousePointer, List, DollarSign, Timer,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
@@ -31,6 +31,8 @@ export default function SectionGuidePage({ chromeless = false }) {
         {sectionId === "stat-counter"     && <StatCounterGuideContent />}
         {sectionId === "video-embed"      && <VideoEmbedGuideContent />}
         {sectionId === "comparison-table" && <ComparisonTableGuideContent />}
+        {sectionId === "pricing-table"    && <PricingTableGuideContent />}
+        {sectionId === "countdown-timer"  && <CountdownTimerGuideContent />}
         {sectionId === "steps"            && <StepsGuideContent />}
         {sectionId === "testimonials"     && <TestimonialsGuideContent />}
         {sectionId === "faq"              && <FAQGuideContent />}
@@ -987,8 +989,21 @@ function ComparisonTableGuideContent() {
     <div>
       <GuideH1 Icon={Columns3}>Comparison Table</GuideH1>
       <Lead>
-        Comparison Table is a three-column "us vs them" matrix — your brand in a highlighted centre column versus a generic competitor on the right. Feature rows show checkmarks and crosses. A brand logo can sit in your column header. The table collapses to a stacked card layout on mobile so it remains readable on small screens.
+        Comparison Table is an "us vs them" matrix with your brand in a highlighted column and up to four competitor columns on the right. Feature rows show checkmarks, crosses, or plain text per cell. An optional full-bleed photo header sits above the table. The table collapses to a stacked card layout on mobile so it remains readable on small screens.
       </Lead>
+
+      <GuideSection Icon={Image} title="Header background (optional)">
+        <Note>Leave the header image blank for a plain text header above the table. Add an image to create a full-bleed photo header — the same pattern used by Blog Index and Brand Grid.</Note>
+        <SettingsTable>
+          <Setting name="Background image">Full-bleed photo above the table. Leave blank for a plain-colour header.</Setting>
+          <Setting name="Header height">Height of the photo band in pixels (120–520 px). 220–300 px is typical.</Setting>
+          <Setting name="Corner radius">Rounds the header image corners. Set to 0 for a flush full-bleed look; disabled automatically when Make wide is on.</Setting>
+          <Setting name="Overlay style">Solid colour or linear gradient over the photo for text legibility.</Setting>
+          <Setting name="Overlay colour / gradient">Fill colour(s) of the overlay. Dark slate or your brand secondary colour works well.</Setting>
+          <Setting name="Overlay opacity">How opaque the overlay is (0–100%). Higher values = more readable text but less visible photography.</Setting>
+          <Setting name="Header text colour">Colour of the eyebrow, title and subheading when displayed over the photo. The eyebrow still uses its configured colour from the brand kit — only the title and subheading are forced to this value.</Setting>
+        </SettingsTable>
+      </GuideSection>
 
       <GuideSection Icon={Type} title="Section header">
         <SettingsTable>
@@ -998,13 +1013,14 @@ function ComparisonTableGuideContent() {
         </SettingsTable>
       </GuideSection>
 
-      <GuideSection Icon={Columns3} title="Column headers">
+      <GuideSection Icon={Columns3} title="Columns">
         <SettingsTable>
           <Setting name="Feature column label">Header for the leftmost column listing features — e.g. "Feature", "What you get".</Setting>
           <Setting name="Your brand label">Header for your column — your company or product name.</Setting>
           <Setting name="Brand logo">Optional logo image in your column header. Renders above the label text.</Setting>
           <Setting name="Brand logo max height">Caps the logo height in pixels so it doesn't make the header row too tall.</Setting>
-          <Setting name="Competitor label">Header for the competitor column — e.g. "Typical agency", "Standard platform".</Setting>
+          <Setting name="Add competitor column">Adds a new competitor column (up to 4). Each competitor gets its own label and per-row value fields.</Setting>
+          <Setting name="Competitor label">Header for each competitor column — e.g. "Typical agency", "Standard platform".</Setting>
         </SettingsTable>
       </GuideSection>
 
@@ -1013,15 +1029,15 @@ function ComparisonTableGuideContent() {
           <Setting name="Feature">The capability or attribute being compared — e.g. "24/7 support", "Custom branding", "API access".</Setting>
           <Setting name="Your value">What your brand offers for this feature. Can be a short text string or left blank (the icon does the talking).</Setting>
           <Setting name="Your icon"><strong>Check</strong> (✓), <strong>Cross</strong> (✗), or <strong>None</strong>. A check in your column and a cross in the competitor's is the classic persuasive pattern.</Setting>
-          <Setting name="Competitor value">What the competitor offers. Usually shorter or blank — the cross icon does the work.</Setting>
-          <Setting name="Competitor icon">Check, Cross, or None — same options as your column.</Setting>
+          <Setting name="Competitor value / icon">Per-competitor value and icon for each row — each column has its own value and check/cross/none picker.</Setting>
         </SettingsTable>
       </GuideSection>
 
-      <GuideSection Icon={Settings} title="Style & layout">
+      <GuideSection Icon={Settings} title="Layout & style">
         <SettingsTable>
           <Setting name="Highlight your column">Applies a tint and an accent-colour border to your column — draws the eye to it immediately on page load.</Setting>
           <Setting name="Zebra stripes">Alternating row background tints to make long tables easier to scan.</Setting>
+          <Setting name="Make wide">Stretches the section background to full viewport width. Also removes the header corner radius.</Setting>
           <Setting name="Text alignment">Left or centre alignment of all cell content.</Setting>
           <Setting name="Closing text">Short closing statement below the table — reinforce the value proposition before the footer link.</Setting>
           <Setting name="Footer link">A CTA link below the table — e.g. "Book a demo" or "Start free trial".</Setting>
@@ -1029,10 +1045,11 @@ function ComparisonTableGuideContent() {
       </GuideSection>
 
       <GuideSection Icon={Sparkles} title="Hidden features & pro tips">
-        <ProTip title="Mobile card collapse">On small screens, each feature row becomes a stacked comparison card — your value above, competitor value below — so the three-column layout stays readable without horizontal scrolling.</ProTip>
-        <ProTip title="Zebra stripes for long tables">For tables with more than 6–7 rows, enable zebra stripes. The alternating tint helps readers track horizontally across the row without losing their place.</ProTip>
+        <ProTip title="Up to 4 competitor columns">Add competitor columns from the Columns panel. Each column gets its own label at the top and its own value + icon picker on every feature row — the grid expands automatically.</ProTip>
+        <ProTip title="Mobile card collapse">On small screens, each feature row becomes a stacked comparison card — your value above, competitor values below — so multi-column layouts stay readable without horizontal scrolling.</ProTip>
+        <ProTip title="Zebra stripes for long tables">For tables with more than 6–7 rows, enable zebra stripes. The alternating tint helps readers track across the row without losing their place.</ProTip>
         <ProTip title="Use text values for nuanced comparisons">Don't limit yourself to check/cross icons. A text value like "Unlimited" vs "Up to 5" communicates nuance that a simple tick/cross misses — combine text values with icon None for the most informative rows.</ProTip>
-        <ProTip title="Your column highlight + brand logo = strong visual anchor">The column highlight (tint + border) combined with your logo in the header creates a very clear visual hierarchy — users' eyes go directly to your column first.</ProTip>
+        <ProTip title="Photo header + brand logo = strong first impression">A dark-overlay photo behind the heading, combined with your logo in the column header, creates a polished page-section feel that goes beyond a plain table.</ProTip>
       </GuideSection>
     </div>
   );
@@ -1428,6 +1445,154 @@ function GridGuideContent() {
         <ProTip title="Gap 0 for a full-bleed mosaic">Setting gap to 0 creates a flush, edge-to-edge grid with no visible seams — a classic full-bleed photo mosaic effect. Works best with images that have similar tones at their edges so the cuts feel intentional.</ProTip>
         <ProTip title="Mixed aspect ratios">All cells are the same size, so images of different aspect ratios are all cropped to the same rectangle. Choose images whose main subject is centred so the cropping doesn't cut off the important part.</ProTip>
         <ProTip title="Team photo grid">A 3×2 or 4×2 grid of team headshots is a simple and clean way to build a team section — link each cell to the team member's profile page for a clickable directory.</ProTip>
+      </GuideSection>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* PRICING TABLE                                                       */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+function PricingTableGuideContent() {
+  return (
+    <div>
+      <GuideH1 Icon={DollarSign}>Pricing Table</GuideH1>
+      <Lead>
+        Pricing Table puts 2–4 subscription or service tiers side by side with a price, billing period, description, and CTA per tier. Mark one tier as "Best Value" to highlight it with a tinted background, accent border, and a filled CTA button. Unlimited feature rows with tick, cross, dash, or plain-text values per tier complete the comparison. An optional full-bleed photo header sits above the table. Tiers scroll horizontally on mobile so every column stays accessible.
+      </Lead>
+
+      <GuideSection Icon={Image} title="Header background (optional)">
+        <Note>Leave the header image blank for a plain text header above the table. Add an image to create a full-bleed photo header — the same pattern used by Blog Index and Brand Grid.</Note>
+        <SettingsTable>
+          <Setting name="Background image">Full-bleed photo above the pricing table. Leave blank for a plain-colour header.</Setting>
+          <Setting name="Header height">Height of the photo band in pixels (120–520 px). 220–300 px is typical.</Setting>
+          <Setting name="Corner radius">Rounds the header image corners. Disabled automatically when Make wide is on.</Setting>
+          <Setting name="Overlay style">Solid colour or linear gradient over the photo for text legibility.</Setting>
+          <Setting name="Overlay colour / gradient">Fill colour(s) of the overlay. Dark slate or your brand secondary colour works well.</Setting>
+          <Setting name="Overlay opacity">How opaque the overlay is (0–100%).</Setting>
+          <Setting name="Header text colour">Colour of the title and subheading rendered over the photo. The eyebrow retains its brand kit colour.</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={Type} title="Section header">
+        <SettingsTable>
+          <Setting name="Eyebrow">Small label above the heading — e.g. "PRICING" or "PLANS".</Setting>
+          <Setting name="Title">Section heading above the tier columns.</Setting>
+          <Setting name="Subheading">Supporting sentence beneath the heading — e.g. "No hidden fees. Cancel any time."</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={LayoutGrid} title="Tier columns">
+        <Note>Click any tier header in the live preview to jump directly to that tier's editor panel.</Note>
+        <SettingsTable>
+          <Setting name="Tier name">The plan name — e.g. "Starter", "Professional", "Enterprise".</Setting>
+          <Setting name="Price">Display price — e.g. "£49", "Free", "Contact us".</Setting>
+          <Setting name="Billing period">Small text beneath the price — e.g. "/ month", "/ user / year".</Setting>
+          <Setting name="Description">One or two sentences describing who the tier is for.</Setting>
+          <Setting name="CTA label & URL">Button label and destination for this tier's call to action.</Setting>
+          <Setting name="Highlight as Best Value">Marks this tier with a tinted background, accent-colour border, filled CTA, and an optional badge label (e.g. "Most Popular").</Setting>
+          <Setting name="Badge label">Text shown in the highlight badge above the tier header — e.g. "Most Popular", "Best Value". Leave blank to hide the badge.</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={Layers} title="Feature rows">
+        <SettingsTable>
+          <Setting name="Feature label">The capability being compared across tiers — e.g. "Storage", "Users", "API access".</Setting>
+          <Setting name="Value per tier">Each tier has its own value for the row. Choose an icon style or enter plain text.</Setting>
+          <Setting name="Icon styles"><strong>Check</strong> (green circle ✓) — included. <strong>Cross</strong> (grey circle ✗) — not included. <strong>Dash</strong> (—) — not applicable. <strong>Text</strong> — enter a custom string like "Unlimited" or "Up to 5".</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={Settings} title="Layout & style">
+        <SettingsTable>
+          <Setting name="CTA position"><strong>Top only</strong> = CTA inside each tier header. <strong>Bottom only</strong> = CTA below the feature rows. <strong>Both</strong> = CTA at top and bottom (ideal for long feature lists). <strong>None</strong> = no CTA button.</Setting>
+          <Setting name="Feature column label">Header of the leftmost column — e.g. "Feature", "What's included".</Setting>
+          <Setting name="Make wide">Stretches the section background to full viewport width. Also removes the header corner radius.</Setting>
+          <Setting name="Text alignment">Left or centre alignment of tier header content.</Setting>
+          <Setting name="Closing text">Short statement below the table — e.g. "All plans include a 14-day free trial."</Setting>
+          <Setting name="Footer link">A secondary CTA link below the closing text.</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={Sparkles} title="Hidden features & pro tips">
+        <ProTip title="Click a tier in the preview to edit it">In Studio, clicking any tier column header in the live preview snaps the editor to that tier's expanded panel — no hunting through the list. Works for feature rows too.</ProTip>
+        <ProTip title="CTA at both top and bottom for long feature lists">When your feature list runs 10+ rows, setting CTA position to Both puts the button where users will see it — whether they skim the header or scroll to the bottom.</ProTip>
+        <ProTip title="Badge spacer preserves alignment">When any tier uses a badge (Most Popular, Best Value), tiers without a badge automatically get an invisible spacer of the same height. Prices, descriptions and CTAs stay perfectly aligned across all columns.</ProTip>
+        <ProTip title="Mix icon and text values in the same row">A single feature row can have "Unlimited" (text) for Enterprise, a check (✓) for Professional, and a cross (✗) for Starter. The icon and text options are per-tier, not per-row.</ProTip>
+        <ProTip title="Mobile horizontal scroll">On narrow screens the table scrolls horizontally — all tier columns stay visible and usable. Users don't lose any information on mobile.</ProTip>
+        <ProTip title="Gradient header for a premium look">A brand-colour-to-dark gradient overlay on a moody photo creates a premium SaaS landing-page feel. Pair with a white header text colour and your brand eyebrow colour for a polished result.</ProTip>
+      </GuideSection>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* COUNTDOWN TIMER                                                     */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+function CountdownTimerGuideContent() {
+  return (
+    <div>
+      <GuideH1 Icon={Timer}>Countdown Timer</GuideH1>
+      <Lead>
+        Countdown Timer is a live urgency block that ticks down to a target date and time. Drop it above a sale CTA, below a hero, or standalone on a landing page. Choose between two digit styles — Blocks (large numbers in rounded cards) or Minimal (plain numbers with colon separators). When the timer hits zero it either shows a custom expired message or hides the section entirely.
+      </Lead>
+
+      <GuideSection Icon={Type} title="Section header">
+        <SettingsTable>
+          <Setting name="Eyebrow">Small label above the heading — e.g. "LIMITED TIME OFFER" or "LAUNCHING SOON".</Setting>
+          <Setting name="Title">Main heading above the digits — e.g. "Sale ends in" or "Doors open in".</Setting>
+          <Setting name="Subheading">Supporting line beneath the heading — e.g. "Don't miss out — prices go back up at midnight."</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={Timer} title="Timer">
+        <SettingsTable>
+          <Setting name="Target date & time">The moment the timer counts down to. Uses your device's local timezone. Leave blank and the digits show 00 — useful as a placeholder while you set the date.</Setting>
+          <Setting name="Show units">Toggle Days, Hours, Minutes, and Seconds individually. Hiding Days rolls the day count into Hours so the total time is always correct — e.g. 26h instead of 1d 2h.</Setting>
+          <Setting name="Show labels">Toggles the Days / Hours / Mins / Secs labels beneath each digit group.</Setting>
+          <Setting name="When the timer expires"><strong>Show a message</strong> — the digit strip hides and a short expired message appears in its place. <strong>Hide the section</strong> — the entire section disappears from the page silently.</Setting>
+          <Setting name="Expired message">The text shown when the timer reaches zero (only applies when expiry action is Show a message) — e.g. "This offer has ended." or "The event is now live."</Setting>
+        </SettingsTable>
+        <Note>The countdown ticks client-side every second. It starts immediately when the snippet loads — no server dependency. Visitors who load the page after the target date see the expired state straight away.</Note>
+      </GuideSection>
+
+      <GuideSection Icon={List} title="Button">
+        <SettingsTable>
+          <Setting name="Button label">CTA text beneath the digits — e.g. "Shop the sale" or "Register now".</Setting>
+          <Setting name="Button URL">Where the button links to.</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={Settings} title="Layout">
+        <SettingsTable>
+          <Setting name="Display style"><strong>Blocks</strong> — each digit group sits inside a rounded card with a separate background colour, giving a bold "scoreboard" look. <strong>Minimal</strong> — plain large numbers separated by colons, no card backgrounds — cleaner for light-coloured sections.</Setting>
+          <Setting name="Alignment">Left, centre, or right — applies to the heading and digit strip together.</Setting>
+          <Setting name="Make wide">Extends the section background to full viewport width.</Setting>
+          <Setting name="Heading size">Font size of the title in pixels.</Setting>
+          <Setting name="Digit size">Font size of the countdown numbers in pixels (32–120 px). The cards scale proportionally.</Setting>
+          <Setting name="Padding">Top, bottom, and horizontal padding around the section content.</Setting>
+        </SettingsTable>
+      </GuideSection>
+
+      <GuideSection Icon={Palette} title="Colours">
+        <SettingsTable>
+          <Setting name="Background">Section background — dark slate is the default for maximum digit contrast.</Setting>
+          <Setting name="Title / Subheading / Eyebrow">Text colours for the header elements.</Setting>
+          <Setting name="Digit">Colour of the countdown numbers themselves.</Setting>
+          <Setting name="Digit card background">Background colour of each digit card (Blocks style only).</Setting>
+          <Setting name="Unit labels">Colour of the Days / Hours / Mins / Secs labels.</Setting>
+          <Setting name="Button background / text">CTA button fill and label colours.</Setting>
+        </SettingsTable>
+        <ProTip title="Brand Kit support">Apply Brand Kit maps the eyebrow, title, subheading and CTA button colours from your kit. The digit and digit-card colours are intentionally left untouched — they're usually chosen for contrast against the dark background rather than from the brand palette.</ProTip>
+      </GuideSection>
+
+      <GuideSection Icon={Sparkles} title="Pro tips">
+        <ProTip title="Hide Days for short-window urgency">A countdown showing 00 Days 04 Hours reads less urgently than one showing just 4:23:17. Turn Days off for the final 24 hours of a sale to sharpen the feeling of immediacy.</ProTip>
+        <ProTip title="Minimal style on light sections">Blocks style pops on dark backgrounds. Switch to Minimal when placing the timer on a white or light-grey section — large plain numbers without card chrome stay clean and readable.</ProTip>
+        <ProTip title="Expired action: Hide for evergreen pages">If the page will stay live after the promotion ends, set expiry to Hide the section. Visitors arriving after the deadline never see a "sale ended" message — the countdown simply disappears and the page flows as if it was never there.</ProTip>
+        <ProTip title="Pair with a CTA Banner below">Countdown Timer is an urgency setter, not a conversion section on its own. Pair it directly above a CTA Banner or Hero so the visitor's eye drops straight from the ticking digits to the buy or sign-up button.</ProTip>
       </GuideSection>
     </div>
   );

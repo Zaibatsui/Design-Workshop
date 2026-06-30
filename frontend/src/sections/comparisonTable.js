@@ -1,24 +1,18 @@
 /**
  * Comparison Table — "Why us vs. them" section.
  *
- * High-converting B2B pattern: a 3-column table that compares the
- * user's brand against a generic competitor on N feature rows.
+ * Supports 1–4 competitor columns. The first column is always the
+ * feature label; the second is always "our" (highlighted when toggled);
+ * columns 3-N are competitor columns added/removed from the form.
  *
- * Layout:
+ * Layout (3-col example):
  *   ┌─────────────────────┬───────────────┬───────────────────┐
  *   │ Feature             │   [Logo]      │ Other Platforms   │
  *   ├─────────────────────┼───────────────┼───────────────────┤
  *   │ UK-Based Support    │ ✓ Real people │ ✗ Automated reply │
- *   │ Expert Design       │ ✓ Custom UI   │ ✗ Limited tpl     │
- *   │ …                   │ …             │ …                 │
  *   └─────────────────────┴───────────────┴───────────────────┘
  *
- * The "our" column can be visually emphasised with a tinted background
- * + accent border so it reads as the winning option at a glance.
- *
- * Mobile (max 640px): the grid collapses to a single column where each
- * row becomes a card titled by the feature label, with two stacked
- * lines (✓ our / ✗ theirs).
+ * Mobile (max 640px): collapses to cards titled by feature label.
  */
 import { Columns3 } from "lucide-react";
 import {
@@ -56,12 +50,12 @@ import PaddingFields from "@/components/PaddingFields";
 const ID = "comparison-table";
 
 const SAMPLE_ROWS = [
-  { feature: "UK-Based Support", ourValue: "Real people, real support", competitorValue: "Automated replies" },
-  { feature: "Expert-Led Design", ourValue: "Custom branding & professional design", competitorValue: "Limited templates & DIY edits" },
-  { feature: "All-in-One Pricing", ourValue: "One subscription, everything included", competitorValue: "Extra costs for essential features" },
-  { feature: "Tech & Security", ourValue: "Managed updates & secure hosting", competitorValue: "You handle maintenance & security" },
-  { feature: "Success-Driven Partnership", ourValue: "Your growth is our priority", competitorValue: "Just another software subscription" },
-  { feature: "Setup & Optimisation", ourValue: "Experts handle the hard work", competitorValue: "Time-consuming DIY setup" },
+  { feature: "UK-Based Support", ourValue: "Real people, real support", competitorValues: [{ value: "Automated replies", icon: "x" }] },
+  { feature: "Expert-Led Design", ourValue: "Custom branding & professional design", competitorValues: [{ value: "Limited templates & DIY edits", icon: "x" }] },
+  { feature: "All-in-One Pricing", ourValue: "One subscription, everything included", competitorValues: [{ value: "Extra costs for essential features", icon: "x" }] },
+  { feature: "Tech & Security", ourValue: "Managed updates & secure hosting", competitorValues: [{ value: "You handle maintenance & security", icon: "x" }] },
+  { feature: "Success-Driven Partnership", ourValue: "Your growth is our priority", competitorValues: [{ value: "Just another software subscription", icon: "x" }] },
+  { feature: "Setup & Optimisation", ourValue: "Experts handle the hard work", competitorValues: [{ value: "Time-consuming DIY setup", icon: "x" }] },
 ];
 
 const defaults = () => ({
@@ -71,23 +65,20 @@ const defaults = () => ({
   subheading: "",
   closingText:
     "This isn't just another tool — it's a growth partner. We succeed when you do.",
-  // Header row labels (right of the feature column).
   featureColumnLabel: "Feature",
   brandLabel: "Us",
   brandLogoUrl: "",
   brandLogoAlt: "",
   brandLogoMaxHeight: 28,
-  competitorLabel: "Other Platforms",
-  // Per-row data
+  // Array of competitor columns — users can add up to 4.
+  competitors: [{ id: makeUid(), label: "Other Platforms" }],
   rows: SAMPLE_ROWS.map((r) => ({
     id: makeUid(),
     feature: r.feature,
     ourValue: r.ourValue,
     ourIcon: "check",
-    competitorValue: r.competitorValue,
-    competitorIcon: "x",
+    competitorValues: r.competitorValues,
   })),
-  // Layout
   textAlign: "center",
   fullBleed: false,
   highlightOurColumn: true,
@@ -96,22 +87,51 @@ const defaults = () => ({
   paddingTop: 80,
   paddingBottom: 80,
   paddingY: 80,
-  // Theme
   titleColor: "#0f172a",
   eyebrowColor: "#E01839",
   bodyColor: "#475569",
   bgColor: "#ffffff",
-  // Accent = the tint colour for the "our" column header + tick fills.
   accentColor: "#E01839",
-  // Muted = the colour for the cross icon + competitor column header.
   mutedColor: "#94a3b8",
   borderColor: "#e2e8f0",
-  // Optional footer link
+  // Header background image
+  headerImage: "",
+  headerImageAlt: "",
+  headerHeight: 260,
+  headerRadius: null,
+  overlayType: "solid",
+  headerOverlayColor: "#0f172a",
+  overlayGradientFrom: "",
+  overlayGradientTo: "",
+  overlayGradientAngle: 135,
+  headerOverlayOpacity: 0.45,
+  headerTextColor: "#ffffff",
   footerLink: null,
 });
 
-// Inline SVG glyphs — kept tiny and stroke-based so they pick up
-// `currentColor` from the wrapping cell's text colour.
+// ─── helpers ──────────────────────────────────────────────────────────────────
+
+/** Normalise competitor columns — handles old single-competitor configs. */
+function getCompetitors(c) {
+  if (Array.isArray(c.competitors) && c.competitors.length > 0) return c.competitors;
+  return [{ id: "compat0", label: c.competitorLabel || "Other Platforms" }];
+}
+
+/** Return per-competitor values for a row, padded/trimmed to match columns. */
+function getRowCompetitorValues(row, competitors) {
+  if (Array.isArray(row.competitorValues) && row.competitorValues.length > 0) {
+    return competitors.map((_, i) => row.competitorValues[i] || { value: "", icon: "x" });
+  }
+  // Backward compat: old single competitorValue / competitorIcon fields.
+  return competitors.map((_, i) =>
+    i === 0
+      ? { value: row.competitorValue || "", icon: row.competitorIcon || "x" }
+      : { value: "", icon: "x" }
+  );
+}
+
+// ─── SVG glyphs ───────────────────────────────────────────────────────────────
+
 const TICK_SVG =
   '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CROSS_SVG =
@@ -122,6 +142,8 @@ function iconFor(kind) {
   if (kind === "x") return `<span class="ns-mark ns-mark-x" aria-hidden="true">${CROSS_SVG}</span>`;
   return "";
 }
+
+// ─── render ───────────────────────────────────────────────────────────────────
 
 function render(cfg = {}) {
   const c = { ...defaults(), ...cfg };
@@ -134,6 +156,10 @@ function render(cfg = {}) {
   const padTop = padTopOf(c, 80);
   const padBot = padBotOf(c, 80);
   const padX = padXOf(cfg);
+
+  const competitors = getCompetitors(c);
+  // Grid: feature col (1.3fr) + our col (1fr) + one 1fr per competitor.
+  const gridCols = `1.3fr 1fr ${competitors.map(() => "1fr").join(" ")}`;
 
   const styleVars = [
     `--ns-bg:${bg}`,
@@ -156,39 +182,52 @@ function render(cfg = {}) {
     ? `<p class="ns-sub">${escHtml(c.subheading)}</p>`
     : "";
 
-  // Brand column header cell — logo (preferred) or text fallback.
   const brandLogo = safeUrl(c.brandLogoUrl);
   const brandHeader = brandLogo
     ? `<img class="ns-brand-logo" src="${escAttr(brandLogo)}" alt="${escAttr(c.brandLogoAlt || c.brandLabel || "Brand")}" style="max-height:${num(c.brandLogoMaxHeight, 28)}px"/>`
     : `<span class="ns-brand-text">${escHtml(c.brandLabel || "Us")}</span>`;
 
+  // Header row — our column + one cell per competitor.
+  const competitorHeadCells = competitors
+    .map((comp) => `<div class="ns-cell ns-cell-them" role="columnheader">${escHtml(comp.label || "")}</div>`)
+    .join("");
+
+  const headRow = `<div class="ns-row ns-row-head" role="row">
+    <div class="ns-cell ns-cell-feature" role="columnheader">${escHtml(c.featureColumnLabel || "Feature")}</div>
+    <div class="ns-cell ns-cell-our" role="columnheader">${brandHeader}</div>
+    ${competitorHeadCells}
+  </div>`;
+
+  // Body rows.
   const rowsHtml = (c.rows || [])
-    .filter((r) => r && (r.feature || r.ourValue || r.competitorValue))
+    .filter((r) => r && (r.feature || r.ourValue))
     .map((r, idx) => {
       const our = (r.ourValue || "").trim();
-      const their = (r.competitorValue || "").trim();
+      const compCells = getRowCompetitorValues(r, competitors)
+        .map((cv) => {
+          const val = (cv.value || "").trim();
+          const icon = cv.icon === "check" || cv.icon === "none" ? cv.icon : "x";
+          return `<div class="ns-cell ns-cell-them" role="cell">
+          ${iconFor(icon)}
+          ${val ? `<span class="ns-cell-text">${escHtml(val)}</span>` : ""}
+        </div>`;
+        })
+        .join("");
       return `<div class="ns-row" role="row" data-ns-list="compare" data-ns-item="${idx}">
-        <div class="ns-cell ns-cell-feature" role="rowheader" scope="row">${escHtml(r.feature || "")}</div>
+        <div class="ns-cell ns-cell-feature" role="cell">${escHtml(r.feature || "")}</div>
         <div class="ns-cell ns-cell-our" role="cell">
           ${iconFor(r.ourIcon === "x" || r.ourIcon === "none" ? r.ourIcon : "check")}
           ${our ? `<span class="ns-cell-text">${escHtml(our)}</span>` : ""}
         </div>
-        <div class="ns-cell ns-cell-them" role="cell">
-          ${iconFor(r.competitorIcon === "check" || r.competitorIcon === "none" ? r.competitorIcon : "x")}
-          ${their ? `<span class="ns-cell-text">${escHtml(their)}</span>` : ""}
-        </div>
+        ${compCells}
       </div>`;
     })
     .join("");
 
-  // Closing paragraph below the table.
   const closingHtml = (c.closingText || "").trim()
     ? `<p class="ns-closing">${escHtml(c.closingText)}</p>`
     : "";
 
-  // Highlight column: tinted bg + accent border on the "our" column.
-  // Implemented as cell-level overrides so the highlight survives the
-  // mobile-card collapse (where columns become rows).
   const highlightCss = c.highlightOurColumn
     ? `
 .${cls} .ns-cell-our{background:color-mix(in srgb, var(--ns-accent) 6%, transparent)}
@@ -197,28 +236,44 @@ function render(cfg = {}) {
 `
     : "";
 
-  // Zebra stripes — subtle alt-row background for legibility on long
-  // tables. Only applies to feature & "them" cells so the "our"
-  // column tint (if enabled) doesn't get washed out.
   const zebraCss = c.showZebra
     ? `.${cls} .ns-row:nth-child(odd) .ns-cell-feature,.${cls} .ns-row:nth-child(odd) .ns-cell-them{background:color-mix(in srgb, #000000 2%, transparent)}`
     : "";
 
-  // The "our" column highlight border is rendered as an absolutely-
-  // positioned overlay so it can span every row without affecting
-  // the grid math. Only emitted when the toggle is on.
   const ourBorderHtml = c.highlightOurColumn
     ? `<div class="ns-col-our-wrap" aria-hidden="true"><div class="ns-col-our-border"></div></div>`
     : "";
 
+  // ── header background image ──
+  const hasHeaderImg = !!safeUrl(c.headerImage || "");
+  const headerTextColor = safeColor(c.headerTextColor, "#ffffff");
+  const headerOverlayColor = safeColor(c.headerOverlayColor, "#0f172a");
+  const headerOverlayOpacity = Math.min(1, Math.max(0, num(c.headerOverlayOpacity, 0.45)));
+  const headerHeight = Math.max(120, num(c.headerHeight, 260));
+  const headerRadius = c.fullBleed ? 0 : (c.headerRadius == null ? 0 : num(c.headerRadius, 0));
+  const overlayBg = c.overlayType === "gradient"
+    ? `linear-gradient(${num(c.overlayGradientAngle, 135)}deg, ${safeColor(c.overlayGradientFrom, "#0f172a")}, ${safeColor(c.overlayGradientTo, "#1e3a5f")})`
+    : headerOverlayColor;
+
+  const headerContent = `${eyebrowHtml}${titleHtml}${subHtml}`;
+  const photoHeader = hasHeaderImg
+    ? `<header class="ns-header-bg" data-ns-group="header-bg"${c.headerImageAlt ? ` aria-label="${escAttr(c.headerImageAlt)}"` : ` role="presentation"`}>
+      <div class="ns-header-overlay" aria-hidden="true"></div>
+      <div class="ns-header-content" data-ns-group="header">${headerContent}</div>
+    </header>`
+    : "";
+  const plainHeader = !hasHeaderImg
+    ? `<div data-ns-group="header">${headerContent}</div>`
+    : "";
+
   const css = `
 ${baseReset(cls)}
-.${cls}{padding:${padTop}px ${padX}px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-title)}
-.${cls} .ns-wrap{max-width:1100px;margin:0 auto;text-align:${align}}
+.${cls}{padding:${hasHeaderImg ? "0" : `${padTop}px`} ${padX}px ${padBot}px;width:100%;background:var(--ns-bg);color:var(--ns-title)}
+.${cls} .ns-wrap{max-width:1100px;margin:0 auto;${hasHeaderImg ? `padding-top:${padTop}px;` : ""}text-align:${align}}
 .${cls} .ns-eyebrow{font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--ns-eyebrow);margin:0 0 10px}
 .${cls} .ns-title{font-size:var(--ns-heading-size,36px);font-weight:700;line-height:1.15;letter-spacing:-0.02em;color:var(--ns-title);margin:0 0 12px;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:${align}}
 .${cls} .ns-sub{font-size:16px;line-height:1.6;color:var(--ns-body);margin:0 0 36px;max-width:680px;${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}}
-.${cls} .ns-table{position:relative;display:grid;grid-template-columns:1.3fr 1fr 1fr;border:1px solid var(--ns-border);border-radius:14px;overflow:hidden;background:var(--ns-bg);text-align:left;margin-top:24px}
+.${cls} .ns-table{position:relative;display:grid;grid-template-columns:${gridCols};border:1px solid var(--ns-border);border-radius:14px;overflow:hidden;background:var(--ns-bg);text-align:left;margin-top:24px}
 .${cls} .ns-row{display:contents}
 .${cls} .ns-cell{padding:18px 22px;border-top:1px solid var(--ns-border);min-width:0;display:flex;align-items:center;gap:10px;font-size:15px;line-height:1.5;color:var(--ns-body);position:relative;z-index:0}
 .${cls} .ns-row-head .ns-cell{padding:20px 22px;border-top:0;font-weight:700;font-size:14px;letter-spacing:0.04em;text-transform:uppercase;color:var(--ns-title);background:color-mix(in srgb, var(--ns-title) 3%, transparent)}
@@ -232,14 +287,21 @@ ${baseReset(cls)}
 .${cls} .ns-mark-x{color:#fff;background:var(--ns-muted)}
 .${cls} .ns-brand-logo{display:inline-block;width:auto;max-width:160px;object-fit:contain}
 .${cls} .ns-brand-text{font-weight:700;letter-spacing:0.04em;color:var(--ns-accent)}
-.${cls} .ns-col-our-wrap{position:absolute;inset:0;display:grid;grid-template-columns:1.3fr 1fr 1fr;pointer-events:none}
+.${cls} .ns-col-our-wrap{position:absolute;inset:0;display:grid;grid-template-columns:${gridCols};pointer-events:none}
 .${cls} .ns-col-our-wrap > .ns-col-our-border{grid-column:2 / 3}
 .${cls} .ns-closing{margin:30px auto 0;max-width:640px;font-size:15px;line-height:1.6;color:var(--ns-body);text-align:${align}}
+${hasHeaderImg ? `
+.${cls} .ns-header-bg{position:relative;min-height:${headerHeight}px;background-image:url("${escAttr(safeUrl(c.headerImage))}");background-size:cover;background-position:center;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:48px ${padX}px;margin-bottom:36px;border-radius:${headerRadius}px}
+.${cls} .ns-header-overlay{position:absolute;inset:0;background:${overlayBg};opacity:${headerOverlayOpacity};pointer-events:none}
+.${cls} .ns-header-content{position:relative;z-index:1;max-width:720px;width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.${cls} .ns-header-bg .ns-title{color:${headerTextColor}}
+.${cls} .ns-header-bg .ns-sub{color:${headerTextColor};opacity:.92;margin-bottom:0}
+` : ""}
 ${highlightCss}
 ${zebraCss}
 ${footerLinkCss(cls, accent, safeColor(c.bodyColor, "#475569"))}
-.${cls} a:focus-visible{outline:2px solid ${accent};outline-offset:2px;border-radius:4px}
 @media (max-width:720px){
+  ${hasHeaderImg ? `.${cls} .ns-header-bg{min-height:${Math.max(120, Math.round(headerHeight * 0.75))}px;padding:32px 18px;margin-bottom:24px}` : ""}
   .${cls} .ns-table{grid-template-columns:1fr;border-radius:12px}
   .${cls} .ns-col-our-wrap{display:none}
   .${cls} .ns-row{display:block;border-top:1px solid var(--ns-border);padding:6px 0}
@@ -251,20 +313,11 @@ ${footerLinkCss(cls, accent, safeColor(c.bodyColor, "#475569"))}
 }
 `.trim();
 
-  const headRow = `<div class="ns-row ns-row-head" role="row">
-    <div class="ns-cell ns-cell-feature" role="columnheader">${escHtml(c.featureColumnLabel || "Feature")}</div>
-    <div class="ns-cell ns-cell-our" role="columnheader">${brandHeader}</div>
-    <div class="ns-cell ns-cell-them" role="columnheader">${escHtml(c.competitorLabel || "Other Platforms")}</div>
-  </div>`;
-
   const html = `<section class="ns-comparison ${cls}${fullBleedClass(c)}" style="${styleVars}" data-ns-group="defaults">
+  ${photoHeader}
   <div class="ns-wrap">
-    <div data-ns-group="header">
-    ${eyebrowHtml}
-    ${titleHtml}
-    ${subHtml}
-    </div>
-    <div class="ns-table" role="table" aria-label="${escAttr(c.title || "Comparison table")}" data-ns-group="rows">
+    ${plainHeader}
+    <div class="ns-table" role="table" data-ns-group="rows">
       ${ourBorderHtml}
       ${headRow}
       ${rowsHtml}
@@ -278,11 +331,26 @@ ${footerLinkCss(cls, accent, safeColor(c.bodyColor, "#475569"))}
   return wrapSnippet({ html, css, js });
 }
 
+// ─── form panel ───────────────────────────────────────────────────────────────
+
 function FormPanel({ config, onUpdate }) {
   const rows = config.rows || [];
-  const update = (id, patch) =>
+  const competitors = getCompetitors(config);
+
+  // ── row helpers ──
+  const updateRow = (id, patch) =>
     onUpdate({ rows: rows.map((r) => (r.id === id ? { ...r, ...patch } : r)) });
-  const add = () =>
+
+  const updateRowCompetitorValue = (rowId, compIdx, patch) => {
+    const row = rows.find((r) => r.id === rowId);
+    if (!row) return;
+    const vals = getRowCompetitorValues(row, competitors).map((v, i) =>
+      i === compIdx ? { ...v, ...patch } : v
+    );
+    updateRow(rowId, { competitorValues: vals });
+  };
+
+  const addRow = () =>
     onUpdate({
       rows: [
         ...rows,
@@ -291,13 +359,14 @@ function FormPanel({ config, onUpdate }) {
           feature: "New feature",
           ourValue: "What we offer",
           ourIcon: "check",
-          competitorValue: "What they offer",
-          competitorIcon: "x",
+          competitorValues: competitors.map(() => ({ value: "What they offer", icon: "x" })),
         },
       ],
     });
-  const remove = (id) => onUpdate({ rows: rows.filter((r) => r.id !== id) });
-  const duplicate = (id) => {
+
+  const removeRow = (id) => onUpdate({ rows: rows.filter((r) => r.id !== id) });
+
+  const duplicateRow = (id) => {
     const idx = rows.findIndex((r) => r.id === id);
     if (idx < 0) return;
     const clone = { ...rows[idx], id: makeUid() };
@@ -305,7 +374,34 @@ function FormPanel({ config, onUpdate }) {
     arr.splice(idx + 1, 0, clone);
     onUpdate({ rows: arr });
   };
-  const reorder = (next) => onUpdate({ rows: next });
+
+  // ── competitor column helpers ──
+  const addCompetitor = () => {
+    if (competitors.length >= 4) return;
+    const newComp = { id: makeUid(), label: `Competitor ${competitors.length + 1}` };
+    const newCompetitors = [...competitors, newComp];
+    // Extend every row's competitorValues to include a blank entry.
+    const newRows = rows.map((r) => {
+      const vals = getRowCompetitorValues(r, competitors);
+      return { ...r, competitorValues: [...vals, { value: "", icon: "x" }] };
+    });
+    onUpdate({ competitors: newCompetitors, rows: newRows });
+  };
+
+  const removeCompetitor = (compIdx) => {
+    if (competitors.length <= 1) return;
+    const newCompetitors = competitors.filter((_, i) => i !== compIdx);
+    const newRows = rows.map((r) => {
+      const vals = getRowCompetitorValues(r, competitors);
+      return { ...r, competitorValues: vals.filter((_, i) => i !== compIdx) };
+    });
+    onUpdate({ competitors: newCompetitors, rows: newRows });
+  };
+
+  const updateCompetitor = (compIdx, patch) => {
+    const newCompetitors = competitors.map((c, i) => (i === compIdx ? { ...c, ...patch } : c));
+    onUpdate({ competitors: newCompetitors });
+  };
 
   return (
     <FormAccordion sectionType="comparison-table">
@@ -349,6 +445,8 @@ function FormPanel({ config, onUpdate }) {
           onChange={(v) => onUpdate({ featureColumnLabel: v })}
           testid="compare-feature-label"
         />
+
+        {/* ── Your column ── */}
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Your column</p>
         </div>
@@ -390,24 +488,53 @@ function FormPanel({ config, onUpdate }) {
             testid="compare-brand-label"
           />
         )}
+
+        {/* ── Competitor columns ── */}
         <div className="pt-3 mt-1 border-t border-slate-200">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Competitor column</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            Competitor columns ({competitors.length}/4)
+          </p>
         </div>
-        <TextField
-          label="Competitor label"
-          value={config.competitorLabel || ""}
-          onChange={(v) => onUpdate({ competitorLabel: v })}
-          testid="compare-competitor-label"
-        />
+        {competitors.map((comp, idx) => (
+          <div key={comp.id} className="flex items-end gap-2">
+            <div className="flex-1">
+              <TextField
+                label={`Competitor ${idx + 1} label`}
+                value={comp.label || ""}
+                onChange={(v) => updateCompetitor(idx, { label: v })}
+                testid={`compare-competitor-label-${idx}`}
+              />
+            </div>
+            {competitors.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeCompetitor(idx)}
+                className="mb-1 px-2 py-1.5 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded border border-red-200 shrink-0"
+                title="Remove this competitor column"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        ))}
+        {competitors.length < 4 && (
+          <button
+            type="button"
+            onClick={addCompetitor}
+            className="mt-1 w-full py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-dashed border-slate-300 rounded"
+          >
+            + Add competitor column
+          </button>
+        )}
       </Group>
 
       <Group title={`Rows (${rows.length})`} value="rows">
         <ListEditor
           items={rows}
-          onAdd={add}
-          onRemove={remove}
-          onReorder={reorder}
-          onDuplicate={duplicate}
+          onAdd={addRow}
+          onRemove={removeRow}
+          onReorder={(next) => onUpdate({ rows: next })}
+          onDuplicate={duplicateRow}
           itemLabel={(r) => r.feature || "Untitled row"}
           addLabel="Add row"
           testid="compare-rows"
@@ -421,20 +548,20 @@ function FormPanel({ config, onUpdate }) {
               <TextField
                 label="Feature"
                 value={r.feature || ""}
-                onChange={(v) => update(r.id, { feature: v })}
+                onChange={(v) => updateRow(r.id, { feature: v })}
                 testid={`compare-row-feature-${r.id}`}
               />
               <TextAreaField
                 label="Your value"
                 value={r.ourValue || ""}
                 rows={2}
-                onChange={(v) => update(r.id, { ourValue: v })}
+                onChange={(v) => updateRow(r.id, { ourValue: v })}
                 testid={`compare-row-our-${r.id}`}
               />
               <SelectField
                 label="Your icon"
                 value={r.ourIcon || "check"}
-                onChange={(v) => update(r.id, { ourIcon: v })}
+                onChange={(v) => updateRow(r.id, { ourIcon: v })}
                 options={[
                   { value: "check", label: "✓ Tick" },
                   { value: "x", label: "✗ Cross" },
@@ -442,27 +569,134 @@ function FormPanel({ config, onUpdate }) {
                 ]}
                 testid={`compare-row-our-icon-${r.id}`}
               />
-              <TextAreaField
-                label="Competitor value"
-                value={r.competitorValue || ""}
-                rows={2}
-                onChange={(v) => update(r.id, { competitorValue: v })}
-                testid={`compare-row-them-${r.id}`}
-              />
-              <SelectField
-                label="Competitor icon"
-                value={r.competitorIcon || "x"}
-                onChange={(v) => update(r.id, { competitorIcon: v })}
-                options={[
-                  { value: "x", label: "✗ Cross" },
-                  { value: "check", label: "✓ Tick" },
-                  { value: "none", label: "No icon" },
-                ]}
-                testid={`compare-row-them-icon-${r.id}`}
-              />
+              {getRowCompetitorValues(r, competitors).map((cv, compIdx) => (
+                <div key={competitors[compIdx]?.id || compIdx} className="pt-2 mt-1 border-t border-slate-100">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                    {competitors[compIdx]?.label || `Competitor ${compIdx + 1}`}
+                  </p>
+                  <TextAreaField
+                    label="Value"
+                    value={cv.value || ""}
+                    rows={2}
+                    onChange={(v) => updateRowCompetitorValue(r.id, compIdx, { value: v })}
+                    testid={`compare-row-them-${r.id}-${compIdx}`}
+                  />
+                  <SelectField
+                    label="Icon"
+                    value={cv.icon || "x"}
+                    onChange={(v) => updateRowCompetitorValue(r.id, compIdx, { icon: v })}
+                    options={[
+                      { value: "x", label: "✗ Cross" },
+                      { value: "check", label: "✓ Tick" },
+                      { value: "none", label: "No icon" },
+                    ]}
+                    testid={`compare-row-them-icon-${r.id}-${compIdx}`}
+                  />
+                </div>
+              ))}
             </>
           )}
         />
+      </Group>
+
+      <Group title="Header background" value="header-bg">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Background image (optional)</p>
+          <ImageUpload
+            value={config.headerImage || ""}
+            onChange={(v) => onUpdate({ headerImage: v })}
+            testid="compare-header-image"
+            compact
+          />
+        </div>
+        {config.headerImage && (
+          <>
+            <TextField
+              label="Image alt text"
+              value={config.headerImageAlt || ""}
+              onChange={(v) => onUpdate({ headerImageAlt: v })}
+              testid="compare-header-image-alt"
+            />
+            <SliderField
+              label="Header height"
+              value={Number(config.headerHeight) || 260}
+              min={120}
+              max={520}
+              suffix="px"
+              onChange={(v) => onUpdate({ headerHeight: v })}
+              testid="compare-header-height"
+            />
+            {!config.fullBleed && (
+              <SliderField
+                label="Corner radius"
+                description="Disabled when 'Make wide' is on."
+                value={config.headerRadius == null ? 0 : Number(config.headerRadius)}
+                min={0}
+                max={48}
+                suffix="px"
+                onChange={(v) => onUpdate({ headerRadius: v })}
+                testid="compare-header-radius"
+              />
+            )}
+            <SelectField
+              label="Overlay style"
+              value={config.overlayType || "solid"}
+              options={[
+                { value: "solid",    label: "Solid colour"     },
+                { value: "gradient", label: "Linear gradient"  },
+              ]}
+              onChange={(v) => onUpdate({ overlayType: v })}
+              testid="compare-overlay-type"
+            />
+            {config.overlayType === "gradient" ? (
+              <>
+                <ColorField
+                  label="Gradient — from"
+                  value={config.overlayGradientFrom || "#0f172a"}
+                  onChange={(v) => onUpdate({ overlayGradientFrom: v })}
+                  testid="compare-grad-from"
+                />
+                <ColorField
+                  label="Gradient — to"
+                  value={config.overlayGradientTo || "#1e3a5f"}
+                  onChange={(v) => onUpdate({ overlayGradientTo: v })}
+                  testid="compare-grad-to"
+                />
+                <SliderField
+                  label="Gradient angle"
+                  value={Number(config.overlayGradientAngle) || 135}
+                  min={0}
+                  max={360}
+                  suffix="°"
+                  onChange={(v) => onUpdate({ overlayGradientAngle: v })}
+                  testid="compare-grad-angle"
+                />
+              </>
+            ) : (
+              <ColorField
+                label="Overlay colour"
+                value={config.headerOverlayColor || "#0f172a"}
+                onChange={(v) => onUpdate({ headerOverlayColor: v })}
+                testid="compare-header-overlay-color"
+              />
+            )}
+            <SliderField
+              label="Overlay opacity"
+              value={Math.round((config.headerOverlayOpacity ?? 0.45) * 100)}
+              min={0}
+              max={100}
+              suffix="%"
+              onChange={(v) => onUpdate({ headerOverlayOpacity: v / 100 })}
+              testid="compare-header-overlay-opacity"
+            />
+            <ColorField
+              label="Header text colour"
+              value={config.headerTextColor || "#ffffff"}
+              onChange={(v) => onUpdate({ headerTextColor: v })}
+              testid="compare-header-text-color"
+            />
+          </>
+        )}
       </Group>
 
       <Group title="Closing" value="closing">
@@ -481,24 +715,10 @@ function FormPanel({ config, onUpdate }) {
         />
       </Group>
 
-      <Group title="Defaults" value="defaults">
-        <ToggleField
-          label="Highlight your column"
-          description="Tints the background and adds an accent border around your column to draw the eye."
-          checked={config.highlightOurColumn !== false}
-          onChange={(v) => onUpdate({ highlightOurColumn: v })}
-          testid="compare-highlight-our"
-        />
-        <ToggleField
-          label="Zebra stripes"
-          description="Alternate row tint for easier scanning on long tables."
-          checked={config.showZebra !== false}
-          onChange={(v) => onUpdate({ showZebra: v })}
-          testid="compare-zebra"
-        />
+      <Group title="Layout">
         <ToggleField
           label="Make wide"
-          description="Stretch the background to full viewport width"
+          description="Stretch the background to full viewport width."
           checked={!!config.fullBleed}
           onChange={(v) => onUpdate({ fullBleed: v })}
           testid="compare-full-bleed"
@@ -518,6 +738,23 @@ function FormPanel({ config, onUpdate }) {
           suffix="px"
           onChange={(v) => onUpdate({ headingSize: v })}
           testid="compare-heading-size"
+        />
+      </Group>
+
+      <Group title="Defaults" value="defaults">
+        <ToggleField
+          label="Highlight your column"
+          description="Tints the background and adds an accent border around your column to draw the eye."
+          checked={config.highlightOurColumn !== false}
+          onChange={(v) => onUpdate({ highlightOurColumn: v })}
+          testid="compare-highlight-our"
+        />
+        <ToggleField
+          label="Zebra stripes"
+          description="Alternate row tint for easier scanning on long tables."
+          checked={config.showZebra !== false}
+          onChange={(v) => onUpdate({ showZebra: v })}
+          testid="compare-zebra"
         />
         <div className="pt-3 mt-1 border-t border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Theme</p>
@@ -572,7 +809,7 @@ function FormPanel({ config, onUpdate }) {
 export const comparisonTable = {
   id: ID,
   name: "Comparison Table",
-  description: "3-column you-vs-competitor matrix with tick / cross rows",
+  description: "You-vs-competitors matrix with tick / cross rows — add up to 4 competitor columns",
   icon: Columns3,
   defaults,
   render,

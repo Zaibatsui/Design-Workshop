@@ -33,7 +33,7 @@ import { BRAND } from "@/lib/brand";
 import TicketDialog from "@/components/TicketDialog";
 import { Button } from "@/components/ui/button";
 import SectionPreviewPopover from "@/components/SectionPreviewPopover";
-import { Columns3, Hash, Info, PlayCircle, FolderOpen, Building2 } from "lucide-react";
+import { Columns3, Hash, Info, PlayCircle, FolderOpen, Building2, Timer } from "lucide-react";
 
 /**
  * UserGuide — the in-app reference manual. Long-form, opinionated,
@@ -401,7 +401,7 @@ export default function UserGuide({ chromeless = false }) {
 
           <Section id="section-types" Icon={Layers} title="Section types">
             <P>
-              Design Workshop ships twenty-six reusable section types plus a
+              Design Workshop ships twenty-eight reusable section types plus a
               rich-text block for use inside Pages. All are colour-themable,
               font-themable and contain at least one image-bearing field
               where applicable. Two distinct{" "}<strong>Pro</strong> bands
@@ -427,7 +427,9 @@ export default function UserGuide({ chromeless = false }) {
               <SectionCard sectionId="trust-strip" Icon={Shield} name="Trust Strip" desc="Compact 2-5 column row of icon + title + 1-line credibility callouts. Flat by design (no cards, no shadows) so it counterweights heavier sections — great for credibility marks like '20+ years' or 'ISO 27001 certified'." onInfo={() => navigate("/guide/section/trust-strip")} />
               <SectionCard sectionId="stat-counter" Icon={Hash} name="Stat Counter" desc="Row of big numbers (e.g. '36%', '£2.4M', '5×') each with a label and an optional supporting line. 2-5 columns, optional eyebrow + heading + intro on top, optional CTA underneath. Numbers ramp from zero on scroll into view (respects prefers-reduced-motion). The natural complement to Trust Strip for impact / outcomes bands." onInfo={() => navigate("/guide/section/stat-counter")} />
               <SectionCard sectionId="video-embed" Icon={PlayCircle} name="Video Embed" desc="Poster image + centred play button → click opens a modal lightbox that lazy-loads a YouTube or Vimeo iframe. Nothing loads from the host until the user presses play (privacy-friendly). ESC closes, click outside dismisses, focus restores to the play button, body scroll locks while open. Configurable aspect ratio, lightbox width and play-button style." onInfo={() => navigate("/guide/section/video-embed")} />
-              <SectionCard sectionId="comparison-table" Icon={Columns3} name="Comparison Table" desc="Three-column 'us vs them' matrix — feature rows with ticks on your column and crosses on the competitor's. Optional brand-logo header on your column, accent tint + border to draw the eye, and a closing line + CTA below. High-converting B2B pattern." onInfo={() => navigate("/guide/section/comparison-table")} />
+              <SectionCard sectionId="comparison-table" Icon={Columns3} name="Comparison Table" desc="'Us vs them' matrix with up to 4 competitor columns. Feature rows with ticks and crosses. Optional full-bleed photo header with overlay. Accent tint + border on your column, zebra stripes, closing line + CTA. High-converting B2B pattern." onInfo={() => navigate("/guide/section/comparison-table")} />
+              <SectionCard sectionId="pricing-table" Icon={LayoutGrid} name="Pricing Table" desc="2–4 tier side-by-side pricing comparison with a price, period, description and CTA per tier. Highlight a 'Best Value' column. Add unlimited feature rows with tick, cross, dash or text per tier. Optional photo header. Click any tier in the preview to edit it. Horizontal scroll on mobile." onInfo={() => navigate("/guide/section/pricing-table")} />
+              <SectionCard sectionId="countdown-timer" Icon={Timer} name="Countdown Timer" desc="Live ticking urgency block for sale deadlines, product launches, or events. Pick a target date and choose blocks or minimal digit style. Toggle individual units (days / hours / mins / secs). On expiry: show a custom message or hide the section entirely." onInfo={() => navigate("/guide/section/countdown-timer")} />
               <SectionCard sectionId="steps" Icon={ListOrdered} name="Steps" desc="Numbered process strip — horizontal or vertical. Big editorial numerals or compact inline. Hairline dividers optional." onInfo={() => navigate("/guide/section/steps")} />
               <SectionCard sectionId="testimonials" Icon={Quote} name="Testimonials" desc="Auto-scrolling quote carousel. Optional avatars + star ratings; pauses on hover so readers can actually read. Same seamless marquee as the Logo Strip." onInfo={() => navigate("/guide/section/testimonials")} />
               <SectionCard sectionId="faq" Icon={HelpCircle} name="FAQ" desc="Collapsible Q+A accordion. Uses native <details>/<summary> for zero-JS accessibility; optional single-open mode." onInfo={() => navigate("/guide/section/faq")} />

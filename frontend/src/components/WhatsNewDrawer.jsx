@@ -249,16 +249,11 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
     setSeen(readSeen(userKey));
   }, [userKey]);
 
-  // Recompute the entries lazily and memoise — the dataset only changes
-  // on full reload because the dates are static config.
-  const sectionEntries = useMemo(() => buildEntries(SECTIONS), []);
+  // Build candidates from each source. buildEntries already applies
+  // computeBadges (top-3 new, top-5 updated) per source, but we then
+  // re-apply a global cap across all sources below.
+  const sectionEntries  = useMemo(() => buildEntries(SECTIONS), []);
   const templateEntries = useMemo(() => buildEntries(PAGE_TEMPLATES), []);
-  // Platform updates bypass `computeBadges` — each entry already
-  // declares its own `kind` ("major") so it never expires out of
-  // the NEW/UPDATED rotation and always carries the purple badge.
-  // Sorted newest-first by `updatedOn || addedOn` so the drawer
-  // always leads with the most recent release regardless of the
-  // declaration order in `PLATFORM_UPDATES`.
   const platformEntries = useMemo(
     () =>
       PLATFORM_UPDATES.map((p) => ({
@@ -276,9 +271,35 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
       ),
     []
   );
+
+  // Global cap: top-3 newest (new + major) and top-5 most-recently-updated
+  // across ALL sources combined. This keeps the drawer tight regardless
+  // of how many entries each individual source contributes.
+  const shownIds = useMemo(() => {
+    const all = [...platformEntries, ...sectionEntries, ...templateEntries];
+    const newTop = all
+      .filter((e) => e.kind === "new" || e.kind === "major")
+      .sort((a, b) => new Date(b.addedOn || 0) - new Date(a.addedOn || 0))
+      .slice(0, 3)
+      .map((e) => e.id);
+    const newSet = new Set(newTop);
+    const updTop = all
+      .filter((e) => e.kind === "updated" && !newSet.has(e.id))
+      .sort((a, b) => new Date(b.updatedOn || b.addedOn || 0) - new Date(a.updatedOn || a.addedOn || 0))
+      .slice(0, 5)
+      .map((e) => e.id);
+    return new Set([...newTop, ...updTop]);
+  }, [platformEntries, sectionEntries, templateEntries]);
+
+  // Re-bucket shown entries back into their source groups so the
+  // Platform / Sections / Page templates headers remain meaningful.
+  const shownPlatform  = useMemo(() => platformEntries.filter((e) => shownIds.has(e.id)),  [platformEntries,  shownIds]);
+  const shownSections  = useMemo(() => sectionEntries.filter((e) => shownIds.has(e.id)),   [sectionEntries,   shownIds]);
+  const shownTemplates = useMemo(() => templateEntries.filter((e) => shownIds.has(e.id)),  [templateEntries,  shownIds]);
+
   const allEntries = useMemo(
-    () => [...platformEntries, ...sectionEntries, ...templateEntries],
-    [platformEntries, sectionEntries, templateEntries]
+    () => [...shownPlatform, ...shownSections, ...shownTemplates],
+    [shownPlatform, shownSections, shownTemplates]
   );
   const currentSigs = useMemo(() => currentSignatures(allEntries), [allEntries]);
   // Unread = any currently-shown signature the user hasn't acknowledged.
@@ -344,24 +365,24 @@ export function WhatsNewTrigger({ "data-testid": testid = "open-whats-new" }) {
             </SheetDescription>
           </SheetHeader>
 
-          {platformEntries.length > 0 && (
+          {shownPlatform.length > 0 && (
             <EntryGroup
               title="Platform"
-              entries={platformEntries}
+              entries={shownPlatform}
               testidPrefix="whats-new-platform-entry"
             />
           )}
-          {sectionEntries.length > 0 && (
+          {shownSections.length > 0 && (
             <EntryGroup
               title="Sections"
-              entries={sectionEntries}
+              entries={shownSections}
               testidPrefix="whats-new-entry"
             />
           )}
-          {templateEntries.length > 0 && (
+          {shownTemplates.length > 0 && (
             <EntryGroup
               title="Page templates"
-              entries={templateEntries}
+              entries={shownTemplates}
               testidPrefix="whats-new-template-entry"
             />
           )}
