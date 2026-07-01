@@ -351,6 +351,7 @@ ${baseReset(cls)}
 .${cls} .ns-hl-badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;background:var(--ns-accent);color:#fff;align-self:flex-start}
 .${cls} .ns-hl-badge-spacer{display:inline-block;padding:3px 10px;font-size:11px;visibility:hidden;pointer-events:none;user-select:none}
 .${cls} .ns-tier-cta{display:block;width:100%;padding:9px 16px;border-radius:8px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box;transition:opacity 0.15s;background:transparent;border:1.5px solid var(--ns-border);color:var(--ns-title);margin-top:4px}
+.${cls} .ns-cell-tier .ns-tier-cta{margin-top:auto}
 .${cls} .ns-cell-tier.ns-cell-hl .ns-tier-cta{background:var(--ns-accent);border-color:var(--ns-accent);color:#fff}
 .${cls} .ns-tier-cta:hover{opacity:0.82}
 .${cls} .ns-cell-bottom-cta{padding:16px 20px;justify-content:center}
