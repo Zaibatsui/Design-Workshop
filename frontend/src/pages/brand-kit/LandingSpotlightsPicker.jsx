@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Check, X } from "lucide-react";
+import { Camera, Check, Plus, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -11,87 +11,149 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { SECTIONS_BY_ID } from "@/sections/registry";
+import { previewDoc, makeUid } from "@/sections/shared";
 
 const NONE_VALUE = "__none__";
+const MAX_SLOTS = 4;
+const MIN_SLOTS = 2;
+
+// Render-string cache keyed by section_id — a picker session only ever
+// looks at the same handful of saved sections, so this avoids re-running
+// `def.render()` on every keystroke/re-render.
+const HTML_CACHE = new Map();
+
+function renderThumbnail(section) {
+  if (!section) return "";
+  if (HTML_CACHE.has(section.section_id)) return HTML_CACHE.get(section.section_id);
+  const def = SECTIONS_BY_ID[section.type];
+  if (!def || typeof def.render !== "function") return "";
+  let html = "";
+  try {
+    html = previewDoc(def.render({ ...section.config, uid: makeUid() }));
+  } catch {
+    html = "";
+  }
+  HTML_CACHE.set(section.section_id, html);
+  return html;
+}
 
 /**
- * LandingSpotlightsPicker — two dropdowns that control the "Spotlights"
- * cards on the public marketing landing page (`/login`). Each slot
- * shows the live snippet of one of the admin's saved sections, with
- * the section's name used as the headline.
+ * SpotlightCard — one slot: a live-rendered thumbnail (so admins can see
+ * what they're picking, not just a name in a dropdown) with the section
+ * select and status underneath.
  *
- * - Sibling of LandingDemoPicker, same backend pattern, same admin
- *   gating. Only sections you own can be slotted.
- * - If both slots are empty, the Spotlights section hides itself
- *   entirely on the landing page (no awkward empty band).
+ * The thumbnail uses the "4x width, scale to 25%" trick rather than a
+ * fixed pixel width: the card is fluid (part of a responsive grid), so a
+ * percentage-based iframe lets the preview scale with it instead of
+ * assuming one specific thumbnail box size.
  */
-function SlotPicker({ slotKey, label, value, sections, disabled, onChange }) {
+function SpotlightCard({ index, value, sections, disabled, onChange, onRemove, removable }) {
   const current = useMemo(
     () => sections.find((s) => s.section_id === value),
     [sections, value]
   );
+  const html = useMemo(() => renderThumbnail(current), [current]);
+
   return (
-    <div className="space-y-2">
-      <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-        {label}
-      </label>
-      <Select
-        value={value || NONE_VALUE}
-        onValueChange={(v) => onChange(v === NONE_VALUE ? null : v)}
-        disabled={disabled}
-      >
-        <SelectTrigger
-          data-testid={`spotlight-${slotKey}-select`}
-          className="bg-white"
-        >
-          <SelectValue placeholder="Choose a section" />
-        </SelectTrigger>
-        <SelectContent className="max-h-72">
-          <SelectItem
-            value={NONE_VALUE}
-            data-testid={`spotlight-${slotKey}-option-none`}
+    <div
+      data-testid={`spotlight-${index}-card`}
+      className="rounded-xl border border-slate-200 bg-white overflow-hidden"
+    >
+      <div className="relative w-full overflow-hidden bg-slate-50 border-b border-slate-200" style={{ paddingTop: "58%" }}>
+        {html ? (
+          <iframe
+            title={`Spotlight ${index + 1} preview`}
+            srcDoc={html}
+            sandbox="allow-same-origin"
+            loading="lazy"
+            className="absolute top-0 left-0 border-0"
+            style={{
+              width: "400%",
+              height: "400%",
+              transform: "scale(0.25)",
+              transformOrigin: "top left",
+              pointerEvents: "none",
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400">
+            No section selected
+          </div>
+        )}
+        <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-white/90 backdrop-blur px-2 py-1 rounded-sm shadow-sm">
+          Spotlight {index + 1}
+        </span>
+        {removable && (
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={disabled}
+            data-testid={`spotlight-${index}-remove`}
+            className="absolute top-2 right-2 text-[11px] font-medium text-slate-500 bg-white/90 backdrop-blur px-2 py-1 rounded-sm shadow-sm hover:text-red-600"
           >
-            <span className="flex items-center gap-2 text-slate-500">
-              <X className="w-3.5 h-3.5" /> None
-            </span>
-          </SelectItem>
-          {sections.length > 0 && (
-            <div className="my-1 border-t border-slate-200" />
-          )}
-          {sections.map((s) => {
-            const def = SECTIONS_BY_ID[s.type];
-            return (
-              <SelectItem
-                key={s.section_id}
-                value={s.section_id}
-                data-testid={`spotlight-${slotKey}-option-${s.section_id}`}
-              >
-                {s.name || "(untitled)"}{" "}
-                <span className="text-slate-400 text-xs">
-                  · {def?.name || s.type}
-                </span>
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
-      {current && (
-        <div
-          className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-medium border border-emerald-200"
-          data-testid={`spotlight-${slotKey}-active`}
+            Remove
+          </button>
+        )}
+      </div>
+
+      <div className="p-3 space-y-2">
+        <Select
+          value={value || NONE_VALUE}
+          onValueChange={(v) => onChange(v === NONE_VALUE ? null : v)}
+          disabled={disabled}
         >
-          <Check className="w-3 h-3" />
-          Live: {current.name || "(untitled)"}
-        </div>
-      )}
+          <SelectTrigger
+            data-testid={`spotlight-${index}-select`}
+            className="bg-white"
+          >
+            <SelectValue placeholder="Choose a section" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem
+              value={NONE_VALUE}
+              data-testid={`spotlight-${index}-option-none`}
+            >
+              <span className="flex items-center gap-2 text-slate-500">
+                <X className="w-3.5 h-3.5" /> None
+              </span>
+            </SelectItem>
+            {sections.length > 0 && (
+              <div className="my-1 border-t border-slate-200" />
+            )}
+            {sections.map((s) => {
+              const def = SECTIONS_BY_ID[s.type];
+              return (
+                <SelectItem
+                  key={s.section_id}
+                  value={s.section_id}
+                  data-testid={`spotlight-${index}-option-${s.section_id}`}
+                >
+                  {s.name || "(untitled)"}{" "}
+                  <span className="text-slate-400 text-xs">
+                    · {def?.name || s.type}
+                  </span>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+        {current && (
+          <div
+            className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-medium border border-emerald-200"
+            data-testid={`spotlight-${index}-active`}
+          >
+            <Check className="w-3 h-3" />
+            Live: {current.name || "(untitled)"}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 export default function LandingSpotlightsPicker() {
   const [sections, setSections] = useState([]);
-  const [left, setLeft] = useState(null);
-  const [right, setRight] = useState(null);
+  const [slots, setSlots] = useState([null, null]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -101,8 +163,12 @@ export default function LandingSpotlightsPicker() {
       .then(([secs, current]) => {
         if (cancelled) return;
         setSections(secs || []);
-        setLeft(current?.left || null);
-        setRight(current?.right || null);
+        const loaded = current?.slots || [];
+        setSlots(
+          loaded.length >= MIN_SLOTS
+            ? loaded
+            : [...loaded, ...Array(MIN_SLOTS - loaded.length).fill(null)]
+        );
       })
       .catch(() => {
         if (cancelled) return;
@@ -120,13 +186,13 @@ export default function LandingSpotlightsPicker() {
     setSaving(true);
     try {
       const result = await api.setLandingSpotlights(next);
-      setLeft(result.left || null);
-      setRight(result.right || null);
-      toast.success(
-        result.left || result.right
-          ? "Spotlights updated"
-          : "Spotlights cleared"
+      const loaded = result.slots || [];
+      setSlots(
+        loaded.length >= MIN_SLOTS
+          ? loaded
+          : [...loaded, ...Array(MIN_SLOTS - loaded.length).fill(null)]
       );
+      toast.success(loaded.some(Boolean) ? "Spotlights updated" : "Spotlights cleared");
     } catch {
       toast.error("Couldn't save — try again");
     } finally {
@@ -134,13 +200,24 @@ export default function LandingSpotlightsPicker() {
     }
   };
 
-  const onSlotChange = (slot) => (value) => {
-    const next = { left, right, [slot]: value };
+  const onSlotChange = (index) => (value) => {
+    const next = [...slots];
+    next[index] = value;
     save(next);
   };
 
-  const clearAll = () => save({ left: null, right: null });
-  const hasAny = Boolean(left || right);
+  const addSlot = () => {
+    if (slots.length >= MAX_SLOTS) return;
+    setSlots([...slots, null]);
+  };
+
+  const removeSlot = (index) => {
+    const next = slots.filter((_, i) => i !== index);
+    save(next.length >= MIN_SLOTS ? next : [...next, null]);
+  };
+
+  const clearAll = () => save(slots.map(() => null));
+  const hasAny = slots.some(Boolean);
 
   return (
     <section data-testid="landing-spotlights-picker">
@@ -151,18 +228,32 @@ export default function LandingSpotlightsPicker() {
         </h2>
       </div>
       <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 items-start">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+          <div className="max-w-2xl">
             <p className="text-sm leading-relaxed text-slate-700 mb-2">
-              Pick two sections from your library to feature in the
-              "Spotlights" band on the public sign-in page. Each renders
-              live as a tilted card with the section name as its headline.
+              Pick up to {MAX_SLOTS} sections from your library to feature in
+              the "Spotlights" band on the public sign-in page. Each renders
+              live — see exactly what visitors would see below.
             </p>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Leave both as <em>None</em> to hide the Spotlights band
+              Leave every slot as <em>None</em> to hide the Spotlights band
               entirely. Only sections you own can be slotted; editing the
               section later reflects on the landing page automatically.
             </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {slots.length < MAX_SLOTS && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addSlot}
+                disabled={saving}
+                data-testid="spotlight-add"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                Add spotlight
+              </Button>
+            )}
             {hasAny && (
               <Button
                 variant="outline"
@@ -170,30 +261,26 @@ export default function LandingSpotlightsPicker() {
                 onClick={clearAll}
                 disabled={saving}
                 data-testid="spotlight-clear-all"
-                className="mt-4"
               >
-                Clear both spotlights
+                Clear all spotlights
               </Button>
             )}
           </div>
-          <div className="space-y-4">
-            <SlotPicker
-              slotKey="left"
-              label="Left spotlight"
-              value={left}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {slots.map((value, index) => (
+            <SpotlightCard
+              key={index}
+              index={index}
+              value={value}
               sections={sections}
               disabled={loading || saving}
-              onChange={onSlotChange("left")}
+              onChange={onSlotChange(index)}
+              onRemove={() => removeSlot(index)}
+              removable={slots.length > MIN_SLOTS}
             />
-            <SlotPicker
-              slotKey="right"
-              label="Right spotlight"
-              value={right}
-              sections={sections}
-              disabled={loading || saving}
-              onChange={onSlotChange("right")}
-            />
-          </div>
+          ))}
         </div>
       </div>
     </section>

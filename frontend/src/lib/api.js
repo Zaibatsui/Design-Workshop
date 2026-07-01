@@ -133,12 +133,29 @@ export const api = {
       body: JSON.stringify({ page_id: pageId }),
     }),
 
-  // Landing-spotlights picker (admin-only writes). Two slots: left/right.
+  // Landing-spotlights picker (admin-only writes). Up to 4 ordered slots.
   getLandingSpotlights: () => req("/admin/landing-spotlights"),
-  setLandingSpotlights: ({ left, right }) =>
+  setLandingSpotlights: (slots) =>
     req("/admin/landing-spotlights", {
       method: "PUT",
-      body: JSON.stringify({ left: left || null, right: right || null }),
+      body: JSON.stringify({ slots: slots.map((s) => s || null) }),
+    }),
+
+  // Landing social-proof picker (admin-only writes). Up to 3 ordered
+  // slots (testimonials / logo strip / stat counter, typically), each
+  // an { section_id, height } object — height is admin-controlled per
+  // slot, not guessed from the section type. Empty = band hides on the
+  // landing page, no placeholder fallback.
+  getLandingSocialProof: () => req("/admin/landing-social-proof"),
+  setLandingSocialProof: (slots) =>
+    req("/admin/landing-social-proof", {
+      method: "PUT",
+      body: JSON.stringify({
+        slots: slots.map((s) => ({
+          section_id: s?.section_id || null,
+          height: s?.height || 280,
+        })),
+      }),
     }),
 
   // Image library — per-user reusable image collection. Used by the

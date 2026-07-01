@@ -72,6 +72,11 @@ function renderPicked(item) {
   };
 }
 
+// Frame heights cycle through this rhythm so a row of curated slots
+// doesn't read as a monotonous grid of identical boxes.
+const FRAME_HEIGHTS = [360, 440, 380, 420];
+const TILTS = [-1.4, 1.4, -1.1, 1.1];
+
 function Spotlight({ headline, blurb, snippet, tilt, frameHeight, testid }) {
   return (
     <div
@@ -110,7 +115,7 @@ function Spotlight({ headline, blurb, snippet, tilt, frameHeight, testid }) {
 }
 
 export default function SectionSpotlights() {
-  // null = still loading; {left, right} once resolved.
+  // null = still loading; array once resolved.
   const [picks, setPicks] = useState(null);
 
   useEffect(() => {
@@ -120,46 +125,45 @@ export default function SectionSpotlights() {
       .catch(() => null)
       .then((data) => {
         if (cancelled) return;
-        setPicks(data || { left: null, right: null });
+        setPicks(data?.slots || []);
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Render whichever slots are filled. If admin set neither, fall back
-  // to the hand-rolled defaults so the band always has something
-  // worth showing for first-run / never-curated deployments.
-  const slots = useMemo(() => {
-    if (picks == null) return { left: null, right: null, mode: "loading" };
+  // Render whichever slots are filled. If the admin hasn't curated any,
+  // fall back to the hand-rolled defaults so the band always has
+  // something worth showing for first-run / never-curated deployments.
+  const { items, mode } = useMemo(() => {
+    if (picks == null) return { items: [], mode: "loading" };
 
-    const left = renderPicked(picks.left);
-    const right = renderPicked(picks.right);
-
-    if (!left && !right) {
-      // Fallback to the original hardcoded demo.
+    const curated = picks.map(renderPicked).filter(Boolean);
+    if (curated.length === 0) {
       return {
-        left: {
-          headline: "A first impression that feels personal.",
-          blurb:
-            "The Welcome banner greets each customer by name, pins their account manager in reach, and lets you slide every block to a different corner per brand.",
-          doc: previewDoc(welcome.render(fallbackWelcomeCfg())),
-        },
-        right: {
-          headline: "Product carousels that look hand-built.",
-          blurb:
-            "Pull live prices straight from your storefront, drop badges on any corner, and let your shoppers swipe through curated picks with zero runtime libraries.",
-          doc: previewDoc(products.render(fallbackProductsCfg())),
-        },
+        items: [
+          {
+            headline: "A first impression that feels personal.",
+            blurb:
+              "The Welcome banner greets each customer by name, pins their account manager in reach, and lets you slide every block to a different corner per brand.",
+            doc: previewDoc(welcome.render(fallbackWelcomeCfg())),
+          },
+          {
+            headline: "Product carousels that look hand-built.",
+            blurb:
+              "Pull live prices straight from your storefront, drop badges on any corner, and let your shoppers swipe through curated picks with zero runtime libraries.",
+            doc: previewDoc(products.render(fallbackProductsCfg())),
+          },
+        ],
         mode: "fallback",
       };
     }
 
-    return { left, right, mode: "curated" };
+    return { items: curated, mode: "curated" };
   }, [picks]);
 
   // Loading: render nothing (avoids layout pop).
-  if (slots.mode === "loading") return null;
+  if (mode === "loading") return null;
 
   return (
     <section
@@ -172,7 +176,9 @@ export default function SectionSpotlights() {
             A closer look
           </p>
           <h2 className="font-heading text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Two examples — live and editable.
+            {items.length > 1
+              ? `${items.length} examples — live and editable.`
+              : "Live and editable."}
           </h2>
           <p className="text-base leading-relaxed text-slate-600 mt-5">
             These aren't mockups. They're the real building blocks, running
@@ -181,31 +187,34 @@ export default function SectionSpotlights() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-12 md:gap-16">
-          {slots.left ? (
-            <Spotlight
-              testid="spotlight-left"
-              headline={slots.left.headline}
-              blurb={slots.left.blurb}
-              snippet={slots.left.doc}
-              tilt={-1.4}
-              frameHeight={360}
-            />
-          ) : (
-            <div />
-          )}
-          {slots.right ? (
-            <Spotlight
-              testid="spotlight-right"
-              headline={slots.right.headline}
-              blurb={slots.right.blurb}
-              snippet={slots.right.doc}
-              tilt={1.4}
-              frameHeight={440}
-            />
-          ) : (
-            <div />
-          )}
+        {/*
+          Full width, not a side-by-side grid: these previews stand in for
+          full-bleed website sections, so shrinking one to half the
+          container crops exactly the thing we're trying to prove ("what
+          you see is what you ship"). Instead we stack them, alternating
+          tilt + a small horizontal nudge, with a negative top margin on
+          desktop so each card fans out from behind the last one.
+        */}
+        <div>
+          {items.map((item, i) => (
+            <div
+              key={i}
+              className={i === 0 ? "relative" : "relative mt-14 md:-mt-16"}
+              style={{
+                zIndex: i + 1,
+                transform: `translateX(${i % 2 === 0 ? "-1.5%" : "1.5%"})`,
+              }}
+            >
+              <Spotlight
+                testid={`spotlight-${i}`}
+                headline={item.headline}
+                blurb={item.blurb}
+                snippet={item.doc}
+                tilt={TILTS[i % TILTS.length]}
+                frameHeight={FRAME_HEIGHTS[i % FRAME_HEIGHTS.length]}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>

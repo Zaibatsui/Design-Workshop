@@ -6,6 +6,19 @@ import { previewDoc } from "@/sections/shared";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "";
 const PUBLIC_DEMO_URL = `${BACKEND_URL}/api/public/landing-demo`;
 
+// Suppresses the iframe's own horizontal scrollbar (a composed page can
+// end up a hair wider than the frame from full-bleed sections) without
+// touching vertical scroll, which is the whole point of this preview —
+// see the "Hover, click, scroll" copy below. Reaches into the srcDoc
+// itself rather than the shared `previewDoc()`, which is also used by
+// the live page editor canvas.
+function hideHorizontalScroll(doc) {
+  return doc.replace(
+    "</head>",
+    "<style>html,body{overflow-x:hidden}</style></head>"
+  );
+}
+
 /**
  * LiveDemo — admin-curated. Fetches the page that the admin flagged as
  * featured in their Brand Kit "Landing demo" picker, then renders its
@@ -67,7 +80,7 @@ export default function LiveDemo() {
 
   const doc = useMemo(() => {
     if (!demo || !demo.blocks?.length) return "";
-    return previewDoc(composePage(demo.blocks));
+    return hideHorizontalScroll(previewDoc(composePage(demo.blocks)));
   }, [demo]);
 
   // Hide the entire section when no featured page is set.

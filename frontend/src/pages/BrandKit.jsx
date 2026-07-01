@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import LandingDemoPicker from "./brand-kit/LandingDemoPicker";
 import LandingSpotlightsPicker from "./brand-kit/LandingSpotlightsPicker";
+import LandingSocialProofPicker from "./brand-kit/LandingSocialProofPicker";
 import { useAuth } from "@/auth/AuthContext";
 import UserMenu from "@/components/UserMenu";
 
@@ -1266,6 +1267,7 @@ export default function BrandKitPage({ chromeless = false, hideImageLibrary = fa
 
         {user?.is_admin && <LandingDemoPicker />}
         {user?.is_admin && <LandingSpotlightsPicker />}
+        {user?.is_admin && <LandingSocialProofPicker />}
 
         {!hideImageLibrary && (
           <section id="image-library" data-testid="brand-kit-image-library">

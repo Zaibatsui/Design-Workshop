@@ -1,8 +1,13 @@
 /**
- * RecentStrip — a compact horizontal "jump back in" row at the top of
- * the dashboard. Shows the 5 most recently edited items across both
+ * RecentStrip — a compact "jump back in" row at the top of the
+ * dashboard. Shows the 5 most recently edited items across both
  * sections and pages, with a mini live preview, type badge, title and
  * timeAgo. Click an item → navigate straight into its editor.
+ *
+ * Wraps and centers rather than scrolling horizontally — fixed-width
+ * tiles at the max item count don't reliably fit one row at every
+ * viewport width, and a horizontal-scroll strip for 5 items reads as a
+ * bug more than a feature.
  *
  * Each tile reuses the same iframe scale/visibility hook as the grid so
  * previews hydrate lazily and shrink-wrap to real content height.
@@ -58,10 +63,7 @@ export default function RecentStrip({ sections, pages }) {
           Jump back in · {recents.length} item{recents.length === 1 ? "" : "s"}
         </span>
       </div>
-      <div
-        className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scroll-smooth"
-        style={{ scrollbarWidth: "thin" }}
-      >
+      <div className="flex flex-wrap justify-center gap-2">
         {recents.map((r) =>
           r.kind === "section" ? (
             <RecentSectionTile key={`s-${r.id}`} section={r.item} />
@@ -156,7 +158,7 @@ function TileFrame({
     <Link
       to={to}
       data-testid={testId}
-      className="flex-shrink-0 snap-start group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all"
+      className="flex-shrink-0 group bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all"
       style={{ width: `${TILE_WIDTH}px` }}
     >
       <div

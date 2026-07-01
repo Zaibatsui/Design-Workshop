@@ -9,6 +9,7 @@ import SectionsShowcase from "./login/SectionsShowcase";
 import SectionSpotlights from "./login/SectionSpotlights";
 import HowItWorks from "./login/HowItWorks";
 import LiveDemo from "./login/LiveDemo";
+import SocialProof from "./login/SocialProof";
 import FAQ from "./login/FAQ";
 import FooterCTA from "./login/FooterCTA";
 
@@ -64,11 +65,12 @@ export default function Login() {
       <Header />
       <main>
         <Hero />
+        <SectionSpotlights />
+        <LiveDemo />
         <ValueProps />
         <SectionsShowcase />
-        <SectionSpotlights />
         <HowItWorks />
-        <LiveDemo />
+        <SocialProof />
         <FAQ />
       </main>
       <FooterCTA />
